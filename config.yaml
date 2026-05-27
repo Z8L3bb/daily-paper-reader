@@ -25,3 +25,65 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: lidar-d-det
+      description: LiDAR点云两阶段3D检测级联优化
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: LiDAR point cloud
+          keyword_cn: 激光雷达点云
+          query: 3D point cloud data captured by LiDAR sensors
+        - keyword: 3D object detection
+          keyword_cn: 三维目标检测
+          query: detecting objects in three-dimensional space
+        - keyword: multi-modal fusion
+          keyword_cn: 多模态融合
+          query: combining multiple sensor modalities for enhanced perception
+        - keyword: virtual point cloud
+          keyword_cn: 虚拟点云
+          query: synthetic point cloud generated from depth completion
+        - keyword: depth completion
+          keyword_cn: 深度补全
+          query: dense depth map estimation from sparse LiDAR data
+        - keyword: point cloud attention mechanism
+          keyword_cn: 点云注意力机制
+          query: attention modules designed for 3D point cloud feature aggregation
+      intent_queries:
+        - query: two stage 3D object detection with cascade refinement and RoI head innovations
+          query_cn: 两阶段3D目标检测的级联优化与RoI头创新
+          enabled: true
+          source: manual
+          note: ''
+        - query: attention mechanisms for sparse 3D point cloud feature aggregation
+          query_cn: 稀疏三维点云特征聚合的注意力机制
+          enabled: true
+          source: manual
+          note: ''
+        - query: multi modal fusion for robust 3D object detection using virtual point clouds and depth completion
+          query_cn: 利用虚拟点云和深度补全的多模态融合鲁棒三维目标检测
+          enabled: true
+          source: manual
+          note: ''
+        - query: auxiliary supervision and sparse convolution optimization for LiDAR based 3D detection
+          query_cn: 激光雷达三维检测的辅助监督与稀疏卷积优化
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-05-27T20:12:51.843Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
