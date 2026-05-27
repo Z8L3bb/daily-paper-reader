@@ -1,0 +1,1022 @@
+Title: Learning the RoPEs: Better 2D and 3D Position Encodings with STRING
+
+URL Source: https://openreview.net/pdf?id=XXFBqfwnUp
+
+Number of Pages: 21
+
+Markdown Content:
+# Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Connor Schenck ∗ 1 † Isaac Reid ∗ 2 3 † ∧ Mithun George Jacob ∗ 1 † Alex Bewley ∗ 1 † Joshua Ainslie ∗ 1 †
+
+David Rendleman ∗ 1 † Deepali Jain ∗ 1 Mohit Sharma ∗ 1 Avinava Dubey ∗ 3 Ayzaan Wahid 1 Sumeet Singh 1
+
+Ren´ e Wagner 1 Tianli Ding 1 Chuyuan Fu 1 Arunkumar Byravan 1 Jake Varley 1 Alexey Gritsenko 1
+
+Matthias Minderer 1 Dmitry Kalashnikov 1 Jonathan Tompson 1 Vikas Sindhwani 1
+
+Krzysztof Choromanski ∗ 1 ‡
+
+Figure 1. Top: Successful diffusion policy conditioned on a STRING-enhanced Transformer vision encoder, attempting the double-insertion task on Aloha-sim. Bottom: Same experiment, but with a regular vision encoder for which the policy fails. STRING provides strong improvements for training dexterous robotics policies, outperforming previous position encoding algorithms such as RoPE. 
+
+# Abstract 
+
+We introduce STRING : Separable Translation-ally Invariant Position Encodings. STRING ex-tends Rotary Position Encodings (RoPE; Su et al., 2024), a recently proposed and widely used al-gorithm in large language models, via a unify-ing theoretical framework. Importantly, STRING still provides exact translation invariance, includ-ing token coordinates of arbitrary dimensional-ity, whilst maintaining a low computational foot-print. These properties are especially important in robotics, where efficient 3D token representa-tion is key. We integrate STRING into Vision Transformers with RGB(-D) inputs (color plus optional depth), showing substantial gains, e.g. in open-vocabulary object detection and for robotics controllers. We complement our experiments with a rigorous mathematical analysis, proving the uni-versality of our methods. Videos of STRING-based robotics controllers can be found here. 
+
+> *
+
+Equal contribution †Random order ∧Work done at Google Re-search ‡Senior lead. 1Google DeepMind 2University of Cambridge 
+
+> 3
+
+Google Research. Correspondence to: Krzysztof Choromanski 
+
+<kchoro@google.com >.
+
+Proceedings of the 42 nd International Conference on Machine Learning , Vancouver, Canada. PMLR 267, 2025. Copyright 2025 by the author(s). 
+
+# 1. Introduction and Related Work 
+
+Position encodings (PEs) (Zhao et al., 2023; Kazemnejad et al., 2023; Chen et al., 2021; Kiyono et al., 2021) inject information about the respective locations of tokens into transformers (Vaswani et al., 2017). They are essential for good performance because vanilla attention is a set function, equivariant under permutation. In contrast, the meaning of a sequence of tokens in general depends on its ordering. 
+
+APEs and RPEs. Practitioners initially relied on absolute 
+
+PEs (APEs; Vaswani et al., 2017; Kiyono et al., 2021; Wang et al., 2021; Liu et al., 2020) which add or concatenate fixed, precomputed position embeddings to tokens. These have since been replaced by relative PEs (RPEs; Shaw et al., 2018; Raffel et al., 2020; Li et al., 2024; Chi et al., 2022; Press et al., 2022; Chi et al., 2023), which add a learnable bias term that depends on the distance between tokens to the pre-softmax attention logits. RPEs tend to generalise better than APEs over varying sequence lengths. However, they often require explicit computation for every query-key pair. 
+
+RoPE. To address the limitations of RPEs and APEs, re-searchers recently introduced rotary position encodings (RoPE; Su et al., 2024; Heo et al., 2025). These have been widely adopted in large language models (LLMs; Dubey et al., 2024; Gemma Team et al., 2024). RoPE acts on queries and keys by partitioning them into 2-dimensional blocks, each of which is rotated by an angle proportional 1Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+to the token’s position in the sequence. Whilst queries and keys are rotated separately, the angle of relative rotation is proportional to their separation, combining the best proper-ties of APEs and RPEs. Mathematically, for query and key of dimensionality d, RoPE involves b d 
+
+> 2
+
+c Givens rotations (Bindel et al., 2002) acting on disjoint 2D subspaces. Besides providing strong empirical gains, two attractive properties have driven the enthusiastic uptake of RoPE. 1. Separability. RoPE transforms each query and key inde-pendently, based on its position. This happens once per token; the PE’d tokens are not recalculated during sub-sequent processing like autoregressive generation. This makes KV-caching convenient. Separability also makes RoPE compatible with linear attention, e.g. Performers (Choromanski et al., 2020; Katharopoulos et al., 2020). Here, the attention matrix is not instantiated in memory so explicit RPE mechanisms are not possible. 1
+
+2. Translational invariance. For a query-key pair at posi-tions (i, j ) ∈ N2, the relative rotation angle depends only on i − j. This improves sequence-length generalization. However, RoPE is not the only position encoding algo-rithm with these desirable traits. In this paper, we pro-pose a more general algorithm called STRING : Separable 
+
+Tr anslationally In variant Position Encodin gs. STRING is based on Lie groups. It generalises RoPE via a unifying the-oretical framework, incorporating the latter as a special case. In fact, we later prove that STRING is the most general PE algorithm with the properties above, amongst a broad class. 
+
+STRING for robotics. The above features are especially important in robotics, where efficient 2D/3D token represen-tation and sensible physical priors are key. To demonstrate it, we integrate STRING into Vision Transformers (ViTs), showing strong improvements for open-vocabulary object detection models and various robotics controllers. This showcases the real-world impact of our STRING. Videos of STRING-based robotics controllers can be found here: https://sites.google.com/view/string-robotics. 
+
+Key contributions. 
+
+1. We introduce STRING, a new family of position encod-ings for multidimensional token coordinates that respect both separability and translational invariance. 2. We rigorously analyse STRING’s theoretical properties (Sec. 3 ), proving that it is more general than RoPE. We provide computationally efficient implementations. 3. We show strong accuracy gains across varied models using Transformers with STRING, on a range of robotics and general vision tasks (see Fig. 1 and Sec. 4 ).  
+
+> 1Implicit relative position encoding schemes, which avoid in-stantiating the attention matrix in memory, have also been proposed (Reid et al., 2024; Choromanski et al., 2022; Luo et al., 2021).
+
+# 2. Preliminaries 
+
+Let {xi}Ni=1 ∈ Rd denote a set of N d -dimensional tokens. Assume that d is even. The ith query, key and value vectors are given by qi = Wq xi, ki = Wkxi and vi = Wv xi
+
+respectively, where Wq , Wk, Wv ∈ Rd×d are learned pro-jection matrices (to keep the notation simple, we assume here the one-head setting). The attention mechanism , basic computational unit of the Transformer, can be written as: 
+
+xi →
+
+∑ 
+
+> j
+
+exp( q> 
+
+> i
+
+kj )vj
+
+∑ 
+
+> l
+
+exp( q> 
+
+> i
+
+kl) . (1) This updates the set of tokens, mixing them dynamically depending on the query-key softmax similarity scores. 
+
+Rotary position encodings. As described in Section 1, RoPE rotates tokens depending on their locations. In the 1D data setting (e.g. text), for a token zi ∈ { qi, ki} at position 
+
+i ∈ N, we take zi → RoPE (i)zi with RoPE (i)zi := 
+
+> d/ 2
+
+⊕
+
+> n=1
+
+ρ(iθ n)[ zi]2n−1:2 n, (2) 
+
+ρ(θ) := 
+
+[cos θ − sin θ
+
+sin θ cos θ
+
+]
+
+. (3) Here, ⊕ denotes the direct product, so that each 2×2 matrix 
+
+{ρ(iθ n)}d/ 2 
+
+> i=1
+
+independently rotates a 2-element section of the query/key, and [zi]2n−1:2 n denotes the 2n − 1 and 2n
+
+elements of zi. Note that the matrix RoPE (i) is d × d, but it is only nonzero on the 2 × 2 blocks on the diagonal. Since 
+
+ρ(θ)> = ρ(−θ) and 2D rotations commute, we have that RoPE (i)>RoPE (j) = RoPE (j − i), (4) whereupon we are transforming q> 
+
+> i
+
+kj → q> 
+
+> i
+
+RoPE (j−i)kj .The dependence on j − i makes this translationally invari-ant. RoPE takes the set of angles {θn}d/ 2
+
+> n=1
+
+, determining the rotation frequency of each 2 × 2 block, as hyperparameters. We suppress this dependence for notational compactness. The authors originally proposed the decaying sequence 
+
+θn = λ−2( n−1) /d with base wavelength λ = 10 , 000 ,though variants have since been explored (see below). 
+
+RoPE in higher dimensions. Whilst RoPE was originally proposed for sequence data, recent work has extended it to encode higher-dimensional position information (Heo et al., 2025). Now each token is equipped with a vector ri ∈ Rdc ,and we require: RoPE (ri)>RoPE (rj ) = RoPE (rj − ri).Since 2D rotations commute, one approach is to define RoPE (ri) := 
+
+> dc
+
+∏
+
+> k=1
+
+RoPE ([ ri]k), (5) where [ri]k is the kth coordinate of ri (with k ∈ { 1, ..., d c}). This independently applies regular 1-dimensional RoPE (Eq. 2) for each dimension of the position vector. The 2Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+rotation frequencies {θn}d/ 2 
+
+> n=1
+
+can optionally differ between each coordinate axis. 
+
+Generalisations of RoPE. Prompted by its success, a num-ber of papers have since sought to understand the effective-ness of RoPE and propose better-performing alternatives. One well-known method argues to increase the base wave-length λ to 500 , 000 , slowing the rate of token rotation and improving learning with longer contexts (Xiong et al., 2023; Roziere et al., 2023). Another suggests to completely trun-cate the lowest frequencies, setting them to zero, which helps preserve long-range ‘semantic channels’ (Barbero et al., 2024). Practitioners can also make the parameters 
+
+{θn}d/ 2 
+
+> n=1
+
+fully learnable, improving flexibility. Lastly, re-cent work has proposed to replace the block-diagonal RoPE matrices RoPE (i) by more general dense matrices in SO (d),parameterized by learned antisymmetric generators (Ost-meier et al., 2024). Whilst more expressive, this algorithm breaks translational invariance for position vectors with 
+
+dc > 1, and has a large memory footprint. This makes it unsuitable for robotics applications. In Section 3, we will propose a better alternative, STRING. 
+
+# 3. STRING: Separable Translationally Invariant Position Encodings 
+
+Recall that our goal is modify queries and keys depending on their respective positions, so that changes to dot products 
+
+q> 
+
+> i
+
+kj depend on ri − rj . RoPE achieves this using matrix multiplication (Su et al., 2024). Here, we present STRING: a more general, better-performing algorithm. 
+
+3.1. Introducing STRING 
+
+STRING is defined as follows. 
+
+Definition 3.1. STRING is the mapping R(·) :
+
+Rdc → Rd×d, from dc-dimensional position vec-tors to d × d matrices, given by 
+
+R(ri) = exp 
+
+( dc∑
+
+> k=1
+
+Lk[ri]k
+
+)
+
+, (6) where {Lk}dc 
+
+> k=1
+
+⊂ Rd×d is a set of learnable and commuting skew-symmetric generators. Given a set of queries or keys {zi}Ni=1 ⊂ Rd at positions 
+
+{ri}Ni=1 ⊂ Rdc , their positions are encoded as: 
+
+zi → R(ri)zi ∀i ∈ { 1, ..., N }. (7) Here, exp( ·) refers to the matrix exponential, defined by its series expansion exp( A) := ∑∞ 
+
+> i=0
+
+Ai/i ! and [ri]k is the kth coordinate of vector ri. By ‘commuting skew-symmetric generators’, we mean that {Lk}dc 
+
+> k=1
+
+satisfy 
+
+[Li, Lj ] = 0 and L> 
+
+> i
+
+= −Li ∀ i, j. (8) There are many ways to parameterize such a set; we give examples in Section 3.2. Remarkably, the following is true. 
+
+Theorem 3.2 (STRING is general) . Consider the set of mappings R(·) : Rdc → Rd×d that satisfy the group-like translational invariance property R(ri)>R(rj ) =
+
+R(rj − ri) ∀ ri, rj ∈ Rdc , are continuously differentiable with respect to ri, and satisfy R(0) = Id (with Id the d-dimensional identity). All such mappings can be expressed as STRING with some set of generators {Lk}dc 
+
+> k=1
+
+⊂ Rd×d.
+
+In this sense, STRING is the most general of all translation-ally invariant position encoding mechanisms using matrix multiplication. Meanwhile, RoPE is a simple special case of STRING, taking a particular choice of generators. This can be seen as follows. 
+
+Theorem 3.3 (RoPE is a type of STRING #1) . Consider the generators Lk = ∑d/ 2
+
+> p=1
+
+(δ2p, 2p−1 − δ2p−1,2p)θp, where 
+
+{θp}d/ 2 
+
+> p=1
+
+⊂ R and δi,j is the delta function. This corre-sponds to RoPE with rotational frequencies {θp}d/ 2
+
+> p=1
+
+.
+
+Proofs of Theorem 3.2 and Theorem 3.3 are in Appendix A. 
+
+3.2. Computationally efficient STRING 
+
+Despite being general and notationally compact, the param-eterization of the STRING matrices R(ri) shown in Eq. 6 may not be convenient for practical applications. Given N
+
+tokens at positions {ri}Ni=1 , one must in general exponenti-ate and store N dense d × d matrices. This incurs O(N d 3)
+
+time complexity and O(N d 2) space complexity cost. The problem is exacerbated if the {ri}Ni=1 differ across training examples and batches, which occurs e.g for point cloud data or color plus depth channel (RGB-D) images. In this case, 
+
+{R(ri)}Ni=1 cannot be cached and reused. This motivates the goal of this section: to find efficient STRING instantia-tions, nonetheless more general and expressive than RoPE. We begin with the following (proof in Appendix A): 
+
+Theorem 3.4 (RoPE is a type of STRING #2) . For any STRING position encoding with generators {Lk}dc
+
+> k=1
+
+, there exists an orthogonal matrix P such that 
+
+R(ri) = PRoPE (ri)P>. (9) Note that the orthogonal matrix P is independent of the coor-dinates ri, so it can be learned and stored once per attention head and shared across all training examples. Meanwhile, RoPE (ri) is sparse – it is only nonzero on the super- and subdiagonals – so multiplying tokens only requires O(N d )
+
+memory and O(N d 2) time, saving a factor of d. This is crucial in the contrastive learning setting where batch sizes can become large. Once again, one can see that RoPE is a special case of STRING, this time taking P = Id. We emphasize that the parameterization of STRING in Eq. 9 remains just as general as in Eq. 6. We also note that, since 3Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+in regular attention one takes dot products between position-encoded queries and keys, the first orthogonal matrix P
+
+will always cancel with its counterpart. Therefore, in Trans-formers it is sufficient to take R(ri) = RoPE (ri)P, with 
+
+P ∈ O(d) learnable, without loss of generality. 2
+
+Example 1: Cayley-STRING. Equipped with Theo-rem 3.4, our goal becomes to choose a suitable parame-terization for the orthogonal matrix P. One option is to take the Cayley Transform ,
+
+PCayley := ( Id − S)( Id + S)−1, (10) where S is a learnable (potentially sparse) antisymmetric matrix (Diele et al., 1998). PCayley is convenient since, for a token zi, we can compute (Id + S)−1zi efficiently using a linear solver, avoiding expensive methods such as matrix inversions and matrix exponentials. Note that wherever we use PCayley , we refer to our algorithm as Cayley-STRING .
+
+The unreasonable effectiveness of STRING. In some sense, Theorem 3.4 makes it surprising that STRING out-performs RoPE so comprehensively in all our experiments (see Section 4), given that they are related by a change of basis. It appears that the ability to explicitly learn this ba-sis change via P (shared between queries and keys), rather than implicitly via existing network weights, substantially boosts performance. Conversely, when using linear atten-tion variants, the projected tokens Wq qi and Wkki are pushed through nonlinearities such as ReLU (·) before tak-ing the dot product. Hence, in this case, including learnable 
+
+P does increase the capacity of the network, rather than simply learning a basis change. 
+
+Example 2: Circulant-STRING. We now present a sec-ond efficient STRING algorithm within our framework. A square matrix is referred to as circulant if it takes the form 
+
+C =
+
+
+
+c0 cd−1 · · · c2 c1
+
+c1 c0 cd−1 · · · c2
+
+... c1 c0
+
+. . . ...
+
+cd−2
+
+... . . . . . . cd−1
+
+cd−1 cd−2 · · · c1 c0
+
+
+
+. (11) All rows are composed of the same elements, and each row is rotated one element relative to the preceding row. The transpose of a circulant matrix C> is also circulant, and the sum of two circulant matrices is also circulant. It follows that C−C> is circulant and antisymmetric. Lastly, circulant matrices commute. With these properties in mind, we can simply define Lk = Ck − C> 
+
+> k
+
+for k ∈ { 1, ..., d c}, with 
+
+Ck a learnable circulant matrix parameterized by d scalars 
+
+{c0, ..., c d−1}. We call this Circulant-STRING . This special parameterization is convenient for the following reason.   
+
+> 2We dropped the transpose sign on the second P, redefining
+> P>as our learnable orthogonal matrix.
+
+Theorem 3.5 (Circulant-STRING is fast) . Given generators 
+
+Lk = Ck − C> 
+
+> k
+
+with Ck circulant, the position encoding 
+
+exp( ∑ Lk[ri]k)zi for token zi at position ri can be com-puted in O(d log d) time and O(d) memory using the fast Fourier Transform (FFT). 
+
+We provide a proof in Appendix A. Circulant-STRING pro-vides another efficient position encoding algorithm that scales gracefully to large, high-dimensional datasets and performs well in spatial applications (see Section 4). 
+
+Learnable frequencies with STRING. Note that the STRING generators from Definition 3.1 are (in general) learnable. For Cayley-STRING, the angle-defining frequen-cies for RoPE and S, the skew-symmetric matrix from Equa-tion (10) are learned whereas in Circulant-STRING, the scalars {c0, ..., c d−1} in Equation (11) are learned.                          
+
+> STRING Train Inference
+> Space Time Space Time Cayley O(d2)O(d3)O(d)
+> Circulant O(d)O(dlog d)O(d)O(dlog d)
+> Table 1. Space and time complexity of the presented STRING methods in terms of the token dimensionality per head d.
+
+Computational complexity. Table 1 lists the computa-tional complexity of the presented STRING methods. With token dimensionality per head d, Cayley-STRING intro-duces d2/2 parameters per head (from the d/ 2 angle-defining RoPE frequencies and d (d − 1) /2 parameters which fully determine the learnable skew-symmetric matrix used to generate PCayley ). Circulant-STRING introduces 
+
+d parameters per head (from the learnable circulant ma-trix fully determined by d parameters). In our experiments, 
+
+d = 64 resulted in a negligible increase of trainable parame-ters. During training, Cayley-STRING takes O (d3) time due to the linear solver. However, during inference, the learned orthogonal matrix PCayley can be absorbed into existing q/k 
+
+projections at no extra cost (for vanilla attention). Circulant-STRING only takes O (d log d) time via the Fast Fourier Transform. Both approaches improve upon RoPE, yet Cayley-STRING in general leads to larger improvements (see Section 4). Thus, we have here a classic trade-off between qual-ity and computational expense. For applications with strict training performance constraints, we recommend Circulant-STRING due to its compact computational foot-print, whereas for other applications Cayley-STRING is recommended. 
+
+3.3. Loose ends 
+
+Here, we discuss further generalisations of STRING. 4Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Extension 1: ⊗-STRING. So far, we have followed RoPE in assuming that our position encodings are applied via matrix multiplication. However, this can be relaxed whilst preserving separability and translational invariance. For example, one can transform tokens zi via the outer product with position feature vectors f (ri) ∈ R2m,
+
+zi → vec (f (ri) ⊗ zi). (12) Here, ⊗ denotes the outer product and vec denotes the ‘vec-torizing’ operation that flattens a matrix to a vector, so that vec (f (ri) ⊗ qi)da +b = f (ri)aqib where a ∈ { 1, ..., 2m}
+
+and b ∈ { 1, ..., d }. Since the dot product of (flattened) outer products gives the product of dot products, we have vec (f (ri) ⊗ qi)>vec (f (rj ) ⊗ kj ) = q> 
+
+> i
+
+kj · f (ri)>f (rj ).
+
+(13) Now suppose that we take the Fourier features 
+
+f (ri) = 1
+
+√m
+
+[cos( ω> 
+
+> k
+
+ri), sin( ω> 
+
+> k
+
+ri)]mk=1 , (14) where {ωk}mk=1 ⊂ Rd are learnable d-dimensional fre-quency vectors. Then we have that f (ri)>f (rr ) =
+
+> 1
+> m
+
+∑mk=1 cos( ωk(ri − rj )) which is clearly a function of 
+
+ri − rj . We refer to this novel position encoding variant, or-thogonal to previous RoPE-like approaches, as ⊗-STRING .
+
+Extension 2: General transformation groups. Having focused on translational invariance, another natural question is whether STRING could be repurposed for other contin-uous transformation groups. These may be more suitable for data with different properties; for example, one might sometimes prefer a rotationally invariant position encoding. More formally, recall that a Lie group with parameters ψ ∈
+
+Rk is a group of transformations of the form Tψ : Rd → Rd
+
+that are differentiable with respect to ψ. Let the parameter 
+
+ψ = 0 correspond to the identity element, so that T0x = x.A canonical coordinate system for G is an injective map ρ
+
+from Cartesian coordinates to a new coordinate system, sat-isfying ρ(Tψ x) = ρ(x) + ∑ki=1 ψiei ∀ Tψ ∈ G, where ei
+
+is the ith standard basis vector. Observe that the right hand side of this equation represents a translation in the new basis. Canonical coordinate systems exist for all one-parameter Lie groups ( k = 1 ), and more generally for Abelian groups of dimension k ≤ d (Segman et al., 1992; Rubinstein et al., 1991; Tai et al., 2019). They can be derived analytically by solving a set of first-order PDEs, though for many common transformation groups the canonical coordinate system is obvious. For instance, for azimuthal and polar rotations of points (rx, ry , rz ) in 3D space ( k = 2 ), a canonical coordi-nate system is (θ, φ ), where sin θ := 
+
+√
+
+r2 
+
+> x
+
++ r2 
+
+> y
+
+/‖r‖2 and 
+
+tan φ := ry /rx. Rotating 3 simply ‘translates’ the canonical   
+
+> 3Note that this differs from full 3D object pose invariance, for which the transformations do not form an Abelian group.
+
+coordinates (θ, φ ) → (θ + ∆ θ, φ + ∆ φ) – a transformation looking much more complicated in the Cartesian basis. 
+
+STRING for Abelian Lie groups. It follows that, simply by replacing Cartesian coordinates {ri}Ni=1 with their canon-ical counterparts, we can repurpose STRING to construct position encodings that respect more general invariances. 
+
+# 4. Experiments 
+
+In this section, we provide an exhaustive empirical compari-son of STRING with RoPE and vision encoders leveraging regular APEs. To set the stage, we start with general non-robotics experiments in Sec. 4.1. On our way to robotics applications, we then test STRING for 2D and 3D object detection in Sec. 4.2. Finally, we present robotics manipula-tion experiments in Sec. 4.3 and Sec. 4.4. 
+
+4.1. General Experiments: Classification and Retrieval 
+
+We tested STRING for image classification tasks on the 
+
+ImageNet2012 (Deng et al., 2009) and Places365 datasets, with Vision Transformer (ViT) (Dosovitskiy et al., 2021) as our base model. We compare against RoPE and RoPE-Mixed (Heo et al., 2025), abbreviated to RoPE-M, to Circulant-STRING and Cayley-STRING (respectively ab-breviated to Circulant-S and Cayley-S). The results are shown in Table 2. For both datasets, STRING offers best models. For ImageNet2012 , the top two models are STRINGs. Furthermore, ImageNet2012 STRINGs provide absolute gains larger than 1% , as compared to regular ViTs, with only a negligible set of extra trainable parameters.                                                                  
+
+> ViT RoPE RoPE-M Circulant-S Cayley-S
+> ImageNet 80 .04 80 .18 80 .86 81.22 81 .09 Places365 56 .79 56 .97 56 .69 56 .77 57.16
+> Mean 68 .42 68 .58 68 .78 69 .00 69.12
+> Table 2. Image classification %test accuracy. Best numbers are highlighted in bold and the second-best numbers are underlined. i2t@1 i2t@5 i2t@10 t2i@1 t2i@5 t2i@10 Mean ViT 53.88 73.17 78.49 53.98 73.83 79.29 68.77 RoPE 55.27 74.27 79.52 55.22 74.61 80.25 69.86 RoPE -M55.30 74.08 79.47 55.36 74.73 80.18 69.85 Circulant -S55.52 74.69 79.91 55.68 75.03 80.45 70.21 Cayley -S55.70 75.08 80.24 55.82 75.40 80.65 70.48
+> Table 3. Image-to-text (i2t) and text-to-image (t2i) WebLI recall @ rank (best numbers: in bold , second-best: underlined.)
+
+4.2. Improving Open-Vocabulary Object Detection 
+
+4.2.1. O PEN -V OCABULARY OBJECT DETECTION IN 2D Next, we lift WebLI (Chen et al., 2023), a dataset of 10 billion image-text pairs across a variety of languages, into 3D by pre-processing a 60-million image subset with Depth-5Learning the RoPEs: Better 2D and 3D Position Encodings with STRING                     
+
+> Baseline RoPE RoPE-M Circulant-S Cayley-S AP COCO 32.44 33.66 32.74 33.24 33.47 AP LVIS 21.98 22.71 22.43 22.60 23.01
+> Mean 27.21 28.18 27.59 27.92 28.24
+> Table 4. Average Precision (AP) % of the OWL-ViT model on COCO (Lin et al., 2014) and LVIS (Gupta et al., 2019). Best in
+> bold , second-best underlined.
+
+Anything-V2 (Yang et al., 2024) for metric mono-depth es-timation. The dataset is filtered using methods from (Chen et al., 2024) to remove images on which the indoor-finetuned model performs poorly such as those with overlays, no visi-ble groundplane, large outdoor scenes, or optical illusions. We perform contrastive learning on the text to visual rep-resentation pairs in the WebLI-3D lifted dataset, where the visual representation may be in the form of an RGB image or an RGB-D depth image. Similar to CLIP (Radford et al., 2021), this is done by maximizing the similarity between the embeddings of matching visual-text pairs, while minimiz-ing the similarity between embeddings of the non-matching pairs. This enables open-vocabulary detection and classi-fication by comparing the text embeddings of all possible classes against those of the visual representation, and select-ing the minimum distance pair. We compare against baseline in Table 3. For all six evaluations , Cayley-STRING is the best and Circulant-STRING is second best. We demonstrate the efficacy of STRING on open-vocabulary object detection for localizing a 2D bounding box on stan-dard RGB image benchmarks. For a baseline, we use the official implementation of OWL-ViT 4 (Matthias Minderer, 2022) which applies a standard Vision Transformer (Doso-vitskiy et al., 2021) with light-weight classification and lo-calization heads for detection. Table 4 compares the baseline OWL-ViT model with RoPE and STRING variants. For all experiments, we followed the standard training pipeline for the B/32 backbone with the CLIP loss (Radford et al., 2021). Even in this axis-aligned 2D detection setting – which is favourable for the standard RoPE variant – Cayley-STRING provides the best overall performance. 4.2.2. O PEN -V OCABULARY OBJECT DETECTION IN 3D We tested STRING on the open-vocabulary 3D object bounding box prediction task, similar to those from Sec. 4.2.1. Here we modify the output to be the full SE (3) 
+
+pose and 3D size of the bounding box. We initialize the weights of the vision and text towers of our model with the weights from the models trained on the WebLI-3D dataset from Sec. 4.1. We replace the IOU loss from OWL-ViT with an 8-corner vertex loss, but otherwise keep the same match-ing and loss algorithm. We train on a simulated dataset 
+
+> 4https://github.com/google-research/ scenic/tree/main/scenic/projects/owl_vit
+
+of 4 million images of indoor and tabletop scenes with groundtruth 3D bounding box labels (Lin et al., 2025) (see App.F.1 for details). From this dataset, we hold out 80 images for evaluation. We evaluate both ViT and ViTD variants. The 3D intersection-over-union (IOU) values for various RoPE and STRING variants on the evaluation data are shown in Table 5. For each configuration, we train 3 models with different random seeds and take the best per-forming model (see Appendix F.2.4 for details). Fig. 2shows example 3D detections for 6 different variants (see App.F for details). Note that STRINGs provide much more accurate prediction of the 3D bounding boxes for more chal-lenging to localize smaller objects than baseline and RoPE. For ViT, Circulant-STRING is the best, providing 1.5% rela-tive improvement as compared to the best RoPE variant. For ViTD, Cayley-STRING is the best, providing 2% relative improvement as compared to the best RoPE variant. For both ViT and ViTD, two best models are STRINGs.                 
+
+> Baseline RoPE RoPE-M Circulant-S Cayley-S ViT 49.77 58.09 57.17 58.95 58.85 ViTD 67.60 71.21 70.90 72.36 72.67
+> Table 5. Average 3D IOU % over all objects for the 3D bounding box prediction task. For each setting, 3 models were trained with different random seeds and the max is reported. Baseline indicates no RoPE or STRING. Best in bold , second-best underlined.
+
+4.3. Simulation-Based Robot Manipulation: ALOHA 
+
+We evaluate the performance of STRING on dexterous robotics tasks using ALOHA 2, a bimanual parallel-jaw gripper workcell with two 6-DoF arms, within the ALOHA Unleashed (Zhao et al., 2024) simulation environment (see: Fig. 1). ALOHA Unleashed utilizes a scalable teleoperation framework used to collect human demonstration data.   
+
+> Figure 3. HandOverBanana task for the ALOHA 2 robot: real (top) and the corresponding simulated (bottom) evaluation.
+
+We trained ALOHA Unleashed’s Transformer-based neural network with diffusion policies (conditioned on vision en-coders) on human demonstrations of 12 dexterous tasks (see Appendix B for descriptions and renders). The vision sys-tem utilized images from RGB cameras positioned overhead, on each wrist, and at the level of the table. We also deployed 6Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Baseline RoPE Cayley-STRING ViT ViTD  
+
+> Figure 2. Example outputs for the 3D detection task for baseline, RoPE, and Cayley-S. Green boxes: groundtruth. Blue boxes: predictions.
+
+our policies on real ALOHA 2 robots (see Fig. 3 and Fig. 11). Due to the large observed variance of the on-robot evaluation for ALOHA 2, we focused on the evaluation in simulation to accurately rank different methods. Table 6 reports the best task success rate of using RoPE (Heo et al., 2025), and Cayley-STRING on a baseline SigLIP B/16 256 (Zhai et al., 2023) ViT model. The success rate is averaged over 10 trials of each check-point, taken every 10K train steps and over 1M train steps. Corresponding curves are given in Fig. 4. Cayley-STRING achieves superior results across all tasks on average (i.e. MultiTask). Additionally, it achieves equivalent or superior results, as compared to RoPE (e.g. for the DoubleInsertion task from Fig. 1) and ViT for all 12 tasks except for Mu-gOnPlate and PlateOnRack (second-best). Finally, STRING converges much faster than other methods (see: Fig. 4). Note that we applied the strategy of learning all angle-defining frequencies for both RoPE and Cayley-STRING.                                              
+
+> Figure 4. Mean success rate across all tasks (i.e. MultiTask) evalu-ated 10 times every 10K train steps over 1M train steps. ViT RoPE STRING BowlOnRack 0.90 0.80 1.00
+> DoubleInsertion 0.20 0.50 0.60
+> FMB-1 0.20 0.20 0.20
+> FMB-2 0.10 0.10 0.10
+> FruitBowl 0.30 0.30 0.30
+> GlassOnRack 0.60 0.60 0.60
+> HandOverBanana 1.00 1.00 1.00
+> HandOverPen 1.00 1.00 1.00
+> MugOnPlate 0.70 0.90 0.80 PlateOnRack 0.60 0.70 0.50 SingleInsertion 0.40 0.60 0.60
+> StorageBin 0.00 0.00 0.00
+> MultiTask 0.37 0.42 0.46
+> Table 6. Mean success rate (best in bold , second-best underlined )over 10 evaluations of each ALOHA simulation task. RoPE (Heo et al., 2025) and Cayley-STRING are added to a baseline SigLIP B/16 256 ViT (Zhai et al., 2023). See Appendix B for details.
+
+4.4. Real-World 3D Robot Manipulation: KUKA 
+
+Establishing STRING as superior to other methods on previ-ous tasks, we let it operate on 3D data to obtain new SOTA robotic manipulation policies. This resulted in policies di-rectly using depth and deployed on real hardware. Note that STRING can be naturally applied in that context since it can be used for data equipped with general coordinate vectors 
+
+ri associated with tokens (e.g. 3D). 4.4.1. S ETTING 
+
+We evaluated STRING in the vision encoder of a generative policy applying energy-based models (Singh et al., 2024) and deployed on a real industrial KUKA robot arm (Udayan 7Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+et al., 2023). The closed-loop feedback policy operates on RGB-D images, and is learned as a generative model with imitation learning. Its architecture (see Appendix G for de-tails) consists of a diffusion Transformer and 3D encoders. The policy was trained on a mixture of scripted and teleop-erated data collected for 3 different skills (pick, place and handover) on various objects. It is evaluated exclusively on the pick skill with a diverse set of objects. Each evaluation was run as an A/B test for a total of 50 trials. 4.4.2. R EGULAR EVALUATIONS 
+
+We experimented with two ways of using depth in the policy. 
+
+Implicit depth via normal maps: In the first approach, following (Tziafas & Kasaei, 2023), depth input is used to construct a surface normal map with unit R3 values per pixel. Both RGB and depth inputs are then processed via identical (shared weights) embedding layers. The embeddings are concatenated and processed through Transformer layers. Finally, the embeddings are split and fused to yield the final vision embedding. Our results in Figure 5 show that this approach of incorporating depth has a detrimental effect on the on-robot deployed policy. We hypothesize that this is caused by the significant amount of noise coming from the depth sensors, leading to imperfect surface normal maps. 
+
+Lifting patches to 3D for STRING: In the second ap-proach, we compute the height for each patch via mean-pooling across depth values for all the pixels in the patch, followed by the learnable linear layer. The resulting 3D patches are then fed to the Transformer, with positional encoding given by STRING to incorporate depth into the vision encoder. Our results Figure 5 show that STRING im-proves the success rate over the 2D base policy. Also, when STRING is combined with the first method, it drastically 
+
+reduces the negative impact of noisy normal maps. We used Circulant-STRING to obtain a particularly compact computational footprint. Note that in this setting, more computationally intense mechanisms, such as (Ostmeier et al., 2024), ran out of memory and could not be trained. 4.4.3. O UT -OF -DISTRIBUTION EVALUATION : STRING 
+
+> VS BASELINE
+
+To further compare STRING with the baseline and show the advantages of using 3D over 2D policies, we also perform 
+
+out-of-distribution (OOD) evaluations on the real robot. We vary three different environment settings. These include: (1) lighting changes, (2) adding large distractor objects and (3) changing the height of the table from which the robot has to grasp the block. For each setting, we test multiple different variations, e.g., three different light settings. Figure 6 compares STRING with the 2D baseline for each OOD setting. For these evaluations, we choose the best 65.3   
+
+> 42.2
+> 53.1
+> 73.8
+> 0
+> 20
+> 40
+> 60
+> 80
+> 2D 2D + nmap nmap + 3D
+> STRING
+> 3D STRING
+> Success Rate
+
+Figure 5. Performance of STRING with 3D input vs. baselines on real-robot tasks (with 2 seeds). 2D baseline performance without depth input is ≈ 65% . Incorporating depth through surface normal maps (nmap) reduces performance to 42% . Using 3D STRING for incorporating depth improves the performance in both scenarios - with and without normal maps to 53% and 74% respectively. Mean/stdev shown above were calculated from 35 evaluation runs. 
+
+policies from Section 4.4.2. As seen in Figure 6, 3D STRING policies outperform 2D policies across all OOD settings. For instance, with large distractors (middle), the 2D model’s performance decreases from 65% to 57% , while 3D STRING maintains performance similar to non-OOD settings ( ≈ 74% ). In some OOD cases, such as lighting changes, both 2D ( ≈ 10% ) and 3D ( ≈ 25% ) policies ex-perience a performance decrease vs. the non-OOD setup. This drop in performance during lighting changes is likely due to the significant alteration in image observations, thus affecting both 2D and 3D policies. Finally, the largest per-formance difference is observed in the table height variation scenario. Here, the 3D policies exhibit significantly higher robustness ( ≈ 50 %) compared to the 2D policies ( ≈ 10 %). This suggests that the 3D STRING policy leverages the raw depth signal to better generalize to table height variations, a change imperceptible to fixed monocular cameras. Overall, our results show that 3D STRING policies are highly robust to many variations and significantly improve over 2D policies. Fig. 7 shows a sample episode from the on-robot evaluation of the STRING generative policy. Lighting Large Distractors Table Height   
+
+> - - - Indicates performance on standard (non-ood) environments 2D 3D STRING
+
+Figure 6. Comparison of 2D baseline with 3D STRING on out-of-distribution scenarios for real-world Kuka robot evaluations. 
+
+8Learning the RoPEs: Better 2D and 3D Position Encodings with STRING  
+
+> Figure 7. Rollout frames from a successful policy evaluation in the real world (top: RGB, bottom: depth). Best viewed zoomed-in.
+
+From 2D to 3D with STRING: We have already demon-strated (see the normal map approach from Section 4.4.2) that just adding a depth signal does not necessarily improve performance. STRING does so and exhibits another feature that other approaches (e.g. adding depth as extra channel) do not: it can be trained from a regular 2D pre-trained check-point. This is the case since STRING incorporates depth by using it to modulate a regular attention matrix, effec-tively disentangling 3D specific parameters (defining the modulation) from the core 2D backbone. All training runs in Section 4.4 started from the pre-trained 2D backbones. 
+
+# 5. Conclusion 
+
+We introduced a new class of translationally invariant po-sition encodings (PEs) for Transformers, called STRING. STRING is the most general of all translation-invariant PE methods using matrix multiplications (under weak smooth-ness assumptions) and contains the prominent class of RoPE methods as its special instantiation. We proposed to apply STRING in robotics for 2D and 3D modeling and provided its extensive empirical verification over a range of tasks, from standard classification and retrieval, through object localization, to diffusion robotic policies conditioned on Vision Transformers. In all these experiments, we showed consistent gains over RoPE, as well as baselines applying regular absolute position encodings. 
+
+# Impact Statement 
+
+The goal of this work is to contribute to the advancement of the machine learning field which may result in potential so-cietal consequences. We acknowledge these potential risks, especially in downstream use-cases of advanced machine learning techniques and advocate for careful consideration of ethical implications in the development and deployment of these techniques. Additionally, as it is the case for all papers discussing training Transformer architectures, the corresponding carbon footprint needs to be taken into ac-count. STRING plays a positive role here since it reduces computational costs by providing ways of fine-tuning al-ready pre-trained architectures with a negligible set of extra trainable parameters. 
+
+# References 
+
+Barbero, F., Vitvitskyi, A., Perivolaropoulos, C., Pascanu, R., and Veli ˇckovi ´c, P. Round and round we go! what makes rotary positional encodings useful? arXiv preprint arXiv:2410.06205 , 2024. Beyer, L., Steiner, A., Pinto, A. S., Kolesnikov, A., Wang, X., Salz, D., Neumann, M., Alabdulmohsin, I., Tschan-nen, M., Bugliarello, E., Unterthiner, T., Keysers, D., Koppula, S., Liu, F., Grycner, A., Gritsenko, A., Houlsby, N., Kumar, M., Rong, K., Eisenschlos, J., Kabra, R., Bauer, M., Bo ˇsnjak, M., Chen, X., Minderer, M., Voigt-laender, P., Bica, I., Balazevic, I., Puigcerver, J., Papalam-pidi, P., Henaff, O., Xiong, X., Soricut, R., Harmsen, J., and Zhai, X. PaliGemma: A versatile 3B VLM for transfer. arXiv preprint arXiv:2407.07726 , 2024. Bindel, D., Demmel, J., Kahan, W., and Marques, O. On computing givens rotations reliably and efficiently. 
+
+ACM Trans. Math. Softw. , 28(2):206–238, 2002. doi: 10.1145/567806.567809. URL https://doi.org/ 10.1145/567806.567809 .Calli, B., Walsman, A., Singh, A., Srinivasa, S., Abbeel, P., and Dollar, A. M. Benchmarking in manipulation research: The ycb object and model set and benchmarking protocols. arXiv preprint arXiv:1502.03143 , 2015. Chen, B., Xu, Z., Kirmani, S., Ichter, B., Driess, D., Flo-rence, P., Sadigh, D., Guibas, L., and Xia, F. Spatialvlm: Endowing vision-language models with spatial reason-ing capabilities, 2024. URL https://arxiv.org/ abs/2401.12168 .Chen, P., Tsai, H., Bhojanapalli, S., Chung, H. W., Chang, Y., and Ferng, C. A simple and effective positional encod-ing for transformers. In Moens, M., Huang, X., Specia, L., and Yih, S. W. (eds.), Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing, EMNLP 2021, Virtual Event / Punta Cana, Dominican Republic, 7-11 November, 2021 , pp. 2974–2988. Associa-tion for Computational Linguistics, 2021. doi: 10.18653/ V1/2021.EMNLP-MAIN.236. URL https://doi. org/10.18653/v1/2021.emnlp-main.236 .Chen, X., Wang, X., Changpinyo, S., Piergiovanni, A., Padlewski, P., Salz, D., Goodman, S., Grycner, A., Mustafa, B., Beyer, L., Kolesnikov, A., Puigcerver, J., Ding, N., Rong, K., Akbari, H., Mishra, G., Xue, L., Thapliyal, A., Bradbury, J., Kuo, W., Seyedhosseini, M., Jia, C., Ayan, B. K., Riquelme, C., Steiner, A., Angelova, A., Zhai, X., Houlsby, N., and Soricut, R. Pali: A jointly-scaled multilingual language-image model, 2023. URL 
+
+https://arxiv.org/abs/2209.06794 .9Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Chi, T., Fan, T., Ramadge, P. J., and Rudnicky, A. KER-PLE: kernelized relative positional embedding for length extrapolation. In Koyejo, S., Mohamed, S., Agarwal, A., Belgrave, D., Cho, K., and Oh, A. (eds.), Advances in Neural Information Processing Systems 35: Annual Conference on Neural Information Processing Systems 2022, NeurIPS 2022, New Orleans, LA, USA, November 28 - December 9, 2022 , 2022. Chi, T., Fan, T., Rudnicky, A., and Ramadge, P. J. Dis-secting transformer length extrapolation via the lens of receptive field analysis. In Rogers, A., Boyd-Graber, J. L., and Okazaki, N. (eds.), Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), ACL 2023, Toronto, Canada, July 9-14, 2023 , pp. 13522–13537. Associa-tion for Computational Linguistics, 2023. doi: 10.18653/ V1/2023.ACL-LONG.756. URL https://doi.org/ 10.18653/v1/2023.acl-long.756 .Choromanski, K., Likhosherstov, V., Dohan, D., Song, X., Gane, A., Sarlos, T., Hawkins, P., Davis, J., Mohiuddin, A., Kaiser, L., et al. Rethinking attention with performers. 
+
+arXiv preprint arXiv:2009.14794 , 2020. Choromanski, K., Lin, H., Chen, H., Zhang, T., Sehanobish, A., Likhosherstov, V., Parker-Holder, J., Sarlos, T., Weller, A., and Weingarten, T. From block-toeplitz matrices to differential equations on graphs: towards a general theory for scalable masked transformers. In International Con-ference on Machine Learning , pp. 3962–3983. PMLR, 2022. Collins, J., Goel, S., Deng, K., Luthra, A., Xu, L., Gun-dogdu, E., Zhang, X., Yago Vicente, T. F., Dideriksen, T., Arora, H., Guillaumin, M., and Malik, J. Abo: Dataset and benchmarks for real-world 3d object understanding. 
+
+CVPR , 2022. Deng, J., Dong, W., Socher, R., Li, L.-J., Li, K., and Fei-Fei, L. Imagenet: A large-scale hierarchical image database. In 2009 IEEE Conference on Computer Vi-sion and Pattern Recognition , pp. 248–255, 2009. doi: 10.1109/CVPR.2009.5206848. Diele, F., Lopez, L., and Peluso, R. The cayley trans-form in the numerical solution of unitary differential systems. Adv. Comput. Math. , 8(4):317–334, 1998. doi: 10.1023/A:1018908700358. URL https://doi. org/10.1023/A:1018908700358 .Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., and Houlsby, N. An image is worth 16x16 words: Transformers for image recognition at scale. ICLR , 2021. Downs, L., Francis, A., Koenig, N., Kinman, B., Hickman, R., Reymann, K., McHugh, T. B., and Vanhoucke, V. Google scanned objects: A high-quality dataset of 3d scanned household items. In 2022 International Confer-ence on Robotics and Automation (ICRA) , pp. 2553–2560. IEEE, 2022. Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Yang, A., Fan, A., et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. Gemma Team, Mesnard, T., Hardin, C., Dadashi, R., Bhu-patiraju, S., Pathak, S., Sifre, L., Rivi `ere, M., Kale, M. S., Love, J., et al. Gemma: Open models based on gemini re-search and technology. arXiv preprint arXiv:2403.08295 ,2024. Gupta, A., Dollar, P., and Girshick, R. Lvis: A dataset for large vocabulary instance segmentation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pp. 5356–5364, 2019. Hall, B. C. Lie groups, Lie algebras, and representations .Springer, 2013. Hendrycks, D. and Gimpel, K. Bridging nonlinearities and stochastic regularizers with gaussian error linear units. 
+
+CoRR , abs/1606.08415, 2016. URL http://arxiv. org/abs/1606.08415 .Heo, B., Park, S., Han, D., and Yun, S. Rotary position em-bedding for vision transformer. In European Conference on Computer Vision , pp. 289–305. Springer, 2025. Hertzberg, C., Wagner, R., Frese, U., and Schr ¨oder, L. In-tegrating generic sensor fusion algorithms with sound state representations through encapsulation of manifolds. 
+
+CoRR , abs/1107.1119, 2011. URL http://arxiv. org/abs/1107.1119 .Katharopoulos, A., Vyas, A., Pappas, N., and Fleuret, F. Transformers are rnns: Fast autoregressive transformers with linear attention. In International conference on ma-chine learning , pp. 5156–5165. PMLR, 2020. Kazemnejad, A., Padhi, I., Ramamurthy, K. N., Das, P., and Reddy, S. The impact of positional encoding on length generalization in transformers. In Oh, A., Naumann, T., Globerson, A., Saenko, K., Hardt, M., and Levine, S. (eds.), Advances in Neural Information Processing Systems 36: Annual Conference on Neural Information Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 - 16, 2023 , 2023. Kiyono, S., Kobayashi, S., Suzuki, J., and Inui, K. SHAPE: Shifted absolute position embedding for transformers. In Moens, M.-F., Huang, X., Specia, L., and Yih, S. 10 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+W.-t. (eds.), Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing ,pp. 3309–3321, Online and Punta Cana, Dominican Republic, November 2021. Association for Computa-tional Linguistics. doi: 10.18653/v1/2021.emnlp-main. 266. URL https://aclanthology.org/2021. emnlp-main.266/ .Kuhn, H. The hungarian method for the assignment problem. 
+
+Naval Research Logistics Quarterly , 2(1–2):83–97, 1955. Li, S., You, C., Guruganesh, G., Ainslie, J., Onta ˜n ´on, S., Zaheer, M., Sanghai, S., Yang, Y., Kumar, S., and Bho-janapalli, S. Functional interpolation for relative positions improves long context transformers. In The Twelfth Inter-national Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net, 2024. URL https://openreview.net/forum? id=rR03qFesqk .Lin, T.-Y., Maire, M., Belongie, S., Hays, J., Perona, P., Ra-manan, D., Doll ´ar, P., and Zitnick, C. L. Microsoft coco: Common objects in context. In Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part V 13 , pp. 740– 755. Springer, 2014. Lin, Y., Humplik, J., Huang, S. H., Hasenclever, L., Ro-mano, F., Saliceti, S., Zheng, D., Chen, J. E., Bar-ros, C., Collister, A., Young, M., Dostmohamed, A., Moran, B., Caluwaerts, K., Giustina, M., Moore, J., Connell, K., Nori, F., Heess, N., Bohez, S., and Byra-van, A. Proc4gem: Foundation models for physical agency through procedural generation, 2025. URL 
+
+https://arxiv.org/abs/2503.08593 .Liu, X., Yu, H., Dhillon, I. S., and Hsieh, C. Learning to en-code position for transformer with continuous dynamical model. In Proceedings of the 37th International Con-ference on Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event , volume 119 of Proceedings of Ma-chine Learning Research , pp. 6327–6335. PMLR, 2020. URL http://proceedings.mlr.press/v119/ liu20n.html .Luo, S., Li, S., Cai, T., He, D., Peng, D., Zheng, S., Ke, G., Wang, L., and Liu, T.-Y. Stable, fast and accurate: Kernelized attention with relative positional encoding. 
+
+Advances in Neural Information Processing Systems , 34: 22795–22807, 2021. Matthias Minderer, Alexey Gritsenko, A. S. M. N. D. W. A. D. A. M. A. A. M. D. Z. S. X. W. X. Z. T. K. N. H. Simple open-vocabulary object detection with vision transform-ers. ECCV , 2022. Ostmeier, S., Axelrod, B., Moseley, M. E., Chaudhari, A., and Langlotz, C. Liere: Generalizing rotary position encodings. arXiv preprint arXiv:2406.10322 , 2024. Press, O., Smith, N. A., and Lewis, M. Train short, test long: Attention with linear biases enables input length extrapolation. In The Tenth International Conference on Learning Representations, ICLR 2022, Virtual Event, April 25-29, 2022 . OpenReview.net, 2022. URL https: //openreview.net/forum?id=R8sQPpGCv0 .Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., Krueger, G., and Sutskever, I. Learning transferable visual models from natural language supervision. In 
+
+International conference on machine learning , pp. 8748– 8763. PMLR, 2021. Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., Zhou, Y., Li, W., and Liu, P. J. Explor-ing the limits of transfer learning with a unified text-to-text transformer. J. Mach. Learn. Res. , 21:140:1– 140:67, 2020. URL https://jmlr.org/papers/ v21/20-074.html .Reid, I., Dubey, K. A., Jain, D., Whitney, W., Ahmed, A., Ainslie, J., Bewley, A., Jacob, M., Mehta, A., Rendleman, D., et al. Linear transformer topological masking with graph random features. arXiv preprint arXiv:2410.03462 ,2024. Roziere, B., Gehring, J., Gloeckle, F., Sootla, S., Gat, I., Tan, X. E., Adi, Y., Liu, J., Sauvestre, R., Remez, T., et al. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950 , 2023. Rubinstein, J., Segman, J., and Zeevi, Y. Recognition of dis-torted patterns by invariance kernels. Pattern Recognition ,24(10):959–967, 1991. Segman, J., Rubinstein, J., and Zeevi, Y. Y. The canonical coordinates method for pattern deformation: Theoretical and computational considerations. IEEE Transactions on Pattern Analysis & Machine Intelligence , 14(12):1171– 1183, 1992. Shaw, P., Uszkoreit, J., and Vaswani, A. Self-attention with relative position representations. arXiv preprint arXiv:1803.02155 , 2018. Singh, S., Tu, S., and Sindhwani, V. Revisiting energy based models as policies: Ranking noise contrastive estimation and interpolating energy models. Transac-tions on Machine Learning Research , 2024. ISSN 2835-8856. URL https://openreview.net/forum? id=JmKAYb7I00 .11 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Su, J., Ahmed, M., Lu, Y., Pan, S., Bo, W., and Liu, Y. Roformer: Enhanced transformer with rotary position embedding. Neurocomputing , 568:127063, 2024. Tai, K. S., Bailis, P., and Valiant, G. Equivariant transformer networks. In International Conference on Machine Learn-ing , pp. 6086–6095. PMLR, 2019. Tziafas, G. and Kasaei, H. Early or late fusion matters: Efficient rgb-d fusion in vision transformers for 3d object recognition. In 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pp. 9558–9565, 2023. doi: 10.1109/IROS55552.2023.10341422. Udayan, J. D., Addanki, V., Durgapu, S., Yerramreddy, D. R., and Kolla, D. Forward kinematics simulation of KUKA KR5 arc robot with robo analyzer. In Pro-ceedings of the 2023 Fifteenth International Confer-ence on Contemporary Computing, IC3-2023, Noida, India, August 3-5, 2023 , pp. 294–299. ACM, 2023. doi: 10.1145/3607947.3608006. URL https://doi. org/10.1145/3607947.3608006 .Unity Technologies. Unity, 2023. URL https://unity. com/ . Game development platform. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., and Polosukhin, I. Attention is all you need. In Guyon, I., von Luxburg, U., Bengio, S., Wallach, H. M., Fergus, R., Vishwanathan, S. V. N., and Garnett, R. (eds.), Advances in Neural Information Processing Systems 30: Annual Conference on Neural Information Processing Systems 2017, December 4-9, 2017, Long Beach, CA, USA , pp. 5998–6008, 2017. Wang, B., Shang, L., Lioma, C., Jiang, X., Yang, H., Liu, Q., and Simonsen, J. G. On position embeddings in BERT. In 9th International Conference on Learn-ing Representations, ICLR 2021, Virtual Event, Austria, May 3-7, 2021 . OpenReview.net, 2021. URL https: //openreview.net/forum?id=onxoVA9FxMw .Xiong, W., Liu, J., Molybog, I., Zhang, H., Bhargava, P., Hou, R., Martin, L., Rungta, R., Sankararaman, K. A., Oguz, B., et al. Effective long-context scaling of founda-tion models. arXiv preprint arXiv:2309.16039 , 2023. Yang, L., Kang, B., Huang, Z., Zhao, Z., Xu, X., Feng, J., and Zhao, H. Depth anything v2, 2024. URL https: //arxiv.org/abs/2406.09414 .Zhai, X., Mustafa, B., Kolesnikov, A., and Beyer, L. Sig-moid loss for language image pre-training. arXiv preprint arXiv:2303.15343 , 2023. Zhao, L., Feng, X., Feng, X., Qin, B., and Liu, T. Length extrapolation of transformers: A survey from the per-spective of position encoding. CoRR , abs/2312.17044, 2023. doi: 10.48550/ARXIV.2312.17044. URL https: //doi.org/10.48550/arXiv.2312.17044 .Zhao, T. Z., Tompson, J., Driess, D., Florence, P., Ghasemipour, K., Finn, C., and Wahid, A. Aloha un-leashed: A simple recipe for robot dexterity. arXiv preprint arXiv:2410.13126 , 2024. 12 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+# A. Proofs 
+
+A.1. Proof of Theorem 3.2 
+
+To begin, we provide a proof of Theorem 3.2: that STRING is the most general form of transformation that respects the group-like property 
+
+R(ri)>R(rj ) = R(rj − ri), (15) supposing that R(0) = Id and R(r) is continuously differ-entiable with respect to r. Note that this is a sufficient, but not necessary, assumption for translational invariance. 
+
+Proof . Recall STRING is applied as 
+
+qi → R(ri)qi (16) with R(·) : Rdc → Rd×d, so that R(ri) ∈ Rd×d. Then we require that 
+
+q> 
+
+> i
+
+kj → q> 
+
+> i
+
+R(ri)>R(rj )kj . (17) Recall that R(0) = Id, the d-dimensional identity, so that the logit of a query and key at the same position ( ri =
+
+rj ) will be unmodified by the positional encoding. Then clearly R(ri) ∈ O(d), the orthogonal group in dimension d.For compatability with gradient-based optimisers (a chief concern in the machine learning setting), it is convenient to specialise to the connected component (normal subgroup) of O(d) containing the identity matrix: that is, the special orthogonal group SO (d).5 This means that det( R(ri)) = 1 .These transformations are the d-dimensional rotations. Since R(ri) ∈ SO (d), the rotation can be written using its Lie group, 
+
+R(ri) = exp( L(ri)) (18) where the matrix L(ri) is antisymmetric (Hall, 2013). L(ri)
+
+is called the ‘generator’, representing an infinitesimal rota-tion. Here, exp( ·) denotes the matrix exponential (not to be confused with the element-wise exponential of a matrix, as appears e.g. in softmax). Setting rj = 0 in Equation (15), it is clear that L(−ri) = −L(ri). We then require that 
+
+exp( L(ri)) exp( L(rj )) = exp( L(ri + rj )) = exp( L(rj )) exp( L(ri)) . (19) Clearly L(ri) and L(rj ) must commute for all choices of coordinate vector (ri, rj ). Therefore, we need 
+
+L(ri + rj ) = L(ri) + L(rj ), (20) so L(·) is linear in its arguments. That is, L(·) is a lin-ear map from the set of dc-dimensional vectors to a set of   
+
+> 5This means that you can optimise the position encoding trans-formations on the same manifold. You could in priniciple also incorporate reflections so that det (R(ri)) = −1, but this seems unlikely to significantly improve performance.
+
+commuting antisymmetric matrices. We can write 
+
+L(ri) = 
+
+> dc
+
+∑
+
+> k=1
+
+Lk[ri]k, (21) with {Lk}dc 
+
+> k=1
+
+⊂ Rd×d a set of commuting antisymmetric generators and [ri]k the k-th entry of coordinate vector ri.This completes the proof. 
+
+A.2. Proof of Theorem 3.3 
+
+Now, we prove that generators of the form Lk =
+
+∑d/ 2
+
+> p=1
+
+(δ2p, 2p−1 − δ2p−1,2p)θp recover RoPE, as described in Theorem 3.3. 
+
+Proof . Let us initially consider the case dc = 1 , so that the token coordinate r = r ∈ R and we learn a single generator. Recall that powers of a block diagonal matrix will remain block diagonal. Each block of the generator Lk is of the form [ 0 θ
+
+−θ 0
+
+]
+
+. (22) Then note that 
+
+[ 0 θ
+
+−θ 0
+
+]2
+
+=
+
+[−θ2 00 −θ2
+
+]
+
+. (23) It follows that 
+
+[ 0 θ
+
+−θ 0
+
+]n
+
+=
+
+
+
+θn(−1) n/ 2
+
+[
+
+1 00 1
+
+]
+
+if n is even, 
+
+θn(−1) (n−1) /2
+
+[
+
+0 1
+
+−1 0
+
+]
+
+if n is odd. (24) Combining and inspecting the Taylor expansions, 
+
+exp 
+
+[ 0 θ
+
+−θ 0
+
+]
+
+=
+
+[ cos θ sin θ
+
+− sin θ cos θ
+
+]
+
+, (25) which is clearly a rotation matrix – a well-known result. This holds for all the d/ 2 blocks, each of which exponentiates to give a 2 × 2 rotation at a different frequency. Therefore, 
+
+exp( Lr) = RoPE (r), (26) showing that with this particular generator STRING is RoPE. Now suppose that dc > 1, so L(ri) = ∑dc 
+
+> k=1
+
+Lk[ri]k.In our special case, each generator is of the form Lk =
+
+∑d/ 2
+
+> p=1
+
+(δ2p, 2p−1 − δ2p−1,2p)θp, where {θp}d/ 2 
+
+> p=1
+
+can differ for different k (notationally suppressed for compactness). Observing that 
+
+[ 0 α
+
+−α 0
+
+] [ 0 β
+
+−β 0
+
+]
+
+=
+
+[−αβ 00 −αβ 
+
+]
+
+=
+
+[ 0 β
+
+−β 0
+
+] [ 0 α
+
+−α 0
+
+]
+
+,
+
+(27) 13 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+different Lk[ri]k commute. Then we have that 
+
+exp 
+
+( dc∑
+
+> k=1
+
+Lk[ri]k
+
+)
+
+=
+
+> dc
+
+∏
+
+> k=1
+
+exp ( Lk[ri]k)=
+
+> dc
+
+∏
+
+> k=1
+
+RoPE ([ ri]k)= RoPE (r),
+
+(28) where we used the definition for multidimensional RoPE from Equation (5). This completes the proof. 
+
+A.3. Proof of Theorem 3.4 
+
+Next, we prove that STRING can always be rewritten as RoPE in a different basis. 
+
+Proof . As usual, we begin with dc = 1 . Then our task is to show that a matrix R(r) = exp( Lr), with L ∈ Rd×d an antisymmetric matrix and r ∈ R, can be rewritten as RoPE with a change of basis. Begin by noting that R(r) ∈ SO (d); it is a special or-thogonal matrix. It is orthogonal since R(r)>R(r) = exp( Lr)> exp( Lr) = exp( −Lr) exp( Lr) = Id, and its determinant is 1 since it is continuously connected to the identity (which occurs at r = 0 ). Consider an eigenvector 
+
+v ∈ Cd, with eigenvalue λ ∈ C. Since R>R = Id, |λ| = 1 
+
+so λ = eiθ . Taking the complex conjugate of Rv = λv, we have R¯v = λ∗ ¯v, where λ∗ = e−iθ and ¯v is the complex conjugate of v. We used that R is real. Therefore, the eigen-values appear in conjugate pairs for conjugate eigenvectors. Let v = u + iw and ¯v = u − iw with u, w ∈
+
+Rd real vectors. Inserting into the eigenvector equation, 
+
+R(u + iw) = (cos( θ) + i sin( θ))( u + iw). Equating the real and imaginary parts, Ru = cos( θ)u − sin( θ)w and 
+
+Rv = cos( θ)v + sin( θ)u. This corresponds exactly to 
+
+2-dimensional rotation in the (u, v) plane. By normalisa-tion of (complex) v, |u|2 + |w|2 = 1 . But since λ and 
+
+λ∗ differ, their corresponding eigenvectors are orthogonal under the Hermitian inner product, so we also have that 
+
+¯v†v = |u|2 − | w|2 + 2 iu>w = 0 . So u>w = 0 , where-upon u and w are orthogonal vectors in Rd. Of course, from basic linear algebra the complex eigenvectors correspond-ing to different θ will also be orthogonal in Cd, or in the case of degenerate θ one can choose an orthogonal basis for the corresponding subspace using e.g. the Gram-Schmidt process. It is easy to show that the corresponding real vec-tors (ui, wi) will therefore be orthogonal for different i,i.e. u> 
+
+> i
+
+uj = δi,j = w> 
+
+> i
+
+wj . To summarise: the real and imaginary parts of the the d orthogonal (complex) eigenvec-tors of R in Cd correspond to d orthogonal (real) vectors in Rd, organised in d 
+
+> 2
+
+planes in each of which R acts as a 2-dimensional rotation, at a frequency that depends on the corresponding eigenvalue. These real vectors {ui, wi}d/ 2
+
+> i=1
+
+can be aggregated as the columns an orthogonal matrix P,taking 
+
+P := 
+
+ ↑ ↑ ↑ ↑ · · · 
+
+u1 w1 u2 w2 · · · ↓ ↓ ↓ ↓ · · · 
+
+ ∈ Rd×d (29) whereupon 
+
+R(r) = PRoPE (r)P>. (30) Note especially that the change of basis matrix P is indepen-dent of r, because P determines the axes of rotation whereas the (complex) eigenvalues depend on the amount of rota-tion. This is obvious from the definition R(r) = exp( Lr);the matrix P needs to (block) diagonalise L, then this is sufficient to (block) diagonalise R, and the matrix L is independent of r.Now suppose that dc > 1. Recall that we have 
+
+R(r) = exp 
+
+> dc
+
+∑
+
+> k=1
+
+Lkrk =
+
+> dc
+
+∏
+
+> k=1
+
+exp Lkrk =
+
+> dc
+
+∏
+
+> k=1
+
+R([ r]k),
+
+(31) where we used the fact that the generators {Lk}dc 
+
+> k=1
+
+com-mute (from Definition 3.1). {R(rk)}dc 
+
+> k=1
+
+must also com-mute so are simultaneously diagonalisable, whereupon 
+
+R(r) = 
+
+> dc
+
+∏
+
+> k=1
+
+PRoPE ([ r]k)P>
+
+= P
+
+( dc∏
+
+> k=1
+
+RoPE ([ r]k)
+
+)
+
+P>
+
+= PRoPE (r)P>.
+
+(32) This concludes the proof. 
+
+A.4. Proof of Theorem 3.5 
+
+Proof. Note that it suffices to show that the computation of 
+
+p = exp( C − C>)z can be computed in O(d log( d)) time with O(d) memory for a circulant matrix C, defined by its first row c. We will leverage the fact that every circulant matrix C can be factorized as follows: 
+
+C = DFT × diag( DFTc ) × DFT −1, (33) for the Discrete Fourier Transform matrix DFT , and where 
+
+diag( v) stands for the diagonal matrix with the main diago-nal given by v. Therefore we have the following: 
+
+p = exp( DFT (diag( DFTu )) DFT −1)z, (34) where u = c − t and t stands for the first column of C.Here we leverage the fact that the transpose of the circulant matrix is also circulant. Therefore, by leveraging Taylor 14 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+series formula for exp , we get: 
+
+p = DFT exp(diag( DFTu )) DFT −1z
+
+= DFT diag(exp( DFTu )) DFT −1z, (35) where exp in the last formula is computed element-wise. Note that matrix-vector product with diagonal matrices can be trivially conducted in linear time. Thus the calculation of 
+
+p can be conducted in O(d) memory and O(d log( d)) time complexity via Fast Fourier Transform (FFT) (to multiply with DFT matrices) and inverse FFT (iFFT) (to multiply with matrices DFT −1). This completes the proof. 
+
+# B. ALOHA Unleashed Simulation Tasks 
+
+ALOHA leader robots are teleoperated in ALOHA simula-tion for data collection using an ALOHA station, an Oculus VR headset and controllers (Zhao et al., 2024). The teleoper-ators are instructed to perform the following tasks using this setup. See Figure 9 and Figure 10 for simulation renders of the following 12 tasks. 1-3. {Bowl/Glass/Plate }OnRack : Place the item on the rack. 4. SingleInsertion : Use the left arm to grab the blue socket and the right arm to insert the block into the socket. 5. DoubleInsertion : After completing the 
+
+SingleInsertion task, insert another block into the other end of the socket. 6-7. Functional Manipulation Benchmark ( FMB ) 1 and 2:Insert a yellow block into the recess of a red base. 8. FruitBowl : Place all the fruits in the bowl. 9. StorageBin : Place all the snack boxes in the storage bin. 10-11. HandOver {Banana/Pen }: Hand over the item and place it in the container. 12. MugOnPlate Place the mug on the plate. 
+
+MultiTask aggregates results of all of the above tasks. 
+
+# C. ALOHA Real Tasks 
+
+ALOHA-real models are first pre-trained with human-teleop data collected on 300 diverse tasks, which were crowd-sourced based on relevance with real-world scenarios as well as feasibility for the ALOHA robot. Further, the model is fine-tuned on the following 10 tasks. 1. open-jar-lid : open the glass jar lid, handover to other hand and put on the table 2. bowl-in-rack : put the bowl into the drying rack 3. cup-in-rack : put the cup into the drying rack 4. banana-handover : put banana in bowl with han-dover 5. open-drawer : open the drawer 6. remove-gears : remove the gears from the nist-board 7. fold-dress : fold the dress 8. stack-cups : stack the cups 9. pen-handover : put pen in container with handover 10. take-phone-out : take phone out of purse After fine-tuning, the model is then evaluated on the fol-lowing 5 tasks: bowl-in-rack , banana-handover ,
+
+bowl-in-rack , fold-dress , remove-gears . See: Fig. 11 for the visualizations of selected ALOHA real world tasks. 
+
+# D. WebLI-3D Dataset 
+
+We lift the WebLI dataset (Chen et al., 2023), a dataset of 10 billion image-text pairs across a variety of languages, into 3D by pre-processing a 60-million image subset using Depth-Anything-V2 (Yang et al., 2024) for metric mon-odepth estimation. The dataset is filtered using the method described in (Chen et al., 2024) for images that the indoor-finetuned model performs poorly on (pictures with overlays, no visible groundplane, large outdoor scenes, optical illu-sions are removed). 
+
+# E. Classification and Retrieval Experiment Details 
+
+Our experimental base model is ViT-B/16 (Dosovitskiy et al., 2021), which has 12 layers, 768 model dimension, 3072 MLP size, 12 attention heads, and 16 ×16 patch size. All RoPE and STRING variants retain these same model hyper-parameters. For vanilla RoPE, we use the common 10,000 max wavelength and simply split query/key dimensions be-tween 2 or 3 axes in the 2D or 3D case, respectively. For RoPE-Mixed, we initialize with 100 max wavelength as suggested in Heo et al. (2025), which we also adopt for STRING. For other hyperparameters like learning rate, batch size, warm-up schedule, etc., we left these the same as the de-fault values used for the base ViT-B/16 model. We use 15 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING  
+
+> Figure 8. ALOHA Unleashed Architecture (Zhao et al., 2024).
+
+the Adam optimizer with b1=0.9 and b2=0.999 for all experiments. For STRING, we experimented with sharing parameters across attention heads rather than the default of learning them all separately, and we found this could yield slight gains in both efficiency and quality. Finally, for Circulant-STRING, we swept over block sizes in the set 
+
+{4, 8, 16 , 32 , 64 } to find the optimal setting (often around 16). 
+
+E.1. ImageNet2012 and Places365 Classification 
+
+All experiments were trained from scratch, separately for Im-ageNet2012 or Places365. In both cases, we used 224 ×224 image resolution, batch size 4096, and trained for 300 epochs. Training used the cosine decay learning rate sched-ule with 0.001 base learning rate and 10,000 warm-up steps. For ImageNet2012 there were a total of about 94k train-ing steps, and for Places365 there were about 130k. For Circulant-STRING, block size 16 yielded the best results. 
+
+E.2. WebLI-3D Retrieval 
+
+All experiments were trained from scratch and used 256 ×256 image resolution. The ViT baseline used RGB data, but all RoPE and STRING variants used RGB-D, where we incorporated depth as a third coordinate for 3D position representations. We trained with batch size 8192 for 20 epochs, amounting to about 155k training steps using the SigLIP (Zhai et al., 2023) pretraining setup. Training used the cosine decay learning rate schedule with 0.001 base learning rate and 5% warm-up steps (about 8k). For Circulant-STRING, block size 32 yielded the best results. 
+
+# F. 3D Detection Details 
+
+F.1. Dataset 
+
+We train our synthetic datasets of indoor living room and cluttered tabletop scenes using a procedural generation recipe. We utilize the dataset described in (Lin et al., 2025), which we briefly describe here. We use open-sourced 3D assets, specifically a subset of assets from the Amazon Berkeley Objects (Collins et al., 2022) (ABO) dataset for background and tabletop objects and the YCB (Calli et al., 2015) and Google Scanned Objects (Downs et al., 2022) for tabletop clutter placement. The procedural generation recipe works by hierarchically generating sub-areas such as a lounge, dining, office and reading area within a randomly-sized rectangular room together with freestanding pieces of furniture, sampled from the different classes within the ABO assets. For scenes with tabletop clutter, we addition-ally randomly sample assets on top of existing placement surfaces (e.g. tables) in the scene, and procedurally vary the packing fraction on top of the placement surface to achieve randomised clutter arrangements. We additionally vary light-ing, background colors, camera extrinsics, intrinsics, aspect ratios etc to generate diverse datasets. Each example within a dataset has accompanied metadata such as RGB, Depth, Segmentation masks, Object poses, Camera extrinsics, in-trinsics, and 3D & 2D bounding boxes for each object in view. We render images using Unity (Unity Technologies, 2023) achieving a high-degree of photo-realism. We generated four different 1-million image datasets using the procedure above: a) living room scenes without table-top clutter (Fig. 12a), b) tabletop scenes with procedurally varying clutter, placed within randomly created living room scenes (Fig. 12b), c) tabletop scenes with multiple cluttered tabletops (Fig. 12c), and d) tabletop scenes with more com-16 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING    
+
+> Figure 9. Views from the wrist, overhead and table-level cameras in ALOHA sim. Top to bottom, Left to right: PlateOnRack, DoubleInsertion (insert peg into sockets on either end), MugOnPlate, SingleInsertion, BowlOnRack, and Functional Manipulation Benchmark-1 (FMB-1).
+
+plicated object arrangements, primarily objects placed on top of trays and other flat objects within the scene (Fig. 12d). We held out the first 20 images for each of these datasets for evaluation, and used the rest for training. Example images from our datasets showing the images and corresponding 3D bounding box labels can be seen in Fig. 13. 
+
+F.2. Implementation 
+
+We base our implementation for 3D bounding box detection described in Section 4.2.2 on OWL-ViT (Matthias Minderer, 2022). OWL-ViT predicts 2D, axis-aligned bounding boxes for the queried object names in the image. We modify this to predict full 3D bounding boxes. We utilized the vision and text towers from the SigLIP task in Section 4.1, and add the box and class prediction heads on top for the 3D bounding box task. The main differences with the original OWL-ViT are described in the sections below. F.2.1. B OX FORMAT 
+
+The output of the box head in OWL-ViT is the relative offset from the corresponding image patch for the 4 edges (top, bottom, left, and right) of the axis-aligned, 2D bounding box. In 3D, image patches do not align with predictions quite as well as in 2D, so instead, the box head predicts the absolute pose of the 3D bounding box. The output format of the box head is 
+
+[< translation >, < rotation >, < size > ]
+
+where < translation > ∈ R3 is the SE(3) translation of the center of the box, < rotation > ∈ R6 is the first 2 columns of the SO(3) rotation matrix of the box, and 
+
+< size > ∈ R3 is the length of each side of the box. Thus the output of the model for each predicted box is a 12D vector. All predictions are relative to the camera frame. F.2.2. L OSS FUNCTION 
+
+We modify the OWL-ViT loss terms in the following way. We keep the class loss as-is. We also keep the L1 loss di-rectly on the 12D bounding box prediction vector. However, this loss is not necessarily optimal for SO(3) rotations and in future work we would like to look into better rotation losses such as (Hertzberg et al., 2011). Finally, we completely replace the 2D, axis-aligned intersection-over-union (IOU) loss. The algorithm for computing the full 3D, non-axis-aligned IOU is non-differentiable, so we instead compute a loss over the 8 corner vertices of the box. For both the pre-dicted and target boxes, we compute the 3D coordinates of the 8 corners of the boxes, and then we sum the L1 distance between the predicted and target corners (we assume a fixed ordering of the corners). We found this loss significantly increases overall performance of the learned models. 17 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+Figure 10. More ALOHA Simulation Tasks. Top to bottom, left to right: FruitBowl, FMB-2, GlassOnRack, HandOverBanana, HandOverPen and StorageBin. 
+
+Figure 11. Sampled ALOHA Real Tasks. Top to bottom, left to right: take-phone-out, stack-cup, remove-gear, open-drawer, bowl-in-rack and fold-dress. 
+
+18 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+(a) Living room scenes (b) Tabletop scenes with clutter 
+
+(c) Multiple cluttered tabletop scenes (d) Objects on flat objects scenes 
+
+Figure 13. Example images drawn at random from our dataset used for 3D detection. Each subfigure shows 4 images from each of the 4 generated subsets of the dataset. The green boxes show the ground truth object bounding boxes. 
+
+19 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING 
+
+F.2.3. 3D IOU We use a Monte Carlo algorithm to compute the intersection-over-union (IOU) between 2 boxes in 3D space, which we report in our evaluation numbers in Section 4.2.2. First, we sample 100k 3D points uniformly at random inside the predicted box. Next, we transform those points to be in the coordinate space of the target box and we compute the ratio of points that are inside the target box. Finally, we compute IOU as the intersection of the volumes divided by the sum of the volumes minus the intersection: 
+
+IOU (box p, box t) = r ∗ vol (box p)
+
+vol (box t) + (1 − r) ∗ vol (box p)
+
+where r is the fraction of sampled points inside the target box and vol is the volume of the given box. F.2.4. B IPARTITE MATCHER 
+
+We found empirically that the Hungarian algorithm (Kuhn, 1955) for bipartite matching between predictions and tar-gets during training had the best performance. Specifically, the Hungarian algorithm was the only bipartite matching algorithm we tested that was able to correctly detect objects far from the center of the image. We suspect that, due to the absolute bounding box predictions described above in Appendix F.2.1, the box head was biased towards objects in the center of the camera frame, and the Hungarian algo-rithm encouraged it to predict boxes for further away objects. However, we also found the Hungarian algorithm to produce significant volatility in the performance of the model, with models sometimes getting stuck in local minima with poor performance during training (see Table 7). To counteract this, for every entry in Table 5 in Section 4.2.2, we trained 3 models with different random seeds. The values in the table are the max of the 3 models’ performance after 250k training iterations. Note that the parameters for the vision and text towers are loaded from the pre-trained checkpoints, so only the parameters for the prediction heads are randomly initialized. 
+
+F.3. Model and Training Configuration 
+
+The model is composed of 4 parts: the vision tower, the text tower, the class head, and the box head. The vision tower encodes the image as a set of tokens, the text tower encodes each input text sequence as a token, the class head predicts the class probabilities for the predictions given the query texts, and the box head outputs the bounding box parameters for each prediction. For the vision and text towers, we use the same model layout (e.g., number of layers) as the models trained on WebLI-3D in Section 4.1. For the class head we use the same layout as described in OWL-ViT (Matthias Minderer, 2022). We modify the box head to be a 3 layer MLP, with GELU (Hendrycks & Gimpel, 2016) non-linearities after the first 2 layers. Unlike OWL-ViT, which outputs a relative offset for the bounding box, our box head directly outputs the absolute bounding box representation itself, as described above in Appendix F.2.1. We use the same training method and optimizer as described in appendix A1.3 in (Matthias Minderer, 2022), replacing the gIoU weight with a weight for our 8 corner vertex loss described above in Appendix F.2.2 but keeping the same values. To improve training speed, we randomly subsample 12 objects from each image for each iteration. However, during evaluation we include all objects in the scene when computing the 3D IOU. We train with a batch size of 1,024 for 250k iterations with an initial learning rate of 1e −4.
+
+F.4. Results From All Runs                               
+
+> Baseline RoPE RoPE-M Circulant-S Cayley-S ViT
+> 49.77 55.77 2.53 56.69 58.85
+> 49.10 52.11 57.17 58.95 58.43 47.85 58.09 2.46 13.12 57.47 ViTD 65.88 71.21 70.78 72.36 70.36 66.49 69.50 69.94 69.86 72.67 67.60 70.31 70.90 68.51 71.91
+> Table 7. Average 3D IOU % over all objects for the 3D bound-ing box prediction task. For each configuration, 3 models were trained with different random seeds. Baseline indicates no RoPE or STRING. The maximum for each configuration is highlighted in bold . Higher is better.
+
+For each configuration of RoPE/STRING and ViT/ViTD, we trained 3 models with different random seeds. In Table 5 in Section 4.2.2 we report the maximum IOU of the 3 for each configuration. Here, Table 7 shows the IOU for every run, with the maximum highlighted in bold. Note that for 3 runs (2 for ViT+RoPE-M and 1 for ViT+Circulant-STRING), the models fell into a local minima which they never left and thus had inferior performance. See Appendix F.2.4 for details on possible causes. 
+
+# G. Details of Generative Robotics Policies 
+
+Figure 14 shows the network architecture for the generative robotics policies for manipulation tasks. PaliGemma (Beyer et al., 2024) VLM with embedding size 256 and patch size 
+
+16 is used for image encoding. The policy is trained with Adam optimizer with 1e − 4 learning rate and 1e − 4 weight decay. We use a linear learning rate warm-up for first 10000 
+
+steps of training. The policy is trained for a total of 500000 
+
+steps with batch size 256 .20 Learning the RoPEs: Better 2D and 3D Position Encodings with STRING Image Encoder 
+
+Image Encoder  
+
+> Multimodal Instruction Encoder
+> Pickup coke can with left hand.
+> Token Learner
+> Context Fuser Trajectory Diffusion
+> Noisy Actions
+
+Figure 14. Generative policy architecture for robotic manipulation using Kuka-IIWA arms. 
+
+21
