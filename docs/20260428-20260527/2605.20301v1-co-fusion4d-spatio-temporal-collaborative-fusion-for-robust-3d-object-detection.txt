@@ -1,0 +1,367 @@
+Title: Co-Fusion4D: Spatio-temporal Collaborative Fusion for Robust 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2605.20301v1
+
+Published Time: Thu, 21 May 2026 00:04:12 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+> 1
+
+# Co-Fusion4D: Spatio-temporal Collaborative Fusion for Robust 3D Object Detection 
+
+Wenxuan Li, Qin Zou Shoubing Chen, Chi Chen, Yingyi Yang, Shoubing Chen, Qingxiang Meng 
+
+Abstract —In autonomous driving, 3D object detection is es-sential for accurate perception and reliable decision-making. However, object motion and ego-motion often induce cross-frame spatiotemporal inconsistencies in BEV-based detectors, leading to temporal BEV feature misalignment and degraded spatiotem-poral consistency. To address these challenges, we propose Co-Fusion4D, a unified framework that explicitly preserves cross-frame spatiotemporal consistency and suppresses temporal fea-ture drift. Co-Fusion4D adopts a current-frame–centric strategy, treating the current frame as the primary source of information while selectively incorporating historical frames after spatiotem-poral filtering and alignment. This dominant–complementary mechanism effectively mitigates cumulative alignment errors, suppresses noisy feature propagation, and exploits reliable tem-poral cues for a more consistent BEV representation. In addition, Co-Fusion4D integrates a Dual Attention Fusion (DAF) module to further enhance spatiotemporal feature interaction. DAF jointly leverages intra-frame spatial attention and inter-frame temporal attention to adaptively align and fuse multi-frame fea-tures, emphasizing motion-consistent regions while suppressing spurious correlations. By departing from conventional uniform fusion paradigms, this design substantially improves the temporal stability and discriminative capability of BEV representations. Extensive experiments on the nuScenes benchmark demonstrate that Co-Fusion4D achieves state-of-the-art performance, with 74.9% mAP and 75.6% NDS, without relying on test-time augmentation or external data. 
+
+Index Terms —3D object detection, multimodal fusion, tempo-ral BEV, autonomous driving, deep learning 
+
+I. I NTRODUCTION 
+
+Accurate and robust environmental perception is fundamen-tal for autonomous driving, where 3D object detection [1], [2] plays a pivotal role in understanding the surrounding dynamic environment and enabling reliable decision-making. Multi-modal fusion, which integrates the precise geometric measurements from LiDAR with rich semantic cues from cameras into Bird’s Eye View (BEV) representations [3], [4], has emerged as an effective strategy for enhancing spatial perception. Such fusion not only facilitates accurate object localization and classification but also supports downstream tasks such as multi-object tracking and motion prediction [5], [6]. Recent advances[7] have focused on temporal BEV-based 3D object detection , aiming to exploit multi-frame informa-tion to improve motion awareness and temporal consistency. However, maintaining spatiotemporal alignment across frames remains a significant challenge, especially in multi-modal scenarios. Temporal inconsistencies arise due to ego-vehicle motion, dynamic objects, and varying sensor viewpoints. Mis-aligned or outdated BEV features from historical frames can propagate errors, degrading detection performance. Moreover, sensor noise, motion blur, discretization artifacts, and en-vironmental variations further compromise the reliability of temporal feature representations. Existing temporal BEV approaches partially address these challenges but remain limited. For instance, BEVFusion4D [8] employs sequential chain-based attention to capture temporal dependencies but suffers from substantial computational over-head, limiting real-time applicability. GAFusion [9] performs simple concatenation of multi-frame BEV features without explicit motion compensation, leading to feature redundancy and semantic interference in dynamic scenes. Image-only temporal BEV detectors such as BEVFormer, StreamPETR, and UniBEV leverage global cross-frame attention or recurrent BEV memory, yet they are prone to feature drift, temporal instability, and high computational cost. Collectively, these limitations highlight the need for methods that can explicitly ensure spatiotemporal consistency, robustly handle dynamic motion, and balance accuracy with efficiency. To address these challenges, we propose Co-Fusion4D ,a temporal multi-frame 3D detection framework. Inspired by Co-Fix3D [10], Co-Fusion4D enhances BEV features through multiple parallel Local-Global Enhancement (LGE) modules, while introducing a current-frame-centric strategy 
+
+that prioritizes the most reliable information from the cur-rent frame and selectively incorporates historical frames. We further introduce a Dual Attention Fusion (DAF) module, which jointly leverages intra-frame spatial attention and inter-frame temporal attention. Intra-frame static attention captures long-range spatial dependencies, improving localization of objects in static regions. Inter-frame dynamic attention models temporal evolution, enabling robust detection and tracking of moving objects. This dual mechanism ensures effective temporal feature fusion and enhances the discriminative power of multi-frame BEV representations. Overall, Co-Fusion4D is an end-to-end temporal BEV-based framework that combines multi-modal fusion with spatiotem-porally consistent multi-frame aggregation. A four-stage train-ing strategy is employed to mitigate overfitting and stabilize optimization across LiDAR, camera, and temporal domains. Extensive experiments on the nuScenes dataset demonstrate that Co-Fusion4D achieves state-of-the-art performance, at-taining 74.9% mAP and 75.6% NDS without relying on test-time augmentation or external data. The main contributions of this work are summarized as follows:  
+
+> •
+
+We propose Co-Fusion4D , a temporal multi-frame 3D object detection framework that integrates sequential Li-
+
+> arXiv:2605.20301v1 [cs.CV] 19 May 2026 2
+
+DAR point clouds and camera images for robust dynamic scene perception.  
+
+> •
+
+We design a four-stage training strategy that decouples modality-specific learning and temporal feature optimiza-tion, enhancing stability and overall detection perfor-mance.  
+
+> •
+
+We introduce a Dual Attention Fusion (DAF) module that jointly models intra-frame spatial and inter-frame temporal dependencies, improving feature consistency and dynamic object detection.  
+
+> •
+
+Extensive experiments on the nuScenes benchmark val-idate the effectiveness of Co-Fusion4D, demonstrating superior performance over existing state-of-the-art multi-modal 3D detectors. II. R ELATED WORK 
+
+A. LiDAR-based 3D Detectors 
+
+LiDAR-based 3D object detection has been extensively studied due to its accurate geometric perception capability in autonomous driving. Existing methods can be broadly categorized into point-based, voxel-based, and hybrid ap-proaches. Point-based methods such as PointNet [11] and PointNet++ [12] directly process raw point clouds to learn fine-grained geometric representations, and are further ex-tended by proposal-based frameworks like PointRCNN [13]. Voxel-based methods, including VoxelNet [14] and SEC-OND [15], discretize point clouds into structured grids to enable efficient convolutional operations. Hybrid methods such as PV-RCNN [16] combine the advantages of point-wise pre-cision and voxel-wise efficiency, achieving strong performance on large-scale benchmarks. Despite their effectiveness, LiDAR-only detectors primarily rely on geometric cues and often struggle in challenging scenarios such as long-range detection, occlusion, and sparse point distributions. Moreover, they typically operate on single-frame inputs and lack temporal modeling capability, limiting their robustness in dynamic environments. These limitations motivate the integration of complementary modalities and temporal information. 
+
+B. Multi-Modal 3D Detectors 
+
+Multi-modal 3D object detection[17], [18] aims to combine LiDAR and camera data to leverage complementary infor-mation, where LiDAR provides accurate depth and structure, while cameras contribute dense semantic and texture cues. Existing fusion strategies are generally categorized into early, middle, and late fusion. Early fusion methods directly combine raw sensor data but are sensitive to calibration errors [19], [20]. Middle fusion methods integrate features at intermediate layers, achieving a good balance between performance and robustness [21], [22]. Late fusion combines high-level predic-tions but often limits deep cross-modal interaction. Recent advances focus on BEV-based multi-modal fusion, where features from different modalities are unified in the Bird’s Eye View space. Representative methods such as TransFusion [23] and BEVFusion [24], [25] utilize attention mechanisms to align and fuse multi-modal features, achieving state-of-the-art performance. Recent surveys highlight that BEV-centric fusion and transformer-based architectures have become dominant trends in multi-modal 3D detection [26], [27]. However, most existing multi-modal approaches are designed for single-frame perception and do not fully exploit temporal information across frames. As a result, they may fail to capture motion cues and temporal consistency, which are critical for dynamic object detection. Co-Fusion4D addresses this limitation by extending multi-modal fusion into the tempo-ral domain through consistent multi-frame BEV representation learning. 
+
+C. Temporal and Multi-Frame Fusion for 3D Detection 
+
+Temporal modeling has emerged as a key direction for im-proving 3D object detection in dynamic driving environments. By leveraging historical frames, temporal methods can capture motion patterns, alleviate occlusion, and enhance detection robustness. In image-based BEV detection, BEVFormer [28] introduces spatiotemporal transformers to aggregate multi-frame features, demonstrating strong performance in multi-view perception tasks. StreamPETR [29] further proposes an object-centric temporal modeling mechanism that propagates queries across frames, enabling efficient long-term temporal reasoning with reduced computational overhead. In multi-modal settings, BEVFusion4D [8] extends BEV fusion into the temporal domain by aggregating historical BEV features with cross-attention mechanisms. More recent methods such as FocalFusion [30] explore object-centric tem-poral fusion strategies and motion-aware feature alignment to improve dynamic scene understanding. Despite these ad-vances, many existing approaches rely on global fusion across frames, which can introduce feature misalignment, temporal noise accumulation, and high computational cost. In contrast, Co-Fusion4D adopts a current-frame-centric 
+
+temporal fusion paradigm, which treats the current frame as the primary reference and selectively incorporates aligned historical information. Furthermore, we propose a Dual Atten-tion Fusion (DAF) module that decouples intra-frame spatial modeling from inter-frame temporal reasoning, enabling more stable and discriminative feature aggregation. Compared with prior methods, Co-Fusion4D effectively mitigates temporal feature drift, suppresses noisy propagation, and achieves a better balance between accuracy and efficiency for multi-modal 3D object detection in dynamic environments. III. M ETHOD 
+
+A. Overall Framework 
+
+As illustrated in Fig. 1, Co-Fusion4D adopts a dual-branch paradigm to effectively process cross-modality data, treating the current and historical frames differently. For the current frame, Co-Fusion4D follows the pipeline of Co-Fix3D: point clouds captured at time T and multi-view images from the same timestamp are processed. The LiDAR stream processes the point cloud, denoted as PT . The point clouds are first voxelized and then processed using 3D sparse convolutions to generate a BEV representation, BL,T ∈ RX×Y ×CP , where 3Point Cloud 
+
+Multi -view Images 
+
+Fusion BEV 
+
+LGD 
+
+Point Cloud 
+
+Multi -view Images 
+
+Fusion BEV 
+
+LGD 
+
+## Multi -Frame Fusion Model for Previous 
+
+## Fusion Model for Current 
+
+HFP 
+
+ATC 
+
+Co -Fix3D Head 
+
+Dual Attention Fusion 
+
+LiDAR BEV 
+
+Features 
+
+Image BEV 
+
+Features 
+
+LiDAR BEV 
+
+Features 
+
+weight sharing  
+
+> Fig. 1. Overview of Co-Fusion4D: Co-Fusion4D integrates multi-frame, multimodal data, combining images and point clouds. For the current frame, it uses a dual-branch approach: the point cloud branch generates LiDAR BEV features, while the image branch processes data through the LiDAR-Depth Guidance (LDG) module to generate image BEV features. These features are then fused into a fused BEV representation. For historical frames, point clouds are aligned with the current frame using the Point-to-Current (PTC) module, and historical image data is aligned using the Align-to-Current (ATC) module, generating corresponding fused BEV features for each timestamp. These fused BEV features are enhanced via a multi-stage Local-Global Enhancement (LGE) module, with temporal fusion handled by the Dual Attention Fusion (DAF) module, which integrates temporal and spatial features across frames. Finally, predictions are made using the Co-Fix3D head: the Top-k method selects the highest-scoring BEV grids as queries, and a Transformer model decodes these queries to generate detection predictions.
+
+X, Y , and CP represent the dimensions of the BEV grid and feature channels. This process can be expressed as follows: 
+
+BL,T = fLiDAR (PT ), (1) where fLiDAR (·) denotes the process of converting point clouds to BEV. Concurrently, the image stream processes multi-view im-ages to extract 2D features, IT ∈ RN ×CI ×H×W , where N ,
+
+CI , H, and W represent the number of cameras, feature dimensions, image height, and width, respectively. And the LiDAR-Depth Guidance (LDG) module, inspired by DAL [ ?], fuses depth map features and image characteristics through convolution, and then converts these 2D features into BEV representations, aligning them with the LiDAR features. 
+
+BI,T = fCamera (IT ), (2) where fCamera (·) denotes the process of converting multi-view images to image BEV features. Then, the BEV features from the point cloud branch and the image branch are fused to form a new, unified multi-modal BEV feature representation. This process is denoted as: 
+
+BF,T = fFusion (BL,T , B I,T ) (3) where fFusion (·) denotes the process of fusing the BEV features from the LiDAR branch and the image branch. For historical frames, our model follows a similar process to that of the current frame. However, the point cloud and image data from historical frames must be projected into the current frame through coordinate transformations. Specifically, the PTC module is used to perform the coordinate transformation for the point cloud, while the ATC module is applied to transform the image data in the image branch. Then, a network with shared weights, used in conjunction with the current frame, generates the BEV features for historical timestamps, such as BF,T −1, BF,T −N . To fully exploit detection capabil-ities, particularly its ability to mine hard samples, Co-Fix3D employs a multi-stage approach with a mask mechanism to progressively filter each stage, enabling parallel LGE modules to supervise different ground truths. Each LGE module at each stage forms temporal BEV features according to the following equation: 
+
+Bi,T , B i,T −1, ··· , B i,T −N = fLGE i (BF,T , B F,T −1, ··· , B F,T −N ),
+
+(4) where i represents the stage number in the multi-stage detec-tion process, and each stage is associated with its correspond-ing LGE module. For each stage, we use the DAF module to 4
+
+fuse the temporal BEV features, resulting in the final BEV representation: 
+
+Bi = fDAF (BF,T , B F,T −1, · · · , B F,T −N ), (5) The subsequent process follows the Co-Fix3D architecture, involving decoding and predicting object classes and locations. At each stage i, it applies Top-k selection to set k instances of 
+
+Mi(w, h, c ) to 0, ensuring that once a region is selected, sub-sequent stages won’t re-explore it. Box-level pooling handles the 0-marked masks, ensuring an even distribution of query locations. If earlier modules fail to detect certain samples, later modules will continue to refine them. Through these mechanisms, queries are collected, decoded by the decoder, and passed through the prediction module for final predictions. The equations are as follows: 
+
+Rclass , R box = fpred (B1, B 2, · · · , B i), (6) where fpred (·) denotes the process of making final predictions. 
+
+B. Point Cloud Alignment and BEV Feature Alignment 
+
+In multi-frame 3D object detection, geometric alignment across temporal steps is a fundamental prerequisite for sta-ble temporal modeling. Due to the continuous motion of autonomous platforms and sensor systems, point clouds and images captured at different timestamps are defined in their respective local coordinate systems. Directly fusing historical data with current-frame features would introduce systematic spatial offsets, which break temporal consistency and signifi-cantly degrade the effectiveness of multi-frame information. Therefore, accurate spatio-temporal alignment is essential, both for point-level fusion and BEV-based feature-level tem-poral modeling. 
+
+a) Point Cloud Alignment (HFP).: The goal of point cloud alignment is to map the 3D structure of historical frames into the coordinate system of the current frame, enabling point clouds from different timestamps to share a unified spatial reference. This process relies on the rigid transformation matrix T k→t ∈ SE (3) , obtained from extrinsic calibration and ego-motion estimation, which encodes both rotation and translation. For any point pk in the historical frame k, its position in the current frame t is given by: 
+
+pt = T k→t pk. (7) Through this transformation, static structures (e.g., roads, buildings, and static obstacles) observed at different times-tamps can be spatially aligned in 3D space, achieving cross-frame geometric consistency. This not only ensures the geo-metric accuracy of multi-frame point cloud fusion, but also provides stable input for subsequent BEV generation and global feature reasoning. Such alignment is particularly critical in scenarios involving high-speed motion, sharp turns, or vibrations, where even small pose estimation errors can be significantly amplified in spatial coordinates, adversely affecting temporal modeling quality. 
+
+b) BEV Feature Alignment (ATC).: Beyond geometric alignment at the point level, multi-frame BEV-based percep-tion also requires feature-level temporal consistency in the network space. The core idea of BEV feature alignment is to utilize the same transformation matrix T k→t to map historical BEV features into the current BEV coordinate system. Specifically, the spatial coordinates (or grid indices) of historical BEV features are transformed according to T k→t,enabling direct fusion with current-frame BEV representations. Unlike point cloud alignment, this operation is performed in the feature space after geometric projection, serving as a post-projection alignment mechanism. The necessity of BEV feature alignment arises from dis-cretization effects introduced by voxelization and sparse con-volution. Although point cloud alignment removes global coordinate discrepancies, these discretization processes in-evitably introduce grid-level quantization errors. As a result, even geometrically aligned points may still exhibit sub-grid misalignment in BEV feature maps. To address this issue, BEV feature alignment performs interpolation-based resampling in continuous coordinate space, effectively mitigating discretization-induced residual errors and improving temporal feature consistency. 
+
+C. Dual Attention Fusion 
+
+For the temporal BEV features, we use the Dual Attention Fusion (DAF) module for fusion, which consists of two main components: Intra-frame Static Attention and Inter-frame Dy-namic Attention. We now describe each component in detail: 
+
+Intra-frame static attention is designed to capture long-range dependencies within a single frame. To achieve this, we employ small kernel depth-wise convolutions (DW Conv), depth-wise convolutions with dilations (DW-D Conv), and 1×1 convolutions:  
+
+> •
+
+DW Conv: Focuses on applying convolution to individual channels, reducing computational overhead compared to traditional convolutions with large kernels.  
+
+> •
+
+DW-D Conv: Extends this by incorporating dilations, which expands the receptive field without increasing the number of parameters, helping the model capture larger context and dependencies across the frame.  
+
+> •
+
+1×1 convolutions: Serve as a channel aggregation mecha-nism, enabling the network to combine information from different feature maps, enhancing the depth of feature extraction. These operations simulate the effect of large kernel convo-lutions by allowing the network to model both local and global relationships while maintaining computational efficiency. The specific formula for the attention mechanism is as follows: 
+
+BC = Cat (BF,T , B F,T −1, . . . , B F,T −N ),
+
+SA = Conv1 × 1(Conv D−DW (Conv DW (BC ))) , (8) where BC represents the multi-frame BEV features, and SA 
+
+denotes the static attention. By using these methods, the atten-tion mechanism is able to effectively model a large receptive field, identifying subtle relationships between elements in the 5DW   
+
+> (2) Dilated Depth -wise Conv (3) 1 ×1 Conv (1) Depth -wise Conv
+> Fig. 2. Intra-frame Static Attention.
+
+frame. This not only aids in extracting local features but also enables the capture of global information across the image or point cloud. This mechanism reduces inherent noise in the data, improving the model’s robustness, especially in static scenes with complex spatial structures. The ability to identify long-range dependencies and subtle patterns enhances detec-tion performance, making it particularly effective in handling challenging static environments. Average Pooling  
+
+> Fully Connected Layer
+> Static Attention
+> DA (Dynamic Attention)
+> Fig. 3. Intra-frame Static Attention.
+
+Inter-frame Dynamic Attention: Unlike static attention, inter-frame dynamic attention is designed to capture temporal variations and evolution across frames. This mechanism uses a squeeze-and-excitation approach to learn dynamic attention weights for each channel, enabling the model to adjust the importance of channels in response to temporal changes. The specific formula is as follows: 
+
+DA = FC(AvgPool( BC )) , (9) where DA represents the dynamic attention, FC( ·) denotes a fully connected layer, and AvgPool( ·) refers to the average pooling layer. By combining dynamic attention with static attention, the model is enabled to capture both temporal evolution and spatial dependencies. The specific formula is as follows: 
+
+B′ 
+
+> C
+
+= (SA ⊗ DA) ⊙ BC , (10) where ⊗ denotes the Kronecker product between static attention (SA) and dynamic attention (DA), and ⊙ represents the Hadamard product between the attention-weighted features and the original BEV feature map BC . The resulting B′
+
+> C
+
+represents the optimized BEV features. This dynamic weight-ing makes the model more sensitive to changes in the scene, particularly when detecting and tracking moving objects in sequential data, thus enhancing its ability to handle temporal variations in the input sequence. 
+
+D. Training Method 
+
+In dual-branch multi-modal fusion, naively optimizing all parameters jointly often leads to instability and suboptimal performance. This is because multi-modal temporal modeling spans three coupled optimization subspaces: intra-modal fea-ture learning, cross-modal fusion, and cross-frame temporal relations. If all parameters are updated simultaneously, gradi-ents from different modalities or temporal frames may conflict, resulting in oscillations or degraded convergence. To mitigate these issues, Co-Fusion4D introduces a progressive four-stage training framework (Fig. 4), inspired by the cooperative opti-mization philosophy of Co-Fix3D. The core idea is to decou-ple the optimization subspaces across stages, allowing each to converge under controlled conditions before subsequent coupling. This design ensures stable feature representations prior to introducing temporal modeling and avoids the gradient interference inherent in naive joint optimization. 
+
+Stage 1–3: Progressive single-frame and multi-modal opti-mization: The first three stages follow the Co-Fix3D approach, with the following objectives: 1) Stage 1: LiDAR branch pretraining. The point cloud en-coder is trained independently, ensuring it learns stable geometric representations without interference from the image modality. 2) Stage 2: Image branch pretraining. With the LiDAR branch frozen, the image branch is trained to map 2D semantic features to 3D BEV space, stabilizing the image modality representation before fusion. 3) Stage 3: Multi-modal fusion training. Once each modal-ity has stabilized, cross-modal fusion modules are trained. This ensures that multi-modal feature integration occurs on robust, pre-converged representations, effec-tively mitigating modality bias propagation. By decoupling modality-specific learning in the first three stages, Co-Fusion4D guarantees that each single-frame repre-sentation reaches sufficient stability before temporal modeling is introduced. 
+
+Stage 4: Temporal multi-frame training with protective freezing: The fourth stage introduces multi-frame temporal learning. Critically, both the LiDAR and image branches are 
+
+frozen , and only the alignment modules, DAF, and detection heads are updated. This protective freezing strategy addresses two key challenges:  
+
+> •
+
+Gradient interference mitigation: Without freezing, temporal loss gradients would propagate into single-frame encoders, destabilizing previously learned repre-sentations due to residual misalignment or semantic drift in historical frames. 6Prediction     
+
+> Heads
+> LEG
+> 3D Backbone LiDAR BEV
+> Features
+> 2D Backbone
+> View
+> Transform Image BEV
+> Features
+> 2D Backbone
+> View
+> Transform
+> Image BEV
+> Features
+> LEG
+> Fusion
+> BEV
+> 3D Backbone
+> Prediction
+> Heads
+> Prediction
+> Heads LEG
+> LEG
+> LiDAR BEV
+> Features
+> The gradient freeze zone
+> 2D Backbone
+> View
+> Transform
+> Image BEV
+> Features
+> LEG
+> Fusion
+> BEV
+> 3D Backbone
+> Prediction
+> Heads LEG
+> LEG
+> LiDAR BEV
+> Features
+> DAF
+> Fig. 4. Four-Stage Training Method.
+> •
+
+Focused temporal optimization: Freezing single-frame features restricts the optimization space to cross-frame relationships, allowing alignment modules to compen-sate for spatial shifts, DAF to learn selective tempo-ral weighting, and detection heads to operate on fused spatiotemporal features without disrupting stable single-frame embeddings. This design ensures that temporal learning benefits from robust, pre-converged features, maximizing DAF’s selective fusion capabilities within a constrained optimization space. 
+
+Comparison with existing methods: Co-Fusion4D differs fundamentally from prior approaches in two aspects:  
+
+> •
+
+Modality-decoupled single-frame training: Unlike BEVFusion4D and GAFusion, which jointly optimize LiDAR and image branches after LiDAR pretraining, Co-Fusion4D separates LiDAR and image pretraining to avoid modality gradient conflicts and ensure stable feature representations before fusion.  
+
+> •
+
+Protected temporal optimization: Previous multi-frame methods either allow encoder parameters to update (BEV-Fusion4D) or aggregate historical features without ex-plicit protection (GAFusion), potentially destabilizing single-frame representations. In contrast, Co-Fusion4D freezes all single-frame parameters, isolating the temporal optimization space. In summary, the four-stage training strategy is not a mere extension of stage count but embodies two design princi-ples: (1) decoupled single-frame modality training to suppress modality bias propagation; (2) protective freezing in temporal training to confine optimization to cross-frame relationships. The synergy between this training strategy and DAF is criti-cal: frozen single-frame features provide a stable foundation, enabling DAF to learn meaningful spatiotemporal attention distributions, which maximally leverages the constrained tem-poral optimization space. IV. E XPERIMENTS 
+
+A. Datasets 
+
+We conduct comprehensive evaluations using the widely recognized nuScenes dataset [31], a standard benchmark for various autonomous driving tasks, including 3D detection, segmentation, and tracking. This large-scale dataset comprises 1,000 varied scenarios, featuring data from six cameras and point clouds captured by a 32-beam LiDAR sensor. The camera setup provides a 360-degree field of view, perfectly synchronized with the LiDAR coverage, making it well-suited for evaluating LiDAR-camera fusion algorithms. Additionally, the nuScenes dataset is split into training, validation, and test subsets, with 700, 150, and 150 scenarios, respectively. Performance assessments are carried out using official metrics, including Mean Average Precision (mAP) and the nuScenes Detection Score (NDS). 
+
+B. Implementation Details 
+
+Our model is developed on the PyTorch platform [32] and leverages the community-driven MMDetection3D framework [33]. The camera branch utilizes a Swin Transformer as the 7                
+
+> TABLE I
+> 3D O BJECT DETECTION PERFORMANCE ON THE NU SCENES TEST SET .THE NOTION OF MODALITY : C AMERA (C), L IDAR (L) AND TEMPORAL (T). ‘C.V.’, ‘T.L.’, ‘B.R.’, ‘M.T.’, ‘P ED .’, AND ‘T.C.’ INDICATE THE CONSTRUCTION VEHICLE ,TRAILER ,BARRIER ,MOTORCYCLE ,PEDESTRIAN ,AND TRAFFIC CONE ,RESPECTIVELY . T HE BEST RESULTS IN EACH COLUMN ARE MARKED IN BOLD FONT .
+
+Method Modality mAP NDS Car Truck C.V. Bus T.L. B.R. M.T. Bike Ped. T.C. 
+
+TransFusion-L [23] L 65.5 70.2 86.2 56.7 28.2 66.3 58.8 78.2 68.3 44.2 86.1 82.0 LiDARMultiNet [34] L 71.6 67.0 86.9 57.4 31.5 64.7 61.0 73.5 75.3 47.6 87.2 85.1 FocalFormer3D [35] L 68.7 72.6 87.2 57.1 34.4 69.6 64.9 77.8 76.2 49.6 88.2 82.3 TransFusion-LC [23] LC 68.9 71.7 87.1 60.0 33.1 68.3 60.8 78.1 73.6 52.9 88.4 86.7 BEVFusion [24] LC 69.2 71.8 88.1 60.9 34.4 69.3 62.1 78.2 72.2 52.2 89.2 85.5 BEVFusion [25] LC 70.2 72.9 88.6 60.1 39.3 69.8 63.8 80.0 74.1 51.0 89.2 86.5 ObjectFusion [36] LC 71.0 73.3 89.4 59.0 40.5 71.8 63.1 80.0 78.1 53.2 90.7 87.7 MSMDFusion [37] LC 71.5 74.0 88.4 61.0 35.2 71.4 64.2 80.7 76.9 58.3 90.6 88.1 SparseFusion [38] LC 72.0 73.8 88.0 60.2 38.7 72.0 64.9 79.2 78.5 59.8 90.9 87.9 FocalFormer3D [35] LC 71.6 73.9 88.5 61.4 35.9 71.7 66.4 79.3 80.3 57.1 89.7 85.3 IS-Fusion [39] LC 73.0 75.2 88.3 62.7 38.4 74.9 67.3 78.1 82.4 59.5 89.3 89.2 
+
+GraphBEV [40] LC 71.7 73.6 89.2 60.0 40.8 72.1 64.5 80.1 76.8 53.3 90.9 88.9 Co-Fix3D [10] LC 72.3 74.7 89.6 60.8 37.9 73.3 65.2 80.0 77.6 62.7 88.7 86.7 MTA [41] LC 71.8 73.7 88.6 63.3 38.4 71.9 64.7 79.4 75.5 57.2 90.8 88.5 LIFT [42] LC 65.1 70.2 87.7 55.1 29.4 62.4 59.3 69.3 70.8 47.7 86.1 83.2 BEVFusion4D [8] LC 73.3 74.7 89.7 65.6 41.1 72.9 66.0 81.0 79.5 58.6 90.9 87.7 GAFusion [9] LC 73.6 74.9 89.4 65.3 42.4 73.7 65.8 79.2 80.8 60.2 92.3 87.0 Co-Fusion4D (Our) LC 74.9 75.6 90.5 65.7 39.7 77.1 69.9 81.0 83.5 63.1 91.2 88.2 
+
+backbone, consisting of heads with 3, 6, 12, and 24 layers. The input image is resized and cropped to 386 × 1056 pixels to standardize the data for processing. In the Lift-Splat-Shoot (LSS) configuration, the frustum ranges are set as follows: X coordinates range from [-54m, 54m] with a step of 0.6m, Y coordinates follow the same range, and Z coordinates are set from [-5m, 3m] with a 0.6m step. The depth range spans from 1m to 60m with a step of 0.5m. The BEV grid resolution is configured at 180 × 180 , which is aligned with the 8×
+
+downsampled BEV features generated by VoxelNet [14], with a channel count of 128. The model was trained on 4 Nvidia 4090 GPUs with a total batch size of 8. We used the AdamW optimizer with an initial learning rate of 1.0 × 10 −4. A one-cycle learning rate policy was applied to dynamically adjust the learning rate during training, enhancing convergence speed and overall efficiency. 
+
+C. 3D Object Detection Results 
+
+3D Object Detection on the Test Dataset: We evaluate the performance of Co-Fusion4D against leading LiDAR-based (denoted as ’L’) and multimodal (denoted as ’LC’) 3D object detectors on the nuScenes test set. Co-Fusion4D demonstrates superior performance compared to existing state-of-the-art (SOTA) 3D object detection algorithms. As shown in Table I, Co-Fusion4D outperforms the baseline Co-Fix3D, improving the mean Average Precision (mAP) by 2.0% and the nuScenes Detection Score (NDS) by 1.1%. When compared to other recent multimodal detection methods, such as IS-Fusion, GraphBEV, and GAFusion, Co-Fusion4D continues to lead, with mAP improvements of 1.3%, 2.6%, and 0.7%, respectively, and corresponding NDS gains of 0.6%, 2.2%, and 0.9%. Additionally, Co-Fusion4D achieves the highest detection performance in specific categories, such as Car and Bus, emphasizing that multi-frame fusion significantly enhances the model’s ability to detect moving objects. 
+
+> TABLE II PERFORMANCE COMPARISON ON THE NU SCENES VALIDATION SET .
+
+Method Image Encoder mAP NDS TransFusion-LC [23] ResNet-50 67.5 71.3 BEVFusion [24] Swin-T 68.5 71.4 SparseFusion [38] ResNet-50 71.0 73.1 IS-Fusion [39] Swin-T 72.8 74.0 Co-Fix3D [10] ResNet-50 70.8 73.6 BEVFusion4D [8] Swin-T 72.0 73.5 GAFusion [9] Swin-T 72.1 73.5 Co-Fusion4D (Ours) Swin-T 73.9 75.3 
+
+3D object detection on val set. We also conduct experi-ments on the validation set, as shown in Table II. Co-Fusion4D demonstrates superior performance compared to existing state-of-the-art (SOTA) 3D object detection algorithms. The results reveal that Co-Fusion4D outperforms the baseline Co-Fix3D, improving the mAP by 2.1% and the NDS) by 1.7%. When compared to other recent multimodal detection methods such as IS-Fusion, BEVFusion4D, and GAFusion, Co-Fusion4D still leads, with mAP improvements of 1.1%, 1.9%, and 1.8%, respectively, and corresponding NDS gains of 1.3%, 1.8%, and 1.8%. These results strongly demonstrate that our DAF module effectively integrates multi-frame information and, combined with our proposed training approach, harnesses the complementary strengths of point cloud and image modalities, avoiding underfitting and ensuring optimal performance. 8（a） BEVFusion  （b）Co -Fusion4D  
+
+> Camera Back Left Camera Back Camera Back Right
+> Fig. 5. 3D object detection results on the nuScenes validation dataset. In the point cloud image on the far right, red boxes represent the ground truth (GT), while blue boxes indicate the predicted detections. A total of 100 bounding boxes are shown.
+
+D. Ablation Studies 
+
+We conduct ablation studies on the nuScenes validation set to isolate the contribution of each key design in Co-Fusion4D. Due to strong interdependence among temporal components, we follow a progressive enabling protocol and report mAP/NDS.                     
+
+> TABLE III MULTI -FRAME PATHWAY AND ALIGNMENT NECESSITY ON NU SCENES VALIDATION .Hist. PCD PCD Align Hist. BEV BEV Align mAP NDS 73.1 74.2
+> ✓73.1 74.3
+> ✓✓73.4 74.7
+> ✓✓✓73.5 74.9
+> ✓✓✓✓73.9 75.3
+
+a) Alignment is necessary for effective temporal ag-gregation.: Table III evaluates the multi-frame pathway by incrementally enabling historical cues and alignment. Sim-ply adding historical point clouds without alignment yields negligible gains, indicating that temporal evidence is not directly exploitable under cross-frame inconsistencies. Geo-metric alignment improves performance, suggesting it is a prerequisite for multi-frame utility. Adding historical BEV features provides additional gains but remains limited without semantic-level alignment. Enabling BEV feature alignment achieves the best results, supporting the need for a constrained route from geometric to semantic alignment. 
+
+b) DAF outperforms generic fusion operators under a frozen-encoder protocol.: Table VI compares spatio-temporal fusion strategies under Stage-4 training where the single-frame encoder is frozen and only fusion modules are optimized. Direct fusion (Add) underperforms, while concatenation (Cat) is stronger, implying that early mixing can be harmful under temporal misalignment. Channel attention (SE/ECA) brings limited improvements, suggesting channel-only recalibration is insufficient for spatially variant temporal quality. Cross-attention improves NDS but is costly due to quadratic token interactions w.r.t. BEV resolution. DAF achieves the best performance by decoupling intra-frame spatial aggregation and inter-frame temporal reweighting. 
+
+c) DAF requires joint static–dynamic attention to be effective.: Table VII ablates DAF into intra-frame static at-tention and inter-frame dynamic attention. Either component alone is inferior to Cat, while the combination yields the best result. This indicates a non-additive coupling: static attention without temporal gating may amplify historical noise, whereas dynamic attention without strong spatial structure may produce unreliable temporal weights. The joint design enables discrim-inative spatial representations and stable temporal reweighting. 
+
+d) Temporal window length: gains saturate beyond short history.: Table VIII shows that expanding to 3 frames yields the largest gain, while improvements saturate beyond 3 frames. Longer history can introduce accumulated alignment residuals and scene changes, leading to marginal or even slightly negative returns. We therefore adopt 3 frames as a default trade-off between accuracy and efficiency. 
+
+e) Category-wise gains concentrate on highly dynamic classes.: Table V reports per-class performance with/without history. Temporal modeling yields modest gains for well-observed and stable classes (e.g., car/truck) and larger gains 9
+
+TABLE IV ABLATION ON TRAINING STRATEGIES .ID Description mAP NDS (a) Multi-frame from Stage-1 (symmetric fusion) 61.3 67.8 (b) Multi-frame in Stage-2 (symmetric fusion) 63.9 68.9 (c) Multi-frame in Stage-3 (symmetric fusion) 69.2 71.8 (d) Skip Stage-2; multi-frame after Stage-3 (symmetric fusion) 66.4 70.3 (e) Stage-4: freeze encoders + Cat (w/o DAF) 73.3 74.6 (f) Stage-4: symmetric fusion + DAF (w/o freezing) 71.1 73.3 (g) Stage-4: asymmetric fusion + DAF (with freezing) 73.9 75.3 
+
+TABLE V CATEGORY -WISE ANALYSIS ON DYNAMIC CLASSES WITH AND WITHOUT HISTORICAL FRAMES ON THE NU SCENES VALIDATION SET .History mAP NDS Car Truck C.V. M.T. Bike 73.1 74.2 91.1 69.2 35.4 85.1 74.6 
+
+✓ 73.9 75.3 91.6 70.5 36.8 86.6 76.6 Gain +0.8 +1.1 +0.5 +1.3 +1.4 +1.5 +2.0 TABLE VI FUSION STRATEGY COMPARISON ON NU SCENES VALIDATION (S TAGE -4, 
+
+> FROZEN SINGLE
+
+-FRAME ENCODER ). Category Method mAP NDS Direct fusion Add 73.2 74.2 Direct fusion Cat 73.4 74.6 Channel attention Cat+SE 73.6 74.8 Channel attention Cat+ECA 73.5 74.7 Cross-frame attention Cross-Attn (Cur=Q, Hist=K/V) 73.6 74.9 Spatio-temporal co-attention DAF 73.9 75.3 
+
+TABLE VII COMPONENT ABLATION OF DAF ON NU SCENES VALIDATION (C AT BASELINE IN THE FIRST ROW ). Intra-frame Inter-frame mAP NDS ∆mAP ∆NDS 73.4 74.6 – –
+
+✓ 73.3 74.3 −0.1 −0.3
+
+✓ 73.2 74.1 −0.2 −0.5
+
+✓ ✓ 73.9 75.3 +0 .5 +0 .7
+
+for more dynamic or unstable classes (e.g., construction vehi-cle/motorcycle/bicycle). No degradation is observed among the listed dynamic categories, indicating that current-frame-centric temporal modeling suppresses harmful temporal interference. 
+
+f) Distance robustness: temporal fusion primarily ben-efits far-range objects.: Table IX shows that improvements are concentrated in the 30–50m range, where single-frame sensing is limited by LiDAR sparsity and camera depth un-certainty. Near- and mid-range gains are marginal, consistent with sufficient single-frame evidence at shorter distances. This supports temporal accumulation as a targeted remedy for far-range perception. 
+
+g) Training strategy: late temporal learning with encoder freezing is critical.: Table IV ablates when temporal learning is introduced and whether the encoder is frozen. Early multi-frame training with symmetric fusion is suboptimal, likely due to unstable single-frame representations being corrupted by temporal noise. Stage-4 freezing yields a strong baseline even with Cat fusion, indicating that protecting converged represen-tations stabilizes temporal optimization. Training DAF with-
+
+TABLE VIII IMPACT OF THE NUMBER OF FRAMES ON DETECTION PERFORMANCE .#Frames mAP NDS ∆mAP ∆NDS 1 73.1 74.2 – –3 73.9 75.3 +0 .8 +1 .1
+
+5 74.0 75.4 +0 .9 +1 .2
+
+7 74.0 75.3 +0 .9 +1 .1
+
+TABLE IX ROBUSTNESS W .R.T. DISTANCE (MAP, %). #Frames 0–15m 15–30m 30–50m 1 76.5 69.3 55.6 3 76.9 70.6 58.9 5 76.9 70.7 59.3 
+
+out freezing underperforms, suggesting temporal reweighting becomes unstable when features drift. The best configuration is Stage-4 with encoder freezing and asymmetric fusion with DAF. 
+
+h) Latency breakdown: temporal fusion is lightweight.: 
+
+Table X decomposes inference latency on a single NVIDIA 4090D GPU. Latency increases approximately linearly with the number of frames, while alignment and DAF contribute only a few milliseconds. The major overhead comes from the image pipeline, especially multi-frame view transforma-tion (LSS). This suggests future acceleration should prioritize reducing multi-frame view transformation cost. As shown in Fig. 5, Co-Fusion4D efficiently detects moving objects, particularly cars and buses, after applying multi-frame fusion. This underscores the superior detection performance of our model. V. C ONCLUSIONS 
+
+This paper proposed a temporal BEV-based multimodal 3D object detection method, featuring a novel four-stage training strategy that effectively addresses the common issue of overfit-ting in BEV-based multimodal models. It employs a four-stage training method, with Co-Fusion4D effectively integrating 10 
+
+TABLE X LATENCY BREAKDOWN (MS ) AND SCALABILITY W .R.T. NUMBER OF FRAMES .Module 1 frame 2 frames 3 frames 4 frames LiDAR backbone 68 96 134 172 Image backbone (Swin-T) 74 132 193 241 View transform (LSS) 53 121 192 263 PCD align + BEV align – 1 1 1DAF 2 2 3 4Others 69 81 103 115 Total 266 433 626 796 
+
+these modalities to maximize detection performance. Addition-ally, Co-Fusion4D introduces the Dual Attention Fusion (DAF) module, which efficiently integrates multi-frame BEV features, significantly improving the model’s ability to detect and track dynamic objects. By combining novel training strategies and feature fusion methods, Co-Fusion4D demonstrates superior performance in 3D object detection, particularly in dynamic and complex environments. This work not only advances multimodal 3D detection but also provides valuable insights for future research aimed at improving object detection in dynamic settings. REFERENCES [1] Ziying Song, Lin Liu, Feiyang Jia, Yadan Luo, Caiyan Jia, Guoxin Zhang, Lei Yang, and Li Wang. Robustness-aware 3d object detection in autonomous driving: A review and outlook. IEEE Transactions on Intelligent Transportation Systems , 2024. [2] Shiyi Mu, Zichong Gu, Zhiqi Ai, Anqi Liu, Yilin Gao, and Shugong Xu. Stereodetr: Stereo-based transformer for 3d object detection. IEEE Transactions on Circuits and Systems for Video Technology , 2025. [3] Wenxuan Li, Jian Zhou, Chi Chen, Hongkai Yu, Bo Du, and Qin Zou. Bevfix: Deep feature enhancement for robust 3d object detection. Neural Networks , 190:107675, 2025. [4] Cheng Feng, Congxuan Zhang, Zhen Chen, Weiming Hu, Ke Lu, and Liyue Ge. Iter3ddet: Depth-guided iterative fusion and refinement for monocular 3d object detection. IEEE Transactions on Circuits and Systems for Video Technology , 2025. [5] Yuexin Ma, Tai Wang, Xuyang Bai, Huitong Yang, Yuenan Hou, Yaming Wang, Yu Qiao, Ruigang Yang, and Xinge Zhu. Vision-centric bev perception: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence , 46(12):10978–10997, 2024. [6] Feiyang Jia, Caiyan Jia, Ailin Liu, Shaoqing Xu, Qiming Xia, Lin Liu, Lei Yang, Yan Gong, and Ziying Song. Dgfusion: Dual-guided fusion for robust multi-modal 3d object detection. IEEE Transactions on Circuits and Systems for Video Technology , 2025. [7] Sifan Zhou, Xinyu Zhang, Xiangxiang Chu, Bo Zhang, Ziyu Zhao, and Xiaobo Lu. Fastpillars: A deployment-friendly pillar-based 3d detector. 
+
+IEEE Transactions on Circuits and Systems for Video Technology , 2025. [8] Hongxiang Cai, Zeyuan Zhang, Zhenyu Zhou, Ziyin Li, Wenbo Ding, and Jiuhua Zhao. Bevfusion4d: Learning lidar-camera fusion under bird’s-eye-view via cross-modality guidance and temporal aggregation. 
+
+arXiv preprint arXiv:2303.17099 , 2023. [9] Xiaotian Li, Baojie Fan, Jiandong Tian, and Huijie Fan. Gafusion: Adaptive fusing lidar and camera with multiple guidance for 3d object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 21209–21218, 2024. [10] Wenxuan Li, Qin Zou, Chi Chen, Bo Du, and Long Chen. Co-fix3d: Enhancing 3d object detection with collaborative refinement. 
+
+https://arxiv.org/abs/2408.07999 , 2024. [11] Charles R Qi, Hao Su, Kaichun Mo, and Leonidas J Guibas. Pointnet: Deep learning on point sets for 3d classification and segmentation. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , pages 652–660, 2017. [12] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J Guibas. Pointnet++: Deep hierarchical feature learning on point sets in a metric space. Advances in neural information processing systems , 30, 2017. [13] Shaoshuai Shi, Xiaogang Wang, and Hongsheng Li. Pointrcnn: 3d object proposal generation and detection from point cloud. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pages 770–779, 2019. [14] Yin Zhou and Oncel Tuzel. Voxelnet: End-to-end learning for point cloud based 3d object detection. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 4490–4499, 2018. [15] Yan Yan, Yuxing Mao, and Bo Li. Second: Sparsely embedded convolutional detection. Sensors , 18(10):3337, 2018. [16] Shaoshuai Shi, Chaoxu Guo, Li Jiang, Zhe Wang, Jianping Shi, Xi-aogang Wang, and Hongsheng Li. Pv-rcnn: Point-voxel feature set abstraction for 3d object detection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10529– 10538, 2020. [17] Jiawei Chen, Qi Song, Wenzhong Guo, and Rui Huang. Dsc3d: Deformable sampling constraints in stereo 3d object detection for autonomous driving. IEEE Transactions on Circuits and Systems for Video Technology , 35(3):2794–2805, 2024. [18] Yishi Li, Fanhong Zeng, Rui Lai, Tong Wu, Juntao Guan, Anfu Zhu, and Zhangming Zhu. Tinyfusiondet: Hardware-efficient lidar-camera fusion framework for 3d object detection at edge. IEEE Transactions on Circuits and Systems for Video Technology , 2025. [19] Zehui Chen, Zhenyu Li, Shiquan Zhang, Liangji Fang, Qinhong Jiang, and Feng Zhao. Deformable feature aggregation for dynamic multi-modal 3d object detection. In European conference on computer vision ,pages 628–644. Springer, 2022. [20] Shaoqing Xu, Dingfu Zhou, Jin Fang, Junbo Yin, Zhou Bin, and Liangjun Zhang. Fusionpainting: Multimodal fusion with adaptive attention for 3d object detection. In 2021 IEEE International Intelligent Transportation Systems Conference (ITSC) , pages 3047–3054. IEEE, 2021. [21] Yanwei Li, Xiaojuan Qi, Yukang Chen, Liwei Wang, Zeming Li, Jian Sun, and Jiaya Jia. Voxel field fusion for 3d object detection. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 1120–1129, 2022. [22] Yanwei Li, Yilun Chen, Xiaojuan Qi, Zeming Li, Jian Sun, and Jiaya Jia. Unifying voxel-based representation with transformer for 3d object detection. Advances in Neural Information Processing Systems ,35:18442–18455, 2022. [23] Xuyang Bai, Zeyu Hu, Xinge Zhu, Qingqiu Huang, Yilun Chen, Hongbo Fu, and Chiew-Lan Tai. Transfusion: Robust lidar-camera fusion for 3d object detection with transformers. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 1090– 1099, 2022. [24] Tingting Liang, Hongwei Xie, Kaicheng Yu, Zhongyu Xia, Zhiwei Lin, Yongtao Wang, Tao Tang, Bing Wang, and Zhi Tang. Bevfusion: A simple and robust lidar-camera fusion framework. Advances in Neural Information Processing Systems , 35:10421–10434, 2022. [25] Zhijian Liu, Haotian Tang, Alexander Amini, Xinyu Yang, Huizi Mao, Daniela L Rus, and Song Han. Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view representation. In 2023 IEEE international conference on robotics and automation (ICRA) , pages 2774–2781. IEEE, 2023. [26] Xuan Wang, Kaiqiang Li, and Abdellah Chehri. Multi-sensor fusion technology for 3d object detection in autonomous driving: A review. 
+
+IEEE Transactions on Intelligent Transportation Systems , 2023. [27] Apoorv Singh. Transformer-based sensor fusion for autonomous driving: A survey. In Proceedings of the IEEE/CVF international conference on computer vision , pages 3312–3317, 2023. [28] Zhiqi Li, Wenhai Wang, Hongyang Li, Enze Xie, Chonghao Sima, Tong Lu, Yu Qiao, and Jifeng Dai. Bevformer: Learning bird’s-eye-view representation from multi-camera images via spatiotemporal transformers. In European conference on computer vision , pages 1–18. Springer, 2022. [29] Shihao Wang, Yingfei Liu, Tiancai Wang, Ying Li, and Xiangyu Zhang. Exploring object-centric temporal modeling for efficient multi-view 3d object detection. In Proceedings of the IEEE/CVF international conference on computer vision , pages 3621–3631, 2023. [30] Yuting Wan, Liguo Sun, Jiuwu Hao, and Pin Lv. Focalfusion: An object-centric temporal fusion framework for multi-modal 3d detection. 
+
+Neurocomputing , page 131914, 2025. [31] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. nuscenes: A multimodal dataset for autonomous driving. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11621–11631, 2020. 11 
+
+[32] Adam Paszke, Sam Gross, Soumith Chintala, Gregory Chanan, Edward Yang, Zachary DeVito, Zeming Lin, Alban Desmaison, Luca Antiga, and Adam Lerer. Automatic differentiation in pytorch. 2017. [33] MMDetection3D Contributors. Mmdetection3d: Openmmlab next-generation platform for general 3d object detection, 2020. [34] Dongqiangzi Ye, Zixiang Zhou, Weijia Chen, Yufei Xie, Yu Wang, Panqu Wang, and Hassan Foroosh. Lidarmultinet: Towards a unified multi-task network for lidar perception. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 37, pages 3231–3240, 2023. [35] Yilun Chen, Zhiding Yu, Yukang Chen, Shiyi Lan, Anima Anandkumar, Jiaya Jia, and Jose M Alvarez. Focalformer3d: focusing on hard instance for 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 8394–8405, 2023. [36] Qi Cai, Yingwei Pan, Ting Yao, Chong-Wah Ngo, and Tao Mei. Ob-jectfusion: Multi-modal 3d object detection with object-centric fusion. In Proceedings of the IEEE/CVF international conference on computer vision , pages 18067–18076, 2023. [37] Yang Jiao, Zequn Jie, Shaoxiang Chen, Jingjing Chen, Lin Ma, and Yu-Gang Jiang. Msmdfusion: Fusing lidar and camera at multiple scales with multi-depth seeds for 3d object detection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 21643–21652, 2023. [38] Yichen Xie, Chenfeng Xu, Marie-Julie Rakotosaona, Patrick Rim, Federico Tombari, Kurt Keutzer, Masayoshi Tomizuka, and Wei Zhan. Sparsefusion: Fusing multi-modal sparse representations for multi-sensor 3d object detection. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 17591–17602, 2023. [39] Junbo Yin, Jianbing Shen, Runnan Chen, Wei Li, Ruigang Yang, Pascal Frossard, and Wenguan Wang. Is-fusion: Instance-scene collaborative fusion for multimodal 3d object detection. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 14905–14915, 2024. [40] Ziying Song, Lei Yang, Shaoqing Xu, Lin Liu, Dongyang Xu, Caiyan Jia, Feiyang Jia, and Li Wang. Graphbev: Towards robust bev feature alignment for multi-modal 3d object detection. In European Conference on Computer Vision , pages 347–366. Springer, 2025. [41] Chen Lin, Zhicheng He, Yu Qiu, and Yuanyi Huang. A method of time alignment in bev features for multimodal fusion object detection of intelligent vehicles. IEEE Transactions on Intelligent Transportation Systems , 2025. [42] Yihan Zeng, Da Zhang, Chunwei Wang, Zhenwei Miao, Ting Liu, Xin Zhan, Dayang Hao, and Chao Ma. Lift: Learning 4d lidar image fusion transformer for 3d object detection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 17172– 17181, 2022.

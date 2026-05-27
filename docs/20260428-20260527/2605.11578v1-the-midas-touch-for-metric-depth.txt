@@ -1,0 +1,1296 @@
+Title: The Midas Touch for Metric Depth
+
+URL Source: https://arxiv.org/pdf/2605.11578v1
+
+Published Time: Wed, 13 May 2026 00:42:55 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# The Midas Touch for Metric Depth 
+
+## Yu Ma 1 Zizhan Guo 1 Zuyi Xiong 1 Haoran Zhang 1
+
+## Yi Feng 1 Hongbo Zhao 1 Hanli Wang 1,2 Rui Fan 1,2,3 B
+
+1College of Electronic and Information Engineering, Tongji University 
+
+2Shanghai Research Institute for Intelligent Autonomous Systems, Tongji University 
+
+3National Key Laboratory of Human-Machine Hybrid Augmented Intelligence, Xi’an Jiaotong University Raw Depth  Ours Ours           
+
+> Livox
+> MID -360 MV -CS016 -
+> 10UC
+> 3D Scene
+> (c) What if depth from range camera is coarse -grained? (b) How can we meet real -time requirements in an RGB -D embedded system?
+> (a) How do we handle extremely sparse point clouds in novel scenarios?
+> ZED 2i
+> Stereo
+> Camera
+> Intel
+> RealSense
+> D455
+> iPhone15
+> Pro
+> Correspondence Matching (Input) Raw Disparity Ours
+> Raw Depth
+> Color Image Sparse Depth BP -Net DMD 3CMarigold -DC Ours
+> Color Image Sequence Metric Depth Sequence
+
+Figure 1. Application versatility of MTD in metric depth perception. (a) For novel scenes with extremely sparse point clouds, our method achieves precise depth completion and outperforms existing state-of-the-art methods. (b) To eliminate offline LiDAR point cloud aggregation, our method achieves real-time, online predictions on handheld edge devices, thanks to its low inference time and high accuracy. (c) For commonly used range cameras, our method can also serve as a plug-and-play module to enhance the quality of low-cost depth data. 
+
+## Abstract 
+
+Recent advances have markedly improved the cross-scene generalization of relative depth estimation, yet its practi-cal applicability remains limited by the absence of met-ric scale, local inconsistencies, and low computational ef-ficiency. To address these issues, we present Midas Touch for Depth (MTD), a mathematically interpretable approach that converts relative depth into metric depth using only ex-tremely sparse 3D data. To eliminate local scale incon-sistencies, it applies a segment-wise recovery strategy via sparse graph optimization, followed by a pixel-wise refine-ment strategy using a discontinuity-aware geodesic cost. MTD exhibits strong generalization and achieves substan-
+
+> B
+
+Corresponding author. 
+
+tial accuracy improvements over previous depth completion and depth estimation methods. Moreover, its lightweight, plug-and-play design facilitates deployment and integration on diverse downstream 3D tasks. Project page is available at https://mias.group/M TD .
+
+## 1. Introduction 
+
+“In Greek mythology, King Midas’s ability to turn every-thing into gold is known as the ‘Midas touch’. Gold from a touch; meters from a hint. With extremely sparse 3D cues, relative depth crystallizes into metric measurement.” 
+
+In recent years, monocular depth perception has emerged as a pivotal research focus in digital entertainment, compu-tational photography, and 3D modeling [14, 66]. Driven 
+
+> arXiv:2605.11578v1 [cs.CV] 12 May 2026
+
+by the growing demand for strong generalization capabil-ities, including zero-shot performance, numerous efforts, such as the MiDaS series [2, 39] and the DepthAnything series [65, 66], have focused on developing depth founda-tion models for relative depth estimation. Despite signifi-cant advancements in generalization ability, their practical applicability remains limited. This limitation arises not only from their large parameter counts and inference latency, but more fundamentally from the inherent scale ambiguity [69], which hinders accurate metric depth prediction. To resolve this scale ambiguity problem, a straightfor-ward approach in previous studies [20, 25, 39, 65] lever-ages 3D point clouds to perform least-squares optimization for global scale recovery. Nevertheless, this solution often suffers from limited precision, as local regions may exhibit scale inconsistencies: different instances or segments ex-hibit distinct scale ratios and shift biases utilized for recov-ering metric depth. Therefore, a single global rescaling can-not accommodate these variations, thereby degrading met-ric depth accuracy and downstream task performance. An-other line of research investigates incorporating captured 3D data into the metric depth estimation framework via net-works [30, 31, 50]. However, these approaches are typically trained in domain-specific environments, which limits their ability to generalize. Addressing this issue requires large-scale training datasets, which in turn significantly increase the cost and complexity of data collection. Motivated by these limitations, we introduce the 
+
+Midas Touch for Depth (MTD), a universal paradigm that leverages available 3D data to efficiently and accurately convert relative depth to metric depth. We avoid fine-tuning the depth foundation models, thereby preventing potential performance degradation. To maintain interpretability and improve efficiency, we develop a reliable nonparametric method with a clear mathematical foundation. Specifically, we adopt a parallel, segment-wise strategy that optimizes a sparse segment graph to correct local scale inconsisten-cies. To further compensate for pixel-level errors, we per-form a pixel-wise refinement by reformulating depth prop-agation as a discontinuity-aware geodesic problem, thereby enabling an efficient dynamic-programming solution. To validate the effectiveness and real-world applicability of our method, we conduct large-scale experiments across indoor and outdoor depth perception benchmarks. Our method achieves strong accuracy and generalization, out-performing state-of-the-art (SoTA) approaches, as shown in Fig. 1. The results show that even under conditions of ex-tremely sparse 3D data, our algorithm remains stable. To underscore the challenges posed by highly sparse, multi-source inputs ( e.g. , depth, disparity, or correspondence matches), we refer to them metaphorically as 3D seeds , a term used throughout the paper. Moreover, our approach still recovers accurate metric depth, even when the relative depth predictions are only of moderate quality due to the reductions in model size. This advancement opens up new possibilities for improved computational efficiency. Our contributions are summarized as follows: 1. An efficient, effective, and universal paradigm for con-verting relative depth to metric depth, grounded in inter-pretable mathematical foundations; 2. A segment-wise scale recovery strategy via sparse graph optimization, complemented by a pixel-wise refinement strategy that uses a discontinuity-aware geodesic cost; 3. A SoTA, highly practical method which can handle dif-ferent types of extremely sparse 3D seeds and support various downstream 3D tasks. 
+
+## 2. Related Work 
+
+2.1. Depth prediction 
+
+Recent studies [14, 66] build depth foundation models on large, diverse datasets, achieving strong cross-dataset gen-eralization. Representative discriminative approaches in-clude MiDaS [2, 39] and DepthAnything [65, 66]. To lever-age data with varying scales, these methods typically adopt inverse-depth representations and affine-invariant losses, yielding relative depth predictions. In parallel, generative approaches [13, 20, 25, 48] repurpose diffusion models to infer dense relative depth, often improving boundary fi-delity at higher inference cost. Despite strong generaliza-tion and visual quality, both categories lack absolute scale, limiting applications that require metric accuracy or spa-tiotemporal consistency. A complementary line of work studies metric monocular depth estimation [69], including Metric3D [21, 69] and UniDepth [37, 38]. However, these models still face challenges in cross-domain generalization and exhibit edge-fattening issues at object boundaries com-pared with SoTA relative depth estimators. We instead pur-sue a fast, interpretable scale recovery paradigm that pre-serves the generalization strength of relative depth models while yielding metric depth. 
+
+2.2. Depth Completion 
+
+Depth completion fuses the color image with sparse range measurements (e.g. , LiDAR) to recover dense metric depth [58, 76]. Earlier propagation-based methods [32, 35] depend on learned affinities via additional training, making their behavior less interpretable and potentially more sensi-tive to domain shifts. Recent SoTA methods, such as BP-Net [50] and DMD 3C [30], achieve strong results but tend to optimize accuracy gains on specific datasets at the expense of cross-domain robustness. Recent studies [53, 78] have trended toward stronger generalization. OGNI-DC [78] in-troduces optimization-guided neural iterations to improve generalization. Marigold-DC [53] leverages the progres-sive denoising of diffusion models to refine depth comple-Calculate                          
+
+> Refine
+> Update
+> (b) Segment -Wise Recovery (c) Pixel -Wise Refinement
+> Encode
+> Sparse Graph
+> Optimization ig
+> Per -Segment
+> Calibration ()iiS
+> 3D Seeds uv
+> Relative Depth ud
+> Segment Set
+> Sparsify {}ig
+> Lookup
+> Table
+> Recover ij w=(,)ˆivuvd
+> Discontinuity -Aware
+> Geodesic Cost
+> Coarse Metric Depth Dynamic Programming 1+
+> →( ) ()
+> ( ) ( ) kk
+> zzpp
+> Transferring State
+> Stable State
+> Desired Pixel
+> Undesired Pixel
+> Local Step Global Step
+> Pixel Path 0(,)Kdpp0→→:Kpp
+> Calculate uvz
+> 𝑰
+> Sparse 3D
+> Seeds
+> Depth Foundation
+> Model
+> Relative Depth
+> 3D Seed
+> Relative Depth
+> (a) Overall Framework
+> Metric Depth Color Image Segment Set
+> Lowest
+> (3D Seed)
+> Zoom In
+> Segment -Wise Recovery Pixel -Wise Refinement
+
+Figure 2. MTD takes relative depth, sparse 3D seeds, and a superpixel segment set as inputs and outputs reliable metric depth. (a) In the overall framework, segment-wise recovery followed by pixel-wise refinement forms a coarse-to-fine pipeline. (b) Per-segment calibration first recovers scale for segments containing projected 3D seeds; we then propagate these calibration parameters to unseeded segments via an optimization on a segment graph. (c) Based on coarse depth, we derive pixel-wise discontinuities to guide the paths of depth propagation. We formulate the geodesic problem as a path-integral optimization and solve it efficiently via dynamic programming, progressing from local updates to a global solution. 
+
+tion outputs. Nevertheless, these methods [30, 50, 53] ex-hibit limited flexibility and low runtime efficiency. Further-more, achieving highly generalizable models requires col-lecting large-scale depth completion datasets and training for days [30], which further increases the cost of supervised learning. In contrast, our Midas Touch approach requires no additional training, is mathematically interpretable, uses only extremely sparse 3D seed points, and flexibly accom-modates multiple input modalities. 
+
+## 3. Methodology 
+
+We present a universal, coarse-to-fine paradigm for con-verting relative depth to metric depth using sparse 3D seeds in a mathematically interpretable manner, as shown in Fig. 2. Our approach capitalizes on the strong gen-eralization of depth foundation models without any fine-tuning, avoiding the risk of performance degradation. Be-ginning with a model’s relative depth output, we first in-troduce a coarse, segment-wise scale recovery strategy to reduce local scale inconsistencies (Sect. 3.1). We then pro-pose a fine, pixel-wise refinement strategy by casting the task as a discontinuity-aware geodesic problem (Sect. 3.2). Utilizing the above strategies, our method recovers accu-rate metric depth even when the depth foundation model is lightweight or only moderately accurate, thereby improving overall computational efficiency (Sect. 3.3). 
+
+3.1. Segment-Wise Recovery 
+
+When converting relative depth to metric depth, the scale often varies across local regions, so a single global rescal-ing is insufficient. We therefore partition the image into segments. Due to the sparsity of 3D seeds, some segments receive no seed projections and lack a reliable scale. To address this, we construct a segment graph and propagate recovered scales from seeded to unseeded segments. 
+
+3.1.1. Per-Segment Calibration 
+
+Given a color image I and a set of 3D seeds X , we project 
+
+X onto the image plane at the same resolution as I. Ap-plying superpixel segmentation [1, 11, 72] to I produces segments S = {Si}, where 1 ≤ i ≤ |S| and | · | denotes set cardinality. Let Q index the superpixels containing pro-jected seed priors; then S = {Si}i∈Q ∪ { Si}i / ∈Q .For each i ∈ Q , let Xi = {Xji } denote the set of 3D seeds that projected on Si, where 1 ≤ j ≤ |X i|. The 3D seeds originate from different sources, such as LiDAR or multi-view stereo, and each seed Xji can provide a scalar proxy ξji that is equivalent to depth zji via a monotonic bijection (details provided in the supplementary material). Let dji be the relative depth, at the pixel corresponding to 
+
+Xji , predicted by a depth foundation model. We estimate a per-segment calibration function gi : d 7 → ξ that maps relative depth to the scalar proxies by aligning the empirical distributions of {dji } and {ξ ji } within Si (i ∈ Q ). In prac-tice, gi can be obtained via least squares or median match-ing. To enable efficient parallel computation, we store the calibrated parameters of gi in a lookup table, allowing us to propagate these parameters to the uncalibrated segments in the subsequent sections. 3.1.2. Sparse Graph Optimization 
+
+We extend the per-segment calibration from the supported set {Si}i∈Q to the full segmentation S in a manner that is metrically faithful and spatially consistent. We encode this set S with a superpixel graph G = ( V, E) whose vertices V
+
+correspond to segments and whose edges capture geometric proximity. For the vertex in V, let θi denote the parameters of the local calibration function gi for segment Si. ∀i ∈ Q ,
+
+ˆθi is the per-segment fit obtained in Sect. 3.1.1; ∀i / ∈ Q , no seeds are available and θi must be inferred from the context. For each edge (i, j ) in E, edge weight wij is defined by a decaying kernel of the inter-centroid distance. We also use an adaptive, median-based scale parameter that normalizes the dynamic range for numerical stability. To reduce memory and improve computational effi-ciency, we sparsify G by retaining, for each node vi, only its N nearest neighbors under the distance induced by wij .Estimating the full set of calibration parameters {θi} is then posed as a graph-regularized quadratic problem: 
+
+min 
+
+> {θi}
+
+X
+
+> i∈Q
+
+θi − ˆθi 
+
+> 2
+
++ X
+
+> (i,j )∈E
+
+wij θi − θj
+
+> 2
+
+. (1) The objective encourages neighboring segments to share similar transfer parameters while remaining faithful to the per-segment anchors where available. To solve the problem efficiently, we adopt a closed-form approximation to (1), thereby propagating reliable calibration from Q into i / ∈ Q .Finally, the learned graph G is lifted back to the image domain by assigning gi to all pixels p ∈ S i and applying it to the foundation model’s relative depth: ξ(p) = gi
+
+ d(p).This provides an estimate of metric depth, based on the known monotone bijection between ξ and z. The segment-wise, graph-regularized transformation aligns relative depth predictions with available metric seeds and propagates a co-herent, edge-aware calibration into unseeded segments. 
+
+3.2. Pixel-Wise Refinement 
+
+Section 3.1 provides coarse metric depth estimations via segment-wise recovery, but per-segment matching leaves residual pixel-level errors. A simple indication is that the real depth values on the 3D seed projections still deviate from the coarse depth. Moreover, these pixels and their neighbors often lie on the same physical surface and thus tend to share similar errors, leading to local depth inaccura-cies. We therefore introduce a mathematically interpretable, pixel-wise refinement to correct these residuals. 
+
+3.2.1. Discontinuity-Aware Geodesic Cost 
+
+Our goal is to refine the coarse metric depth while discour-aging wrong propagation across 3D discontinuities. We for-mulate the coarse metric depth z : Ω ⊂ R2 → R as a func-tion of image coordinates (u, v )⊤. For a pixel p ∈ Ω, we define its neighbor Np = {q : ∥q − p∥∞ ≤ 1}, where 
+
+∥ · ∥ ∞ represents the infinity norm. 
+
+Proposition 1 (Pathwise bound on the remainder) . For any 
+
+p and q, define the first-order remainder 
+
+R(p, q) ≜ z(q) − z(p) − 12
+
+ ∇z(p) + ∇z(q)⊤(q − p).1
+
+(2) 
+
+Assume that the second partial derivatives zuu and zvv ex-ist and are integrable. 2 Then there exists an axis-parallel polygonal path Lp→q connecting p and q such that 
+
+R(p, q) ≤
+
+Z
+
+> Lp→q
+
+ϕ(u, v ) ds, ϕ(u, v ) ≜ pz2
+
+> uu
+
+(u, v ) + z2 
+
+> vv
+
+(u, v ).
+
+(3) Using the Cauchy-Schwarz inequality, Proposition 1 can be proved (details provided in the supplementary material). Proposition 1 guarantees the existence of at least one admis-sible curve; let Lp→q be the family of admissible curves, which is therefore nonempty. For any L ∈ Lp→q , the min-imum accumulated quantity 
+
+dϕ(p, q) = inf 
+
+> L∈ Lp→q
+
+Z
+
+> L
+
+ϕ(u, v ) ds (4) is the discontinuity-aware geodesic cost , where inf denotes the infimum. dϕ is exactly the geodesic distance under the conformal Riemannian metric ϕ2I2, where I2 denotes the identity matrix. A rigorous proof of this statement is pro-vided in the supplementary material. In practice, we treat ϕ as a local discontinuity density and discretize the line integral in (3) by a Riemann-sum over single-pixel moves. For a pixel path Π : p0 → p1 → · · · → 
+
+pK and its polygonal chain LΠ = SK−1 
+
+> k=0
+
+Lk, the path cost can be approximated as follows: 
+
+Z
+
+> LΠ
+
+ϕ ds =
+
+> K−1
+
+X
+
+> k=0
+
+Z
+
+> Lk
+
+ϕ ds ≈
+
+> K−1
+
+X
+
+> k=0
+
+ℓ(pk, pk+1 ) ϕ(pk+1 )
+
+| {z }  
+
+> W(pk→pk+1 )
+
+,
+
+(5) where ℓ(·, ·) is the step length. When the depth map ex-hibits discontinuities at object boundaries, dϕ does not vi-olate the conditions under which (3), (4), and (5) hold. On the contrary, from a discretized computational perspective, such discontinuities result in a large value of ϕ, so any curve that crosses such regions accumulates a large cost. Taking the minimum over curves yields a path-independent quan-tity dϕ that penalizes discontinuity crossings, thereby con-fining depth propagation to a reliable spatial extent.                         
+
+> 1Compared with the common first-order remainder r(p,q) = z(q)−
+> z(p)−∇ z(p)⊤(q−p), the remainder in (2) is antisymmetric, R(p,q)+
+> R(q,p) = 0 , hence |R(p,q)|=|R(q,p)|. This removes orientation bias and isolates second-order variation; in particular, R(p,q) = 0 for any affine z.
+> 2It suffices that zuu and zvv be integrable along an axis-parallel path between pand q.
+
+3.2.2. Dynamic Programming via Path Integrals 
+
+Dynamic programming iteratively minimizes a cost (or en-ergy) function using a reliable update rule, thereby converg-ing to a stable solution. Since the geodesic cost can be ap-proximated by (5), therefore, we rewrite it as 
+
+dϕ(p0, pK ) ≤ inf( W (pK−1 → pK )) + dϕ(p0, pK−1),
+
+(6) which serves as the cost function at iteration K. The scheme in (6) establishes a correspondence between computing the line integral along a path and the cost-function optimiza-tion of dynamic programming. Furthermore, it ensures that interactions between pixels are not confined to a lo-cal neighborhood, thereby expanding the effective receptive field. We initialize the costs at the reliable projected 3D seed pixels to the minimum by default. After the dynamic-programming iterations, (6) yields the smoothest discrete path among all paths from these seed pixels to p with at most K moves. To update the value at a point p using q
+
+within this path, we use the following expression: 
+
+z(k+1) (p) = 
+
+
+
+1 − 1
+
+> k+1
+
+
+
+z(k)(p) + 1 
+
+> k+1
+
+ˆz(k) (p | q, ∆p) ,
+
+(7) where ˆz(k) (p | q, ∆p) = α(k)(q)⊤Ψ(∆ p), α(k)(q) de-notes local coefficients estimated from data around q at it-eration k, ∆p = p − q denotes the one-step displacement, and Ψ is a chosen set of basis functions on the step domain. Using the harmonic step-size sequence 1 
+
+> k+1
+
+, the overall up-date forms a convex combination of the previous estimate and current prediction, which enhances stability while in-corporating new local information. 
+
+3.3. Computational Efficiency Improvements 
+
+To improve computational efficiency and practical applica-bility, we reduce the parameter count of the depth founda-tion model via knowledge distillation. According to pre-vious studies [14, 25], high-quality datasets are crucial for distilling vision foundation models. Therefore, we leverage qualified raw data collected from both real-world and sim-ulated environments. Inspired by the studies [62, 72], we adopt TinyViT [61] and EfficientViT [34] as backbones and use DepthAnythingV2 as the teacher network. We employ both feature distillation and logit distillation objectives. As shown in Sect. 4.3, despite a substantial reduction in pa-rameters, the resulting metric depth accuracy remains com-parable, and runtime efficiency improves markedly, which enables practical deployment in downstream autonomous driving and robotics applications. 
+
+## 4. Experiments 
+
+4.1. Experimental Setup 
+
+To compare our method with existing approaches, we con-duct zero-shot generalization evaluations on nuScenes [5], DepthMaster   
+
+> CFormer
+> BP -Net
+> DMD 3C
+> PromptDA
+> Marigold -DC
+> Ours
+> Inference Time ↓ ( ms )
+> RMSE ↓ (m)
+> Figure 3. Evaluation results on VOID1500 at input resolu-tion of 480 ×640 pixels using an RTX 3090. For Ours, the left-to-right ordering corresponds to the following backbones: EfficientViT-B0, EfficientViT-B1, TinyViT, DepthAnythingV2-S, DepthAnythingV2-B, and DepthAnythingV2-L.
+
+DDAD [19], Make3D [43], DIODE [52], ETH3D [44], ScanNet [8], VOID [60], SUN-RGBD [47], HAM-MER [24], IBims-1 [27], KITTI [15], and NYU-Depth V2 [45] datasets. Detailed descriptions of the datasets’ split and statistics can be found in the supplementary material. The datasets used for distillation are VKITTI2 [4], Hyper-sim [42], TartanAir [56], and SA-1B [26]. The performance of depth is evaluated using several standard metrics, includ-ing root mean squared error (RMSE), mean absolute error (MAE), absolute relative error (AbsRel), squared relative error (SqRel), the accuracy metric ( δi) under thresholds of 1.25 i, and the scale-invariant error in log-scale (SI log ). 
+
+4.2. Comparison with State-of-the-Art Methods 
+
+Depth Completion. Table 1 shows that our method con-sistently outperforms previous SoTA depth completion ap-proaches, with improvements in terms of MAE and RMSE. Since KITTI and NYUv2 are widely used for training, we exclude them from our zero-shot evaluation to avoid poten-tial train-test overlap. Outdoor scenes are generally more challenging to generalize to than indoor scenes. For in-stance, in datasets such as nuScenes, where point clouds are sparse and depth values are relatively high, nearly all methods struggle. Nevertheless, our approach surpasses the SoTA method Marigold-DC [53], reducing MAE and RMSE by 0.418 and 0.537, respectively. 
+
+Depth Prediction. In Table 2, we report results for both dis-criminative and generative relative depth estimation meth-ods, as well as metric depth estimation methods. For rel-ative depth estimation, the original evaluations already re-quire 3D data as input for global scale recovery; we preserve these input conditions and only sample 1.0%-1.5% of the available 3D data per scene (on KITTI, we use the official Table 1. Quantitative comparison with SoTA depth completion methods. All methods are evaluated in a zero-shot setting. ↓ lower is better. 
+
+Method nuScenes DDAD Make3D DIODE ETH3D RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓
+
+CFormer [76] (CVPR’23) 15.672 10.528 9.606 3.328 10.749 5.035 2.297 0.976 2.796 1.940 LRRU [58] (ICCV’23) 13.660 8.472 9.164 2.738 13.023 5.893 2.795 1.947 3.016 2.337 BP-Net [50] (CVPR’24) 15.092 10.592 8.903 2.712 12.034 5.353 2.724 1.831 3.365 2.665 DMD 3C [30] (CVPR’25) 5.556 3.112 7.766 2.498 12.019 5.575 2.262 1.127 0.935 0.285 PromptDA [31] (CVPR’25) 9.072 5.325 8.487 2.891 12.392 5.803 2.139 1.287 1.172 0.479 Marigold-DC [53] (ICCV’25) 4.924 2.595 6.449 2.364 8.926 4.932 1.987 0.887 0.706 0.245 
+
+MTD (Ours) 4.387 2.177 5.252 1.834 8.581 4.776 1.736 0.761 0.662 0.177 
+
+Method ScanNet VOID1500 SUN-RGBD HAMMER IBims-1 RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓
+
+CFormer [76] (CVPR’23) 0.223 0.118 0.726 0.261 0.442 0.218 0.101 0.055 0.177 0.040 LRRU [58] (ICCV’23) 1.175 0.773 0.698 0.232 1.304 0.808 1.418 1.137 0.298 0.107 BP-Net [50] (CVPR’24) 1.326 1.055 0.704 0.230 1.327 1.003 1.620 1.415 0.302 0.119 DMD 3C [30] (CVPR’25) 0.152 0.070 0.676 0.225 0.423 0.106 0.098 0.047 0.286 0.083 PromptDA [31] (CVPR’25) 0.179 0.072 0.605 0.191 0.264 0.095 0.106 0.070 0.308 0.122 Marigold-DC [53] (ICCV’25) 0.145 0.059 0.505 0.151 0.238 0.067 0.054 0.037 0.176 0.038 MTD (Ours) 0.129 0.049 0.366 0.138 0.220 0.050 0.093 0.034 0.190 0.072 
+
+Table 2. Quantitative comparison with SoTA zero-shot monocular depth estimation methods. The upper part lists data-driven relative depth estimation methods, the middle part presents relative depth estimation methods based on diffusion models, and the lower part represents the metric depth estimation methods. 
+
+Method with Ours KITTI NYUv2 ETH3D ScanNet DIODE AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑
+
+MiDaS [2] 0.183 0.711 0.095 0.915 0.190 0.884 0.099 0.907 0.266 0.713 MiDaS [2] ✓ 0.069 0.929 0.048 0.949 0.055 0.944 0.015 0.991 0.113 0.864 LeReS [68] 0.149 0.784 0.090 0.916 0.171 0.777 0.091 0.917 0.271 0.766 LeReS [68] ✓ 0.035 0.974 0.014 0.994 0.022 0.984 0.013 0.994 0.097 0.885 DPT [40] 0.111 0.881 0.091 0.919 0.115 0.929 0.084 0.932 0.269 0.730 DPT [40] ✓ 0.032 0.976 0.016 0.994 0.019 0.985 0.014 0.994 0.096 0.887 Depth Pro [3] 0.077 0.949 0.044 0.975 0.060 0.965 0.042 0.980 0.321 0.752 Depth Pro [3] ✓ 0.034 0.975 0.012 0.995 0.028 0.974 0.020 0.986 0.093 0.889 DepthAnythingV2 [66] 0.080 0.946 0.043 0.980 0.062 0.980 0.043 0.981 0.260 0.759 DepthAnythingV2 [66] ✓ 0.022 0.987 0.013 0.995 0.017 0.988 0.016 0.991 0.093 0.917 
+
+Marigold [25] 0.099 0.916 0.055 0.964 0.065 0.960 0.064 0.951 0.308 0.773 Marigold [25] ✓ 0.041 0.966 0.017 0.991 0.025 0.978 0.014 0.991 0.094 0.896 GeoWizard [13] 0.097 0.921 0.052 0.966 0.064 0.961 0.061 0.953 0.297 0.792 GeoWizard [13] ✓ 0.047 0.962 0.014 0.994 0.021 0.984 0.013 0.994 0.097 0.885 Lotus [20] 0.093 0.928 0.053 0.967 0.068 0.953 0.060 0.963 0.228 0.738 Lotus [20] ✓ 0.032 0.975 0.015 0.993 0.022 0.985 0.015 0.992 0.108 0.868 DepthMaster [48] 0.082 0.937 0.050 0.972 0.053 0.974 0.055 0.967 0.215 0.776 DepthMaster [48] ✓ 0.043 0.965 0.016 0.993 0.021 0.984 0.016 0.992 0.095 0.888 Metric3Dv2 [21] 0.051 0.976 0.067 0.973 0.137 0.825 0.047 0.990 0.246 0.823 Metric3Dv2 [21] ✓ 0.027 0.980 0.014 0.994 0.019 0.986 0.015 0.992 0.099 0.881 UniDepthV2 [38] 0.076 0.952 0.062 0.970 0.150 0.865 0.058 0.975 0.251 0.795 UniDepthV2 [38] ✓ 0.032 0.977 0.017 0.993 0.023 0.980 0.014 0.993 0.096 0.887 
+
+sparse data). As shown in Table 2, MTD serves as a plug-and-play component for depth foundation models, utilizing their relative depth output and producing accurate metric depth, which consistently reduces AbsRel and increases δ1.Moreover, Table 2 compares MTD across different depth foundation models. When paired with DepthAnythingV2, MTD achieves the best overall performance. Accordingly, we adopt DepthAnythingV2 as the primary backbone in our subsequent hardware and application experiments. 
+
+Inference Time. In Fig. 3, we compare our method with SoTA baselines in terms of RMSE and inference time. Ben-efiting from MTD’s flexibility, our framework offers greater latitude to balance accuracy and efficiency. Notably, the dominant runtime cost lies in the front-end depth founda-tion model; the back end adds negligible overhead. For ex-ample, for an input image with a resolution of 480 ×640 pixels on an RTX 3090, our back end requires only 1.9 ms, with memory usage below 1.8 GB and GPU utilization un-der 4%. This underscores the importance of efficient rela-tive depth backbones for lightweight frameworks. 
+
+4.3. Ablation Studies 
+
+We validate the rationality and efficacy of our method through extensive ablation studies, specifically focusing on Table 3. Unified ablation on KITTI (outdoor) and VOID (indoor) for segment-wise recovery and pixel-wise refinement strategy.                                                 
+
+> Module Factor KITTI VOID RMSE ↓MAE ↓RMSE ↓MAE ↓
+> Per-Segment Calibration median 10.891 2.169 0.898 0.358 least squares 7.013 1.802 0.791 0.307 Domain: z−16.782 1.794 0.614 0.238 Sparse Graph Optimization global-based 2.521 0.687 0.554 0.169 graph-based 2.232 0.608 0.459 0.150 Dynamic Programming w/o dϕ2.618 0.661 0.482 0.158 B-spline 2.112 0.578 0.442 0.147 polynomial 2.049 0.551 0.429 0.145
+> k=3 2.028 0.532 0.366 0.138
+> k=5 1.913 0.498 0.391 0.141
+
+the segment-wise recovery strategy, the pixel-wise refine-ment strategy, the selection of the depth foundation models, and the 3D seed sparsity. 
+
+Segment-Wise Recovery Strategy. As shown in Table 3, we evaluate both on the outdoor and indoor datasets. We first validate our per-segment calibration to determine both the proxy domain and the fitting strategy. In particular, we compare two standard alignment schemes for monocular depth estimation [16, 17, 25, 65, 74]: median alignment and least-squares fitting. We further adopt inverse depth z−1 as the proxy representation, yielding a measurable improve-ment in accuracy. Moreover, after constructing a sparse graph over segments and optimizing it, we observe consis-tent improvements over the global baseline. 
+
+Pixel-Wise Refinement Strategy. We solve the geodesic problem using dynamic programming and, therefore, per-form ablation studies on the proposed discontinuity-aware geodesic cost and the dynamic programming jointly. As shown in Table 3, without our geodesic cost, standard edge extractors fail to represent discontinuities effectively. For the basis functions in (37), polynomial functions outper-form B-splines. We also find that increasing k in (37) ex-pands the receptive field and improves accuracy. 
+
+Foundation Model’s Capacity. To assess our method’s practical applicability, we conduct ablation studies across different depth foundation models. In Fig. 3, RMSE re-mains stable until the parameter count drops below ∼20M. Although RMSE increases for TinyViT, EfficientViT-B0, and EfficientViT-B1, these backbones are extremely lightweight, and their RMSE remains within an accept-able range relative to other SoTA methods. In Fig. 4(a), we evaluate with two mainstream depth foundation mod-els, DepthAnythingV2 and MiDaS. We observe that under the global least-squares baseline, the MAE gap between DepthAnythingV2 and MiDaS is substantial; after incorpo-rating our algorithm, this gap is markedly reduced. This demonstrates that our method can bridge the performance gaps across different depth foundation models and does not rely on high-capacity foundation models. -2.4                                         
+
+> -1.6
+> -0.8
+> 00
+> 200
+> 400
+> 600
+> -0.2
+> -0.15
+> -0.1
+> -0.05
+> 00
+> 500
+> 1000
+> 1500
+> 00.1 0.5 1240.1 0.5 124NP(%) NP(%)
+> MAE MAE
+> Best
+> Scale
+> Best
+> Scale
+> 0
+> 200
+> 400
+> 600
+> 0.1 0.25 0.35 0.5
+> DIODE
+> VOID
+> DDAD
+> KITTI
+> 0(b)
+> Indoor Outdoor
+> 0.05
+> 0.10
+> 0.15
+> 0.1 0.25 0.35 0.5
+> 0.00
+> 0.50
+> 1.00
+> 1.50
+> 2.00
+> 2.50
+> 3.00
+> 3.50
+> 4.00
+> 4.50
+> 5.00
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> 0.10
+> 0.12
+> 0.14
+> 0.16
+> 0.18
+> 0.20
+> NP(%)
+> MAE DAV2 + LS
+> DAV2 + Ours
+> MiDaS + LS
+> MiDaS +Ours
+> 0.1 0.5 124NP(%)
+> MAE DAV2 + LS
+> DAV2 +Ours
+> MiDaS + LS
+> MiDaS +Ours
+> 0.1 0.5 124
+> (a)
+> ETH3D Indoor nuScenes
+> -2.5
+> -1.5
+> -0.5 0.50
+> 1.50
+> 2.50
+> 0.80
+> 1.60
+> 2.40
+
+Figure 4. Ablation on 3D Seed Sparsity and Segment Scale. (a) 
+
+Effect of the number of 3D seed points (NP) . We compare the MAE obtained with a global least-squares baseline and with our method as NP varies. The left panel reports results on ETH3D (in-door); the right panel reports results on nuScenes (outdoor). “LS” represents global least-squares method, and “DAV2” denotes the DepthAnythingV2. (b) Best segment scale at fixed NP . For both indoor and outdoor datasets, we conduct a hyperparameter search over the segment scale at each fixed NP, selecting the value that minimizes MAE. 0 50  100  150  200  250 
+
+> Effi-B0
+> Effi-B1
+> TinyViT
+> DAV2-S
+> DAV2-B
+> DAV2-L
+> Real -Time
+> Inference Time ↓ ( ms )
+
+Figure 5. Inference time on embedded system (NVIDIA Jet-son AGX Orin Platform) after acceleration. “DAV2” denotes the DepthAnythingV2, and “Effi” represents the EfficientViT. 
+
+3D Seed Sparsity and Segment Scale. In Fig. 4(a), we compare the MAE as the number of 3D seed points (NP) varies, using both global least squares and our method. When the 3D seeds are extremely sparse, our method de-generates to the least-squares baseline, serving as a built-in safeguard. As the point cloud becomes denser, however, our approach yields substantial MAE reductions, whereas global least squares shows little further improvement. In Fig. 4(b), for multiple datasets and NP settings, we perform a hyperparameter search over the segment-scale parameter to minimize MAE. As NP increases, the optimal segment scale consistently decreases, and the best MAE likewise drops, since additional 3D seeds enable finer metric depth detail. These trends provide practical guidance for selecting hyperparameters under different NP situations. Livox     
+
+> MID -70
+> (a) (b)
+> Color Image Ground Truth Relative Depth
+> Correspondence Matching
+> VGGT
+> Metric
+> Depth
+> +Ours
+> Triangulation Matching
+> Relative
+> Depth
+> Metric Depth
+> Intel
+> Realsense
+> D455
+
+Figure 6. Evaluation setup and visualization. (a) We use a Livox MID-70 LiDAR as ground truth to evaluate the depth rectification of the Intel RealSense D455. (b) Our method plugs into the back end of VGGT to produce metric 3D reconstructions. Seq 00  Seq 02  
+
+> Seq 05 Seq 09
+
+Figure 7. Qualitative results on the KITTI Odometry benchmark. 
+
+4.4. Downstream Applications 
+
+In Fig. 5, we further report inference time after TensorRT and multi-thread acceleration on the NVIDIA Jetson AGX Orin Platform. With our nonparametric lightweight al-gorithm, the embedded system achieves real-time perfor-mance. Fig. 6 and Table 4 demonstrate the effectiveness of our method across multiple downstream applications. Thanks to the plug-and-play design, our approach integrates easily into existing pipelines. Compared with raw depth from commonly used range cameras, MTD substantially improves data quality in both indoor and outdoor settings. In addition, when combined with large models such as VGGT [55], our method enables multi-view stereo that sur-passes the SoTA MVSAnywhere [22]. Specifically, VGGT outputs relative depth and correspondence matches. Uti-lizing the collected extrinsic, we triangulate these matches to obtain 3D seeds with known scale, which yields metric 
+
+Table 4. Applications of MTD. (a)-(b) Experimental setups are shown in Fig. 6. (c) We report the RMSE of the absolute trajec-tory error (ATE-RMSE ↓). (d) Quantitative results on KITTI-360; the evaluation metrics and the two-decimal rounding convention follow those in the study [59].                                                                                                                                         
+
+> (a) Depth Rectification in Commonly Used Range Camera
+> Method Scene RMSE ↓MAE ↓AbsRel ↓SqRel ↓SI log ↓δ1↑
+> Raw Indoor 0.935 0.387 0.101 0.209 0.579 0.942 Raw + Ours 0.345 0.243 0.065 0.032 0.090 0.967
+> Raw Outdoor 2.408 1.248 0.190 0.753 0.971 0.845 Raw + Ours 1.287 0.889 0.150 0.289 0.219 0.886 (b) Multi-View Stereo
+> Method RMSE ↓MAE ↓AbsRel ↓SqRel ↓SI log ↓δ1↑
+> MVSAnywhere[22] 0.088 0.041 0.054 0.011 0.099 0.957 VGGT[55] + Align 0.107 0.067 0.108 0.015 0.147 0.889 VGGT[55] + Ours 0.079 0.034 0.054 0.010 0.088 0.971 (c) SLAM on KITTI Odometry
+> Method Seq 00 Seq 02 Seq 05 Seq 06 Droid [51] 66.562 84.828 41.973 72.402 Droid + LiDAR 63.295 77.610 31.641 104.552 Droid + Ours 25.017 25.698 12.233 12.194
+> Method Seq 07 Seq 08 Seq 09 Seq 10 Droid [51] 13.785 64.552 60.414 11.394 Droid + LiDAR 9.867 60.201 42.493 46.627 Droid + Ours 5.994 20.738 23.077 10.871 (d) Occupancy Predicition
+> Method Scene Object Osacc ↑IE sacc ↑Ooacc ↑IE oacc ↑
+> Monodepth2 [17] 0.90 N/A 0.69 N/A Monodepth2 + 4m 0.90 0.59 0.70 0.53 PixelNeRF [70] 0.89 0.62 0.67 0.53 BTS [59] 0.92 0.69 0.79 0.69 KYN [28] 0.92 0.70 0.79 0.69 ViPOcc [12] 0.93 0.71 0.79 0.69 BTS + Ours 0.94 0.72 0.80 0.70
+
+depth. Compared with a least-squares alignment, our scale-recovery strategy markedly improves the accuracy of the re-sulting metric depth. In SLAM experiments, augmenting LiDAR with our method significantly reduces trajectory er-ror compared to leveraging LiDAR alone; qualitative results are shown in Fig. 7. For occupancy prediction, following the pipeline and evaluation protocol in studies [12, 28, 59], we observe a consistent improvement in accuracy. 
+
+## 5. Conclusion 
+
+In this paper, we introduced a novel paradigm for recov-ering depth scale, comprising a segment-wise scale recov-ery strategy and a pixel-wise refinement strategy. Exten-sive experiments demonstrate strong cross-domain gener-alization and high accuracy of our method, and we further show that it can be flexibly integrated into a variety of down-stream tasks. As future work, we will investigate using 3D seeds only for initialization and, within a continual-learning framework, gradually eliminate this requirement. Acknowledgements 
+
+This research was supported by the National Natural Science Foundation of China under Grant 62473288, Grant 62371343, Grant 62233013, and Grant 62333017, the National Key Laboratory of Human-Machine Hybrid Augmented Intelligence, Xi’an Jiaotong University (No. HMHAI-202406), the Fundamental Research Funds for the Central Universities, NIO University Programme (NIO UP), and the Xiaomi Young Talents Program. 
+
+## A. Ethics 
+
+In this research, we utilize multiple datasets for depth estimation and completion, including nuScenes [5], DDAD [19], Make3D [43], DIODE [52], ETH3D [44], ScanNet [8], VOID [60], SUN-RGBD [47], HAM-MER [24], IBims-1 [27], KITTI [15], and NYU-Depth V2 [45]. These datasets are used in strict accordance with their respective terms of use. While some datasets may con-tain images with visible faces and other personal data col-lected without consent, we emphasize that no processing of biometric information has occurred. We utilize the images under the CC-BY license or in a manner compatible with the Data Analysis Permission. 
+
+## B. Details of Methodology 
+
+B.1. Details on the Per-Segment Calibration 
+
+As discussed in Sect. 3.1.1 of the main paper, we convert each 3D seed prior to a scalar cue ξji that is equivalent to in-verse depth. Concretely: (i) When metric depth zji is avail-able (e.g., LiDAR or metric depth estimators), we set: 
+
+ξji = κzs(x) + ε , (8) where κ is the minimum depth (note that κ can be set to any constant, as long as the same value of κ is used during recovery), and ε is a small constant for stability. (ii) For rectified stereo, disparity is proportional to z−1 (up to the baseline–focal-length scale). (iii) For generic multi-view stereo or unrectified stereo ( i.e. , without epipolar rectifi-cation), we perform correspondence matching and recover depth via geometric triangulation from calibrated camera poses, then we follow (i). For i ∈ Q , the calibration function gi models the per-segment transition and, in practice, can be simplified as: 
+
+gi(x) = max {aix + bi, d min }, x ∈ R≥0, (9) where (ai, b i) is parameters, and dmin denotes a prescribed minimum depth. gi can be obtained via least squares, mo-ment matching, or quantile matching. Concretely: (i) For the least-squares situation, we adopt: 
+
+(ai, b i) = arg min 
+
+> a,b
+
+X
+
+> x∈S i∩Ωs
+
+ a d (x) + b − ξ(x)2, (10) where Ωs denotes the set of projected seed pixels; (ii) for the moment matching situation, we set: 
+
+a = σξ
+
+σd
+
+, b = μξ − a μ d, (11) where σ and μ denote the sample standard deviation and the sample mean, respectively. For a special case in mean scaling, we set: 
+
+ai = μξ
+
+μd
+
+, bi = 0; (12) (iii) For the quantile matching situation, we utilize the em-pirical quantiles Qp and the interquartile range IQR( x) = 
+
+Q0.75 (x) − Q0.25 (x):
+
+ai = IQR( ξ)IQR( d) , bi = median( ξ) − ai median( d),
+
+(13) where median( ·) = Q0.5(·) denotes the median operation. For a special case in median scaling, we set: 
+
+ai = median( ξ)median( d) , bi = 0 . (14) 
+
+B.2. Details on the Segment Propagation and Sparse Graph Optimization 
+
+Random Noise Suppression. For {S i}i / ∈Q , which contain no 3D seeds, the above recovery procedure cannot be ap-plied. Moreover, when applying gi for the calibration pro-cess on {S i}i∈Q , random noise becomes pronounced if the set of 3D seed priors Xi is extremely small. To simulta-neously suppress random noise, we first construct a trans-fer map T from disparity di to depth zi using data from 
+
+{S i}i∈Q . For regions {S i}i / ∈Q , the values in T are initial-ized as invalid ( ∅). Assume p is a 2D pixel in transformation map T , and 
+
+Np denotes the set of neighbors of p (including p itself) restricted to positions where T is defined ( i.e. , non-∅). 
+
+T (t) denotes the map at iteration t of the bilateral filter. For any point p, its probability of occurrence at iteration 
+
+t, denoted as P(t)(p), can be interpreted as the potential energy of point p under the function T (t), i.e., P(t)(p) ∝
+
+exp( −T (t)(p)) . Since the state of p is influenced by its lo-cal neighborhood Np, the law of total probability yields: 
+
+P(t)(p | N p) = X
+
+> q∈N p
+
+P(p | q, Np) P(t−1) (q | N p), (15) where P(p | q) denotes the conditional probability of tran-sitioning from a neighboring node q to the central node p,and P(t−1) (q) represents the prior probability of q from the previous iteration. For each q ∈ N p, the bilateral kernel weight k(q) is defined as: 
+
+k(q) = exp − ∥p − q∥2
+
+2σ21
+
+− (I(p) − I(q)) 2
+
+2σ22
+
+!
+
+, (16) where ∥ · ∥ is the Euclidean norm, σ1 controls the spatial falloff, and σ2 controls the color similarity. Given that the bilateral kernel k(q) defines the influence weight of neigh-bor q on the center point p, we can apply Bayes’ theorem to express: 
+
+P(p | q, Np) = P(q | p, Np) P(p | N p)
+
+P(q | N p) ∝ k(q). (17) Substituting this into the (15) yields: 
+
+P(t)(p | N p) = 
+
+P 
+
+> q∈N p
+
+k(q) P(t−1) (q | N p)
+
+P 
+
+> q∈N p
+
+k(q) . (18) Taking the logarithm of both sides leads to the filtering func-tion: 
+
+T (t)(p) = − log 
+
+P 
+
+> q∈N p
+
+k(q) exp 
+
+
+
+−T (t−1) (q)
+
+P 
+
+> q∈N p
+
+k(q) . (19) From a geometric perspective, this filtering function effec-tively suppresses outliers of high-value errors through ex-ponential weighting, thereby ensuring the stability and reli-ability of the transformation process. 
+
+Sparse Graph Optimization. In Sect. 3.1.2 of the main paper, we introduce a sparse graph optimization. We first model the {S i} into a graph G. The vertex of G stores the calibration parameters, and the edge of G is the spa-tial distance of the center in {S i}. We then sparsify the graph by sorting the edge weights of G. We preserve the N -minimum distance of each vertex. Let ci denote the centroid of Si. The wij in Sect. 3.1.2 can be computed as follows: 
+
+wij ∝ exp ( −∥ ci − cj ∥/τ ), where ∥ · ∥ is the Euclidean norm, and τ is the adaptive, median-based scale parameter for numerical stability. 
+
+B.3. Proof of Proposition 1 in the Main Paper 
+
+Diagonal case. Let p = ( u0, v 0)⊤ and q = ( u1, v 1)⊤.Consider the two axis-aligned polyline paths between p and 
+
+q. Let L1 be the axis-aligned path p → (u1, v 0)⊤ → q (hor-izontal then vertical), and L2 the path p → (u0, v 1)⊤ → q
+
+(vertical then horizontal). Define the symmetric first-order remainder as follows: 
+
+R(p, q) := z(q) − z(p) − 12
+
+ ∇z(p) + ∇z(q)⊤(q − p).
+
+(20) Our goal is to choose one path such that |R(p, q)| is bounded by a path integral R ϕ ds , where ϕ(u, v ) =pz2
+
+> uu
+
+(u, v ) + z2 
+
+> vv
+
+(u, v ) and ds = √du 2 + dv 2.We first rewrite R(p, q) as the average of the remainders associated with the two candidate paths. Set ∆u = u1 − u0,
+
+∆v = v1 − v0. For each one-dimensional axis-aligned path (horizontal paths at fixed v, vertical paths at fixed u), we apply the integral form of the trapezoidal rule error for a single variable and then integrate by parts along that path. This yields the following two equations: 
+
+RH→V := z(q) − z(p)
+
+−  ∆u z u(p) + ∆ v z v (q)
+
+=
+
+Z u1
+
+> u0
+
+(u1 − u) zuu (u, v 0) du 
+
+−
+
+Z v1
+
+> v0
+
+(v − v0) zvv (u1, v ) dv, 
+
+(21) 
+
+RV →H := z(q) − z(p)
+
+−  ∆v z v (p) + ∆ u z u(q)
+
+= −
+
+Z u1
+
+> u0
+
+(u − u0) zuu (u, v 1) du 
+
++
+
+Z v1
+
+> v0
+
+(v1 − v) zvv (u0, v ) dv. 
+
+(22) These two formulas can be proved using a one-dimensional line integral. By definition and a simple rearrangement, we obtain the following equation: 
+
+R(p, q) = 12 RH→V + 12 RV →H . (23) From (21) and the triangle inequality, 
+
+|RH→V | ≤ 
+
+Z u1
+
+> u0
+
+(u1 − u) |zuu (u, v 0)| du 
+
++
+
+Z v1
+
+> v0
+
+(v − v0) |zvv (u1, v )| dv. 
+
+(24) Since 0 ≤ (u1 −u) ≤ | u1 −u0| = |∆u| and 0 ≤ (v −v0) ≤|∆v|, we obtain the following equation: 
+
+|RH→V | ≤ | ∆u|
+
+Z u1
+
+> u0
+
+|zuu (u, v 0)| du 
+
++ |∆v|
+
+Z v1
+
+> v0
+
+|zvv (u1, v )| dv. 
+
+(25) On the horizontal path ds = |du | and |zuu | ≤ ϕ; on the vertical path ds = |dv | and |zvv | ≤ ϕ. Therefore, we obtain the following equation: 
+
+|RH→V | ≤ 
+
+Z
+
+> LH→V
+
+ϕ(u, v ) ds. (26) From (22), we can obtain the following expression: 
+
+|RV →H | ≤ 
+
+Z 
+
+> LV→H
+
+ϕ(u, v ) ds. (27) Take absolute values in (23) and apply (26)-(27): 
+
+|R| ≤ 12
+
+Z
+
+> LH→V
+
+ϕ ds + 12
+
+Z 
+
+> LV→H
+
+ϕ ds 
+
+≤ max {
+
+Z
+
+> LH→V
+
+ϕ ds, 
+
+Z 
+
+> LV→H
+
+ϕ ds }.
+
+(28) Hence there exists L ∈ {L H→V , LV →H } such that 
+
+R(p, q) ≤
+
+Z
+
+> L
+
+ϕ(u, v ) ds. (29) This proves the claimed pathwise existence bound (the Cauchy-Schwarz inequality can also be employed to obtain the same result). 
+
+Purely horizontal step. We derive the following equation: 
+
+R(hor) =
+
+Z u1
+
+> u0
+
+ u0+u1 
+
+> 2
+
+− u
+
+
+
+zuu (u, v 0) du. (30) We then derive the following equation: 
+
+R(hor) ≤
+
+Z u1 
+
+> u0
+> u0+u1
+> 2
+
+− u |zuu (u, v 0)| du 
+
+≤
+
+Z u1
+
+> u0
+
+|zuu (u, v 0)| du 
+
+≤
+
+Z
+
+> Lhor
+
+ϕ ds, 
+
+(31) where Lhor is the single horizontal axis-aligned path (so 
+
+ds = |du | and |zuu | ≤ ϕ along it). 
+
+Purely vertical step. Similarly, we can derive the following equation: 
+
+R(ver) =
+
+Z v1
+
+> v0
+
+ v0+v1 
+
+> 2
+
+− v
+
+
+
+zvv (u0, v ) dv, (32) and 
+
+R(ver) ≤
+
+Z v1
+
+> v0
+
+|zvv (u0, v )| dv ≤
+
+Z
+
+> Lver
+
+ϕ ds, (33) where Lver is the single vertical axis-aligned path (so ds =
+
+|dv | and |zvv | ≤ ϕ along it). 
+
+B.4. Proof of Geodesic Cost 
+
+Define the weighted path length and the induced geodesic cost as follows: 
+
+Lϕ(γ) = 
+
+Z
+
+> γ
+
+ϕ ds, dϕ(p, q) = inf   
+
+> γ:p→q
+
+Lϕ(γ), (34) where for a piecewise C1 curve γ : [0 , 1] → Ω, we have 
+
+ds = ∥ ˙γ(t)∥2 dt . Endow Ω ⊂ R2 with the conformal Rie-mannian metric g = ϕ2I2, where I2 is the identity matrix. Then the Riemannian length of γ is: 
+
+Lg (γ) = 
+
+Z 10
+
+q
+
+˙γ(t)⊤gγ(t) ˙γ(t) dt 
+
+=
+
+Z 10
+
+ϕ(γ(t)) ∥ ˙γ(t)∥2 dt 
+
+=
+
+Z
+
+> γ
+
+ϕ ds. 
+
+(35) Hence, 
+
+Lϕ(γ) = Lg (γ) ⇒ dϕ(p, q) = dg (p, q) . (36) The path length formulation exactly is the geodesic distance under the conformal metric g = ϕ2I2 (identical values and the same minimizing curves up to reparameterization). 
+
+B.5. Details on the Dynamic Programming 
+
+To update the value at a point p using information from its neighboring point q in the dynamic programming process, we use the following expansion in Sect. 3.2.2: 
+
+z(k+1) (p) = 
+
+
+
+1 − 1
+
+> k+1
+
+
+
+z(k)(p) + 1 
+
+> k+1
+
+ˆz(k) (p | q, ∆p) .
+
+(37) Under a polynomial expansion, the above expression can be reformulated as the following equation: 
+
+z(k+1) (p) = 
+
+
+
+1 − 1
+
+k + 1 
+
+
+
+z(k)(p) + 1
+
+k + 1 
+
+
+
+z(k)(q)+ ∇z(k)(q)⊤∆h + 12 ∆h⊤H(k) 
+
+> z
+
+(q)∆ h + · · · 
+
+
+
+,
+
+(38) where the displacement vector ∆h = p − q. ∇z(k)(q) is the gradient of z(k) at point q, and H(k) 
+
+> z
+
+(q) is the Hessian matrix of z(k) at q, given by: 
+
+H(k) 
+
+> z
+
+(q) = 
+
+"
+
+z(k) 
+
+> xx
+
+(q) z(k) 
+
+> xy
+
+(q)
+
+z(k) 
+
+> xy
+
+(q) z(k) 
+
+> yy
+
+(q)
+
+#
+
+, (39) where zxx , zyy , and zxy denote the second partial deriva-tives of z with respect to x, y, and the mixed partial deriva-tive with respect to x and y, respectively. For (38), we use the step sizes 1 
+
+> k+1
+
+, which satisfy the following conditions: 
+
+> ∞
+
+X
+
+> k=1
+
+1
+
+k = ∞,
+
+> ∞
+
+X
+
+> k=1
+
+ 1
+
+k
+
+2
+
+< ∞. (40) Intuitively, the first condition prevents the updates from vanishing too quickly, so new information continues to in-fluence the estimate; the second mitigates the cumulative effect of noise. We now make the convergence analy-sis fully two-dimensional by treating the Taylor remain-der R(k)2 (p, q) rigorously. Assume that each iterate z(k) :
+
+R2 → R is three-times continuously differentiable on an open set containing the line path between p and q, and that the third-derivative tensors are uniformly bounded along these paths. Specifically, there exists M > 0 such that 
+
+sup 
+
+> ξ
+
+∇3z(k)(ξ) op ≤ M, ∀ k. (41) Here, ∥ · ∥ op denotes the operator norm. For each itera-tion, the second-order Taylor remainder can be written in the form: 
+
+ϵk+1 := R(k)2 (p, q) = 16 ∇3z(k)(ξk+1 )∆h, ∆h, ∆h,
+
+(42) where ξk+1 is in the line path between p and q. This implies the bound: 
+
+|ϵk+1 | ≤ M 
+
+> 6
+
+∥∆h∥3. (43) Therefore, the step size ∆h should be controlled. 
+
+B.6. Details on the Knowledge Distillation 
+
+We leverage high-quality raw data collected from both real-world and virtual scenarios. Our objective is to develop a lightweight encoder capable of robust generalization for applications. To achieve this, we employ DepthAny-thingV2 [66] as a teacher network to distill knowledge into our depth foundation models. As shown in pre-vious work [14], virtual datasets offer advantages such as high quality and precise synchronization. Moreover, high-quality datasets tend to provide more reliable super-vision for pretrained models [14]. Therefore, we utilize both high-quality virtual and real-world datasets, includ-ing VKITTI2 [4], Hypersim [42], TartanAir [56], and SA-1B [26]. During training, both the depth foundation mod-els and the DPT decoder [40] are trained using a com-bination of real-world and virtual datasets. To facilitate training, the decoder is constrained by pseudo labels gen-erated by DepthAnythingV2. Assume the input image is denoted as I. Our teacher features from the DepthAny-thingV2 image encoder can be written as f da (I), the output from DepthAnythingV2 DPT head is Dda = hda (f da (I)) .The output from the lightweight depth foundation model’s encoder is f tiny (I), and the lightweight DPT decoder output is Dtiny = htiny (f tiny (I)) . The overall loss is defined as the sum of the logit distillation loss Ll and the feature distilla-tion Lf . The logit distillation loss between the DepthAny-thingV2 [66] and our lightweight DPT decoder [40] can be defined as follows: 
+
+Ll = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+ρ(Dda ) − ρ(Dtiny )
+
++ α · 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+
+
+ρ(∇xDda ) − ρ(∇xDtiny )
+
+
+
++ α · 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+
+
+ρ(∇y Dda ) − ρ(∇y Dtiny )
+
+
+
+,
+
+(44) where N is the number of pixels, | · | denotes a ℓ1 norm, α
+
+is set as in [66], and the function ρ is the scaled and shifted operation. The feature distillation loss can be defined as follows: 
+
+Lf = 1
+
+M · N
+
+> M
+
+X
+
+> m=1
+> N
+
+X
+
+> j=1
+
+f da (I) − f tiny (I) 2 , (45) where M represents the number of multi-scale features. 
+
+## C. Experiments 
+
+C.1. Datasets 
+
+For depth estimation, we use the KITTI [15], NYU-Depth V2 (NYUv2) [45], ScanNet [8], ETH3D [44], and DIODE [52] datasets. We follow the data splits adopted in the studies [25, 48]. KITTI is a street-scene dataset with sparse metric depth captured by a LiDAR sensor, and we employ the Eigen test split [10]. The indoor dataset NYUv2 provides 654 images, while ScanNet contains 800 images. DIODE [52] and ETH3D [44] are high-resolution mixed indoor-outdoor datasets; in the splits, ETH3D contributes 454 images, and DIODE provides 325 indoor samples and 446 outdoor samples. For depth completion, we use nuScenes [5], DDAD [19], Make3D [43], DIODE [52], ETH3D [44], ScanNet [8], VOID [60], SUN-RGBD [47], IBims-1 [27], and HAM-MER [24]. For nuScenes, we follow the preprocessing pro-tocol and test split of prior work [46]. We discard sam-ples with obvious projection errors. For DDAD, we fol-low the split and preprocessing of prior work [53] and use images at a resolution of 1216 ×1936. For Make3D [43], we adopt the split used in previous work [75]; due to the inherently low depth resolution of this dataset, the result-ing MAE and RMSE are relatively large. For DIODE [52], ETH3D [44], and ScanNet [8], we use the same splits as in our depth prediction experiments. For VOID [60], we again follow the split proposed in prior work [37]. For SUN-RGBD [47], we use the split that excludes images over-lapping with NYUv2 [45], resulting in approximately 4.4k images. For HAMMER [24], we randomly sample 400 im-ages for testing. For IBims-1 [27], we use the official evalu-ation split with 100 images. nuScenes [5], DDAD [19], and VOID [60] provide sparse depth maps directly. For the re-maining datasets, we simulate sparse depth by randomly re-taining 0.01%–0.1% depth points. We apply noisy random sampling, where points are uniformly sampled at varying densities and 10%–20% of them are perturbed with noise. For datasets acquired with line-scan LiDAR sensors, we use LiDAR-simulated sampling. 
+
+C.2. The Details of Comparison with SoTA Methods 
+
+In our main paper, for the depth estimation baselines, the quantitative results reported in our tables (the sec-tion without our method) are taken from the original stud-ies [25, 48]. In our main paper, for depth completion baselines, we follow the protocol of prior work [30, 78] and conduct zero-shot evaluation for CFormer [76], BP-Net [50], and LRRU [58] by using weights trained on KITTI for outdoor datasets and weights trained on NYUv2 for indoor datasets. For DMD 3C [30], we use the of-Color Image  Sparse Depth  DMD 3C Marigold -DC  Ours Figure 8. Qualitative comparisons with SoTA depth completion methods. 
+
+ficial weights trained on a large-scale dataset for zero-shot evaluation. It is worth noting that the pretraining of DMD 3C [30] includes nuScenes, which partly explains its superior performance on the nuScenes benchmark. Al-though DMD 3C [30] and BP-Net [50] share similar net-work architectures, we observe that this large-scale pre-training substantially improves the generalization ability of DMD 3C. For PromptDA [31], since the official weights are trained on a specific dataset and exhibit poor generalization, we reimplement the method. We configure the denoising Table 5. Quantitative comparison with SoTA depth completion methods. All methods are evaluated in a zero-shot setting. 
+
+Method nuScenes VOID1500 VOID500 VOID150 IBims-1 RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓
+
+DepthAnythingV2 [66] 5.303 3.163 0.605 0.209 0.582 0.209 0.644 0.230 0.305 0.132 Depth Pro [3] 6.232 3.657 0.734 0.385 0.697 0.373 0.758 0.392 0.332 0.148 Marigold [25] 5.459 3.271 0.630 0.240 0.607 0.241 0.673 0.263 0.306 0.138 DPromting [36] 13.981 9.182 0.779 0.373 0.754 0.373 0.820 0.398 0.297 0.102 BP-Net [50] 15.092 10.592 0.738 0.268 0.790 0.369 0.934 0.470 0.302 0.119 DMD 3C [30] 5.556 3.112 0.676 0.225 0.736 0.275 0.762 0.297 0.286 0.083 G2-Monodepth [54] 8.921 4.587 0.568 0.159 0.574 0.182 0.691 0.247 0.267 0.078 Marigold-DC [53] 4.924 2.595 0.505 0.151 0.535 0.158 0.622 0.194 0.176 0.038 
+
+MTD (Ours) 4.387 2.177 0.366 0.138 0.522 0.157 0.615 0.217 0.190 0.072 
+
+Table 6. Quantitative comparison with SoTA zero-shot depth estimation methods. We utilize the metric depth estimator to generate the 3D seeds for depth estimation. 
+
+Method KITTI NYUv2 ETH3D ScanNet DIODE AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑ AbsRel ↓ δ1 ↑
+
+DiverseDepth [67] 0.190 0.704 0.117 0.875 0.228 0.694 0.109 0.882 0.376 0.631 MiDaS [2] 0.183 0.711 0.095 0.915 0.190 0.884 0.099 0.907 0.266 0.713 LeReS [68] 0.149 0.784 0.090 0.916 0.171 0.777 0.091 0.917 0.271 0.766 Omnidata [9] 0.149 0.835 0.074 0.945 0.166 0.778 0.075 0.936 0.339 0.742 HDN [71] 0.115 0.867 0.069 0.948 0.121 0.833 0.080 0.939 0.246 0.780 DPT [40] 0.111 0.881 0.091 0.919 0.115 0.929 0.084 0.932 0.269 0.730 Depth Pro [3] 0.077 0.949 0.044 0.975 0.060 0.965 0.042 0.980 0.321 0.752 DepthAnythingV2 [66] 0.080 0.946 0.043 0.980 0.062 0.980 0.043 0.981 0.260 0.759 Marigold [25] 0.099 0.916 0.055 0.964 0.065 0.960 0.064 0.951 0.308 0.773 GeoWizard [13] 0.097 0.921 0.052 0.966 0.064 0.961 0.061 0.953 0.297 0.792 Lotus [20] 0.093 0.928 0.053 0.967 0.068 0.953 0.060 0.963 0.228 0.738 DepthMaster [48] 0.082 0.937 0.050 0.972 0.053 0.974 0.055 0.967 0.215 0.776 
+
+Ours 0.075 0.953 0.038 0.980 0.051 0.981 0.044 0.978 0.207 0.816 DAV2  + Ours 
+
+Figure 9. Illustration of reducing local scale inconsistencies in our method. “DAV2” denotes the DepthAnythingV2, which exhibits noticeable local scale inconsistencies around the tree trunks. Color Image  LiDAR Depth  Ours 
+
+Figure 10. RGB-LiDAR misalignment on Argoverse 2. 
+
+process of Marigold-DC [53] within a reasonable range. Furthermore, Table 5 provides additional comparisons on multiple depth completion datasets, complementing comparisons for the main paper. In Table 6, we fine-tune UniDepth [37] on the downstream datasets to obtain 3D 
+
+Table 7. Zero-shot evaluation. ∗ NLSPN’s KITTI-DC results from VPP4DC (as in Marigold-DC). Prop-Time is benchmarked on an RTX 3090 with 480 ×640 inputs. For SPN-based methods, we re-port “guidance generation + propagation” time; for ours, we report the full pixel-wise refinement time, as guidance and propagation are performed jointly. For completeness, the total back-end run-time (segment-wise recovery + pixel-wise refinement) is 1.9 ms. 
+
+Method nuScenes VOID KITTI-DC Prop-Time (ms) RMSE ↓ MAE ↓ RMSE ↓ MAE ↓ RMSE ↓ MAE ↓
+
+CSPN [7] 15.871 10.792 1.571 0.548 - - 46.5+22.1 NLSPN ∗ [35] 13.630 8.809 1.353 0.427 2.076 1.335 13.6+6.0 Marigold-DC 4.924 2.595 0.505 0.151 1.465 0.434 -
+
+Ours 4.387 2.177 0.366 0.138 1.471 0.422 0.9 
+
+seeds. This setup allows our method to use only monocular color images as input. Fig. 8 shows qualitative comparisons among our method and SoTA depth completion methods on multiple datasets. Fig. 9 illustrates the process of reduc-ing local scale inconsistencies. As shown in the figure, the original predictions of DepthAnythingV2 [66] exhibit no-ticeable local inconsistencies around the tree trunks, while our segment-wise recovery strategy reduces these inconsis-tencies. This qualitative evidence further validates the mo-tivation underlying our method. In addition, Fig. 10 shows that when the color image and the LiDAR projected sparse DepthAnythingV2 -L
+
+MAE:  0.059 
+
+DepthAnythingV2 -B
+
+MAE: 0.059 
+
+EfficientViT -B1 
+
+MAE:  0.118 
+
+TinyViT 
+
+MAE: 0.112 
+
+DepthAnythingV2 -S
+
+MAE: 0.067 
+
+335.3 97.5 24.8 6.4 4.9  Params (M) 
+
+0. 9
+
+EfficientViT -B0 
+
+MAE:  0.125 Figure 11. Qualitative results across different depth foundation models on the ETH3D Indoor dataset. 0.14                        
+
+> 0.17
+> 0.20
+> 0.23
+> 18 23 28 33 38 0.45
+> 0.48
+> 0.51
+> 0.54
+> 1050 1200 1350 1500 1650
+> 2.10
+> 2.20
+> 2.30
+> 2.40
+> 170 190 210 230 250
+> 0.036
+> 0.038
+> 0.040
+> 0.042
+> 27 33 39 45 51 NC NC NC NC
+> MAE MAE MAE MAE
+
+(b) 
+
+VOID  DIODE (Indoor)  DDAD  KITTI                        
+
+> 1.80
+> 2.00
+> 2.20
+> 2.40
+> 30 36 42 48 54
+> 0.42
+> 0.47
+> 0.52
+> 0.57
+> 11 18 25 32 39
+> 0.12
+> 0.14
+> 0.16
+> 0.18
+> 90 100 110 120 130 0.034
+> 0.036
+> 0.038
+> 0.04
+> 75 85 95 105 115 Size Size Size Size
+> MAE MAE MAE MAE
+
+(c) 
+
+VOID  DIODE (Indoor)  DDAD  KITTI                       
+
+> 0.46
+> 0.49
+> 0.52
+> 0.55
+> 20 30 50 70 100
+> 1.70
+> 1.80
+> 1.90
+> 2.00
+> 220 260 320 380 440
+> 0.030
+> 0.033
+> 0.036
+> 0.039
+> 800 1000 1200 1400 1600
+> 0.13
+> 0.14
+> 0.15
+> 0.16
+> 500 600 700 800 900 Scale Scale Scale Scale
+> MAE MAE MAE MAE
+
+(a) 
+
+VOID  DIODE (Indoor)  DDAD  KITTI 
+
+Figure 12. MAE comparison under different superpixel segmentation algorithms. The subfigures correspond to (a) the Felzenszwalb algorithm [11], (b) the SLIC algorithm [1], and (c) the LSC algorithm [29]. In (b), “NC” denotes the number of components in SLIC [1]. Under a fixed number of 3D seed points, we search over the hyperparameters of each algorithm to minimize MAE. VOID and DIODE are indoor datasets, while DDAD and KITTI are outdoor datasets. Table 8. Additional ablation studies on the KITTI and VOID datasets. 
+
+Factor KITTI VOID RMSE ↓ MAE ↓ RMSE ↓ MAE ↓
+
+Fitting: median 10.891 2.169 0.898 0.358 Fitting: quantile matching 9.178 2.114 0.821 0.346 Fitting: moment matching 8.756 1.983 0.815 0.329 Fitting: least squares 7.013 1.802 0.791 0.307 Domain: z−1 6.782 1.794 0.614 0.238 Graph: global 2.521 0.687 0.554 0.169 Graph: graph-based (2D) 2.232 0.608 0.468 0.157 Graph: graph-based (3D) 2.318 0.634 0.459 0.150 With bilateral filtering 2.201 0.597 0.452 0.148 
+
+depth are misaligned, a condition commonly encountered in outdoor datasets, our method can still robustly recover a well-aligned dense depth map. We also provide a quantitative comparison with SPN-based methods in Table 7. Unlike SPN-based meth-ods, we derive a discontinuity-aware propagation metric from second-order residuals (Proposition 1), leading to a geodesic shortest path formulation that can be solved effi-
+
+Table 9. Quantitative comparison with zero-shot stereo matching methods. 
+
+Method Middlebury ETH3D KITTI-12 KITTI-15 BP-2 BP-1 D1 D1 CREStereo++ [23] 14.8 4.4 4.7 5.2 DSMNet [73] 13.8 6.2 6.2 6.5 Mask-CFNet [41] 13.7 5.7 4.8 5.8 HVT-RAFT [6] 10.4 3.0 3.7 5.2 RAFT-Stereo [33] 12.6 3.3 4.7 5.5 Selective-IGEV [57] 9.2 5.7 4.5 5.6 IGEV [63] 8.8 4.0 5.2 5.7 Former-RAFT-DAM [77] 8.1 3.3 3.9 5.1 IGEV++ [64] 7.8 4.1 5.1 5.9 NMRF [18] 7.5 3.8 4.2 5.1 Ours 6.1 2.8 3.6 5.0 
+
+ciently via dynamic programming. Beyond not requiring training, our method has three advantages. (1) Better inter-pretability: dϕ has a clear geometric meaning as a geodesic cost that penalizes discontinuity crossings, unlike implic-itly learned affinities. (2) Better cross-domain generaliza-tion: our geometry-driven cost avoids affinity learning and is therefore less sensitive to domain shifts. (3) Higher effi-Color Image  Ground Truth  Raw Data  Raw Data +  Ours Figure 13. Qualitative results for the rectification of commonly used range cameras. 
+
+ciency and lower computational overhead: our approach is lightweight and plug-and-play, requiring no additional neu-ral network to produce pixel-wise propagation. 
+
+C.3. Ablation Study 
+
+In this section, we first describe the ablation setting used in the main paper. In Fig. 4 of the main paper, the ETH3D and DIODE results are computed only on their indoor subsets. The purpose of this ablation is to analyze how the number of 3D seed points (NP) influences performance under different scene types (indoor versus outdoor). In contrast, Table 1 of the main paper reports results on the full splits, where both indoor and outdoor scenes of ETH3D and DIODE are included. Consequently, the results are different between these two settings. The main paper shows the effectiveness of our segment-wise recovery and pixel-wise refinement. Since the supple-mentary material describes the detailed methods for com-puting the per-segment calibration function and explains the iterative bilateral filtering used in segment propagation and graph optimization, we present more detailed ablation stud-ies for segment-wise recovery. In Table 8, the upper part of the table compares the results under different calibration functions. The lower part of the table compares whether the distance term ∥ci − cj ∥ in the sparse graph optimization Seq 00  Seq 02    
+
+> Seq 05 Seq 06
+> Seq 07 Seq 08
+> Seq 09 Seq 10
+> Figure 14. Additional qualitative results on the KITTI Odometry benchmark.
+
+uses 2D or 3D coordinates. We also demonstrate the benefit of adding our bilateral filtering. Fig. 11 compares the results of our method across depth foundation models with different numbers of parameters for the same input. The figure shows point cloud visu-alizations on the ETH3D Indoor dataset. EfficientViT-B0, EfficientViT-B1, and TinyViT are models that we obtain by distillation. These lightweight depth founda-tion models achieve MAE within an acceptable range and provide a good balance between accuracy and efficiency, which makes them suitable for other downstream tasks. The MAE difference between DepthAnythingV2-S and DepthAnythingV2-B is relatively minor, and the difference between DepthAnythingV2-B and DepthAnythingV2-L is negligible. This result also indicates that our method does not depend on high-capacity relative depth estimators to achieve accurate metric depth estimation. Figure 15. Qualitative results on our method for the Radar depth completion task. 
+
+Moreover, in Fig. 12, we search for the optimal hyperpa-rameters of the superpixel segmentation algorithms to mini-mize MAE, and we also compare different superpixel algo-rithms under a fixed number of 3D seed points. The optimal parameters of the three superpixel methods are related. For example, for (a) the Felzenszwalb algorithm [11], if the op-timal scale produces N distinct segments, then for (b) the SLIC algorithm [1], the optimal number of components is also close to N . If A = H × W/N denotes the approximate area of each segment, then for (c) the LSC algorithm [29], the optimal value of the size parameter lies near √A. In ad-dition, the MAE does not change significantly across differ-ent hyperparameter settings, and the optimal MAE values of the three algorithms are relatively close. These observations demonstrate the robustness of our method. Therefore, in the ablation studies in the main paper, we use the Felzenszwalb algorithm [11], as it achieves the best overall performance on both indoor and outdoor datasets. 
+
+C.4. Applications 
+
+Fig. 13 presents qualitative results obtained by applying our method to depth rectification for commonly used range cameras. Our method substantially improves the quality of raw depth data by filling missing regions, sharpening depth textures, and preserving object boundaries. Comparing our results with the ground-truth visualizations, we observe that many objects that appear blurry in the raw data become clearer and exhibit more accurate depth values. Fig. 14 shows additional SLAM results from the KITTI Odometry benchmark. Compared with using DROID-SLAM [51] di-rectly on raw point clouds, incorporating our method clearly improves the results. In the main paper, we show that our method can be integrated with vision foundation models and applied to multi-view stereo. Table 14 further demonstrates that our method can also be applied to stereo matching, where it achieves competitive performance. We use the high-confidence matches from [49] as disparity inputs and re-construct dense disparity maps. Fig. 15 presents qualita-tive radar depth completion results on the nuScenes dataset. These experiments demonstrate that our method generalizes to different input modalities, thereby confirming its effec-tiveness on downstream tasks. 
+
+## References 
+
+[1] Radhakrishna Achanta et al. SLIC Superpixels Compared to State-of-the-Art Superpixel Methods. IEEE Transactions on Pattern Analysis and Machine Intelligence , 34(11):2274– 2282, 2012. 3, 15, 17 [2] Reiner Birkl et al. MiDaS v3.1 – A Model Zoo for Ro-bust Monocular Relative Depth Estimation. arXiv preprint arXiv:2307.14460 , 2023. 2, 6, 14 [3] Aleksei Bochkovskii et al. Depth pro: Sharp monocu-lar metric depth in less than a second. arXiv preprint arXiv:2410.02073 , 2024. 6, 14 [4] Yohann Cabon et al. Virtual kitti 2. arXiv preprint arXiv:2001.10773 , 2020. 5, 12 [5] Holger Caesar et al. nuScenes: A Multimodal Dataset for Autonomous Driving. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. 5, 9, 12 [6] Tianyu Chang et al. Domain Generalized Stereo Matching via Hierarchical Visual Transformation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9559–9568, 2023. 15 [7] Xinjing Cheng et al. Depth Estimation via Affinity Learned with Convolutional Spatial Propagation Network. In Pro-ceedings of the European Conference on Computer Vision (ECCV) , pages 103–119, 2018. 14 [8] Angela Dai et al. ScanNet: Richly-Annotated 3D Recon-structions of Indoor Scenes. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2017. 5, 9, 12 [9] Ainaz Eftekhar et al. Omnidata: A scalable pipeline for mak-ing multi-task mid-level vision datasets from 3d scans. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 10786–10796, 2021. 14 [10] David Eigen et al. Depth map prediction from a single im-age using a multi-scale deep network. Advances in neural information processing systems (NeurIPS) , 27, 2014. 12 [11] Pedro F Felzenszwalb and Daniel P Huttenlocher. Efficient graph-based image segmentation. International Journal of Computer Vision , 59(2):167–181, 2004. 3, 15, 17 [12] Yi Feng et al. ViPOcc: leveraging visual priors from vision foundation models for single-view 3d occupancy prediction. In Proceedings of the AAAI Conference on Artificial Intelli-gence (AAAI) , pages 3004–3012, 2025. 8 [13] Xiao Fu et al. Geowizard: Unleashing the diffusion priors for 3d geometry estimation from a single image. In Proceedings of the European Conference on Computer Vision (ECCV) ,pages 241–258. Springer, 2024. 2, 6, 14 [14] Yongtao Ge et al. GeoBench: Benchmarking and Analyz-ing Monocular Geometry Estimation Models. arXiv preprint arXiv:2406.12671 , 2024. 1, 2, 5, 12 [15] Andreas Geiger et al. Are we ready for autonomous driv-ing? the KITTI vision benchmark suite. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 3354–3361. IEEE, 2012. 5, 9, 12 [16] Clement Godard et al. Unsupervised Monocular Depth Esti-mation With Left-Right Consistency. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recogni-tion (CVPR) , 2017. 7 [17] Clement Godard et al. Digging Into Self-Supervised Monoc-ular Depth Estimation. In Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision (ICCV) , 2019. 7, 8 [18] Tongfan Guan et al. Neural Markov Random Field for Stereo Matching. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 5459–5469, 2024. 15 [19] Vitor Guizilini et al. 3D Packing for Self-Supervised Monoc-ular Depth Estimation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. 5, 9, 12 [20] Jing He et al. Lotus: Diffusion-based visual foundation model for high-quality dense prediction. arXiv preprint arXiv:2409.18124 , 2024. 2, 6, 14 [21] Mu Hu et al. Metric3d v2: A versatile monocular geomet-ric foundation model for zero-shot metric depth and surface normal estimation. IEEE Transactions on Pattern Analysis and Machine Intelligence , 2024. 2, 6 [22] Sergio Izquierdo et al. MVSAnywhere: Zero-Shot Multi-View Stereo. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 11493–11504, 2025. 8 [23] Junpeng Jing et al. Uncertainty Guided Adaptive Warping for Robust and Efficient Stereo Matching. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 3318–3327, 2023. 15 [24] HyunJun Jung et al. Is my Depth Ground-Truth Good Enough? HAMMER–Highly Accurate Multi-Modal Dataset for DEnse 3D Scene Regression. arXiv preprint arXiv:2205.04565 , 2022. 5, 9, 12 [25] Bingxin Ke et al. Repurposing diffusion-based image gen-erators for monocular depth estimation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9492–9502, 2024. 2, 5, 6, 7, 12, 14 [26] Alexander Kirillov et al. Segment Anything. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) , pages 4015–4026, 2023. 5, 12 [27] Tobias Koch et al. Comparison of monocular depth esti-mation methods using geometrically relevant metrics on the IBims-1 dataset. Computer Vision and Image Understand-ing , 191:102877, 2020. 5, 9, 12 [28] Rui Li et al. Know Your Neighbors: Improving Single-View Reconstruction via Spatial Vision-Language Reason-ing. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition (CVPR) , pages 9848– 9858, 2024. 8 [29] Zhengqin Li and Jiansheng Chen. Superpixel Segmenta-tion Using Linear Spectral Clustering. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recogni-tion (CVPR) , 2015. 15, 17 [30] Yingping Liang et al. Distilling Monocular Foundation Model for Fine-grained Depth Completion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , pages 22254–22265, 2025. 2, 3, 6, 12, 13, 14 [31] Haotong Lin et al. Prompting Depth Anything for 4K Reso-lution Accurate Metric Depth Estimation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 17070–17080, 2025. 2, 6, 13 [32] Yuankai Lin et al. Dynamic spatial propagation network for depth completion. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) , pages 1638–1646, 2022. 2 [33] Lahav Lipson et al. RAFT-Stereo: Multilevel Recurrent Field Transforms for Stereo Matching. In 2021 International Conference on 3D Vision (3DV) , pages 218–227, 2021. 15 [34] Xinyu Liu et al. EfficientViT: Memory Efficient Vision Transformer With Cascaded Group Attention. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 14420–14430, 2023. 5 [35] Jinsun Park et al. Non-local spatial propagation network for depth completion. In Proceedings of the European Confer-ence on Computer Vision (ECCV) , pages 120–136. Springer, 2020. 2, 14 [36] Jin-Hwi Park et al. Depth prompting for sensor-agnostic depth estimation. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,pages 9859–9869, 2024. 14 [37] Luigi Piccinelli et al. Unidepth: Universal monocular metric depth estimation. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,pages 10106–10116, 2024. 2, 12, 14 [38] Luigi Piccinelli et al. UniDepthV2: Universal Monocu-lar Metric Depth Estimation Made Simpler. arXiv preprint arXiv:2502.20110 , 2025. 2, 6 [39] Ren´ e Ranftl et al. Towards robust monocular depth esti-mation: Mixing datasets for zero-shot cross-dataset transfer. 
+
+IEEE Transactions on Pattern Analysis and Machine Intelli-gence , 44(3):1623–1637, 2020. 2 [40] Ren´ e Ranftl et al. Vision Transformers for Dense Prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 12179–12188, 2021. 6, 12, 14 [41] Zhibo Rao et al. Masked Representation Learning for Domain Generalized Stereo Matching. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 5435–5444, 2023. 15 [42] Mike Roberts et al. Hypersim: A photorealistic synthetic dataset for holistic indoor scene understanding. In Proceed-ings of the IEEE/CVF International Conference on Com-puter Vision (ICCV) , pages 10912–10922, 2021. 5, 12 [43] Ashutosh Saxena et al. Make3D: Learning 3D Scene Struc-ture from a Single Still Image. IEEE Transactions on Pattern Analysis and Machine Intelligence , 31(5):824–840, 2009. 5, 9, 12 [44] Thomas Schops et al. A Multi-View Stereo Benchmark With High-Resolution Images and Multi-Camera Videos. In Pro-ceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2017. 5, 9, 12 [45] Nathan Silberman et al. Indoor segmentation and support inference from rgbd images. In Proceedings of the Euro-pean Conference on Computer Vision (ECCV) , pages 746– 760. Springer, 2012. 5, 9, 12 [46] Akash Deep Singh et al. Depth Estimation From Camera Image and mmWave Radar Point Cloud. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9275–9285, 2023. 12 [47] Shuran Song et al. SUN RGB-D: A RGB-D Scene Un-derstanding Benchmark Suite. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2015. 5, 9, 12 [48] Ziyang Song, Zerong Wang, Bo Li, Hao Zhang, Ruijie Zhu, Li Liu, Peng-Tao Jiang, and Tianzhu Zhang. Depthmaster: Taming diffusion models for monocular depth estimation. 
+
+arXiv preprint arXiv:2501.02576 , 2025. 2, 6, 12, 14 [49] Jiaming Sun et al. LoFTR: Detector-Free Local Fea-ture Matching With Transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 8922–8931, 2021. 17 [50] Jie Tang et al. Bilateral propagation network for depth com-pletion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9763–9772, 2024. 2, 3, 6, 12, 13, 14 [51] Zachary Teed and Jia Deng. Droid-slam: Deep visual slam for monocular, stereo, and rgb-d cameras. Advances in neu-ral information processing systems (NeurIPS) , 34:16558– 16569, 2021. 8, 17 [52] Igor Vasiljevic et al. Diode: A dense indoor and outdoor depth dataset. arXiv preprint arXiv:1908.00463 , 2019. 5, 9, 12 [53] Massimiliano Viola et al. Marigold-DC: Zero-Shot Monoc-ular Depth Completion with Guided Diffusion. In Proceed-ings of the IEEE/CVF International Conference on Com-puter Vision (ICCV) , pages 5359–5370, 2025. 2, 3, 5, 6, 12, 14 [54] Haotian Wang et al. G2-MonoDepth: A General Framework of Generalized Depth Inference From Monocular RGB+X Data. IEEE Transactions on Pattern Analysis and Machine Intelligence , 46(5):3753–3771, 2024. 14 [55] Jianyuan Wang et al. VGGT: Visual Geometry Grounded Transformer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 5294–5306, 2025. 8 [56] Wenshan Wang et al. TartanAir: A Dataset to Push the Limits of Visual SLAM. In 2020 IEEE/RSJ International Confer-ence on Intelligent Robots and Systems (IROS) , pages 4909– 4916, 2020. 5, 12 [57] Xianqi Wang et al. Selective-Stereo: Adaptive Frequency In-formation Selection for Stereo Matching. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 19701–19710, 2024. 15 [58] Yufei Wang et al. LRRU: Long-short Range Recurrent Up-dating Networks for Depth Completion. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 9422–9432, 2023. 2, 6, 12 [59] Felix Wimbauer et al. Behind the scenes: Density fields for single view reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9076–9086, 2023. 8 [60] Alex Wong et al. Unsupervised depth completion from visual inertial odometry. IEEE Robotics and Automation Letters , 5 (2):1899–1906, 2020. 5, 9, 12 [61] Kan Wu et al. Tinyvit: Fast pretraining distillation for small vision transformers. In Proceedings of the European Con-ference on Computer Vision (ECCV) , pages 68–85. Springer, 2022. 5 [62] Yunyang Xiong et al. EfficientSAM: Leveraged Masked Im-age Pretraining for Efficient Segment Anything. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 16111–16121, 2024. 5 [63] Gangwei Xu et al. Iterative Geometry Encoding Volume for Stereo Matching. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,pages 21919–21928, 2023. 15 [64] Gangwei Xu et al. IGEV++: Iterative Multi-Range Geome-try Encoding Volumes for Stereo Matching. IEEE Transac-tions on Pattern Analysis and Machine Intelligence , 47(8): 7108–7122, 2025. 15 [65] Lihe Yang et al. Depth anything: Unleashing the power of large-scale unlabeled data. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 10371–10381, 2024. 2, 7 [66] Lihe Yang et al. Depth anything v2. Advances in Neural In-formation Processing Systems (NeurIPS) , 37:21875–21911, 2024. 1, 2, 6, 12, 14 [67] Wei Yin et al. Diversedepth: Affine-invariant depth predic-tion using diverse data. arXiv preprint arXiv:2002.00569 ,2020. 14 [68] Wei Yin et al. Learning To Recover 3D Scene Shape From a Single Image. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 204–213, 2021. 6, 14 [69] Wei Yin et al. Metric3d: Towards zero-shot metric 3d predic-tion from a single image. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9043–9053, 2023. 2 [70] Yu, Alex and others. pixelNeRF: Neural Radiance Fields From One or Few Images. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 4578–4587, 2021. 8 [71] Chi Zhang et al. Hierarchical normalization for robust monocular depth estimation. Advances in neural informa-tion processing systems (NeurIPS) , 35:14128–14139, 2022. 14 [72] Chaoning Zhang et al. Faster segment anything: Towards lightweight sam for mobile applications. arXiv preprint arXiv:2306.14289 , 2023. 3, 5 [73] Feihu Zhang et al. Domain-invariant stereo matching net-works. In Proceedings of the European Conference on Com-puter Vision (ECCV) , pages 420–439. Springer, 2020. 15 [74] Mengtan Zhang et al. DCPI-Depth: Explicitly Infusing Dense Correspondence Prior to Unsupervised Monocular Depth Estimation. IEEE Transactions on Image Processing ,34:4258–4272, 2025. 7 [75] Ning Zhang et al. Lite-Mono: A Lightweight CNN and Transformer Architecture for Self-Supervised Monocular Depth Estimation. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,pages 18537–18546, 2023. 12 [76] Youmin Zhang et al. CompletionFormer: Depth Completion With Convolutions and Vision Transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , pages 18527–18536, 2023. 2, 6, 12 [77] Yongjian Zhang et al. Learning representations from foun-dation models for domain generalized stereo matching. In 
+
+Proceedings of the European Conference on Computer Vi-sion (ECCV) , pages 146–162. Springer, 2024. 15 [78] Yiming Zuo and Jia Deng. OGNI-DC: Robust depth com-pletion with optimization-guided neural iterations. In Pro-ceedings of the European Conference on Computer Vision (ECCV) , pages 78–95. Springer, 2024. 2, 12

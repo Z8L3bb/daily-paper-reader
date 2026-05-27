@@ -1,0 +1,402 @@
+Title: SToRe3D: Sparse Token Relevance in ViTs for Efficient Multi-View 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2605.14110v1
+
+Published Time: Fri, 15 May 2026 00:21:52 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# SToRe3D: Sparse Token Relevance in ViTs for Efficient Multi-View 3D Object Detection 
+
+# Sandro Papais 1* Lezhou Feng 2 Charles Cossette 2 Lingting Ge 21University of Toronto 2 Zoox Inc. 
+
+# Abstract 
+
+Vision Transformers (ViTs) enable strong multi-view 3D de-tection but are limited by high inference latency from dense token and query processing across multiple views and large 3D regions. Existing sparsity methods, designed mainly for 2D vision, prune or merge image tokens but do not extend to full-model sparsity or address 3D object queries. We intro-duce SToRe3D, a relevance-aligned sparsity framework that jointly selects 2D image tokens and 3D object queries while storing filtered features for reactivation. Mutual 2D–3D rel-evance heads allocate compute to driving-critical content and preserve other embeddings. Evaluated on nuScenes and our new nuScenes-Relevance benchmark, SToRe3D achieves up to 3 × faster inference with marginal accuracy loss, estab-lishing real-time large-scale ViT-based 3D detection while maintaining accuracy on planning-critical agents. 
+
+# 1. Introduction 
+
+Transformers dominate modern perception, yet dense atten-tion over long image sequences and large 3D search spaces remains a barrier to real-time deployment. In autonomous driving, where latency and safety are critical, the challenge is not only to reduce computation but to allocate it selec-tively. Vision Transformer (ViT) [ 9] backbones and Detec-tion Transformer (DETR) [ 4 ] decoders achieve strong 3D perception but incur quadratic costs over tokens and queries, even though urban scenes are dominated by background (sky, road, buildings) and agents that are inconsequential for motion planning. Uniform computation is thus wasteful, treating all tokens and candidate objects as equally important and misaligning perception with the downstream prediction and planning [49]. Prior efficiency work focuses on one modality in isolation. ViT sparsity methods prune or merge image tokens for 2D tasks [ 2, 16 , 34 , 43 ], while DETR variants suppress encoder tokens or decoder queries for 2D detection [ 44 , 65 ]. For 
+
+> *Work done an intern at Zoox. Correspondence: sandro.papais@robotics.utias.utoronto.ca
+
+multi-view 3D detection, ToC3D [ 61 ] compresses tokens using historical queries. None of these methods provides end-to-end sparsity over both 2D tokens and 3D queries or accounts for planner relevance, and benchmarks such as nuScenes [ 3 ] weight all annotated agents equally, so errors on distant or non-interacting actors can dominate the metrics, and there is no way to focus evaluation on the most relevant agents. We introduce SToRe3D, a planner-aligned sparsity frame-work that scores and routes both image tokens and 3D object queries with lightweight 2D–3D relevance heads. Existing transformer sparsity methods act only on image tokens in 2D ViT backbones or on object queries in DETR-style decoders, and do not jointly sparsify 2D tokens and 3D queries in a planner-aligned way. In contrast, SToRe3D learns a unified relevance function supervised by a planner-inspired future interaction corridor, routes high-relevance queries to deeper layers, and stores lower-relevance queries in feature buffers for selective reactivation. Relative to token compression approaches [ 61 ], this store–reactivate design avoids merge– unmerge overhead, works on the first frame , reduces both 
+
+O(N 2) backbone and decoder attention, and maintains ac-curacy under more aggressive sparsity budgets than previous methods. Our contributions are: (i) Unified end-to-end sparsity 
+
+that jointly prunes tokens and queries within a single archi-tecture. (ii) Planning-aligned relevance supervised by fu-ture interaction corridors capturing short-horizon ego–agent proximity, aligning perception budgets with planning. (iii) Real-time ViTs at scale via store–reactivate buffers that pre-serve recoverability under aggressive sparsity, enabling fur-ther latency reduction. (iv) nuScenes-Relevance (nuScenes-R), a relevance-aware evaluation protocol on nuScenes that measures accuracy specifically on planning-critical agents defined by future interaction corridors. SToRe3D reduces latency by up to 3× with marginal accuracy loss, enabling real-time ViT-based multi-view 3D detection. 
+
+# 2. Related Work 
+
+Efficient multi-view 3D object detection. Early camera-only 3D detectors lifted multi-view image features into   
+
+> arXiv:2605.14110v1 [cs.CV] 13 May 2026 Figure 1. SToRe3D routes computation via relevance: tokens and queries above stage-wise thresholds are processed further, while the rest are stored for reactivation. The BEV plots and camera images show how queries are reduced across stages based on their relevance scores.
+
+BEV space before aggregation [ 42 ]. Transformer-based methods such as DETR3D [ 53 ], and PETR [ 33 ] introduced 3D queries to attend across views, while BEVFormer [ 27 ], Sparse4D [ 30 ], SparseBEV [ 31 ], PointBEV [ 5 ], and Stream-PETR [ 52 ] further improved efficiency and performance through sparse feature sampling, BEV representations, de-formable attention, and temporal aggregation. However, real-time deployment with large ViTs remains challenging. Prior works explore sparsity either in ViT backbones or in DETR-style encoder/decoders, but treat these axes largely in isolation. As summarized in Table 1, SToRe3D is, to our knowledge, the first to provide end-to-end query and key sparsity across both the ViT backbone and DETR3D decoder for multi-view 3D detection. 
+
+ViT token sparsity. Transformer efficiency has been pur-sued via approximate attention [ 1, 7, 8, 50 ], component prun-ing [ 37 , 38 , 48 ], and vision-specific inductive biases [ 12 , 35 ,36 ]. For ViTs, token pruning approaches learn saliency to drop patches progressively [ 11 , 25 , 28 , 43 , 55 , 56 , 59 , 60 ], 
+
+learned tokenization approaches select informative latent to-kens [ 45 , 47 ], and merging/fusion approaches reduce redun-dancy by grouping similar tokens [ 2, 19 , 20 , 57 ]. Extensions to dense tasks such as detection exist [ 16 , 34 ]. However, these methods operate on image tokens only , assume 2D salience, and provide no mechanism to coordinate with 3D object queries, which is essential for multi-view 3D detec-tion. 
+
+DETR token sparsity. Efficiency in DETR-style detectors is typically achieved by sparsifying encoder tokens or decoder queries. Deformable DETR replaces global attention with sparse, reference-point sampling [ 66 ]. Sparse-DETR [ 44 ], Focus-DETR [ 65 ], IMFA [ 62 ], and Salience-DETR [ 14 ] fur-ther limit token or query processing through learned salience. DN-/DAB-/DINO-/RT-DETR variants [ 24 , 32 , 58 , 63 , 64 ]primarily accelerate convergence via query initialization and denoising rather than structural sparsity. For multi-view 3D detection, FocalPETR selects foreground tokens for the decoder with a 2D auxiliary head [ 51 ], while ToC3D com-presses backbone tokens using history-driven scores and merge–unmerge routing [ 61 ]. These approaches remain largely token-only , focusing on the backbone or encoder while leaving decoder query redundancy under-exploited. ToC3D’s reliance on temporal priors also limits first-frame efficiency, and its per-block regrouping introduces additional overhead. In contrast, SToRe3D applies joint 2D–3D spar-sity, works from the first frame, and avoids merge–unmerge complexity via lightweight store–reactivate buffers. Visual Sparsity Approaches ViT DETR 2D Detection 3D Detection QS KS QS KS SwinT[35], ViTDet [26] – ✓             
+
+> SViT [34], Cropr [16] ToC3D [61] ✓✓
+> DeformableDETR [66] BEVFormer [27] ✓
+> SparseDETR [44] FocalPETR [51] ✓✓
+> –SToRe3D ✓✓✓✓
+> Table 1. Comparison of visual sparsity approaches. QS: query sparsity. KS: key sparsity. In ViTs, QS and KS operate on image tokens. In DETR decoders, QS sparsifies object queries and KS samples encoder image tokens. SToRe3D jointly sparsifies queries and keys in both the ViT backbone and DETR decoder.
+
+Planning- and safety-critical perception. Beyond effi-ciency, recent works align perception with downstream decision-making by emphasizing agents that matter most, in-cluding risk-object identification [ 22 , 23 ], planner-guided at-tention [ 54 ], and end-to-end perception–prediction–planing frameworks such as ForeSight [ 40 ], UniAD [ 15 ], and SparseDrive [ 46 ]. These methods couple perception to plan-ning objectives but lack a scalable architectural mechanism for token and query sparsity with ViTs. SToRe3D closes this gap by supervising sparsity with a future interaction corridor and evaluating on nuScenes-R. 
+
+# 3. Method 
+
+SToRe3D applies joint, hierarchical sparsity to both image tokens and 3D object queries in a temporal multi-view 3D detector [ 52 ]. At each stage, lightweight relevance heads assign each image token and 3D object query a scalar rele-vance score. We consider two ways to define and supervise this relevance: a planning-aligned variant rplan , which fo-cuses on objects the ego vehicle may need to react to in the near future (e.g., lead vehicles, crossing pedestrians), and a 
+
+detection-aligned variant rdet , which aims to keep all fore-ground objects while rejecting background clutter. The most relevant tokens and queries are kept active and propagated to deeper layers, while low-relevance embeddings are written to lightweight storage buffers instead of being discarded. Buffered embeddings are later reactivated , yielding a store– reactivate form of sparsity that avoids irreversible pruning. 
+
+3.1. Problem Formulation 
+
+We consider multi-view 3D detection with V synchronized cameras over a temporal window {t − T, . . . , t }. Each view produces tokens Xt,v from a ViT backbone, concate-nated as Xt. The backbone interleaves global and win-dowed attention, and a feature pyramid network (FPN) pro-vides multi-scale features. Detection object queries Qt
+
+are anchored at 3D positions p = ( x, y, z ), initialized as 
+
+q(0) = MLP(PE( p)) , and refined by a multi-scale de-formable DETR-style decoder that applies deformable cross-attention over the FPN features. Following streaming detection and tracking works [ 6,30 , 39 , 52 ], top-K queries propagate across frames, main-tained in a temporal memory with temporal reference points transformed to the current ego frame. The active query set combines propagated and initialized queries, Nd =
+
+Nprop + Ninit . For the first frame, additional initialized queries replace the propagated queries. This yields unified token Xt and query Qt sets, which serve as input to the sparse relevance module. 
+
+3.2. Defining Object Relevance 
+
+Intuitively, we call an agent planning-critical if the ego vehicle may need to react to it in the near future, for example, if the agent will pass close to any plausible ego trajectory over the next few seconds. We formalize this by defining a 
+
+future interaction corridor in BEV around the ego vehicle’s candidate motion and labeling agents that enter this corridor as relevant. Let Bego (τ ) and Bi(τ ) denote oriented boxes for ego and agent-i at t + τ . Swept sets over a horizon H
+
+are defined by the convex hull of the union of future boxes: 
+
+Si(H) = conv 
+
+ [ 
+
+> τ∈[0 ,H ]
+
+Bi(τ )
+
+
+
+. (1) An agent is relevant if the closest distance between its swept polygon and the ego swept polygon is within a margin dmin :
+
+yrel  
+
+> i
+
+= 1
+
+
+
+dist  Si(H), Sego (H) ≤ dmin 
+
+
+
+. (2) This polygonal corridor captures translation and orientation over discrete future steps for H=5 seconds, and the labels 
+
+{yrel  
+
+> i
+
+} supervise relevance. The same definitions apply to nuScenes-R metrics (Section 4). 
+
+3.3. Unified 2D-3D Relevance Prediction 
+
+We predict planning-aligned relevance for both modalities using mutual gating : queries are scored in the context of tokens and vice versa. Query relevance is supervised by corridor labels, while token relevance is aggregated from query attention. For object query qj , we compute a context vector from deformable cross-attended tokens and optionally an ego embedding et,
+
+cqry  
+
+> j
+
+= CrossAttn def (qj , Xt) ⊕ et, (3) 
+
+rqry  
+
+> j
+
+= σ
+
+
+
+u⊤ϕ([ qj ∥cqry  
+
+> j
+
+]) 
+
+
+
+. (4) Figure 2. SToRe3D architecture builds on a ViT backbone and DETR3D-style decoder with relevance heads that score image tokens and 3D queries at each stage, enabling joint sparsity across backbone and decoder. 
+
+where ϕ is a small MLP, ⊕ indicates optional concate-nation for planning relevance, σ is the sigmoid function, and CrossAttn def denotes the same multi-scale deformable cross-attention used in the detection decoder, attending to a sparse set of FPN features around the query reference points. The ego term lets rqry condition relevance on ego–agent motion. Image token relevance rimg  
+
+> i
+
+aggregates attention from top-K relevant queries: 
+
+rimg  
+
+> i
+
+= 1
+
+> K
+
+X
+
+> j∈K qry
+
+Aj→i, (5) yielding a query-aware token relevance that emphasizes re-gions supported by high-relevance 3D queries. The scores 
+
+rqry  
+
+> j
+
+and rimg  
+
+> i
+
+serve as routing signals for stage-wise sparsi-fication (Section 3.4). We supervise rqry with binary labels 
+
+yrel from the interaction corridors (Section 3.2). 
+
+3.4. Hierarchical Token Storage 
+
+Conceptually, we split tokens and queries into two groups at each stage: a small active set that continues through the network, and a temporarily inactive set that is cached in a buffer rather than discarded. Joint sparsity is applied to both the backbone token stream and the query stream within the backbone and encoder. After each stage ℓ, we filter 
+
+tokens/queries using the relevance scores from Section 3.3, 
+
+store the remainder in buffers, and later reintroduce them at the final layer. For stage-wise filtering and storage, let 
+
+Nℓ and Qℓ be the numbers of tokens and queries at stage ℓ.We keep fractions ρimg  
+
+> ℓ
+
+, ρ qry  
+
+> ℓ
+
+∈ (0 , 1] via Gumbel-softmax top-k [17], and the filtered items are written to buffers: 
+
+Kℓ = TopK( rℓ, ⌊ρℓNℓ⌋). (6) The fractions ρimg  
+
+> ℓ
+
+, ρ qry  
+
+> ℓ
+
+∈ (0 , 1] follow a non-increasing 
+
+hierarchical schedule with depth and are regularized toward targets in Section 3.5. Let Kimg  
+
+> ℓ
+
+and Kqry  
+
+> ℓ
+
+be complements of the kept indices. We write filtered features to buffers immediately after filtering and before the next stage: 
+
+Simg  
+
+> ℓ
+
+← Xℓ[Kimg  
+
+> ℓ
+
+], Sqry  
+
+> ℓ
+
+← Qℓ[Kqry  
+
+> ℓ
+
+]. (7) Training under aggressive sparsity is non-trivial: as the number of active tokens and queries shrinks, the model receives fewer supervised examples per layer, making it harder to learn stable relevance scores and high-quality fea-tures. Naively pruning hard from the beginning often leads to collapsed solutions or severe underfitting. To mitigate information loss, we reactivate stored image tokens and ob-ject queries for the final attention layer of the backbone and decoder using the updated context. We use a two-level stor-age schedule: (i) depth-wise budgets (ρimg  
+
+> ℓ
+
+, ρ qry  
+
+> ℓ
+
+) are non-increasing with ℓ; (ii) training-time pruning is introduced gradually (linear schedule from dense to target budgets) to maintain stability at high sparsity without finetuning. This preserves global context without restoring all pruned items and adds negligible cost. 3.5. Optimization Approach 
+
+The overall framework is trained end-to-end with a multi-task objective over detection, relevance, and auxiliary ROI supervision. For detection, we use a combination of focal loss [ 29 ] for classification and L1 loss for bounding box regression with Hungarian bipartite matching. Query rele-vance is trained with a Gaussian focal loss [ 18 ] on predicted scores rqry and binary relevance labels yrel . For the planning-aligned variant, we supervise rplan using labels derived from the future interaction corridor defined in Section 3.2: agents that enter the corridor are labeled relevant, all others irrele-vant. For the detection-aligned variant, we instead supervise 
+
+rdet using standard foreground/background labels from the 3D detection head (e.g., treating queries matched to ground-truth boxes as relevant). To prevent the relevance heads from interfering with feature learning in the main detector, we stop gradients from the relevance heads at the input object queries and image tokens. Therefore, end-to-end gradients to tokens and queries flow only through the detection loss. In addition, an auxiliary loss is used to supervise ROI feature extraction, with classification and regression terms on 2D image-space targets [51]. The joint loss is 
+
+L = Ldet + λrel Lqry rel + λaux Laux (8) where λrel and λaux are balancing weights and Ldet includes focal and L1 losses with Hungarian matching. Token rele-vance is indirectly supervised through cross-attention with the queries. Gumbel-TopK provides differentiable routing, with the pruning budget linearly increased over training iter-ations from dense (no sparsity) to the target sparsity. 
+
+# 4. Benchmarking Relevance 
+
+Why relevance. Conventional detectors expend equal com-pute on all agents, inflating latency and misaligning percep-tion with planning, even though many urban objects (e.g., parked vehicles, distant pedestrians) are inconsequential for near-term driving. We therefore evaluate perception under a 
+
+relevance-driven lens: prioritize agents that matter for plan-ning. To quantify this, we vary the number of detected agents provided to a fixed pretrained motion-planning network used only for analysis, not during SToRe3D training or inference. Performance saturates with only 10 –20 agents (Figure 3), indicating substantial headroom to reduce compute without harming planning. 
+
+Planning-relevant labels. Ground-truth relevance follows the future interaction corridors defined in Section 3.2. For ego and agent-i, we construct swept sets Sego (H) and Si(H)
+
+over a horizon H=5 seconds and label an agent relevant if the closest distance between the buffered corridors is below a margin dmin . We fix a single operating point by choos-ing dmin as the 10th percentile of ego–agent distances on nuScenes, yielding dmin ≈1.2 m, ∼3 relevant agents per frame on average, and at most ∼30. Labels are generated using ground truth trajectories, convexifying swept polygons, and applying the buffered-intersection test (Figure 4). 
+
+> Figure 3. Planner performance vs. retained agents using a fixed pretrained motion-planning network for analysis only. Planning performance saturates with a subset of agents, motivating relevance-based compute allocation.
+
+Relevance metrics. Standard detection metrics, mean aver-age precision (mAP) and nuScenes detection score (NDS), treat all agents equally, regardless of planning importance. We instead define relevance via a future interaction corri-dor : 5-second swept polygons for ego and each agent. An agent is labeled relevant if the closest distance dC between its corridor and the ego’s corridor is below a buffer dRM .Empirically, dRM =1 .2 m selects ∼10% of agents, or about 3 relevant objects per frame on average. This definition underlies our benchmark, nuScenes-R. 
+
+> Figure 4. Relevant object labeling example geometry.
+
+We report two variants: relevant motion (RM) filtered metrics (NDS-RM), which apply the RM filter as described Figure 5. Latency-accuracy curves for SToRe3D under varying sparsity, compared to alternatives. Each point corresponds to a different keep ratio. Increasing sparsity moves models toward higher FPS with only modest drops in mAP. 
+
+above, and relevant area filtered metrics (mAP-RA, NDS-RA), which use a fixed detection area around the vehicle for evaluation. Because RM relies on privileged future in-formation, detections are matched to RM-filtered ground truth for true positives and false positives, but false nega-tives are difficult to compute. Together, RM and RA en-sure that SToRe3D’s relevance-adaptive sparsity is evaluated fairly, measuring whether accuracy is preserved on planning-critical agents while enabling substantial efficiency gains. 
+
+# 5. Experiments 
+
+5.1. Experiment Setup 
+
+Dataset. We evaluate on the nuScenes 3D detection bench-mark [ 3], which contains 1,000 ∼20s scenes at 20 Hz with six surround cameras per sample, calibrated with known intrinsics and extrinsics. Annotations are provided every 0.5 s, yielding 28k/6k/6k samples for train/val/test over ten classes. We report standard nuScenes metrics (mAP, NDS) and relevance-filtered metrics on planning-critical agents us-ing nuScenes-R (Section 4), including Relevant-Area (RA) and Relevant-Motion (RM) variants. 
+
+Implementation Details. We use six synchronized cameras with standard calibration. Unless noted otherwise, SToRe3D is implemented and evaluated with ViT-B and ViT-L back-bones [ 9] initialized from EVA-02 [ 10 ]. ResNet-50/101 [ 13 ]and V2-99 [ 21 ] appear only as reproduced baselines reported from prior work. Unless stated otherwise, input resolution is 320 × 800 ; we also report 256 × 704 , 512 × 1408 , and 
+
+800 × 1600 for accuracy–speed trade-offs. The detector follows a DETR-style design with multi-scale features, em-bedding dimension D=256 , and L=6 decoder layers. The baseline uses 644 detection queries and 256 temporal queries (900 total) with four frames of memory. Denoising [ 51 , 52 ]is applied during training. Models are trained for 24 epochs on 8 ×A100 GPUs (batch size 16); inference latency is mea-sured at batch size 1 on a single RTX3090. We use AdamW with cosine decay and mixed precision. Relevance heads are two-layer MLPs with GELU and TopK gating that use differentiable Gumbel-softmax. We report three operating points, SToRe3D-1/2, SToRe3D-1/3, and SToRe3D-1/10, corresponding to hierarchical schedules that retain roughly half, one-third, and one-tenth of tokens/queries. 
+
+5.2. Main Results 
+
+Accuracy–efficiency trade-offs. Figure 5 plots the speed-–accuracy frontier of SToRe3D across sparsity regimes, alongside StreamPETR [ 52 ]. Jointly pruning 2D tokens and 3D queries yields monotonic FPS gains with negligible accuracy loss at low sparsity and only small losses at higher sparsity. Notably, SToRe3D-1/10 enables real-time ViT-based multi-view 3D detection, running at ∼18 FPS with ViT-B while remaining SOTA among methods at similar latency. Under matched ViT backbone comparisons (Ta-ble 2), SToRe3D consistently improves the accuracy–latency trade-off over dense StreamPETR and token-only ToC3D operating points. As the hierarchical keep ratio decreases, in-ference time drops monotonically while mAP/NDS degrade Methods Backbone ×W-S mAP ↑ -RA ↑ NDS ↑ -RA ↑ -RM ↑ FPS ↑
+
+StreamPETR V2-99 ×800 0.482 0.605 0.571 0.646 0.428 13.5 BEVFormer R101-DCN ×1600 0.416 - 0.517 - - 3.3 Sparse4D R101-DCN ×1600 0.444 - 0.550 - - 4.7 SOLOFusion R101 ×1408 0.483 - 0.582 - - -StreamPETR R101 ×1408 0.486 - 0.578 - - 7.0 SparseBEV R101 ×1408 0.501 - 0.592 - - -Sparse4Dv2 R101 ×1408 0.505 - 0.598 - - -StreamPETR ViT-B ×800 0.497 0.627 0.584 0.667 0.443 6.1 ToC3D-Fast ViT-B ×800-1/2 0.46 0.615 0.562 0.664 0.431 6.6 SToRe3D-1/2 ViT-B ×800-1/2 0.493 0.627 0.581 0.665 0.441 8.2 ToC3D-Faster ViT-B ×800-1/3 0.453 0.618 0.559 0.656 0.43 7.3 SToRe3D-1/3 ViT-B ×800-1/3 0.489 0.623 0.578 0.65 0.435 10.6 SToRe3D-1/10 ViT-B ×800-1/10 0.479 0.612 0.571 0.639 0.43 17.7 StreamPETR ViT-L ×800 0.521 0.641 0.608 0.688 0.485 2.2 ToC3D-Fast ViT-L ×800-1/2 0.523 0.639 0.610 0.681 0.463 2.5 SToRe3D-1/2 ViT-L ×800-1/2 0.533 0.666 0.618 0.697 0.475 2.7 ToC3D-Faster ViT-L ×800-1/3 0.517 0.63 0.609 0.672 0.453 3.1 SToRe3D-1/3 ViT-L ×800-1/3 0.523 0.654 0.609 0.678 0.469 3.5 SToRe3D-1/10 ViT-L ×800-1/10 0.521 0.641 0.607 0.679 0.478 5.2      
+
+> Table 2. Detection performance on nuScenes and nuScenes-R validation set against SOTA methods. Methods are grouped based on comparable latency. Backbone ×W and -S are the image width and sparsity level, respectively. StreamPETR [ 52 ], ToC3D [ 61 ], SparseBEV [31], Sparse4Dv2 [30], SOLOFusion [41], BEVFormer [27], and Sparse4D [30] are as reported.
+
+smoothly, with a clear knee at mid sparsity. Pushing beyond this regime is challenging, since extreme sparsity drastically reduces the number of supervised tokens and queries per batch, SToRe3D’s store–reactivate buffers and gradual prun-ing warm-up are key to maintaining stable training in this high-sparsity setting. 
+
+Comparison to baselines. We compare the detection-aligned SToRe3D variant ( rdet ) to prior multi-view 3D de-tectors using standard detection metrics, and the planning-aligned variant ( rplan ) using nuScenes-R. Table 2 shows that SToRe3D is competitive with strong published baselines across a range of latency regimes. The controlled matched-backbone comparisons show that, relative to StreamPETR and ToC3D under the same ViT backbone family, joint token– query sparsity yields a stronger accuracy–latency trade-off than token-only compression. 
+
+5.3. Ablation Study 
+
+On nuScenes-R, where evaluation is restricted to agents within the future interaction corridor (RM) or a fixed area around the ego (RA), SToRe3D retains strong mAP-RA/NDS-RM on planning-critical agents while running faster than dense baselines. For example, SToRe3D-1/10 (ViT-L) achieves 0.521 mAP, 0.607 NDS, 0.478 NDS-RM, and 5.2 FPS, compared to StreamPETR (ViT-L) at 0.521 mAP, 0.608 NDS, 0.463 NDS-RM, and 2.7 FPS. This in-dicates that SToRe3D’s relevance-driven sparsity preserves accuracy where it matters most for safety-critical planning while significantly reducing latency. 
+
+Sparsity approach. Table 3 compares alternative sparsifica-tion strategies at matched total keep ratios against our joint token–query sparsity. At ρ=0 .5 and ρ=0 .3, SToRe3D con-sistently achieves equal or higher accuracy at similar or lower latency than token-only approaches. The extra speedup is primarily from added query sparsity in the decoder, which ViT image token-only methods cannot realize, while tying token pruning to object queries preserves accuracy under stronger sparsity. The store–reactivate buffers introduce modest runtime memory overhead while avoiding additional attention or recomputation. For SToRe3D-1/2 with ViT-B, the buffers store 64,200 pruned image/query embeddings (256-dim), adding approximately 20 MB of runtime memory while reducing compute by 397 GFLOPs. This corresponds to a Sparsity Approach TKR NDS ↑ mAP ↑ FPS ↑
+
+StreamPETR 1 0.614 0.533 2.15 
+
++ Random 0.5 0.567 (-7.7%) 0.465 (-12.8%) 2.45 (1.14 ×)
+
++ DynamicViT 0.5 0.597 (-2.8%) 0.505 (-5.3%) 2.47 (1.15 ×)
+
++ ToC3D-Fast 0.5 0.61 (-0.7%) 0.523 (-1.9%) 2.43 (1.13 ×)
+
++ SToRe3D-1/2 0.5 0.618 (+0.7%) 0.533 (0%) 2.70 (1.26 ×)
+
++ Random 0.3 0.485 (-21%) 0.36 (-32.5%) 2.9 (1.35 ×)
+
++ DynamicViT 0.3 0.593 (-3.4%) 0.493 (-7.5%) 2.92 (1.36 ×)
+
++ ToC3D-Faster 0.3 0.603 (-1.8%) 0.512 (-3.9%) 2.89 (1.34 ×)
+
++ SToRe3D-1/3 0.3 0.609 (-0.8%) 0.523 (-1.9%) 3.51 (1.63 ×)
+
++ SToRe3D-1/10 0.1 0.607 (-1.1%) 0.521 (-2.3%) 5.21 (2.42 ×)
+
+> Table 3. Ablation of sparsity approaches [43, 52, 61] at matched total keep ratios (TKR).
+
+2.1% memory overhead for a 28% compute reduction. 
+
+Pruning design. Table 4 ablates design choices within SToRe3D. Joint pruning of image tokens and object queries (I&O) outperforms pruning either stream alone, reducing latency in both the backbone and decoder. Retaining filtered items in store buffers with reactivation is superior to hard 
+
+pruning , indicating that retrieval paths mitigate early pruning errors. Finally, a linear schedule (warming up from dense to target keep ratios) is more stable than flat query-reduced fine-tuning, which often fails to converge at high sparsity due to the reduced learning signal from very few active queries.                                          
+
+> Setting Train Loss Pruner Pruned Schedule mAP ↑
+> None ----0.540 v1 Top Q Store I & O Finetune 0.515 v3 Top Q Store OLinear 0.534 v4 Top Q Store ILinear 0.527 v5 Top Q Remove I & O Linear 0.495 v6 All Q Store I & O Linear 0.513 SToRe3D Top Q Store I & O Linear 0.521
+> Table 4. Ablation of design decisions on nuScenes validation set using ViT-L backbone for the SToRe3D-1/10 variant. I: image tokens. O: object queries.
+
+5.4. Qualitative Results 
+
+Figure 6 qualitatively compares SToRe3D to StreamPETR in challenging driving scenarios. SToRe3D suppresses back-ground false positives by pruning low-relevance tokens and preserves detections for agents inside the interaction corridor, reducing critical false negatives and yielding more focused detections on planning-critical agents. Additional qualitative results are provided in the supplementary material. 
+
+# 6. Conclusion 
+
+We introduced SToRe3D, a planner-aligned sparsity frame-work for multi-view 3D detection with ViTs. SToRe3D  
+
+> Figure 6. Visualization of false negatives for the baseline StreamPETR-R50 (top) and SToRe3D-1/10-ViT-B at similar la-tency (bottom).
+
+applies joint, hierarchical pruning to image tokens and 3D queries, replacing hard drops with filter-and-store buffers that allow selective reactivation. Relevance is supervised by a future interaction corridor, and nuScenes-R evaluates accu-racy specifically on planning-critical agents. On nuScenes, SToRe3D reduces latency by up to 3× with marginal accu-racy loss; at aggressive sparsity (SToRe3D-1/10) it reaches 
+
+real-time throughput ( ∼18 FPS with ViT-B) while achieving state-of-the-art performance among methods with similar latency. Since nuScenes-R depends on corridor hyperpa-rameters (H, d min ), future work includes tighter coupling of relevance with planning, LiDAR fusion, and closed-loop evaluation. References 
+
+[1] Joshua Ainslie, James Lee-Thorp, Michiel De Jong, Yury Zemlyanskiy, Federico Lebr ´on, and Sumit Sanghai. Gqa: Training generalized multi-query transformer models from multi-head checkpoints. arXiv preprint arXiv:2305.13245 ,2023. 2 [2] Daniel Bolya and Judy Hoffman. Token merging: Your vit but faster. In ICLR , 2023. 1, 2 [3] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Gi-ancarlo Baldan, and Oscar Beijbom. nuscenes: A multi-modal dataset for autonomous driving. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11621–11631, 2020. 1, 6 [4] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In European con-ference on computer vision , pages 213–229. Springer, 2020. 1[5] Loick Chambon, Eloi Zablocki, Micka ¨el Chen, Florent Bar-toccioni, Patrick P ´erez, and Matthieu Cord. Pointbev: A sparse approach for bev predictions. In Proceedings of the IEEE/CVF conference on computer vision and pattern recog-nition , pages 15195–15204, 2024. 2 [6] Brian Cheong, Letian Wang, Sandro Papais, and Steven L. Waslander. Scatr: Mitigating new instance suppression in lidar-based tracking-by-attention via second chance as-signment and track query dropout. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) , pages 3330–3339, 2026. 3 [7] Krzysztof Choromanski, Valerii Likhosherstov, David Do-han, Xingyou Song, Andreea Gane, Tamas Sarlos, Peter Hawkins, Jared Davis, Afroz Mohiuddin, Lukasz Kaiser, et al. Rethinking attention with performers. arXiv preprint arXiv:2009.14794 , 2020. 2 [8] Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher R ´e. Flashattention: Fast and memory-efficient exact attention with io-awareness. Advances in neural information processing systems , 35:16344–16359, 2022. 2 [9] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Syl-vain Gelly, et al. An image is worth 16x16 words: Trans-formers for image recognition at scale. arXiv preprint arXiv:2010.11929 , 2020. 1, 6 [10] Yuxin Fang, Quan Sun, Xinggang Wang, Tiejun Huang, Xin-long Wang, and Yue Cao. Eva-02: A visual representation for neon genesis. Image and Vision Computing , 149:105171, 2024. 6, 1 [11] Mohsen Fayyaz, Soroush Abbasi Koohpayegani, Farnoush Rezaei Jafari, Sunando Sengupta, Hamid Reza Vaezi Joze, Eric Sommerlade, Hamed Pirsiavash, and J ¨urgen Gall. Adaptive token sampling for efficient vision transformers. In European conference on computer vision ,pages 396–414. Springer, 2022. 2 [12] Benjamin Graham, Alaaeldin El-Nouby, Hugo Touvron, Pierre Stock, Armand Joulin, Herv ´e J ´egou, and Matthijs Douze. Levit: a vision transformer in convnet’s clothing for faster inference. In Proceedings of the IEEE/CVF inter-national conference on computer vision , pages 12259–12269, 2021. 2 [13] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , pages 770–778, 2016. 6 [14] Xiuquan Hou, Meiqin Liu, Senlin Zhang, Ping Wei, and Badong Chen. Salience detr: Enhancing detection transformer with hierarchical salience filtering refinement. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 17574–17583, 2024. 2 [15] Yihan Hu, Jiazhi Yang, Li Chen, Keyu Li, Chonghao Sima, Xizhou Zhu, Siqi Chai, Senyao Du, Tianwei Lin, Wenhai Wang, et al. Planning-oriented autonomous driving. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 17853–17862, 2023. 3 [16] Zhen Huang, Ming Xu, Wenqi Zhang, Zhouhan Lin, and Dejing Dou. Token cropr: Faster vision transformers for quite a few tasks. In CVPR , 2025. 1, 2, 3 [17] Eric Jang, Shixiang Gu, and Ben Poole. Categorical reparameterization with gumbel-softmax. arXiv preprint arXiv:1611.01144 , 2016. 4 [18] Hei Law and Jia Deng. Cornernet: Detecting objects as paired keypoints. In Proceedings of the European conference on computer vision (ECCV) , pages 734–750, 2018. 5 [19] Dong Hoon Lee and Seunghoon Hong. Learning to merge tokens via decoupled embedding for efficient vision trans-formers. Advances in Neural Information Processing Systems ,37:54079–54104, 2024. 2 [20] Sanghyeok Lee, Joonmyung Choi, and Hyunwoo J Kim. Multi-criteria token fusion with one-step-ahead attention for efficient vision transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 15741–15750, 2024. 2 [21] Youngwan Lee, Joong-won Hwang, Sangrok Lee, Yuseok Bae, and Jongyoul Park. An energy and gpu-computation efficient backbone network for real-time object detection. In 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition workshops , pages 0–0, 2019. 6 [22] Chengxi Li, Stanley H Chan, and Yi-Ting Chen. Who make drivers stop? towards driver-centric risk assessment: Risk object identification via causal inference. In 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 10711–10718. IEEE, 2020. 3 [23] Chengxi Li, Stanley H Chan, and Yi-Ting Chen. Droid: Driver-centric risk object identification. IEEE transactions on pattern analysis and machine intelligence , 45(11):13683– 13698, 2023. 3 [24] Feng Li, Hao Zhang, Shilong Liu, Jian Guo, Lionel M Ni, and Lei Zhang. Dn-detr: Accelerate detr training by introducing query denoising. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 13619– 13627, 2022. 2 [25] Rui Li, Yu Wang, Tianyu Xu, and Dahua Lin. Savit: Structure-aware vision transformer pruning via collaborative optimiza-tion. In NeurIPS , 2022. 2 [26] Yanghao Li, Hanzi Mao, Ross Girshick, and Kaiming He. Exploring plain vision transformer backbones for object de-tection. In European conference on computer vision , pages 280–296. Springer, 2022. 3 [27] Zhiqi Li, Wenhai Wang, Hongyang Li, Enze Xie, Chonghao Sima, Tong Lu, Yu Qiao, and Jifeng Dai. Bevformer: Learn-ing bird’s-eye-view representation from multi-camera images via spatiotemporal transformers. In European conference on computer vision , pages 1–18. Springer, 2022. 2, 3, 7 [28] Youwei Liang, Chongjian Ge, Zhan Tong, Yibing Song, Jue Wang, and Pengtao Xie. Not all patches are what you need: Expediting vision transformers via token reorganizations. 
+
+arXiv preprint arXiv:2202.07800 , 2022. 2 [29] T Lin. Focal loss for dense object detection. arXiv preprint arXiv:1708.02002 , 2017. 5 [30] Xuewu Lin, Tianwei Lin, Zixiang Pei, Lichao Huang, and Zhizhong Su. Sparse4d v2: Recurrent temporal fusion with sparse model. arXiv preprint arXiv:2305.14018 , 2023. 2, 3, 7 [31] Haisong Liu, Yao Teng, Tao Lu, Haiguang Wang, and Limin Wang. Sparsebev: High-performance sparse 3d ob-ject detection from multi-camera videos. In Proceedings of the IEEE/CVF international conference on computer vision ,pages 18580–18590, 2023. 2, 7 [32] Shilong Liu, Feng Li, Hao Zhang, Xiao Yang, Xianbiao Qi, Hang Su, Jun Zhu, and Lei Zhang. Dab-detr: Dynamic anchor boxes are better queries for detr. arXiv preprint arXiv:2201.12329 , 2022. 2 [33] Yingfei Liu, Tiancai Wang, Xiangyu Zhang, and Jian Sun. Petr: Position embedding transformation for multi-view 3d object detection. In European Conference on Computer Vi-sion , pages 531–548. Springer, 2022. 2 [34] Yifei Liu, Mathias Gehrig, Nico Messikommer, Marco Can-nici, and Davide Scaramuzza. Revisiting token pruning for object detection and instance segmentation. In Proceedings of the IEEE/CVF Winter Conference on Applications of Com-puter Vision , pages 2658–2668, 2024. 1, 2, 3 [35] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In 
+
+Proceedings of the IEEE/CVF international conference on computer vision , pages 10012–10022, 2021. 2, 3 [36] Sachin Mehta and Mohammad Rastegari. Mobilevit: light-weight, general-purpose, and mobile-friendly vision trans-former. arXiv preprint arXiv:2110.02178 , 2021. 2 [37] Lingchen Meng, Hengduo Li, Bor-Chun Chen, Shiyi Lan, Zuxuan Wu, Yu-Gang Jiang, and Ser-Nam Lim. Adavit: Adaptive vision transformers for efficient image recognition. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12309–12318, 2022. 2 [38] Paul Michel, Omer Levy, and Graham Neubig. Are sixteen heads really better than one? Advances in neural information processing systems , 32, 2019. 2 [39] Sandro Papais, Robert Ren, and Steven Waslander. Swtrack: Multiple hypothesis sliding window 3d multi-object track-ing. In 2024 IEEE International Conference on Robotics and Automation (ICRA) , pages 4939–4945. IEEE, 2024. 3 [40] Sandro Papais, Letian Wang, Brian Cheong, and Steven L Waslander. Foresight: Multi-view streaming joint object detection and trajectory forecasting. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,pages 25474–25484, 2025. 3 [41] Jinhyung Park, Chenfeng Xu, Shijia Yang, Kurt Keutzer, Kris M Kitani, Masayoshi Tomizuka, and Wei Zhan. Time will tell: New outlooks and a baseline for temporal multi-view 3d object detection. In The Eleventh International Conference on Learning Representations , 2022. 7 [42] Jonah Philion and Sanja Fidler. Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unprojecting to 3d. In Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceedings, Part XIV 16 , pages 194–210. Springer, 2020. 2 [43] Yongming Rao, Wenliang Zhao, Bing Liu, Jiwen Lu, and Jie Zhou. Dynamicvit: Efficient vision transformers with dynamic token sparsification. In NeurIPS , 2021. 1, 2, 8 [44] Byungseok Roh, JaeWoong Shin, Wuhyun Shin, and Saehoon Kim. Sparse detr: Efficient end-to-end object detection with learnable sparsity. arXiv preprint arXiv:2111.14330 , 2021. 1, 2, 3 [45] Michael S. Ryoo, AJ Piergiovanni, Anurag Arnab, Mostafa Dehghani, and Anelia Angelova. Tokenlearner: What can 8 learned tokens do for images and videos? In NeurIPS , 2021. 2[46] Wenchao Sun, Xuewu Lin, Yining Shi, Chuang Zhang, Hao-ran Wu, and Sifa Zheng. Sparsedrive: End-to-end au-tonomous driving via sparse scene representation. In 2025 IEEE International Conference on Robotics and Automation (ICRA) , pages 8795–8801. IEEE, 2025. 3 [47] Yehui Tang, Kai Han, Yunhe Wang, Chang Xu, Jianyuan Guo, Chao Xu, and Dacheng Tao. Patch slimming for efficient vision transformers. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 12165–12174, 2022. 2 [48] Elena Voita, David Talbot, Fedor Moiseev, Rico Sennrich, and Ivan Titov. Analyzing multi-head self-attention: Specialized heads do the heavy lifting, the rest can be pruned. arXiv preprint arXiv:1905.09418 , 2019. 2 [49] Letian Wang, Marc-Antoine Lavoie, Sandro Papais, Barza Nisar, Yuxiao Chen, Wenhao Ding, Boris Ivanovic, Hao Shao, Abulikemu Abuduweili, Evan Cook, Yang Zhou, Peter Karkus, Jiachen Li, Changliu Liu, Marco Pavone, and Steven Waslander. Trends in motion prediction toward deployable and generalizable autonomy: A revisit and perspectives, 2025. 1[50] Sinong Wang, Belinda Z Li, Madian Khabsa, Han Fang, and Hao Ma. Linformer: Self-attention with linear complexity. 
+
+arXiv preprint arXiv:2006.04768 , 2020. 2 [51] Shihao Wang, Xiaohui Jiang, and Ying Li. Focal-petr: Em-bracing foreground for efficient multi-camera 3d object detec-tion. IEEE Transactions on Intelligent Vehicles , 9(1):1481– 1489, 2023. 2, 3, 5, 6 [52] Shihao Wang, Yingfei Liu, Tiancai Wang, Ying Li, and Xi-angyu Zhang. Exploring object-centric temporal modeling for efficient multi-view 3d object detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,pages 3621–3631, 2023. 2, 3, 6, 7, 8, 1 [53] Yue Wang, Vitor Campagnolo Guizilini, Tianyuan Zhang, Yilun Wang, Hang Zhao, and Justin Solomon. Detr3d: 3d object detection from multi-view images via 3d-to-2d queries. In Conference on Robot Learning , pages 180–191. PMLR, 2022. 2 [54] Bob Wei, Mengye Ren, Wenyuan Zeng, Ming Liang, Bin Yang, and Raquel Urtasun. Perceive, attend, and drive: Learn-ing spatial attention for safe self-driving. In 2021 IEEE In-ternational Conference on Robotics and Automation (ICRA) ,pages 4875–4881. IEEE, 2021. 3 [55] Yifan Xu, Chenglin Zhang, Zhuliang Zhang, and Dacheng Tao. Evo-vit: Slow-fast token evolution for dynamic vision transformer. In AAAI , 2022. 2 [56] Zhiqiang Xu, Yifan Wang, Pan Zhou, Zehuan Yuan, and Mingkui Tan. X-pruner: explainable pruning for vision trans-formers. In CVPR , 2023. 2 [57] Zhiqiang Xu, Pan Zhou, and Mingkui Tan. Token fusion: Bridging the gap between token pruning and token merging. In WACV , 2024. 2 [58] Zhuyu Yao, Jiangbo Ai, Boxun Li, and Chi Zhang. Efficient detr: improving end-to-end object detector with dense prior. 
+
+arXiv preprint arXiv:2104.01318 , 2021. 2 [59] Zhaoyang Yao, Kai Han, Yunhe Wang, Chunjing Xu, and Chang Xu. Spvit: Enabling faster vision transformers via latency-aware soft token pruning. In ECCV , 2022. 2 [60] Huan Yu, Mingbao Zhang, Yulun Wang, Kai Yang, Kai Han, and Yunhe Wang. Synergistic patch pruning for vision trans-former. In ICLR , 2024. 2 [61] Dingyuan Zhang, Dingkang Liang, Zichang Tan, Xiaoqing Ye, Cheng Zhang, Jingdong Wang, and Xiang Bai. Make your vit-based multi-view 3d detectors faster via token compression. In European Conference on Computer Vision , pages 56–72. Springer, 2024. 1, 2, 3, 7, 8 [62] Gongjie Zhang, Zhipeng Luo, Zichen Tian, Jingyi Zhang, Xiaoqin Zhang, and Shijian Lu. Towards efficient use of multi-scale features in transformer-based object detectors. In 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 6206–6216, 2023. 2 [63] Hao Zhang, Feng Li, Shilong Liu, Lei Zhang, Hang Su, Jun Zhu, Lionel M Ni, and Heung-Yeung Shum. Dino: Detr with improved denoising anchor boxes for end-to-end object detection. arXiv preprint arXiv:2203.03605 , 2022. 2 [64] Yian Zhao, Wenyu Lv, Shangliang Xu, Jinman Wei, Guanzhong Wang, Qingqing Dang, Yi Liu, and Jie Chen. Detrs beat yolos on real-time object detection. In Proceed-ings of the IEEE/CVF conference on computer vision and pattern recognition , pages 16965–16974, 2024. 2 [65] Dehua Zheng, Wenhui Dong, Hailin Hu, Xinghao Chen, and Yunhe Wang. Less is more: Focus attention for efficient detr. In Proceedings of the IEEE/CVF international conference on computer vision , pages 6674–6683, 2023. 1, 2 [66] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable trans-formers for end-to-end object detection. arXiv preprint arXiv:2010.04159 , 2020. 2, 3 SToRe3D: Sparse Token Relevance in ViTs for Efficient Multi-View 3D Object Detection 
+
+# Supplementary Material 
+
+# 7. Implementation Details 
+
+We follow standard multi-view 3D detection settings on nuScenes using 6 cameras, synchronized frames, and known camera intrinsics and extrinsics. Backbones are ViT-based, and we evaluate both medium and large variants. There is no encoder after the backbone, and the decoder follows a DETR-style design with multi-scale features. We measure end-to-end latency at batch size 1 with the standard PyTorch profiler on a single RTX3090 GPU. The ViT-L and ViT-B backbones follow EVA-02 [ 10 ], which is used for pretraining. The ViT-L backbone has 1024 embedding channels and 24 transformer layers with a mix of global and windowed attention, 16 attention heads, and a 0.3 drop path rate. The ViT-B backbone has 768 embedding channels and 12 transformer layers with a mix of global and windowed attention, 12 attention heads, and a 0.1 drop path rate. Both backbones use a patch size of 16. The nominal window size is 16 for ViT-L and 14 for ViT-B. The detection head uses 6 decoder layers with 256-dimensional query embeddings. In Table 5, we list training hyperparameters and backbone configuration for all experi-ments, following EVA-02 [ 10 ] and StreamPETR [ 52 ] where possible. Hyperparameter and design choices specific to SToRe3D are described in the main text. 
+
+Base Config Value 
+
+Learning rate 4e-4 Learning rate schedule cosine decay Optimizer AdamW Weight decay 0.01 Batch size 16 Training epochs 24 Max detections 300 
+
+ViT Config ViT-L ViT-B 
+
+Checkpoint EVA-02 [10] Objects365 Patch size 16 16 Embedding dimension 1024 768 Window attention layers 16 6Global attention layers 8 6Attention heads 16 12 Window size 16 14 Drop path 0.3 0.1 
+
+Table 5. Model configuration and training hyperparameters used in all experiments. 
+
+Pruning in the backbone occurs in the layer preceding a subset of global-attention blocks. For ViT-L with global attention at layers [3 , 6, 9, 12 , 15 , 18 , 21 , 24] , pruning is ap-plied before the later global layers. For ViT-B with global attention at layers [2 , 4, 6, 8, 10 , 12] , pruning is similarly ap-plied before a subset of these layers. The pruning schedule for the number of tokens kept in each layer follows a quadratic schedule, LKR l = TKR + (1 − TKR )(1 − l/L )2, (9) where the layer keep ratio (LKR) is the fraction of tokens processed at layer l, the total keep ratio (TKR) is the fi-nal target fraction of tokens processed across the backbone, and L is the total number of layers. Table 6 lists the result-ing per-layer keep ratios and the mean keep ratio (MKR), which approximates the average fraction of tokens processed through the backbone.                                                                         
+
+> ViT-L Models TKR MKR LKR 6LKR 8LKR 10 LKR 12
+> ToC3D-fast 0.5 0.70 0.70 0.50 0.50 0.50 SToRe3D-1/2 0.5 0.76 0.63 0.53 0.50 1.00 ToC3D-faster 0.3 0.58 0.50 0.40 0.30 0.30 SToRe3D-1/3 0.3 0.67 0.48 0.32 0.30 1.00 SToRe3D-1/10 0.1 0.58 0.33 0.16 0.10 1.00
+> ViT-B Models TKR MKR LKR 9LKR 15 LKR 21 LKR 24
+> ToC3D-fast 0.5 0.70 0.70 0.50 0.50 0.50 SToRe3D-1/2 0.5 0.74 0.63 0.53 0.50 1.00 ToC3D-faster 0.3 0.58 0.50 0.40 0.30 0.30 SToRe3D-1/3 0.3 0.64 0.48 0.34 0.30 1.00 SToRe3D-1/10 0.1 0.53 0.33 0.16 0.10 1.00
+
+Table 6. Token pruning schedules for SToRe3D model variants and ToC3D [ 61 ]. TKR is the total keep ratio, MKR is the mean keep ratio across layers, and LKR ℓ is the layer keep ratio at selected global-attention layers. 
+
+# 8. Profiling Analysis 
+
+We now analyze latency sensitivity to image tokens and object queries in isolation. Starting from the dense baseline with 900 object queries and 127,500 image tokens across all camera views, we systematically subsample each axis. We reduce the number of object queries by 50% and 90%, and measure the resulting latency of the ViT-L backbone and the detection decoder. We then repeat the experiment by reducing the number of image tokens by 50% and 90% while keeping the number of queries fixed. Figure 7 shows the measured latencies. From these experiments, we estimate simple sensitivities 
+
+∆t/ ∆i and ∆t/ ∆o, where t is the latency, i is the number of image tokens, and o is the number of object queries. For the decoder, the sensitivity to image tokens is modest, with 
+
+∆t/ ∆i ≈ 7% , while the sensitivity to object queries is much higher, with ∆t/ ∆o ≈ 50% . For the ViT-L backbone, the sensitivity to image tokens is dominant, with ∆t/ ∆i ≈ 95% ,and the sensitivity to object queries is effectively zero, since queries are not used in the backbone. These results support our design choice. Pruning image tokens primarily reduces backbone latency, while pruning ob-ject queries primarily reduces decoder latency. Joint sparsity over both axes is therefore necessary to reach the strongest latency improvements.  
+
+> Figure 7. Latency sensitivity of the ViT backbone and the detection decoder when varying the number of image tokens and object queries independently. The backbone is almost entirely driven by the number of image tokens, while the decoder is much more sensitive to the number of object queries.
+
+# 9. Additional Metrics 
+
+For the planning-relevance metrics introduced in the main paper, an agent is labeled relevant if the closest distance 
+
+dC between its swept corridor and the ego vehicle’s swept corridor is below a buffer threshold dRM . To choose dRM ,we first compute the empirical distribution of the closest ego–agent distances dC across the entire nuScenes dataset. The cumulative distribution is shown in Figure 8. We se-lect dRM as the 10th percentile of this distribution, which corresponds to approximately 10% of agents being labeled relevant. This yields dRM = 1 .2 m over a 5-second horizon, which in turn leads to roughly 3 relevant agents per frame on average and a maximum of 31 relevant agents. 
+
+> Figure 8. Cumulative distribution of closest ego–agent distances on nuScenes, used to select the relevance buffer for our nuScenes-R benchmark.
+
+# 10. Additional Qualitative Results 
+
+Figure 9 provides additional qualitative comparisons be-tween SToRe3D and the baseline StreamPETR model. We highlight three representative cases where highly relevant objects are missed by the baseline ResNet-50 model but de-tected by our similar-latency variant SToRe3D-1/10-ViT-B. In all three scenes, the highlighted objects interact with the ego vehicle and have predicted future trajectories that pass close to the ego path. Examples include a car in the on-coming lane at an intersection (top row), a car stopped ahead near an upcoming intersection (middle row), and a nearby pedestrian about to cross the road (bottom row). These cases illustrate that the higher-capacity ViT backbone with relevance-aware pruning detects planning-critical objects that a lower-capacity dense backbone misses, while operat-ing at comparable latency. 
+
+# 11. Limitations and Future Work 
+
+While SToRe3D achieves strong accuracy–latency trade-offs, it has several limitations. First, our evaluation is restricted to the nuScenes dataset and camera-only multi-view 3D detection. The relevance heads and pruning schedules are (a) Front view of an oncoming car that is missed by the baseline detector but correctly detected by SToRe3D. 
+
+> (b) Front view of a lead vehicle ahead that is missed by the baseline but detected by SToRe3D.
+> (c) Left side view of a nearby pedestrian that is missed by the baseline but detected by SToRe3D.
+
+Figure 9. Additional qualitative examples of false negatives for the baseline StreamPETR-R50 (left in each pair), where SToRe3D-1/10-ViT-B at a similar latency (right in each pair) correctly detects the planning-critical objects. 
+
+tuned for this setting. Performance and sparsity behavior on other datasets, sensing setups (for example, LiDAR or radar fusion), and driving domains are not evaluated. Second, the approach still relies on relatively heavy ViT backbones and multi-scale DETR-style decoding. Although relevance-aware sparsity yields substantial speedups, abso-lute latency and memory usage may remain challenging for some embedded or low-power deployments, especially at higher input resolutions. Finally, the nuScenes-R protocol for planning-critical evaluation uses privileged future information to define inter-action corridors. This is reasonable for offline benchmarking, but the corridor parameters and labeling procedure may not perfectly match the objectives of a downstream planner in a closed-loop system. In addition, we focus only on open-loop detection and do not assess downstream effects on full autonomous driving stacks in closed-loop simulation or real-world testing. Studying how relevance-aware sparsity interacts with planning and control policies, along with joint training of SToRe3D for end-to-end driving are important direction for future work.

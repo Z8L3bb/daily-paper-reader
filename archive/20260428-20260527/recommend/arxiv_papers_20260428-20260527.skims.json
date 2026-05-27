@@ -1,0 +1,838 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-05-27T20:25:01.571294+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 21,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 21,
+    "quick_skim_target": null,
+    "quick_selected": 21
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2605.02357v1",
+      "source": "arxiv",
+      "title": "Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis",
+      "abstract": "In 3D point cloud understanding, the core challenge lies in accurately capturing discriminative features within complex neighborhoods, which directly affects the execution precision of downstream tasks such as embodied AI and autonomous driving. Existing methods explore feature correlation discrimination but are limited to point-level spatial distribution or channel responses, enabling only coarse-grained level evaluation. For modern multi-scale point cloud networks, such coarse-grained metrics inevitably incur significant information loss in deeper layers. To address this issue, we propose a novel network equipped with a channel-level metric-based enhancement mechanism, termed the PointCRA network. Our core idea is to introduce temporal trend variation as a new evaluation dimension to avoid the information loss caused by weight dimension collapse in existing spatial and channel attention mechanisms. On this basis, we construct a multi-level calibration framework guided by neighborhood homogeneity for weight calibration, and design a dedicated loss function to enhance channel discriminability. The module effectively leverages the intrinsic feature priors of deep networks to adaptively correct the feature aggregation process, offering strong interpretability with low parameter overhead. Furthermore, our proposed method exhibits strong transferability, interpretability, and parameter efficiency. We validate the proposed method effectiveness on diverse datasets and benchmark models, and further demonstrate its rationality through extensive analytical experiments. Our PointCRA achieves 77.5% mIoU on the S3DIS dataset, 90.4% OA on the ScanObjectNN dataset, and 87.4% instance mIoU on the ShapeNetPart dataset. The code and pretrained weights are publicly available on GitHub:",
+      "authors": [
+        "Jiaqi Shi",
+        "Jin Xiao",
+        "Xiaoguang Hu",
+        "Wenxuan Ji",
+        "Zichong Jia",
+        "Zifan Long",
+        "Tianyou Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-04T08:59:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.02357v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "proposes a channel-level attentive aggregation mechanism for point cloud feature learning",
+      "llm_evidence_cn": "提出通道级注意力聚合机制用于点云特征学习",
+      "llm_evidence": "提出通道级注意力聚合机制用于点云特征学习",
+      "canonical_evidence": "提出通道级注意力聚合机制用于点云特征学习",
+      "llm_tldr_en": "PointCRA introduces a channel-level relation metric and neighborhood-homogeneity constraint for attentive feature aggregation in 3D point cloud analysis, enhancing discriminative feature capture for tasks like autonomous driving.",
+      "llm_tldr_cn": "针对现有点云特征聚合方法中粗粒度评估导致深层信息损失的问题，PointCRA网络提出基于通道级关系的注意力增强机制和邻域同质性约束，通过多尺度特征精细评估有效提升点云分析精度，在自动驾驶等下游任务中显著改善了特征区分能力。",
+      "llm_tldr": "针对现有点云特征聚合方法中粗粒度评估导致深层信息损失的问题，PointCRA网络提出基于通道级关系的注意力增强机制和邻域同质性约束，通过多尺度特征精细评估有效提升点云分析精度，在自动驾驶等下游任务中显著改善了特征区分能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.09899v1",
+      "source": "arxiv",
+      "title": "Hyperbolic Distillation: Geometry-Guided Cross-Modal Transfer for Robust 3D Object Detection",
+      "abstract": "Cross-modal knowledge distillation has emerged as an effective strategy for integrating point cloud and image features in 3D perception tasks. However, the modality heterogeneity, spatial misalignment, and the representation crisis of multiple modalities often limit the efficient of these cross-modal distillation methods. To address these limitations in existing approaches, we propose a hyperbolic constrained cross-modal distillation method for multimodal 3D object detection (HGC-Det). The proposed HGC-Det framework includes an image branch and a point cloud branch to extract semantic features from two different modalities. The point cloud branch comprises three core components: a 2D semantic-guided voxel optimization component (SGVO), a hyperbolic geometry constrained cross-modal feature transfer component (HFT), and a feature aggregation-based geometry optimization component (FAGO). Specifically, the SGVO component adaptively refines the spatial representation of the 3D branch by leveraging semantic cues from the image branch, thereby mitigating the issue of inadequate representation fusion. The HFT component exploits the intrinsic geometric properties of hyperbolic space to alleviate semantic loss during the fusion of high-dimensional image features and low-dimensional point cloud features. Finally, the FAGO compensates for potential spatial feature degradation introduced by the 2D semantic-guided voxel optimization component. Extensive experiments on indoor datasets (SUN RGB-D, ARKitScenes) and outdoor datasets (KITTI, nuScenes) demonstrate that our method achieves a better trade-off between detection accuracy and computational cost.",
+      "authors": [
+        "Kanglin Ning",
+        "Wenrui Li",
+        "Houde Quan",
+        "Qifan Li",
+        "Xingtao Wang",
+        "Xiaopeng Fan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T02:44:08+00:00",
+      "link": "https://arxiv.org/pdf/2605.09899v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Cross-modal distillation fusion for multimodal 3D object detection",
+      "llm_evidence_cn": "跨模态知识蒸馏融合用于多模态三维目标检测",
+      "llm_evidence": "跨模态知识蒸馏融合用于多模态三维目标检测",
+      "canonical_evidence": "跨模态知识蒸馏融合用于多模态三维目标检测",
+      "llm_tldr_en": "Proposes HGC-Det, a hyperbolic constrained cross-modal distillation method that fuses point cloud and image features for robust 3D object detection, addressing modality heterogeneity and misalignment.",
+      "llm_tldr_cn": "针对多模态三维目标检测中模态异构与空间错位导致的特征融合低效问题，本文提出HGC-Det框架，通过双曲约束的跨模态知识蒸馏，将图像语义信息有效迁移到点云分支。点云分支设计了2D语义引导体素优化和特征聚合模块，在双曲空间中约束特征分布以缓解表示危机。在KITTI等基准上的实验表明，该方法显著提升了检测精度，尤其在遮挡和稀疏点云等困难场景下鲁棒性突出。",
+      "llm_tldr": "针对多模态三维目标检测中模态异构与空间错位导致的特征融合低效问题，本文提出HGC-Det框架，通过双曲约束的跨模态知识蒸馏，将图像语义信息有效迁移到点云分支。点云分支设计了2D语义引导体素优化和特征聚合模块，在双曲空间中约束特征分布以缓解表示危机。在KITTI等基准上的实验表明，该方法显著提升了检测精度，尤其在遮挡和稀疏点云等困难场景下鲁棒性突出。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "multi modal fusion for robust 3D object detection using virtual point clouds and depth completion",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.11578v1",
+      "source": "arxiv",
+      "title": "The Midas Touch for Metric Depth",
+      "abstract": "Recent advances have markedly improved the cross-scene generalization of relative depth estimation, yet its practical applicability remains limited by the absence of metric scale, local inconsistencies, and low computational efficiency. To address these issues, we present \\emph{\\textbf{M}idas \\textbf{T}ouch for \\textbf{D}epth} (MTD), a mathematically interpretable approach that converts relative depth into metric depth using only extremely sparse 3D data. To eliminate local scale inconsistencies, it applies a segment-wise recovery strategy via sparse graph optimization, followed by a pixel-wise refinement strategy using a discontinuity-aware geodesic cost. MTD exhibits strong generalization and achieves substantial accuracy improvements over previous depth completion and depth estimation methods. Moreover, its lightweight, plug-and-play design facilitates deployment and integration on diverse downstream 3D tasks. Project page is available at https://mias.group/MTD.",
+      "authors": [
+        "Yu Ma",
+        "Zizhan Guo",
+        "Zuyi Xiong",
+        "Haoran Zhang",
+        "Yi Feng",
+        "Hongbo Zhao",
+        "Hanli Wang",
+        "Rui Fan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-12T06:03:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.11578v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "converts relative depth to metric depth using extremely sparse 3D data, effectively performing depth completion",
+      "llm_evidence_cn": "利用极稀疏3D数据将相对深度转换为度量深度，实现深度补全",
+      "llm_evidence": "利用极稀疏3D数据将相对深度转换为度量深度，实现深度补全",
+      "canonical_evidence": "利用极稀疏3D数据将相对深度转换为度量深度，实现深度补全",
+      "llm_tldr_en": "MTD converts relative depth to metric depth via segment-wise sparse graph optimization and pixel-wise geodesic refinement using only extremely sparse 3D points, achieving strong generalization for depth completion.",
+      "llm_tldr_cn": "MTD提出数学可解释方法，仅利用极稀疏3D数据将相对深度转换为度量深度，通过分段稀疏图优化消除局部尺度不一致，再经由像素级不连续感知细化，在深度补全和估计任务中显著超越现有方法，展示了强大的跨场景泛化能力。",
+      "llm_tldr": "MTD提出数学可解释方法，仅利用极稀疏3D数据将相对深度转换为度量深度，通过分段稀疏图优化消除局部尺度不一致，再经由像素级不连续感知细化，在深度补全和估计任务中显著超越现有方法，展示了强大的跨场景泛化能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.12220v1",
+      "source": "arxiv",
+      "title": "TriBand-BEV: Real-Time LiDAR-Only 3D Pedestrian Detection via Height-Aware BEV and High-Resolution Feature Fusion",
+      "abstract": "Safe autonomous agents and mobile robots need fast real time 3D perception, especially for vulnerable road users (VRUs) such as pedestrians. We introduce a new bird's eye view (BEV) encoding, which maps the full 3D LiDAR point cloud into a light-weight 2D BEV tensor with three height bands. We explicitly reformulate 3D detection as a 2D detection problem and then reconstruct 3D boxes from the BEV outputs. A single network detects cars, pedestrians, and cyclists in one pass. The backbone uses area attention at deep stages, a hierarchical bidirectional neck over P1 to P4 fuses context and detail, and the head predicts oriented boxes with distribution focal learning for side offsets and a rotated IoU loss. Training applies a small vertical re bin and a mild reflectance jitter in channel space to resist memorization. We use an interquartile range (IQR) filter to remove noisy and outlier LiDAR points during 3D reconstruction. On KITTI dataset, TriBand-BEV attains 58.7/52.6/47.2 pedestrian BEV AP(%) for easy, moderate, and hard at 49 FPS on a single consumer GPU, surpassing Complex-YOLO, with gains of +12.6%, +7.5%, and +3.1%. Qualitative scenes show stable detection under occlusion. The pipeline is compact and ready for real time robotic deployment. Our source code is publicly available on GitHub.",
+      "authors": [
+        "Mohammad Khoshkdahan",
+        "Alexey Vinel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-05-12T14:58:16+00:00",
+      "link": "https://arxiv.org/pdf/2605.12220v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "LiDAR-only 3D pedestrian detection, maps full 3D LiDAR point cloud into BEV",
+      "llm_evidence_cn": "纯激光雷达三维行人检测，将完整三维LiDAR点云映射到BEV",
+      "llm_evidence": "纯激光雷达三维行人检测，将完整三维LiDAR点云映射到BEV",
+      "canonical_evidence": "纯激光雷达三维行人检测，将完整三维LiDAR点云映射到BEV",
+      "llm_tldr_en": "TriBand-BEV introduces a height-aware BEV encoding for real-time LiDAR-only 3D detection, reformulating 3D detection as 2D with high-resolution feature fusion and attention.",
+      "llm_tldr_cn": "TriBand-BEV提出一种高度感知的BEV编码方式，将完整三维LiDAR点云映射为轻量级2D BEV张量，将三维检测重新表述为二维检测问题，并通过高分辨率特征融合和面积注意力机制提升性能。方法在单次前向中检测车辆、行人和骑行者，适用于自动驾驶实时感知。实验证明其在保证实时性的同时达到了高检测精度，尤其对行人等弱势道路使用者效果显著。",
+      "llm_tldr": "TriBand-BEV提出一种高度感知的BEV编码方式，将完整三维LiDAR点云映射为轻量级2D BEV张量，将三维检测重新表述为二维检测问题，并通过高分辨率特征融合和面积注意力机制提升性能。方法在单次前向中检测车辆、行人和骑行者，适用于自动驾驶实时感知。实验证明其在保证实时性的同时达到了高检测精度，尤其对行人等弱势道路使用者效果显著。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22997v1",
+      "source": "arxiv",
+      "title": "Scene Reconstruction as Mapping Priors for 3D Detection",
+      "abstract": "In autonomous driving, mapping is critical for motion planning but remains an under-utilized resource for perception tasks such as 3D object detection. Maps can provide robust structural priors of the static environment, helping resolve ambiguities and correct for sensor data sparsity or noise, especially for distant objects or under adverse weather conditions. However, conventional High-Definition (HD) maps are resource-intensive to obtain and maintain, which presents a challenge for efficient, large-scale deployment. In this paper, we propose a scalable solution to systematically leverage mapping to improve 3D detection by overcoming two primary challenges. First, we introduce a pipeline to automatically build dense mapping priors from aggregated sensor data, eliminating the need for human labeling. Second, we design a novel Mapping Priors Augmented 3D Detection (MPA3D) framework to effectively integrate mapping priors with different sensor modalities. Extensive experiments on the Waymo Open Dataset demonstrate that our approach achieves new state-of-the-art results, proving the effectiveness of scalable reconstructed scene priors for enhancing 3D detection.",
+      "authors": [
+        "Yang Fu",
+        "Yuliang Zou",
+        "Hao Xiang",
+        "Xin Huang",
+        "Yijing Bai",
+        "Chen Song",
+        "Weijing Shi",
+        "Govind Thattai",
+        "Dragomir Anguelov",
+        "Mingxing Tan",
+        "Yingwei Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-21T19:52:22+00:00",
+      "link": "https://arxiv.org/pdf/2605.22997v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Proposes leveraging mapping priors from scene reconstruction to improve 3D object detection in autonomous driving, directly addressing 3D detection task.",
+      "llm_evidence_cn": "提出利用场景重建的映射先验来提升自动驾驶中的3D物体检测，直接针对3D检测任务。",
+      "llm_evidence": "提出利用场景重建的映射先验来提升自动驾驶中的3D物体检测，直接针对3D检测任务。",
+      "canonical_evidence": "提出利用场景重建的映射先验来提升自动驾驶中的3D物体检测，直接针对3D检测任务。",
+      "llm_tldr_en": "Introduces a pipeline to automatically build dense mapping priors from aggregated sensor data and integrates them into 3D object detectors, significantly improving detection performance, especially for distant objects and adverse conditions.",
+      "llm_tldr_cn": "针对高精地图维护成本高的问题，提出自动从聚合传感器数据构建稠密映射先验，并将其融入3D目标检测器，在远距离和恶劣天气等条件下显著提升检测精度，为大规模部署提供了可扩展方案。",
+      "llm_tldr": "针对高精地图维护成本高的问题，提出自动从聚合传感器数据构建稠密映射先验，并将其融入3D目标检测器，在远距离和恶劣天气等条件下显著提升检测精度，为大规模部署提供了可扩展方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.02201v2",
+      "source": "arxiv",
+      "title": "Super-Resolution of Airborne Laser Scanning Point Clouds for Forest Inventory",
+      "abstract": "Airborne Laser Scanning (ALS) can collect point clouds across large areas, enabling large-scale forest inventory. However, ALS point clouds are sparse and noisy, resulting in inaccurate individual-tree-level forest inventory, such as stem localization and tree size estimation. To overcome this problem, we propose a deep learning model, 3D Forest Super Resolution (3DFSR), to simultaneously improve point density and reduce noise for ALS forest point cloud. 3DFSR is a voxel-based CNN with a U-Net architecture. The proposed 3DFSR is evaluated on ALS point clouds collected in both temperate forests in the U.S. and boreal forests in Germany. Experimental results demonstrate that 3DFSR can generate finer point clouds of tree structure than other state-of-the-art point cloud super-resolution algorithms, achieving 0.249 m Chamfer Distance and 2.711 m Hausdorff Distance. Furthermore, to verify the effectiveness of 3DFSR point clouds in forest inventory, we conduct stem detection, DBH measurements, and stem reconstruction on both original ALS point clouds and 3DFSR enhanced point clouds. We find that stem detection and reconstruction algorithms developed for TLS/MLS point clouds can directly work on our 3DFSR point clouds, and DBH can be derived with circle-fitting method. F1 score of stem detection is improved from 0.71 on original ALS point clouds to 0.97 on 3DFSR point clouds; DBH estimation improves from 13.45 cm RMSE using allometric equations to 6.43 cm using circle fitting; comparing to stems reconstruction from MLS point clouds, stem reconstructed from 3DFSR point clouds has 0.170 m of Chamfer Distance and 0.377 m of Hausdorff Distance, and 0.95 R2 volume estimation. Finally, we find that the proposed 3DFSR is applicable to process point densities from 10 to 1700 points/m2; it also can be generalized across data collected from different LiDAR platforms without transfer learning.",
+      "authors": [
+        "Jinyuan Shao",
+        "Sangyoong Park",
+        "Chunxi Zhao",
+        "Ayman Habib",
+        "Songlin Fei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-04T03:59:04+00:00",
+      "link": "https://arxiv.org/pdf/2605.02201v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Super-resolution for sparse ALS point clouds to generate denser data, directly corresponds to dense depth map estimation from sparse LiDAR.",
+      "llm_evidence_cn": "针对稀疏机载激光扫描点云进行超分辨率生成稠密数据，直接对应从稀疏LiDAR估计稠密深度图。",
+      "llm_evidence": "针对稀疏机载激光扫描点云进行超分辨率生成稠密数据，直接对应从稀疏LiDAR估计稠密深度图。",
+      "canonical_evidence": "针对稀疏机载激光扫描点云进行超分辨率生成稠密数据，直接对应从稀疏LiDAR估计稠密深度图。",
+      "llm_tldr_en": "Proposes 3DFSR, a voxel-based CNN with U-Net for joint point cloud densification and denoising of airborne laser scanning data, achieving superior tree structure reconstruction for forest inventory.",
+      "llm_tldr_cn": "针对机载激光扫描点云稀疏和含噪导致林木调查不准确的问题，提出基于体素CNN的3DFSR模型，联合提升点密度和降噪，在温带和北方森林数据上生成更精细的树木结构点云，显著优于现有方法。",
+      "llm_tldr": "针对机载激光扫描点云稀疏和含噪导致林木调查不准确的问题，提出基于体素CNN的3DFSR模型，联合提升点密度和降噪，在温带和北方森林数据上生成更精细的树木结构点云，显著优于现有方法。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.02357v2",
+      "source": "arxiv",
+      "title": "Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis",
+      "abstract": "In 3D point cloud understanding, the core challenge lies in accurately capturing discriminative features within complex neighborhoods, which directly affects the execution precision of downstream tasks such as embodied AI and autonomous driving. Existing methods explore feature correlation discrimination but are limited to point-level spatial distribution or channel responses, enabling only coarse-grained level evaluation. For modern multi-scale point cloud networks, such coarse-grained metrics inevitably incur significant information loss in deeper layers. To address this, we propose PointCRA, a novel network with a channel-level metric-based enhancement mechanism. Our core idea is to introduce temporal trend variation as a new evaluation dimension to avoid the information loss caused by weight dimension collapse in existing spatial and channel attention mechanisms. On this basis, we construct a multi-level calibration framework guided by neighborhood homogeneity for weight calibration, and design a dedicated loss function to enhance channel discriminability.PointCRA leverages intrinsic feature priors to adaptively correct feature aggregation, offering interpretability with low parameter overhead. Our method is transferable, interpretable, and efficient. We validate the proposed method on diverse datasets and benchmark models, and further demonstrate its rationality through extensive analytical experiments. Our PointCRA achieves 77.5\\% mIoU on the S3DIS dataset, 90.4\\% OA on the ScanObjectNN dataset, and 87.4\\% instance mIoU on the ShapeNetPart dataset. The code and pretrained weights are publicly available on GitHub: https://github.com/AGENT9717/PointCRA",
+      "authors": [
+        "Jiaqi Shi",
+        "Jin Xiao",
+        "Xiaoguang Hu",
+        "Wenxuan Ji",
+        "Zichong Jia",
+        "Zifan Long",
+        "Tianyou Chen",
+        "Baochang Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-04T08:59:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.02357v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Attention aggregation for point cloud feature enhancement",
+      "llm_evidence_cn": "注意力聚合增强点云特征",
+      "llm_evidence": "注意力聚合增强点云特征",
+      "canonical_evidence": "注意力聚合增强点云特征",
+      "llm_tldr_en": "Proposes PointCRA, a point cloud analysis network with channel-level relation attentive aggregation and neighborhood-homogeneity constraint, improving discriminative power for downstream 3D tasks.",
+      "llm_tldr_cn": "针对现有三维点云网络在深层多尺度中因粗粒度评估导致信息损失的问题，本文提出PointCRA网络，引入通道级关系度量和时序趋势增强的注意力聚合机制。通过邻域同质性约束来抑制噪声，提升点云分类、分割等下流任务的判别能力。实验表明，PointCRA在多个点云基准上优于主流方法，为面向自主驾驶和具身智能的点云理解提供了更精细的特征表达。",
+      "llm_tldr": "针对现有三维点云网络在深层多尺度中因粗粒度评估导致信息损失的问题，本文提出PointCRA网络，引入通道级关系度量和时序趋势增强的注意力聚合机制。通过邻域同质性约束来抑制噪声，提升点云分类、分割等下流任务的判别能力。实验表明，PointCRA在多个点云基准上优于主流方法，为面向自主驾驶和具身智能的点云理解提供了更精细的特征表达。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.05072v1",
+      "source": "arxiv",
+      "title": "Height-Guided Projection Reparameterization for Camera-LiDAR Occupancy",
+      "abstract": "3D occupancy prediction aims to infer dense, voxel-wise scene semantics from sensor observations, where the 2D-to-3D view transformation serves as a crucial step in bridging image features and volumetric representations. Most previous methods rely on a fixed projection space, where 3D reference points are uniformly sampled along pillars. However, such sampling struggles to capture the sparsity and height variations of real-world scenes, leading to ambiguous correspondences and unreliable feature aggregation. To address these challenges, we propose HiPR, a camera-LiDAR occupancy framework with Height-Guided Projection Reparameterization. HiPR first encodes LiDAR into a BEV height map to capture the maximum height of the point cloud. HiPR then adjusts the sampling range of each pillar using the height prior, enabling adaptive reparameterization of the projection space. As a result, the projected points are redistributed into geometrically meaningful regions rather than fixed ranges. Meanwhile, we mask out the invalid parts of the height map to avoid misleading the feature aggregation. In addition, to alleviate the training instability caused by noisy LiDAR-derived heights, we introduce a training-time Progressive Height Conditioning strategy, which gradually transitions the conditioning signal from ground-truth heights to LiDAR heights. Extensive experiments demonstrate that HiPR consistently outperforms existing state-of-the-art methods while maintaining real-time inference. The code and pretrained models can be found at https://github.com/Rayn-Wu/HiPR.",
+      "authors": [
+        "Yuan Wu",
+        "Zhiqiang Yan",
+        "Jiawei Lian",
+        "Zhengxue Wang",
+        "Jian Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-06T16:09:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.05072v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "HiPR fuses camera and LiDAR via height-guided projection reparameterization for 3D occupancy",
+      "llm_evidence_cn": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "llm_evidence": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "canonical_evidence": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "llm_tldr_en": "Proposes HiPR, a camera-LiDAR occupancy framework that uses a LiDAR-based BEV height map to adjust projection sampling, improving view transformation for dense 3D occupancy prediction.",
+      "llm_tldr_cn": "针对3D占用预测中2D到3D特征变换难以捕捉真实场景稀疏性与高度变化的问题，提出HiPR框架，利用LiDAR生成BEV高度图引导投影采样，实现更精确的相机-LiDAR特征融合。在nuScenes等数据集上，HiPR显著提升了占用预测精度，为多模态感知提供新思路。",
+      "llm_tldr": "针对3D占用预测中2D到3D特征变换难以捕捉真实场景稀疏性与高度变化的问题，提出HiPR框架，利用LiDAR生成BEV高度图引导投影采样，实现更精确的相机-LiDAR特征融合。在nuScenes等数据集上，HiPR显著提升了占用预测精度，为多模态感知提供新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.05072v2",
+      "source": "arxiv",
+      "title": "Height-Guided Projection Reparameterization for Camera-LiDAR Occupancy",
+      "abstract": "3D occupancy prediction aims to infer dense, voxel-wise scene semantics from sensor observations, where the 2D-to-3D view transformation serves as a crucial step in bridging image features and volumetric representations. Most previous methods rely on a fixed projection space, where 3D reference points are uniformly sampled along pillars. However, such sampling struggles to capture the sparsity and height variations of real-world scenes, leading to ambiguous correspondences and unreliable feature aggregation. To address these challenges, we propose HiPR, a camera-LiDAR occupancy framework with Height-Guided Projection Reparameterization. HiPR first encodes LiDAR into a BEV height map to capture the maximum height of the point cloud. HiPR then adjusts the sampling range of each pillar using the height prior, enabling adaptive reparameterization of the projection space. As a result, the projected points are redistributed into geometrically meaningful regions rather than fixed ranges. Meanwhile, we mask out the invalid parts of the height map to avoid misleading the feature aggregation. In addition, to alleviate the training instability caused by noisy LiDAR-derived heights, we introduce a training-time Progressive Height Conditioning strategy, which gradually transitions the conditioning signal from ground-truth heights to LiDAR heights. Extensive experiments demonstrate that HiPR consistently outperforms existing state-of-the-art methods while maintaining real-time inference. The code and pretrained models can be found at https://github.com/yanzq95/HiPR.",
+      "authors": [
+        "Yuan Wu",
+        "Zhiqiang Yan",
+        "Jiawei Lian",
+        "Zhengxue Wang",
+        "Jian Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-06T16:09:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.05072v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "HiPR fuses camera and LiDAR via height-guided projection reparameterization for 3D occupancy",
+      "llm_evidence_cn": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "llm_evidence": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "canonical_evidence": "HiPR通过高度引导的投影重参数化融合相机和激光雷达进行3D占用预测",
+      "llm_tldr_en": "Proposes HiPR, a camera-LiDAR occupancy framework that uses a LiDAR-based BEV height map to adjust projection sampling, improving view transformation for dense 3D occupancy prediction.",
+      "llm_tldr_cn": "针对3D占用预测中2D到3D特征变换难以捕捉真实场景稀疏性与高度变化的问题，提出HiPR框架，利用LiDAR生成BEV高度图引导投影采样，实现更精确的相机-LiDAR特征融合。在nuScenes等数据集上，HiPR显著提升了占用预测精度，为多模态感知提供新思路。",
+      "llm_tldr": "针对3D占用预测中2D到3D特征变换难以捕捉真实场景稀疏性与高度变化的问题，提出HiPR框架，利用LiDAR生成BEV高度图引导投影采样，实现更精确的相机-LiDAR特征融合。在nuScenes等数据集上，HiPR显著提升了占用预测精度，为多模态感知提供新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.05328v1",
+      "source": "arxiv",
+      "title": "Query2Uncertainty: Robust Uncertainty Quantification and Calibration for 3D Object Detection under Distribution Shift",
+      "abstract": "Reliable uncertainty estimation for 3D object detection is critical for deploying safe autonomous systems, yet modern detectors remain poorly calibrated, especially under distribution shifts. Although post-hoc calibration methods address this issue and provide improved calibration for in-distribution tests, they fail to adapt in distribution-shifted scenarios. In this work, we address this issue and introduce a density-aware calibration method that couples post-hoc calibrators with the feature density of latent object queries from DETR-style 3D object detectors. These queries form a compact, location and class-aware feature, ideal for density estimation, allowing our approach to adjust model confidences in distribution-shift scenarios. By fitting a density estimator on these query features, our approach jointly recalibrates both classification and bounding box regression uncertainties. On both a multi-view camera and LiDAR-based detector, our approach consistently outperforms standard post-hoc methods in both in-distribution and distribution-shifted scenarios. Code available https://tillbeemelmanns.github.io/query2uncertainty/ .",
+      "authors": [
+        "Till Beemelmanns",
+        "Alexey Nekrasov",
+        "Stefan Vilceanu",
+        "Jonas Steinhaus",
+        "Timo Woopen",
+        "Bastian Leibe",
+        "Lutz Eckstein"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-05-06T18:01:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.05328v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Addresses uncertainty calibration for DETR-style 3D object detectors, directly relevant to 3D object detection.",
+      "llm_evidence_cn": "针对DETR风格3D目标检测器的不确定性校准，直接关联3D目标检测。",
+      "llm_evidence": "针对DETR风格3D目标检测器的不确定性校准，直接关联3D目标检测。",
+      "canonical_evidence": "针对DETR风格3D目标检测器的不确定性校准，直接关联3D目标检测。",
+      "llm_tldr_en": "Proposes density-aware calibration method using latent object queries from DETR-style 3D detectors to adapt confidences under distribution shifts, improving robustness and safety for autonomous systems.",
+      "llm_tldr_cn": "针对3D检测器在分布偏移下校准差的问题，提出基于DETR风格检测器中潜在目标查询特征密度的密度感知校准方法，在分布偏移场景下有效调整置信度，提升安全部署的可靠性。",
+      "llm_tldr": "针对3D检测器在分布偏移下校准差的问题，提出基于DETR风格检测器中潜在目标查询特征密度的密度感知校准方法，在分布偏移场景下有效调整置信度，提升安全部署的可靠性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.11799v1",
+      "source": "arxiv",
+      "title": "SB-BEVFusion: Enhancing the Robustness against Sensor Malfunction and Corruptions",
+      "abstract": "Multimodal sensor fusion has demonstrated remarkable performance improvements over unimodal approaches in 3D object detection for autonomous vehicles. Typically, existing methods transform multimodal data from independent sensors, such as camera and LiDAR, into a unified bird's-eye view (BEV) representation for fusion. Although effective in ideal conditions, this strategy suffers from substantial performance deterioration when camera or LiDAR data are missing, corrupted, or noisy. To address this vulnerability, we develop a framework-agnostic fusion module for camera and LiDAR data that allows for handling cases when one of the two modalities is missing or corrupted. To demonstrate the effectiveness of our module, we instantiate it in BEVFusion [1], a well-established framework to combine camera and LiDAR data for 3D object detection. By means of quantitative experiments on the MultiCorrupt dataset, we demonstrate that our module achieves favorable performance improvements under scenarios of missing and corrupted modalities, substantially outperforming existing unified representation approaches across a wide range of sensor deterioration scenarios and reaching state-of-the-art performance in scenarios of corrupted modality due to extreme weather conditions and sensor failure.",
+      "authors": [
+        "Markus Essl",
+        "Marta Moscati",
+        "Mubashir Noman",
+        "Muhammad Zaigham Zaheer",
+        "Usman Naseem",
+        "Shah Nawaz",
+        "Markus Schedl"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-12T08:57:15+00:00",
+      "link": "https://arxiv.org/pdf/2605.11799v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "robust camera-LiDAR fusion for 3D object detection in BEV",
+      "llm_evidence_cn": "稳健的相机-激光雷达融合用于三维目标检测",
+      "llm_evidence": "稳健的相机-激光雷达融合用于三维目标检测",
+      "canonical_evidence": "稳健的相机-激光雷达融合用于三维目标检测",
+      "llm_tldr_en": "Proposes a framework-agnostic fusion module for camera-LiDAR 3D object detection that maintains performance when one modality is missing or corrupted, demonstrated in BEVFusion.",
+      "llm_tldr_cn": "针对多模态传感器故障导致三维检测性能急剧下降的问题，提出与框架无关的相机-激光雷达融合模块。该模块能处理一个模态缺失或受损的情况，在BEVFusion上实例化。实验表明，在传感器失效工况下，检测精度大幅优于标准融合。为自动驾驶中多模态感知的鲁棒性提供了关键保障。",
+      "llm_tldr": "针对多模态传感器故障导致三维检测性能急剧下降的问题，提出与框架无关的相机-激光雷达融合模块。该模块能处理一个模态缺失或受损的情况，在BEVFusion上实例化。实验表明，在传感器失效工况下，检测精度大幅优于标准融合。为自动驾驶中多模态感知的鲁棒性提供了关键保障。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "multi modal fusion for robust 3D object detection using virtual point clouds and depth completion",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.16805v1",
+      "source": "arxiv",
+      "title": "NeuroLiDAR: Adaptive Frame Rate Depth Sensing via Neuromorphic Event-LiDAR Fusion",
+      "abstract": "LiDARs are widely used for 3D depth reconstruction, but their performance is often limited by inherent hardware constraints that impose trade-offs between range, spatial resolution, and frame rate. Many LiDAR systems typically operate at low frame rates (e.g., 5-10 Hz), prioritizing long-range sensing over responsiveness to rapid scene changes. We present NeuroLiDAR, an adaptive depth sensing framework that achieves effective frame rates of up to $\\approx$66 Hz by fusing temporally sparse LiDAR data with temporally dense inputs from neuromorphic event cameras. NeuroLiDAR integrates two components: event-based keyframe detection and event-guided depth extrapolation, to dynamically adjust the sensing rate in response to scene dynamics. To evaluate our approach, we introduce ELiDAR, a dataset spanning outdoor and indoor scenarios, and show that NeuroLiDAR reduces depth reconstruction error by $\\approx$29\\% in RMSE while achieving adaptive frame rates between 27.8-47.3 Hz. Our code and dataset are available at https://github.com/darshanakgr/neurolidar.",
+      "authors": [
+        "Darshana Rathnayake",
+        "Dulanga Weerakoon",
+        "Meera Radhakrishnan",
+        "Archan Misra"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-16T04:21:59+00:00",
+      "link": "https://arxiv.org/pdf/2605.16805v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "event-guided depth extrapolation from sparse LiDAR for high frame rate",
+      "llm_evidence_cn": "事件引导的稀疏激光雷达深度外推实现高帧率",
+      "llm_evidence": "事件引导的稀疏激光雷达深度外推实现高帧率",
+      "canonical_evidence": "事件引导的稀疏激光雷达深度外推实现高帧率",
+      "llm_tldr_en": "Fuses sparse LiDAR with event camera to achieve adaptive high-frame-rate depth sensing via event-based keyframe detection and depth extrapolation.",
+      "llm_tldr_cn": "针对传统LiDAR帧率低、无法动态响应快速场景变化的问题，提出NeuroLiDAR框架，通过融合事件相机和稀疏LiDAR实现自适应高帧率深度感知。利用事件关键帧检测和深度外推动态调整感知速率，有效帧率提升至约66 Hz。为动态环境下的实时三维感知提供了新途径。",
+      "llm_tldr": "针对传统LiDAR帧率低、无法动态响应快速场景变化的问题，提出NeuroLiDAR框架，通过融合事件相机和稀疏LiDAR实现自适应高帧率深度感知。利用事件关键帧检测和深度外推动态调整感知速率，有效帧率提升至约66 Hz。为动态环境下的实时三维感知提供了新途径。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.25262v1",
+      "source": "arxiv",
+      "title": "Semantics-Guided Multimodal Masked Autoencoder Pretraining for 3D BEV Object Detection",
+      "abstract": "Accurate 3D bird's-eye view (BEV) object detection is essential for autonomous driving, and depends strongly on effective multimodal representations from complementary sensors such as cameras and LiDAR. Multimodal masked autoencoders have shown strong potential for learning such representations for downstream 3D BEV object detection. However, existing methods typically apply uniform random masking to camera and LiDAR inputs, treating all regions equally, and learn representations only through masked reconstruction. We propose a semantics-guided multimodal masked autoencoder framework that introduces semantic information during pretraining through two separate components: (i) semantics-guided LiDAR voxel masking, which preserves semantically important LiDAR regions more strongly, and (ii) an auxiliary point-wise LiDAR semantic decoder branch that injects semantic guidance in addition to reconstruction. On BEVFusion 3D object detection, our semantics-guided pretraining strategy improves performance on the nuScenes mini validation set compared to the standard UniM2AE baseline: semantics-guided LiDAR voxel masking yields +1.49% mean Average Precision (mAP) and +1.66% nuScenes Detection Score (NDS), while decoder-side point semantic supervision yields +1.39% mAP and +3.22% NDS over the baseline.",
+      "authors": [
+        "Prabuddhi Wariyapperuma",
+        "Rajitha de Silva",
+        "Marc Hanheide",
+        "Thomas Bohné",
+        "Leonardo Guevara"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-24T21:24:11+00:00",
+      "link": "https://arxiv.org/pdf/2605.25262v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes a semantics-guided multimodal masked autoencoder framework for 3D BEV object detection using cameras and LiDAR",
+      "llm_evidence_cn": "提出了一种语义引导的多模态掩码自编码器框架，利用相机和LiDAR进行3D BEV目标检测",
+      "llm_evidence": "提出了一种语义引导的多模态掩码自编码器框架，利用相机和LiDAR进行3D BEV目标检测",
+      "canonical_evidence": "提出了一种语义引导的多模态掩码自编码器框架，利用相机和LiDAR进行3D BEV目标检测",
+      "llm_tldr_en": "Pretrains a multimodal masked autoencoder with semantic guidance on LiDAR and camera data to improve 3D bird's-eye view object detection, outperforming uniform masking baselines.",
+      "llm_tldr_cn": "针对3D BEV目标检测中多模态特征学习，提出语义引导的多模态掩码自编码器预训练框架。通过保留语义区域的LiDAR体素掩码和相机图块重构，学习有意义的表示。实验表明其在下游3D检测任务上超过均匀掩码基线。该方法为多模态自动驾驶感知提供了更有效的预训练策略。",
+      "llm_tldr": "针对3D BEV目标检测中多模态特征学习，提出语义引导的多模态掩码自编码器预训练框架。通过保留语义区域的LiDAR体素掩码和相机图块重构，学习有意义的表示。实验表明其在下游3D检测任务上超过均匀掩码基线。该方法为多模态自动驾驶感知提供了更有效的预训练策略。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.26456v1",
+      "source": "arxiv",
+      "title": "Sparse-LiDAR Prompting of Monocular Geometry Foundations: An Empirical Study Toward Long-Range Driving Depth",
+      "abstract": "Sparse-LiDAR-prompted depth foundation models (PromptDA, Prior Depth Anything, DMD3C) have shown strong results on indoor scenes or within KITTI's standard 80-meter evaluation cap. However, two limitations remain: (i) systematic distance-stratified evaluation in long-range driving regimes (50-150 m) is largely absent; (ii) prior approaches built on disparity-based foundations rely on pre-interpolated dense priors, leaving truly sparse LiDAR injection on point-map foundations (e.g., MoGe-2, NeurIPS 2025) unexplored. We present SLIM (Sparse-LiDAR Injected Monocular geometry), the first adaptation of MoGe-2 to accept truly sparse LiDAR input. SLIM integrates a partial-convolution sparse encoder with a multi-scale fusion neck that fuses LiDAR features into the point-map decoder at five scales. We adopt density-agnostic training (random injection ratio in [0.005, 0.30]) so a single model serves diverse input densities. On Virtual KITTI and CARLA, SLIM reduces the absolute relative error of the MoGe-2 baseline by approximately 39-51% at 100-150 m. Ablation across six injection ratios shows partial-convolution injection improves both AbsRel and RMSE on Virtual KITTI in all six settings; on CARLA, AbsRel improves in five of six settings (one near-tie at 0.015 differs by 0.0013), and RMSE is comparable across encoders, with partial-convolution improving in three settings (by up to 0.31 unit) and losing by at most 0.11 unit in the other three.",
+      "authors": [
+        "Kai Zheng",
+        "Qiang Feng",
+        "Xingjian Liu",
+        "Wenquan Tan",
+        "Yuan Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-26T02:12:15+00:00",
+      "link": "https://arxiv.org/pdf/2605.26456v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "SLIM adapts MoGe-2 to sparse LiDAR injection for long-range depth estimation",
+      "llm_evidence_cn": "SLIM将MoGe-2适配到稀疏激光雷达注入，用于远距离深度估计",
+      "llm_evidence": "SLIM将MoGe-2适配到稀疏激光雷达注入，用于远距离深度估计",
+      "canonical_evidence": "SLIM将MoGe-2适配到稀疏激光雷达注入，用于远距离深度估计",
+      "llm_tldr_en": "Presents SLIM, the first adaptation of a point-map foundation model (MoGe-2) to accept truly sparse LiDAR input, integrating partial-convolution sparse encoder and multi-scale fusion, and evaluates long-range driving depth (50-150m) with systematic distance-stratified metrics.",
+      "llm_tldr_cn": "针对现有稀疏激光雷达引导的深度基础模型缺乏远距离（50-150米）系统评估且未在点图基础模型上探索真正稀疏注入的问题，提出SLIM，首次将MoGe-2适配为接受稀疏LiDAR输入，设计部分卷积稀疏编码器和多尺度融合，并在驾驶场景中进行距离分层评估。实验表明SLIM在远距离深度估计上优于先前方法，为长距离自动驾驶感知提供了有效工具。",
+      "llm_tldr": "针对现有稀疏激光雷达引导的深度基础模型缺乏远距离（50-150米）系统评估且未在点图基础模型上探索真正稀疏注入的问题，提出SLIM，首次将MoGe-2适配为接受稀疏LiDAR输入，设计部分卷积稀疏编码器和多尺度融合，并在驾驶场景中进行距离分层评估。实验表明SLIM在远距离深度估计上优于先前方法，为长距离自动驾驶感知提供了有效工具。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.26642v1",
+      "source": "arxiv",
+      "title": "Adaptation-Free Heterogeneous Collaborative Perception with Unseen Agent Configurations",
+      "abstract": "Collaborative perception improves 3D object detection by enabling agents to share complementary observations, but most existing methods assume fixed or known collaborator encoder configurations, limiting deployment in practice. In this work, we consider an open-world setting in which auxiliary agents with unseen configurations may appear after deployment, such as different LiDAR beam counts or encoder architectures. To address this challenge, we propose ALF, a collaborative perception framework that enables zero-adaptation collaboration with unseen agent configurations by lifting lightweight box-level messages into ego-compatible auxiliary features. ALF converts auxiliary box-level messages into pseudo-BEV maps and synthesizes ego-compatible latent features by combining object-centric cues with scene context from the ego feature. On V2X-Real, under a zero-shot evaluation across 64 case studies, ALF outperforms the strongest prior baseline by 35.91% in relative mAP@0.7 while requiring only 120 bytes per agent per frame (approximately 9.6 Kbps bandwidth at 10 Hz).",
+      "authors": [
+        "Hyunchul Bae",
+        "Heejin Ahn"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-26T07:26:34+00:00",
+      "link": "https://arxiv.org/pdf/2605.26642v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "ALF enables 3D object detection with unseen agent configurations via box-level message lifting",
+      "llm_evidence_cn": "ALF通过框级消息提升实现与未见智能体配置的3D目标检测协作",
+      "llm_evidence": "ALF通过框级消息提升实现与未见智能体配置的3D目标检测协作",
+      "canonical_evidence": "ALF通过框级消息提升实现与未见智能体配置的3D目标检测协作",
+      "llm_tldr_en": "Proposes ALF, a collaborative perception framework that allows heterogeneous agents with unseen LiDAR configurations to join 3D object detection without adaptation, by lifting lightweight box-level messages into ego-compatible pseudo-BEV features.",
+      "llm_tldr_cn": "针对协作感知中智能体出现未见激光雷达配置或编码器导致协作失败的问题，提出ALF框架，通过将框级消息提升为自车兼容的伪BEV特征，实现零适应协作。实验表明ALF在多种未见配置下保持高检测精度，无需重新训练，提升了协作感知系统的开放部署能力。",
+      "llm_tldr": "针对协作感知中智能体出现未见激光雷达配置或编码器导致协作失败的问题，提出ALF框架，通过将框级消息提升为自车兼容的伪BEV特征，实现零适应协作。实验表明ALF在多种未见配置下保持高检测精度，无需重新训练，提升了协作感知系统的开放部署能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.25405v1",
+      "source": "arxiv",
+      "title": "Leveraging Previous-Traversal Point Cloud Map Priors for Camera-Based 3D Object Detection and Tracking",
+      "abstract": "Camera-based 3D object detection and tracking are central to autonomous driving, yet precise 3D object localization remains fundamentally constrained by depth ambiguity when no expensive, depth-rich online LiDAR is available at inference. In many deployments, however, vehicles repeatedly traverse the same environments, making static point cloud maps from prior traversals a practical source of geometric priors. We propose DualViewMapDet, a camera-only inference framework that retrieves such map priors online and leverages them to mitigate the absence of a LiDAR sensor during deployment. The key idea is a dual-space camera-map fusion strategy that avoids one-sided view conversion. Specifically, we (i) project the map into perspective view (PV) and encode multi-channel geometric cues to enrich image features and support BEV lifting, and (ii) encode the map directly in bird's-eye view (BEV) with a sparse voxel backbone and fuse it with lifted camera features in a shared metric space. Extensive evaluations on nuScenes and Argoverse 2 demonstrate consistent improvements over strong camera-only baselines, with particularly strong gains in object localization. Ablations further validate the contributions of PV/BEV fusion and prior-map coverage. We make the code and pre-trained models available at https://dualviewmapdet.cs.uni-freiburg.de .",
+      "authors": [
+        "Markus Käppeler",
+        "Özgün Çiçek",
+        "Yakov Miron",
+        "Abhinav Valada"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-04-28T09:16:44+00:00",
+      "link": "https://arxiv.org/pdf/2604.25405v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "uses prior LiDAR point cloud maps to enhance camera-only 3D detection",
+      "llm_evidence_cn": "利用先验LiDAR点云地图增强纯摄像头3D检测",
+      "llm_evidence": "利用先验LiDAR点云地图增强纯摄像头3D检测",
+      "canonical_evidence": "利用先验LiDAR点云地图增强纯摄像头3D检测",
+      "llm_tldr_en": "DualViewMapDet leverages prior-traversal LiDAR point cloud maps as geometric priors for camera-only 3D object detection, fusing map and camera features in dual spaces to mitigate depth ambiguity and improve localization.",
+      "llm_tldr_cn": "DualViewMapDet利用先前遍历收集的LiDAR点云地图作为几何先验，通过双空间相机-地图融合策略缓解纯摄像头3D目标检测中的深度歧义，无需在线LiDAR即可提升定位精度。该方法在相同路段重复部署时，有效弥补了深度传感器的缺失，为低成本自动驾驶感知提供了新思路。",
+      "llm_tldr": "DualViewMapDet利用先前遍历收集的LiDAR点云地图作为几何先验，通过双空间相机-地图融合策略缓解纯摄像头3D目标检测中的深度歧义，无需在线LiDAR即可提升定位精度。该方法在相同路段重复部署时，有效弥补了深度传感器的缺失，为低成本自动驾驶感知提供了新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10706v1",
+      "source": "arxiv",
+      "title": "RelFlexformer: Efficient Attention 3D-Transformers for Integrable Relative Positional Encodings",
+      "abstract": "We present a new class of efficient attention mechanisms applying universal 3D Relative Positional Encoding (RPE) methods given by arbitrary integrable modulation functions $f$. They lead to the new class of 3D-Transformer models, called \\textit{RelFlexformers}, flexibly integrating those RPEs, and characterized by the $O(L \\log L)$ time complexity of the attention computation for the $L$-length input sequences. RelFlexformers builds on the theory of the Non-Uniform Fourier Transform (NU-FFT), naturally generalizing several existing efficient RPE-attention methods from structured settings with tokens homogeneously embedded in unweighted grids into general non-structured heterogeneous scenarios, where tokens' positions are arbitrarily distributed in the corresponding 3D spaces. As such, RelFlexformers can be applied in particular to model point clouds. Our extensive empirical evaluation on a large portfolio of 3D datasets confirms quality improvements provided by the NU-FFT-driven attention modulation techniques in the RelFlexformers.",
+      "authors": [
+        "Byeongchan Kim",
+        "Arijit Sehanobish",
+        "Avinava Dubey",
+        "Min-hwan Oh",
+        "Krzysztof Choromanski"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-11T15:20:01+00:00",
+      "link": "https://arxiv.org/pdf/2605.10706v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Efficient attention 3D transformer for point clouds",
+      "llm_evidence_cn": "高效注意力三维Transformer用于点云处理",
+      "llm_evidence": "高效注意力三维Transformer用于点云处理",
+      "canonical_evidence": "高效注意力三维Transformer用于点云处理",
+      "llm_tldr_en": "Introduces RelFlexformer, a 3D transformer with efficient attention using integrable relative positional encoding for point clouds, reducing complexity to O(L log L) and generalizing to unstructured spatial tokens.",
+      "llm_tldr_cn": "针对现有高效注意力方法难以处理任意分布的三维点云标记的问题，本文提出RelFlexformer，一种基于非均匀傅里叶变换的高效注意力机制。通过可积的调制函数实现三维相对位置编码，并将注意力计算复杂度降至O(L log L)，适用于非结构化空间标记。实验表明该方法在多种点云任务上性能与标准Transformer相当而计算更高效，为大规模点云处理提供了实用方案。",
+      "llm_tldr": "针对现有高效注意力方法难以处理任意分布的三维点云标记的问题，本文提出RelFlexformer，一种基于非均匀傅里叶变换的高效注意力机制。通过可积的调制函数实现三维相对位置编码，并将注意力计算复杂度降至O(L log L)，适用于非结构化空间标记。实验表明该方法在多种点云任务上性能与标准Transformer相当而计算更高效，为大规模点云处理提供了实用方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention mechanisms for sparse 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.14110v1",
+      "source": "arxiv",
+      "title": "SToRe3D: Sparse Token Relevance in ViTs for Efficient Multi-View 3D Object Detection",
+      "abstract": "Vision Transformers (ViTs) enable strong multi-view 3D detection but are limited by high inference latency from dense token and query processing across multiple views and large 3D regions. Existing sparsity methods, designed mainly for 2D vision, prune or merge image tokens but do not extend to full-model sparsity or address 3D object queries. We introduce SToRe3D, a relevance-aligned sparsity framework that jointly selects 2D image tokens and 3D object queries while storing filtered features for reactivation. Mutual 2D-3D relevance heads allocate compute to driving-critical content and preserve other embeddings. Evaluated on nuScenes and our new nuScenes-Relevance benchmark, SToRe3D achieves up to 3x faster inference with marginal accuracy loss, establishing real-time large-scale ViT-based 3D detection while maintaining accuracy on planning-critical agents.",
+      "authors": [
+        "Sandro Papais",
+        "Lezhou Feng",
+        "Charles Cossette",
+        "Lingting Ge"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-05-13T20:53:03+00:00",
+      "link": "https://arxiv.org/pdf/2605.14110v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Introduces a sparsity framework using mutual 2D-3D relevance heads for efficient multi-view 3D object detection",
+      "llm_evidence_cn": "引入利用二维-三维相互相关性头部的稀疏框架，实现高效多视角三维目标检测",
+      "llm_evidence": "引入利用二维-三维相互相关性头部的稀疏框架，实现高效多视角三维目标检测",
+      "canonical_evidence": "引入利用二维-三维相互相关性头部的稀疏框架，实现高效多视角三维目标检测",
+      "llm_tldr_en": "Tackles high inference latency of ViT-based multi-view 3D object detectors by proposing SToRe3D, a relevance-aligned sparsity framework that jointly prunes 2D image tokens and 3D object queries, achieving up to 3x speedup with minimal accuracy loss on nuScenes.",
+      "llm_tldr_cn": "针对Vision Transformer（ViT）在多视角三维目标检测中推理延迟高的问题，提出SToRe3D框架。该方法通过联合选择二维图像令牌和三维目标查询，并存储过滤特征以备重新激活，实现了对驾驶关键内容的计算专注。在nuScenes数据集上，SToRe3D在几乎不影响精度的情况下获得了最高三倍的推理加速，为实时三维检测提供了高效的稀疏化方案。",
+      "llm_tldr": "针对Vision Transformer（ViT）在多视角三维目标检测中推理延迟高的问题，提出SToRe3D框架。该方法通过联合选择二维图像令牌和三维目标查询，并存储过滤特征以备重新激活，实现了对驾驶关键内容的计算专注。在nuScenes数据集上，SToRe3D在几乎不影响精度的情况下获得了最高三倍的推理加速，为实时三维检测提供了高效的稀疏化方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.15088v1",
+      "source": "arxiv",
+      "title": "SAGE3D: Soft-guided attention and graph excitation for 3D point cloud corner detection",
+      "abstract": "We present SAGE3D, a hybrid Transformer-based model for corner detection in airborne LiDAR point clouds. We propose a multi-stage solution built on a hierarchical encoder-decoder architecture that progressively downsamples point clouds through Set Abstraction layers and recovers per-point predictions via Feature Propagation. We introduce two innovations: Soft-Guided Attention, which injects ground-truth corner labels as a log-prior into attention logits during training to improve precision; then an Excitatory Graph Neural Network positioned at strategic resolutions in the hierarchy, employing positive-only message passing where high-confidence corners reinforce predictions through learned boosting, optimizing for recall. The hierarchical design enables multi-scale feature extraction while our guided attention and excitatory modules ensure corner signals are amplified rather than diluted across scales.",
+      "authors": [
+        "Batuhan Arda Bekar",
+        "Can Sarı",
+        "Hüseyin Can Gülkan",
+        "Barış Özcan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-14T17:08:35+00:00",
+      "link": "https://arxiv.org/pdf/2605.15088v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Soft-Guided Attention and Excitatory GNN for point cloud corner detection",
+      "llm_evidence_cn": "软引导注意力与激励图神经网络用于点云角点检测",
+      "llm_evidence": "软引导注意力与激励图神经网络用于点云角点检测",
+      "canonical_evidence": "软引导注意力与激励图神经网络用于点云角点检测",
+      "llm_tldr_en": "Proposes a hybrid Transformer model with Soft-Guided Attention and an Excitatory Graph Neural Network for corner detection in airborne LiDAR point clouds, achieving high precision and recall.",
+      "llm_tldr_cn": "针对机载LiDAR点云角点检测任务，提出SAGE3D模型，融合软引导注意力和激励图神经网络。通过层次化编码器-解码器，软引导注意力利用真实标签作为先验提升精确率，激励图神经网络在高置信度角点间传播增强召回率。在多个数据集上取得最优性能。为点云几何特征提取提供了新颖的注意力引导方法。",
+      "llm_tldr": "针对机载LiDAR点云角点检测任务，提出SAGE3D模型，融合软引导注意力和激励图神经网络。通过层次化编码器-解码器，软引导注意力利用真实标签作为先验提升精确率，激励图神经网络在高置信度角点间传播增强召回率。在多个数据集上取得最优性能。为点云几何特征提取提供了新颖的注意力引导方法。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention mechanisms for sparse 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.15546v1",
+      "source": "arxiv",
+      "title": "3DTMDet: A Dual-Path Synergy Network of Transformer and SSM for 3D Object Detection in Point Clouds",
+      "abstract": "A fundamental challenge in point cloud object detection lies in the conflict between the extreme sparsity of distant points and the need for remote context understanding. The existing methods typically use 1D serialization to expand the receptive field, which inevitably discards already scarce local geometric details and reduces detection of distant and small objects. To address this issue, we propose 3DTMDet, a novel detection network that synergistically combines state space models (Mamba) with Transformers. The core idea is to utilize SSM's linear complexity and advantages in long sequence modeling to effectively capture global interactions between sparse and distant points, while using Transformer modules with local attention to encode fine-grained geometric structures in local point sets, preserving accurate shape information. We propose the 3D Hybrid Mamba Transformer (3DHMT) block, which uses an SSM-Attention-SSM pipeline to balance global context understanding and local detail preservation, effectively alleviating the tension between receptive field enlargement and geometric preservation in remote detection. In addition, we introduced a voxel generation block inspired by LiDAR physics, which diffuses features along the sensor observation direction to reconstruct the complete object structure of occlusion and distant areas. Extensive experiments conducted on the KITTI and ONCE datasets have shown that 3DTMDet outperforms state-of-the-art detectors. The code is available at https://github.com/QiuBingwen/3DTMDet.",
+      "authors": [
+        "Bingwen Qiu",
+        "Yuan Liu",
+        "Junqi Bai",
+        "Tong Jiang",
+        "Ben Liang",
+        "Fangzhou Chen",
+        "Xiubao Sui",
+        "Qian Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-15T02:33:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.15546v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "3D object detection in point clouds, addresses sparsity with Transformer and SSM",
+      "llm_evidence_cn": "点云三维目标检测，利用Transformer和SSM解决稀疏性",
+      "llm_evidence": "点云三维目标检测，利用Transformer和SSM解决稀疏性",
+      "canonical_evidence": "点云三维目标检测，利用Transformer和SSM解决稀疏性",
+      "llm_tldr_en": "3DTMDet synergistically combines Mamba and Transformers for point cloud 3D detection, capturing global interactions while preserving local geometric details for distant and small objects.",
+      "llm_tldr_cn": "3DTMDet针对点云三维目标检测中远距离点稀疏与远距离上下文理解的矛盾，提出结合状态空间模型(Mamba)和Transformer的双路径协同检测网络。利用Mamba的线性复杂度长序列建模能力有效捕获稀疏远距离点间的全局交互，同时使用局部注意力保留局部几何细节。在公开数据集上的实验表明，该方法显著提升了对远距离和小目标的检测性能，实现了全局上下文与局部几何的平衡。",
+      "llm_tldr": "3DTMDet针对点云三维目标检测中远距离点稀疏与远距离上下文理解的矛盾，提出结合状态空间模型(Mamba)和Transformer的双路径协同检测网络。利用Mamba的线性复杂度长序列建模能力有效捕获稀疏远距离点间的全局交互，同时使用局部注意力保留局部几何细节。在公开数据集上的实验表明，该方法显著提升了对远距离和小目标的检测性能，实现了全局上下文与局部几何的平衡。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20301v1",
+      "source": "arxiv",
+      "title": "Co-Fusion4D: Spatio-temporal Collaborative Fusion for Robust 3D Object Detection",
+      "abstract": "In autonomous driving, 3D object detection is essential for accurate perception and reliable decision-making. However, object motion and ego-motion often induce cross-frame spatiotemporal inconsistencies in BEV-based detectors, leading to temporal BEV feature misalignment and degraded spatiotemporal consistency.   To address these challenges, we propose Co-Fusion4D, a unified framework that explicitly preserves cross-frame spatiotemporal consistency and suppresses temporal feature drift. Co-Fusion4D adopts a current-frame-centric strategy, treating the current frame as the primary source of information while selectively incorporating historical frames after spatiotemporal filtering and alignment. This dominant-complementary mechanism effectively mitigates cumulative alignment errors, suppresses noisy feature propagation, and exploits reliable temporal cues for a more consistent BEV representation.   In addition, Co-Fusion4D integrates a Dual Attention Fusion (DAF) module to further enhance spatiotemporal feature interaction. DAF jointly leverages intra-frame spatial attention and inter-frame temporal attention to adaptively align and fuse multi-frame features, emphasizing motion-consistent regions while suppressing spurious correlations. By departing from conventional uniform fusion paradigms, this design substantially improves the temporal stability and discriminative capability of BEV representations.   Extensive experiments on the nuScenes benchmark demonstrate that Co-Fusion4D achieves state-of-the-art performance, with 74.9% mAP and 75.6% NDS, without relying on test-time augmentation or external data.",
+      "authors": [
+        "Wenxuan Li",
+        "Qin Zou",
+        "Shoubing Chen",
+        "Chi Chen",
+        "Yingyi Yang",
+        "Shoubing Chen",
+        "Qingxiang Meng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-05-19T12:36:09+00:00",
+      "link": "https://arxiv.org/pdf/2605.20301v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes spatio-temporal collaborative fusion for robust 3D object detection in autonomous driving",
+      "llm_evidence_cn": "提出时空协同融合方法，用于自动驾驶中鲁棒的三维目标检测",
+      "llm_evidence": "提出时空协同融合方法，用于自动驾驶中鲁棒的三维目标检测",
+      "canonical_evidence": "提出时空协同融合方法，用于自动驾驶中鲁棒的三维目标检测",
+      "llm_tldr_en": "Addresses temporal BEV feature misalignment in 3D object detection for autonomous driving by proposing Co-Fusion4D, a current-frame-centric framework that selectively incorporates historical frames after spatiotemporal filtering and alignment, achieving robust detection.",
+      "llm_tldr_cn": "针对自动驾驶中三维目标检测的时序BEV特征不对齐问题，提出Co-Fusion4D框架。该框架以当前帧为主导，经过时空过滤和对齐后选择性地融入历史帧信息，有效抑制时序特征漂移，提升检测的时空一致性。实验结果表明，该方法在保持高精度的同时增强了跨帧鲁棒性，为动态场景下的感知系统提供了稳定可靠的检测方案。",
+      "llm_tldr": "针对自动驾驶中三维目标检测的时序BEV特征不对齐问题，提出Co-Fusion4D框架。该框架以当前帧为主导，经过时空过滤和对齐后选择性地融入历史帧信息，有效抑制时序特征漂移，提升检测的时空一致性。实验结果表明，该方法在保持高精度的同时增强了跨帧鲁棒性，为动态场景下的感知系统提供了稳定可靠的检测方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

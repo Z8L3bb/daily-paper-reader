@@ -1,0 +1,312 @@
+Title: 3DTMDet: A Dual-Path Synergy Network of Transformer and SSM for 3D Object Detection in Point Clouds
+
+URL Source: https://arxiv.org/pdf/2605.15546v1
+
+Published Time: Mon, 18 May 2026 00:38:54 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# 3DTMDet: A Dual-Path Synergy Network of Transformer and SSM for 3D Object Detection in Point Clouds 
+
+## Bingwen Qiu a, Yuan Liu a, Junqi Bai b, Tong Jiang a, Ben Liang a, Fangzhou Chen c, Xiubao Sui a,e ,∗
+
+## and Qian Chen a,d 
+
+> a
+
+School of Electronic and Optical Engineering, Nanjing University of Science and Technology, Nanjing, 210094, Jiangsu, China 
+
+> b
+
+The 28th Research Institute of China Electronics Technology Group Corporation, Nanjing, 210007, Jiangsu, China 
+
+> c
+
+College of Astronautics, Nanjing University of Aeronautics and Astronautics, Nanjing, 210016, Jiangsu, China 
+
+> d
+
+School of Information and Communication Engineering, North University of China, Taiyuan, 030051, Shanxi, China 
+
+> e
+
+State key Laboratory of Extreme Environment Optoelectronic Dynamic Measurement Technology and Instrument, Nanjing University of Science and Technology, Nanjing, 210094, Jiangsu, China 
+
+A R T I C L E I N F O 
+
+Keywords :3D object detection point cloud Transformer Mamba hybrid neural network 
+
+A B S T R A C T 
+
+A fundamental challenge in point cloud object detection lies in the conflict between the extreme sparsity of distant points and the need for remote context understanding. The existing methods typically use 1D serialization to expand the receptive field, which inevitably discards already scarce local geometric details and reduces detection of distant and small objects. To address this issue, we propose 3DTMDet, a novel detection network that synergistically combines state space models (Mamba) with Transformers. The core idea is to utilize SSM’s linear complexity and advantages in long sequence modeling to effectively capture global interactions between sparse and distant points, while using Transformer modules with local attention to encode fine-grained geometric structures in local point sets, preserving accurate shape information. We propose the 3D Hybrid Mamba Transformer (3DHMT) block, which uses an SSM-Attention-SSM pipeline to balance global context understanding and local detail preservation, effectively alleviating the tension between receptive field enlargement and geometric preservation in remote detection. In addition, we introduced a voxel generation block inspired by LiDAR physics, which diffuses features along the sensor observation direction to reconstruct the complete object structure of occlusion and distant areas. Extensive experiments conducted on the KITTI and ONCE datasets have shown that 3DTMDet outperforms state-of-the-art detectors. The code is available at https://github.com/QiuBingwen/3DTMDet. 
+
+## 1. INTRODUCTION 
+
+Point cloud object detection serves as a fundamental perception task in autonomous driving and robotics[1, 36], where accurately identifying objects at long ranges is critical for system safety. However, LiDAR sensors inherently suf-fer from a quadratic decay in point density with distance, causing distant objects to be represented by only a hand-ful of extremely sparse measurements[6, 24]. This severe sparsity leads to a collapse of local geometric structures, making fine-grained shape modeling, part-level recognition, and precise pose estimation nearly impossible. Simultane-ously, long-range scenes involve more complex inter-object interactions—such as occlusions, truncations, and cluttered backgrounds—which demand a large receptive field to cap-ture long-range contextual dependencies. Yet, expanding the receptive field typically relies on progressive downsampling and feature abstraction, which further dilutes the already scarce local details of distant targets. Consequently, a fun-damental dilemma arises: the need to jointly achieve long-range global interaction understanding and near-field local fine-grained modeling in an extremely sparse point regime, where the two objectives conflict with each other[5, 2]. 
+
+> ∗
+
+Corresponding author at: School of Electronic and Optical Engineer-ing, Nanjing University of Science and Technology, Nanjing 210094, China E-mail address: sxbhandsome@163.com (X. Sui). 
+
+> ORCID
+
+(s): 0000-0003-0464-464X (X. Sui) 
+
+Faced with this dilemma, existing methods have exposed various limitations. Point based methods[27, 39, 13], use farthest point sampling and neighborhood aggregation based on ball queries to perceive structure. However, on sparse distant objects, sampling becomes inefficient and expensive, and random downsampling can easily discard a few fore-ground points, resulting in frequent missed small targets or occluded targets. Voxel based methods, such as voxel networks, point columns, and center points, quantize point clouds into regular grids, introduce quantization errors, and smooth the fine geometric shapes of small distant objects. However, the average pooling encoding within each voxel further sacrifices the point by point geometric accuracy. In order to capture long-distance interactions, these methods stack downsampling layers, which exacerbate voxel sparsity and gradually eliminate local features that have already blurred distant targets. Transformer based detectors[42, 8, 41, 20, 4] utilize self attention mechanisms for modeling, but their quadratic complexity has poor scalability in large out-door point clouds. To alleviate this situation, window based methods[32] limit attention to local regions, but this often impairs the model’s ability to understand the overall scene structure. The methods based on the linear framework[15, 21, 16, 29, 19] serializing 3D voxels into 1D sequence, sacrifice spatial continuity and damage fine-grained local representation. When point clouds are too sparse, they ex-hibit geometric ambiguity, inevitably damaging the already Page 1 of 11 
+
+> arXiv:2605.15546v1 [cs.CV] 15 May 2026
+
+scarce geometric information of distant instances. We be-lieve that an optimal 3D encoder can complement the tasks of efficient global feature interaction and accurate local feature extraction. Another persistent challenge in LiDAR-based detection is the varying density of point clouds[10, 17, 33]. Objects distant from the sensor often appear highly sparse, consisting of only a few points, which degrades feature representation and detection accuracy. Standard voxel generation methods fail to account for the physical imaging characteristics of LiDAR, leaving empty voxels in regions that are likely occupied but occluded or unsampled, thereby fragmenting object shapes. To address these limitations, we propose 3DTMDet, a novel hybrid 3D object detection network that unifies the long-range efficiency of SSM and the high-fidelity geometric modeling capability of Attention in a principled synergy pipeline, rather than simple module stacking. Specifically, we design a bidirectional Serialized-Mamba block to capture global dependencies with linear complexity while alleviat-ing spatial structure damage caused by conventional one-dimensional serialization. Meanwhile, we introduce a cross-attention Grouped-Transformer Block with dual Hilbert or-dering and KNN-based relative position encoding to com-pensate for fine-grained local geometric details lost during serialization. Furthermore, to tackle the severe sparsity of distant LiDAR points, we propose a physics-inspired Voxel Generation block that diffuses features along the sensor viewing direction to reconstruct complete object structures in sparse and occluded regions. By integrating these designs into a repeated 3D Hybrid Mamba Transformer (3DHMT) building block, our framework achieves robust global–local complementary feature learning, effectively resolving the conflicts between efficiency and precision in existing 3D representation learning paradigms. In summary, our contributions are as follows: 
+
+• We propose a hybrid 3D backbone that synergizes SSM’s global linear scaling with the Transformer’s local geometric precision. This ensures global scene comprehension without sacrificing the fine-grained structural integrity of small objects. 
+
+• We implement a window-based Attention module utilizing Hilbert-curve grouping and relative posi-tion encoding. This serves as a spatial-rectifier that re-establishes local 3D dependencies, providing a mathematically grounded approach to processing non-Euclidean point cloud data in a sequence-based frame-work. 
+
+• We introduce a Voxel Generated Block (VGB) that moves beyond passive feature extraction. By encod-ing the geometric priors of LiDAR imaging (the "occlusion-occupation" principle), the VGB performs active feature diffusion to restore fragmented object shapes in sparse, distant regions. 
+
+## 2. RELATED WORK 
+
+2.1. Transformers in 3D Object Detection 
+
+With its attention mechanism, Transformer is highly adept at flexibly modeling relationships between features and has driven significant advancements in 3D object de-tection. Mao et al. [22] first proposed local attention and ex-panded attention, and designed voxel query, so that the atten-tion mechanism can be implemented on sparse voxels. Wang et al. [32] proposes Dynamic Sparse Window Attention, which divides a series of local regions based on the sparsity of each window and then computes the features of all regions in a fully parallel manner. Liang et al.[14] proposes a Hybrid transformer module that combines the vote net with the transformer, utilizing cross-attention to increase focus on global features while retaining detailed features. Cai et al.[3] proposes a novel dual-scene transformer pipeline (DSTR), which includes a global scene integration (GSI) module, a local scene integration (LSI) module, and a dual-scene fusion (DSF) module, aiming to address the deficiencies in global scene fusion. Zhou et al.[43] proposes a self-attention feature encoding module that generates point cloud feature representations with higher information density, enabling better understanding of the spatial relationships and con-textual information of objects in the point cloud scene. Xie et al.[37] introduced a dual-head self-correlation module that dynamically adjusts the aggregation radius of candidate points through a radius-adaptive grouping mechanism, cap-turing key features of non-conventional objects to support multi-scale feature processing. Wan et al.[31] divided image features into multiple regions and employed region-to-pillar cross-attention to convey semantic information from the image to the corresponding LIDAR pillar. Despite these successes, the quadratic complexity intro-duced by the core mechanism of Transformer, namely self-attention, remains a significant factor limiting its effective-ness. As the number of voxels in each group increases, algo-rithm complexity and resource consumption grow quadrat-ically, indicating that large-scale grouping will lead to un-acceptable resource consumption. To circumvent this issue, most Transformer-based 3D detectors limit the size of atten-tion mechanism groups. Unfortunately, this artificial spatial partitioning severely restricts the receptive field, inevitably weakening the Transformer’s ability to model long-range dependencies. Therefore, algorithms based purely on Trans-former struggle to comprehend the overall global context and spatial distribution of the entire 3D scene. In this work, we propose a window-based Transformer block, which utilize the cross-attention and the relative posi-tion encoding for local feature extraction. This block focuses solely on extracting local detail information, while the task of remote feature interaction is handled by the Mamba module. 
+
+2.2. Mamba in 3D Tasks 
+
+Mamba[7] has adapted in computer vision tasks due to its efficiency[18]. Zhang et al. [40] adopts a non-clustering strategy to serialize the entire voxel space into a single  
+
+> Page 2 of 11 Figure 1: Illustration of the damage to the geometric structure caused by space-filling curves and windowing schemes. Both of these schemes may lead to the division of the unified target into different positions in the sequence, or even different sequences. This can lead to potential instability in linear operators.
+
+sequence, and proposes the establishment of a hierarchical structure using dual-scale SSM blocks, enabling the real-ization of a larger receptive field in the one-dimensional serialized curve. Liu et al.[19] proposed a simple and ef-fective window framework based on Linear Group RNN for accurate 3D object detection. Ning et al.[23] utilized Hybrid Mamba Block for local and global context learning, and for the first time demonstrates that a pure Mamba module can achieve efficient dense global fusion while ensuring top-notch performance in camera-LiDAR multi-modal 3D ob-ject detection. Li et al.[12] introduced a novel Dual Mamba module modeling point clouds from the perspectives of spatial distribution and continuity. The Mamba based algorithm has shown significant ad-vantages in long-distance interactions. However, Mamba processes data in order, so 3D point clouds or voxels must be flattened into 1D sequences, which severely destroys the geometric structure of the data. In order to alleviate the problems caused by flattening operations, existing methods commonly use complex space filling curves. However, this forced 1D serialization still inevitably destroys the spatial continuity of the original scene and seriously damages the fine local geometric structure of the object. Therefore, pure Mamba architecture typically produces smooth representations, lacking the high fidelity local details required for accurate detection of small, sparse, or geomet-rically complex objects such as pedestrians and cyclists. The existing methods have proposed various solutions to compensate for the damage caused by Mamba algorithm to three-dimensional geometric structures, such as window opening schemes and space filling curve combinations, but still cannot avoid the damage to geometric structures, as shown in Figure 1. In this work, we propose a non-window Mamba block, which serialize voxels in an extremely simple order for long-range feature interaction.This module focuses on remote feature interaction without using any windowing or spatial padding schemes, making it simple and easy to operate. Its lack of geometric detail modeling capability is compensated by the transformer module. 
+
+2.3. Hybrid Structures for Transformer and Mamba 
+
+Recognizing the bottlenecks of Transformers and the geometric limitations of Mamba, recent research has begun exploring their complementary abilities. The synergy is highly intuitive: Mamba can construct global, long-distance context efficiently over massive token sequences with linear complexity, while Transformers can be deployed strictly within small local windows to preserve and extract high-fidelity geometric details without blowing up resource con-sumption. The method combining Mamba with Transformer has also caught the attention of researchers. Inaganti et al.[9] proposed MambaTron, which is a Mamba-Transformer block, capable of achieving single-modality and cross-modality re-construction, including view-guided point cloud completion. This is the earliest attempt to implement a Mamba-based Cross-attention analogy. Li et al.[35] introduces PoinTramba, a groundbreaking hybrid framework that synergizes the analytical capabilities of Transformer with the excellent computational efficiency of Mamba to enhance point cloud analysis. Wang et al.[34] proposed an inner-layer hybrid strategy that combines attention with Mamba at a finer granularity, enabling the simultaneous capture of long-range dependencies and fine-grained local features in 3D semantic segmentation. Although the above attempts have been made, the ex-isting hybrid frameworks still do not address the core pain points in 3D voxel detection: spatial damage in Mamba and complexity bottleneck in Transformer. Building upon these concepts, this work proposes a hy-brid backbone that explicitly solves spatial damage and com-plexity bottlenecks via a synergistic global–local pipeline, making principled contributions to 3D neural architecture design. 
+
+## 3. METHODOLOGY 
+
+3.1. Overview of the Method 
+
+We propose 3DTMDet, a hybrid voxel-based 3D detector built on a novel dual-path synergy backbone. The pipeline follows standard voxelization, 3D backbone encoding, BEV feature conversion, and detection head, presented in Figure2. Our key innovation lies in the 3D backbone composed of stacked 3DHMT blocks. Each 3DHMT block follows a SSM–Attention–SSM design: 
+
+• The first Serialized-Mamba Block performs bidirec-tional horizontal/vertical serialization to model long-range global dependencies while preserving spatial continuity.      
+
+> Page 3 of 11 Figure 2: Top: The overall architecture of our proposed 3DTMDet. First, the point cloud data is converted into voxels and fed into a 3D backbone. The 3D backbone consists of multiple 3D Hybrid Mamba Transformer (3DHMT) Blocks, with voxels being compressed along Z-axis between modules. Internally, the 3DHMT Block consists of two Serialized-Mamba Blocks, one Grouped-Transformer Block and one Voxel Generation Block. The Serialized-Mamba Blocks and Grouped-Transformer Block are responsible for long-distance feature interaction and local feature extraction, respectively. The Voxel Generation Blocks are applied to enhance the sparse feature of objects from the perspective of sensors. Then, the voxels are converted into dense BEV and extract BEV features. Finally, it is fed into the dense detection head to produce detection results. Bottom: The illustrations of the Serialized-Mamba Block and the Grouped-Transformer Block. The symbol ⊕denotes the add operation.
+
+• The Grouped-Attention Block extracts high-fidelity local geometric features via cross-attention and rela-tive position encoding, compensating structural loss from SSM serialization. 
+
+• The second Serialized-Mamba Block further propa-gates enhanced local features across the global space. Simultaneously utilizing MAMBA’s powerful auto-regressive ability to repair potential errors caused by Generated Blocks 
+
+• Voxel Generation Block enhances sparsity by gener-ating pseudo voxels along LiDAR viewing direction. This global–local complementary pipeline is not a sim-ple module combination, but a synergistic design that re-solves the inherent weaknesses of pure SSM and pure Trans-former. 
+
+3.2. Serialized-Mamba Block 
+
+To apply the Mamba module to the voxel data, we seri-alize the sparsely distributed voxels. First, the point cloud is converted into a total of 𝐿 voxels. As shown in figure 3, these voxels are sorted along the 𝑋 and 𝑌 axes, respectively. Next, we divide the sorted voxels into several groups of equal size 
+
+𝑚 , resulting in a total of ⌈𝐿 ∕𝑚 ⌉ groups, where ⌈⋅⌉ donates ceiling function. Since the number of voxels varies across different input point clouds and is rarely an integer multiple of the size 𝑚 , we employ an average overlap grouping method. This ensures that the number of overlapping voxels between any pair of adjacent groups is equal across the  
+
+> Figure 3: Illustration of the serialization scheme in Serialized-Mamba Block. All voxels are sorted into equally sized groups along the X or Y axis, and arranged from low to high along the Z-axis. Each adjacent sets share the equal-sized overlapping voxels.
+
+data. Furthermore, we utilize absolute position encoding to emphasize global characteristics within this module, defined as follows: 
+
+𝐸 𝑖 = 𝑀𝐿𝑃 (2 𝜋𝑐 𝑖 ) (1) 
+
+where 𝑀𝐿𝑃 denotes a Multilayer Perceptron that projects the spatial coordinates 2𝜋𝑐 𝑖 from 3-dimensional space to a d-dimensional space consistent with the feature dimension. Here, 𝑐 𝑖 represents the normalized position of voxel 𝑖 , com-puted as: 
+
+𝑐 𝑖 = ( 𝑥 𝑖 ∕𝑋, 𝑦 𝑖 ∕𝑌 , 𝑧 𝑖 ∕𝑍 ) (2) 
+
+where (𝑋, 𝑌 , 𝑍 ) represents the voxel range of the scene, and 
+
+(𝑥 𝑖 , 𝑦 𝑖 , 𝑧 𝑖 ) represents the coordinates of voxel 𝑖 .         
+
+> Page 4 of 11 Figure 4: Illustration of the serialization scheme in Grouped-Transformer Block. All voxels are divided into fixed size windows. The non-empty voxels in the windows are grouped into constant size g in the order of Hilbert or Trans-Hilbert curve, and arranged from low to high along the Z-axis. Empty voxels are padded into the groups to ensure that all groups within a window have an equal number of non-empty voxels.
+
+3.3. Grouped-Transformer Block 
+
+Our Transformer module adopts a window-based group-ing scheme to extract local features. As shown in figure 4, we first partition non-empty voxels into non-overlapping 3D windows of shape (𝑇 𝑥 , 𝑇 𝑦 , 𝑇 𝑧 ), where 𝑇 𝑥 , 𝑇 𝑦 , and 𝑇 𝑧 denote the length, width, and height of the window along the 𝑋 ,
+
+𝑌 , and 𝑋 axes, respectively. Then, we sort the voxels within these windows along the Hilbert curve and the Trans-Hilbert curve, respectively. Next, we divide these non-empty voxels into groups of constant size 𝑔 . Consequently, assuming a window contains 𝑙 non-empty voxels, the window is divided into ⌈𝑙 ∕𝑔 ⌉ groups. The voxels are evenly distributed among these groups. Any deficiency in group size is padded with empty voxels, which are subsequently eliminated via mask-ing during the attention operation. We utilize an attention mechanism to extract local fea-tures. The standard attention mechanism is defined as: 
+
+𝐴𝑡𝑡𝑒𝑛𝑡𝑖𝑜𝑛 (𝑄, 𝐾, 𝑉 ) = 𝑠𝑜𝑓 𝑡𝑚𝑎𝑥 ( 𝑄𝐾 𝑇 
+
+√𝑑 𝑘 
+
+)𝑉 (3) 
+
+where, 𝑄 (𝑄𝑢𝑒𝑟𝑦 ), 𝐾 (𝐾𝑒𝑦 ) and 𝑉 (𝑉 𝑎𝑙𝑢𝑒 ) represent the in-put projection vectors. The attention mechanism calculates the similarity (attention score) between 𝑄 and 𝐾 , utilizing this score to perform a weighted summation on 𝑉 to obtain the final result. To further enhance feature capture capabilities, we adopt a cross-attention mechanism. The core difference is that the 
+
+𝑄𝑢𝑒𝑟𝑦 originates from one sequence, while the 𝐾𝑒𝑦 and 
+
+𝑉 𝑎𝑙𝑢𝑒 originate from another. The cross-attention mecha-nism is defined as: 
+
+𝐶𝑟𝑜𝑠𝑠𝐴𝑡𝑡𝑒𝑛𝑡𝑖𝑜𝑛 𝐻 (𝑄 𝐻 , 𝐾 𝐻𝑇 , 𝑉 𝐻𝑇 ) = 
+
+𝑠𝑜𝑓 𝑡𝑚𝑎𝑥 ( 𝑄 𝐻 𝐾 𝐻𝑇 𝑇 
+
+√𝑑 𝑘 
+
+)𝑉 𝐻𝑇 (4) 
+
+𝐶𝑟𝑜𝑠𝑠𝐴𝑡𝑡𝑒𝑛𝑡𝑖𝑜𝑛 𝐻𝑇 (𝑄 𝐻𝑇 , 𝐾 𝐻 , 𝑉 𝐻 ) = 
+
+𝑠𝑜𝑓 𝑡𝑚𝑎𝑥 ( 𝑄 𝐻𝑇 𝐾 𝐻 𝑇 
+
+√𝑑 𝑘 
+
+)𝑉 𝐻 (5)   
+
+> Figure 5: Illustration of our relative position encoding. Each voxel first computes the difference with its K-nearest neigh-boring voxels to obtain the relative position. Then we directly encode the relative position through a MLP and then fused with main features.
+> Figure 6: Illustrations of our voxel generation scheme. The voxels are diffused away from the sensor, and the top-P diffused voxels are selected as the generated voxel.
+
+where, 𝑄 𝐻 , 𝐾 𝐻 and 𝑉 𝐻 represent vectors from the Hilbert curve sequence, while 𝑄 𝐻𝑇 , 𝐾 𝐻𝑇 and 𝑉 𝐻𝑇 represent vec-tors from the Trans-Hilbert curve sequence. The local neighborhood contains key features of the point cloud data. The Grouped-Transformer block utilizes relative position encoding to capture local geometric charac-teristics. We observe that the coordinate difference between a voxel and its adjacent voxels can be interpreted as their relative position within the point cloud. As shown in Fig. 5, we first obtain the K-Nearest Neighbors (KNN) for each voxel. We then calculate the relative positions of the voxels and their neighbors to obtain 𝐾 − 1 groups of neighboring relative coordinates. Finally, an 𝑀𝐿𝑃 is used to encode these relative coordinates. 
+
+3.4. Voxel Generated Block 
+
+Considering the challenges of feature representation in highly sparse point clouds, we propose a voxel generation strategy based on the imaging characteristics of LiDAR sensors. Standard voxelization methods treat empty space as a nullity, failing to account for the physical imaging character-istics of LiDAR. We argue that the space immediately behind a detected point is not "empty" but "unknown," with a high probability of occupancy. As shown in Fig. 6, we first determine the sensor position 
+
+(𝑋 𝑠 , 𝑌 𝑠 , 𝑍 𝑠 ). Then, each voxel diffuses to generate three new voxels in directions moving away from the sensor. The diffused voxels are formulated as follows: 
+
+𝐹 𝑖 𝑑 = 𝐹 𝑖 [𝑅 𝑋𝑖 ,0,0] ⊕ 𝐹 𝑖 [0 ,𝑅 𝑌 𝑖 ,0] ⊕ 𝐹 𝑖 [𝑅 𝑋𝑖 ,𝑅 𝑌 𝑖 ,0] (6) 
+
+𝑅 𝑋𝑖 = 𝑋 𝑖 − 𝑋 𝑠 
+
+|𝑋 𝑖 − 𝑋 𝑠 | , 𝑅 𝑌 𝑖 = 𝑌 𝑖 − 𝑌 𝑠 
+
+|𝑌 𝑖 − 𝑌 𝑠 | (7) 
+
+where 𝐹 𝑖 denotes the feature of initial voxel 𝑖 (𝑖 = 1 , 2, ..., 𝑁 )
+
+, and 𝐹 𝑖 𝑑 are the diffused voxels features of voxel 𝑖 . The 
+
+> Page 5 of 11
+
+Table 1 
+
+Comparison with Previous Methods on Kitti Validation set. The bolded and underlined values are the best and second-best performance, respectively. Method Car Pedestrian Cyclist mAP Easy Moderate Hard Overall Easy Moderate Hard Overall Easy Moderate Hard Overall PointRCNN[27] 85.94 75.76 68.32 76.67 49.43 41.78 38.63 43.28 73.93 59.60 53.59 62.37 60.78 PointPillars[11] 79.05 74.99 68.30 74.11 52.08 43.53 41.49 45.7 75.78 59.07 52.92 62.59 59.20 SECOND[38] 88.51 78.19 76.01 80.90 52.12 46.08 42.06 46.75 78.48 64.64 60.57 67.90 65.18 CenterPoint[25] 79.26 69.21 64.80 71.09 32.96 30.19 28.03 30.39 69.92 53.29 51.35 58.19 53.22 DSVT[32] 87.78 77.21 74.93 79.97 58.56 52.12 47.46 52.71 82.50 65.08 62.81 70.13 67.61 LION[19] 88.12 77.84 76.51 80.82 62.11 55.82 50.48 56.14 79.39 61.37 57.93 66.23 67.73              
+
+> Ours 87.95 78.0 76.63 80.86 62.60 57.55 51.61 57.25 82.20 67.74 63.96 71.30 69.80
+
+Table 2 
+
+Comparison with Previous Methods on ONCE Validation set. The bolded and underlined values are the best and second-best performance, respectively. Method Vehicle Pedestrian Cyclist mAP overall 0-30m 30-50m 50m-inf overall 0-30m 30-50m 50m-inf overall 0-30m 30-50m 50m-inf PointRCNN[27] 52.1 74.5 40.9 16.8 4.3 6.2 2.4 0.9 29.8 46.0 20.9 5.5 28.7 PointPillars[11] 68.6 80.9 62.1 47.0 17.6 19.7 15.2 10.2 46.8 58.3 40.3 25.9 44.3 SECOND[38] 71.2 84.0 63.0 47.3 26.4 29.3 24.1 18.1 58.0 70.0 52.4 34.6 51.9 PV-RCNN[26] 77.8 89.4 72.6 58.6 23.5 25.6 22.8 17.3 59.4 71.7 52.6 36.2 53.6 PointPainting[30] 66.2 80.3 59.8 42.3 44.8 52.6 36.6 22.5 62.3 73.6 57.2 40.4 57.8 CenterPoint[25] 66.8 80.1 59.6 43.4 49.9 56.2 42.6 26.3 63.5 74.3 57.9 41.5 60.1 DSVT[32] 76.5 88.4 72.7 54.2 47.4 55.2 38.9 24.0 64.2 75.4 59.9 41.0 62.7 LION[19] 78.2 89.1 72.6 57.5 53.2 62.4 44.0 24.5 68.5 79.2 63.2 47.1 66.6              
+
+> Ours 78.3 88.9 72.9 58.0 53.3 62.6 43.8 25.9 68.7 79.8 64.0 46.1 66.8
+
+symbol ⊕ denotes the concatenation operation. 𝑅 𝑋𝑖 and 𝑅 𝑌 𝑖 
+
+denote the diffusion direction signs of voxel 𝑖 along the X-axis and Y-axis, respectively. The term 𝐹 [𝑥,𝑦,𝑧 ] denotes the diffused voxel features with offsets of 1 along the axes, where the value is initialized equal to the input voxel featur 𝐹 𝑖 .Subsequently, we extract 3D features using a 3D sparse convolution. Next, we select top-P voxels from the total number 𝐿 𝑑 of diffused voxels, where 𝑃 = 𝐿 𝑑 × 𝑟 and 𝑟 is the ratio of generation. Finally, we concatenate these generated voxels with the voxels in the initial feature map to form the output of this block: 
+
+𝐹 ′ 
+
+> 𝑖𝑛𝑖
+
+⊕ 𝐹 ′ 
+
+> 𝑑
+
+= 𝑠𝑢𝑏𝑚 (𝐹 𝑖𝑛𝑖 ⊕ 𝐹 𝑑 ) (8) 
+
+𝐹 𝐺 = 𝐹 ′ 
+
+> 𝑖𝑛𝑖
+
+⊕ 𝑡𝑜𝑝 𝑃 (𝐹 ′ 
+
+> 𝑑
+
+) (9) 
+
+where 𝑠𝑢𝑏𝑚 denotes submanifold sparse convolution, 𝑡𝑜𝑝 𝑃 (𝐹 ′ 
+
+> 𝑑
+
+)
+
+means selecting Top-P voxel features from 𝐹 ′ 
+
+> 𝑑
+
+. 𝐹 𝑖𝑛𝑖 and 𝐹 𝑑 
+
+are the initial voxels and diffused voxels features, and 𝐹 𝐺 
+
+represents the final generated voxels. 
+
+## 4. EXPERIMENTS 
+
+4.1. Datasets and Settings 
+
+Our work is implemented on OpenPCDet[28]. We train our models on 4 NVIDIA 4090D GPUs for 80 epochs with a batch size of 8 , and with the same ADAM optimizer as Centerpoint. For KITTI dataset, we set the feature channel as 64, set the point cloud range as (0~ 70.4m, -40~ 40m, -3~ 1m) and voxel size as (0.2m, 0.2m, 0.125m). For ONCE dataset, we set the feature channel as 128, set the point cloud range as (-75.2~ 75.2m, -75.2~ 75.2m, -5~ 3m) and voxel size as (0.4m, 0.4m, 0.25m). The number of MAMTRA blocks 𝑁 is set to 5. The group size 𝑚 of Mamba block are set to 4096, 2048, 1024, 512, 512, respectively. The window shape (𝑇 𝑥 , 𝑇 𝑦 , 𝑇 𝑧 ) of Transformer block is set to (64, 64, 32) and the group size 𝑔 
+
+is set to 90. The number 𝐾 of nearest neighbors in relative position encoding is 8. The ratio 𝑟 of voxel generation is 0.2. The comparison includes widely adopted voxel-based methods (SECOND[38], PointPillars[11]), advanced two-stage frameworks (PV-RCNN[26], CenterPoint[25]). In par-ticular, we compared with DSVT[32] and LION[19], which are the typical algorithmic applications of Transformer and MAMBA in the field of 3D object detection. We adopt the same BEV backbone, detect head and optimization operation as SECOND[38], and this is the same as LION. Since DSVT has not been tested on the ONCE dataset, we migrated its DSVT-voxel 3D backbone to SECOND and retrained for comparison. KITTI Dataset. The KITTI Dataset consists of 7481 training frames and 7518 test frames for 3D object detection. We split the 7481 training frames into 3712 frames for training set and 3769 frames for validation set, follow the dataset splitting protocol of OpenPCDet[28]. The KITTI dataset is divided into three categories: car, pedestrian, and cyclist for three difficulty levels, i.e., Easy, Moderate, and Hard. Due to inconsistencies in the evaluation metrics used in the published papers, we retrained and experimented with all algorithms using the code and configurations released by OpenPCDet[28]. During training, we set the road plane to False. The mean Average Precision (mAP) across 11 recall levels is used as the evaluation metric. ONCE Dataset. The ONCE dataset consists of 15K annotated LiDAR scenes, partitioned into 5000, 3000, and 
+
+Page 6 of 11 8000 frames for training, validation, and testing set, respec-tively. We evaluate the performance by mean Average Pre-cision (mAP) for three objects’ classes(Vehicle, Pedestrian, Cyclist). 
+
+4.2. Comparison With State-of-The-Arts 
+
+Performance on KITTI Dataset 
+
+Table 1 benchmarks our proposed 3DTMDet against state-of-the-art 3D object detectors on the KITTI dataset. Our 3DTMDet achieves a new state-of-the-art mean Average Precision (mAP) of 69.80, outperforming both the Mamba-based LION (67.73) and the Transformer-based DSVT (67.61). The effectiveness of our hybrid strategy is most evident on geometrically complex, small objects where local detail is critical. In the Pedestrian and Cyclist categories, we achieve overall mAPs of 57.25 and 71.3, representing substantial improvements over LION (+1.11 and +5.07, respectively). Gains are particularly significant in the Hard difficulty level, where objects are highly occluded or distant; notably, our Cyclist Hard mAP of 63.96 surpasses LION by 6 points. These results confirm that the Grouped-Transformer block effectively preserves the fine-grained local geometries that pure Mamba architectures tend to smooth, while the Voxel Generated Block restores structural continuity for sparse targets. For the Car category, our method remains highly competitive (80.86 mAP), confirming that integrating local attention does not compromise the global receptive field provided by Mamba. The effectiveness of our hybrid strategy—synergizing Mamba for remote interaction and Transformers for local geometric modeling—is most evident in the performance on smaller, geometrically complex objects. While pure Mamba-based architectures like LION excel at capturing global con-text, their serialization process often degrades local struc-tural details. This limitation is effectively addressed by our Grouped-Transformer block. 
+
+Performance on ONCE Dataset 
+
+To further validate the generalization ability of 3DT-MDet, we conducted comparisons on the KITTI dataset, as shown in Table 2 . In general, 3DTMDet attains an overall mAP of 66.8, achieving the best results for each category (78.3, 53.3, and 68.7 for Vehicle, Pedestrian, and Cyclist). It consistently outperforms DSVT (+4.1 mAP) and demon-strates a modest improvement over LION (+0.2 mAP). We attribute the smaller gain over LION on this dataset to the sparser LiDAR data (40-beam vs. 64-beam in KITTI), which inherently provides less local geometric structure for the Grouped-Transformer to exploit. Under such extreme spar-sity, the model relies more on the global context capability of the Serialized-Mamba block, delivering performance on par with the LION baseline. This analysis confirms that our hybrid design is particularly advantageous in high-fidelity perception scenarios with sufficient beam density. In summary, the experiments demonstrate that 3DT-MDet is not merely a combination of modules, but a com-plementary architecture. By leveraging Mamba for efficient remote feature interaction and Transformers for high-fidelity                                           
+
+> Table 3
+> Ablation study on ONCE validation split for each component in 3DHMT Block. We removed or replaced the SSM or Transformer blocks in the 3DHMT Block to validate the effec-tiveness of the proposed method, SBM represents Serialized-Mamba Block, GTB represents Grouped-Transformer Block. We also combined two SOTA algorithms(LION, DSVT) for experimentation to demonstrate that our algorithm is not simply stacked. SSM Block Trans-former Block Vehicle Pedes-trian Cyclist Overall SBM ×76.2 48.7 65.9 63.6
+> ×GTB 74.2 48.2 64.1 62.2 SBM SpConv 77.6 51.5 68.8 65.9 SpConv GTB 76.3 52.7 67.1 65.4 LION DSVT 78.1 53.1 68.3 66.5 SBM GTB 78.3 53.3 68.7 66.8(Ours)
+> Figure 7: Illustration of the basic sparse-conv block. This module contains two 3D Subm Sparse Convolutional layers and a residual link. This work replaces the Transformer Blocks or Mamba Blocks with this module to verify the effectiveness of our proposed network structure.
+
+local 3D geometric modeling, we achieve a robust balance that resolves the local-detail blindness of SSMs while miti-gating the computational costs of global Transformer. 
+
+4.3. Ablation Studies 
+
+In this section, a set of ablative studies are conducted on ONCE validation split to investigate the key designs of our model. Table 3 shows ablation studies on our major structures, which are Serialized Mamba Block(SBM) and Grouped Transformer Block(GTB). The combination of these tow modules constitutes the main body of our framework. By removing these tow modules, we verified their necessity. Compared with the pure Mamba and Transformer architec-tures, our algorithm improves 3.2mAP and 4.6mAP, demon-strating the superiority of our hybrid strategy. In addition, unlike directly removing these two modules, we designed an experiment using basic sparse conv blocks to replace these two modules separately. This module includes two 3D Subm Sparse Convolutional layers and a residual link, as shown in Figure 7 In the specific operation, each of our SBM modules or GTB modules is replaced by two basic sparse conv blocks, while the other parts remain unchanged. As shown in the                  
+
+> Page 7 of 11 Table 4
+> Result of attention and position encoding type ablation ex-periments. We modified the Position Encoding strategy in the serialized Mamba Block (SMB) and Grouped Transformer Block (GTB). We also conducted experiments on the use of cross-attention or self-attention in the second Attention Layer of Transformer Block. Attention Layer Position Encod-ing(SMB) Position Encod-ing(GTB) mAP(overall) cross no no 65.4 cross absolute absolute 65.6 self absolute relative 66.4 cross absolute relative 66.8(Ours) Table 5
+> Ablation experiments on ONCE validation split for voxel gen-eration type. We selected different voxel generation strategies or without generating voxels to verify the effectiveness of our voxel enhancement method. Voxel Generation Method mAP(overall) no Generation 65.6 Sparse-Conv 66.1 no Top P Select 66.3 Ours Generation 66.8 (Ours)
+
+experiment, our algorithm improves 0.9mAP and 1.4mAP. Furthermore, in order to compare with the algorithm with the best performance, we combined the two existing best algorithms: based on the LION algorithm, we added a DSVT block after each LION block. The experiment achieved 66.5mAP, slightly 0.3mAP lower than our algorithm, which proves that our algorithm is not simply a stack of Mamba and Transformer, but an organic combination of the two. Table4 shows ablation studies on the operations of our structures, in which, SMB stands for the Serialized-Mamba Block and GTB stands for the Grouped-Transformer Block. To validate the effectiveness of our position encoding oper-ations, we compare different strategies. To be specific, we remove the Position Encoding block of Serialized Mamba Block and Grouped Transformer Block, performance de-creases to 65.4mAP, indicating that the absence of Position Encoding can significantly degrade performance. We also replaced the Relative Position Encoding of the Grouped Transformer Block with Absolute Position Encoding. Ex-periments show that our Relative Position Encoding outper-forms Absolute Position Encoding by 1.2mAP. Furthermore, we substitute the cross-attention with original self-attention. Our cross-attention performance improved 0.4mAP, which illustrates the benefits of performing cross-attention for 3D feature interaction. Table 5 shows the ablation experiment on Voxel Genera-tion Block. We observe that the design of Voxel Generation even brings 1.2 mAP performance improvement, which il-lustrates the benefits of voxel generation strategy for target feature enhancement. In addition, we conducted ablation experiments on the voxel generation strategy, using sparse    
+
+> (a) Input voxels map (b) Diffused voxels map
+> (c) Generated voxels map (d) Generated voxels with ground truth boxes
+> Figure 8: Heatmap of voxel generation block
+
+conv for diffusion and eliminating the Top P Select step in our strategy. The experiment shows that our algorithm outperforms these two strategies by 0.7mAP and 0.5mAP, respectively. This indicates that selective diffusion is an effective means of enhancing the effectiveness of angle measurement. In this section, we also present visualizations of the heatmap of the generated voxels in Voxel Generation block in Fig.8. In this figure, Fig.8(a) is the input voxel map, and Fig.8(b) is the unfiltered voxels map after diffusion. After screening out the voxeles with the highest score in Fig.(b), we obtain the Fig.8(c). Fig.8(d) is obtained by drawing the true value with a green box on Fig.8(c). As illustrated in the figure, points within the ground truth boxes achieve the highest score, verified the correctness of our screening strategy and further validating the effectiveness of the VG module we proposed. 
+
+4.4. Qualitative Results Studies 
+
+In this section, we present detection results visualiza-tions of our method and in Fig.9, and compared with LION and DSVT. These studies selected four valsets from the Kitti dataset, namely 000211, 001071, 002690, and 005430, with a threshold of 0.7. In the four sets of visualizations, the left column displays the detection results of point clouds and the label boxes are shown with green boxes, while the right column shows the effect of projecting the detection boxes onto visible light images. In images Fig.9(a) and Fig.9(b), it can be seen that our al-gorithm exhibits stronger detection capabilities for Cyclinst and Pedestrian targets. Fig.9(c) shows that our algorithm also maintains good detection performance for distant Car  
+
+> Page 8 of 11 Figure 9: The Qualitative Results Visualization of DSVT, LION and Ours.
+
+targets. This proves that for small objects such as pedes-trians and cyclists, or for targets with long distances, the geometric information provided by point clouds is limited, and our strategy can better ensure detection performance. In Fig.9(d), our algorithm, compared to the pure Mamba algorithm Lion, missed detecting Car targets, but still out-performed the pure Transformer algorithm DSVT. 
+
+## 5. Conclusion 
+
+This paper presents 3DTMDet, a dual-path synergy neu-ral network that integrates Transformer and Mamba for point cloud 3D object detection. The core innovation is the 3DHMT block, which uses bidirectional serialized Mamba for efficient global modeling and cross-attention grouped 
+
+> Page 9 of 11
+
+Transformer for high-fidelity local extraction. A physics-inspired voxel generation module further alleviates point cloud sparsity. 3DTMDet is not a straightforward application of existing models, but a systematic neural architecture design that ad-dresses fundamental conflicts between long-range efficiency and geometric precision in 3D representation learning. Ex-periments on KITTI and ONCE demonstrate its superiority over state-of-the-art Transformer and Mamba detectors. In the future, we will extend this hybrid paradigm to multi-modal fusion, large-scale semantic segmentation, and real-time embedded perception systems. 
+
+## References 
+
+[1] Alaba, S.Y., Ball, J.E., 2022. A survey on deep-learning-based lidar 3d object detection for autonomous driving. Sensors (Basel, Switzerland) 22. URL: https://api.semanticscholar.org/CorpusID: 254429128 .[2] Ao, L., Wan, W., Ouyang, N., Li, J., Li, Q., Gong, M., Sheng, K., 2026. Svp: stratified vertical priors for lidar-based 3d object detection. Neurocomputing 659, 131737. URL: https://www.sciencedirect. com/science/article/pii/S0925231225024099 , doi: https://doi.org/10. 1016/j.neucom.2025.131737 .[3] Cai, H., Yin, D., Yu, F.R., Xiong, S., 2025. Dstr: Dual scenes transformer for cross-modal fusion in 3d object detection. 2025 IEEE/CVF Winter Conference on Applications of Computer Vi-sion (WACV) , 3064–3073URL: https://api.semanticscholar.org/ CorpusID:277218349 .[4] Cao, J., Peng, Y., Wei, H., Mo, L., Fan, L., Wang, L., 2025. Kptr: Key point transformer for lidar-based 3d object detection. Measurement 242, 115820. URL: https://www.sciencedirect.com/science/article/ pii/S0263224124017056 , doi: https://doi.org/10.1016/j.measurement. 2024.115820 .[5] Chen, J., Zhang, Y., Ma, F., Tan, Z., 2023. Eb-lg module for 3d point cloud classification and segmentation. IEEE Robotics and Automation Letters 8, 160–167. URL: https://api.semanticscholar. org/CorpusID:253791066 .[6] Chen, W., Feng, S., Yin, W., Li, Y., Qian, J., Chen, Q., Zuo, C., 2024. Deep-learning-enabled temporally super-resolved multiplexed fringe projection profilometry: high-speed khz 3d imaging with low-speed camera. PhotoniX 1 1. doi: 10.1186/s43074-024-00139-2 .[7] Gu, A., Dao, T., 2023. Mamba: Linear-time sequence modeling with selective state spaces. ArXiv abs/2312.00752. URL: https: //api.semanticscholar.org/CorpusID:265551773 .[8] Guan, T., Wang, J., Lan, S., Chandra, R., Wu, Z., Davis, L.S., Manocha, D., 2021. M3detr: Multi-representation, multi-scale, mutual-relation 3d object detection with transformers. 2022 IEEE/CVF Winter Conference on Applications of Computer Vi-sion (WACV) , 2293–2303URL: https://api.semanticscholar.org/ CorpusID:233394223 .[9] Inaganti, S.T., Petrenko, G., 2025. Mambatron: Efficient cross-modal point cloud enhancement using aggregate selective state space modeling. 2025 IEEE/CVF Winter Conference on Applications of Computer Vision Workshops (WACVW) , 180–190URL: https:// api.semanticscholar.org/CorpusID:275932593 .[10] Jung, K.S., Lee, D.K., 2025. Analysis of object detection accu-racy based on the density of 3d point clouds for deep learning-based shipyard datasets. International Journal of Naval Architec-ture and Ocean Engineering URL: https://api.semanticscholar.org/ CorpusID:276457968 .[11] Lang, A.H., Vora, S., Caesar, H., Zhou, L., Yang, J., Beijbom, O., 2018. Pointpillars: Fast encoders for object detection from point clouds. 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 12689–12697URL: https://api. semanticscholar.org/CorpusID:55701967 .[12] Li, M., Yuan, J., Chen, S., Zhang, L., Zhu, A., Chen, X., Chen, T., 2024. 3det-mamba: Causal sequence modelling for end-to-end 3d object detection, in: Globerson, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U., Tomczak, J., Zhang, C. (Eds.), Advances in Neural Information Processing Systems, Curran Associates, Inc.. pp. 47242– 47260. URL: https://proceedings.neurips.cc/paper_files/paper/ 2024/file/547108084f0c2af39b956f8eadb75d1b-Paper-Conference.pdf ,doi: 10.52202/079017-1497 .[13] Liang, A., Hua, H., Fang, J., Chen, W., Zhao, H., Wang, G., 2024a. Pdm-ssd: Single-stage 3d object detector with point dilation mecha-nism. ArXiv abs/2406.00714. doi: 10.2139/ssrn.4687799 .[14] Liang, A., Hua, H., Fang, J., Zhao, H., Liu, T., 2024b. Boosting 3d point-based object detection by reducing information loss caused by discontinuous receptive fields. Int. J. Appl. Earth Obs. Geoinforma-tion 132, 104049. URL: https://api.semanticscholar.org/CorpusID: 271730018 .[15] Liang, D., Zhou, X., Xu, W., Zhu, X., Zou, Z., Ye, X., Tan, X., Bai, X., 2024c. Pointmamba: A simple state space model for point cloud anal-ysis. ArXiv abs/2402.10739. URL: https://api.semanticscholar. org/CorpusID:267740688 .[16] Liu, Q., Yue, J., Fang, Y., Xia, S., Fang, L., 2024a. Hypermamba: A spectral-spatial adaptive mamba for hyperspectral image classifi-cation. IEEE Transactions on Geoscience and Remote Sensing 62, 1–14. doi: 10.1109/TGRS.2024.3482473 .[17] Liu, Q., Zhao, D., Dong, Y., Shang, L., Xiao, L., Wang, J., Zhao, K., Lu, D., Zhu, Q., 2025a. A unified voxel diffusion module for point cloud 3d object detection. ArXiv abs/2508.16069. URL: 
+
+> https://api.semanticscholar.org/CorpusID:280708543
+
+.[18] Liu, T., Pu, X., Shi, Y., Liu, Y., Chen, G., Sui, X., Chen, Q., 2025b. Hyperspectral image super-resolution based on mamba and bidirec-tional feature fusion network. Expert Systems with Applications 285, 127905. URL: https://www.sciencedirect.com/science/article/pii/ S0957417425015271 , doi: https://doi.org/10.1016/j.eswa.2025.127905 .[19] Liu, Z., Hou, J., Wang, X., Ye, X., Wang, J., Zhao, H., Bai, X., 2024b. Lion: Linear group rnn for 3d object detection in point clouds. ArXiv abs/2407.18232. URL: https://api.semanticscholar.org/CorpusID: 271431965 .[20] Liu, Z., Zhang, Z., Cao, Y., Hu, H., Tong, X., 2021. Group-free 3d object detection via transformers. 2021 IEEE/CVF International Conference on Computer Vision (ICCV) , 2929–2938URL: https: //api.semanticscholar.org/CorpusID:232478413 .[21] Lu, D., Gao, K., Li, J., Zhang, D., Xu, L., 2025. Exploring token serialization for mamba-based lidar point cloud segmentation. IEEE Transactions on Geoscience and Remote Sensing 63, 1–14. URL: 
+
+> https://api.semanticscholar.org/CorpusID:281127906
+
+.[22] Mao, J., Xue, Y., Niu, M., Bai, H., Feng, J., Liang, X., Xu, H., Xu, C., 2021. Voxel transformer for 3d object detection. 2021 IEEE/CVF International Conference on Computer Vision (ICCV) , 3144– 3153URL: https://api.semanticscholar.org/CorpusID:237421262 .[23] Ning, T., Lu, K., Jiang, X., Xue, J., 2025. Mambafusion: State-space model-driven object-scene fusion for multi-modal 3d object detection. Pattern Recognition URL: https://api.semanticscholar. org/CorpusID:283485417 .[24] Qian, J., Wang, C., Wu, H., Chen, Q., Zuo, C., 2024. Ensemble deep learning-enabled single-shot composite structured illumination mi-croscopy (edl-csim). PhotoniX 1 1. doi: 10.1186/s43074-024-00139-2 .[25] Saini, L., Su, Y., Tercan, H., Meisen, T., 2024. Center-point transformer for bev object detection with automotive radar. 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW) , 4451–4460URL: https://api. semanticscholar.org/CorpusID:272915648 .[26] Shi, S., Guo, C., Jiang, L., Wang, Z., Shi, J., Wang, X., Li, H., 2019. Pv-rcnn: Point-voxel feature set abstraction for 3d object detection. 2020 IEEE/CVF Conference on Computer Vision and Pattern Recog-nition (CVPR) , 10526–10535URL: https://api.semanticscholar. org/CorpusID:209516193 .[27] Shi, S., Wang, X., Li, H., 2018. Pointrcnn: 3d object proposal genera-tion and detection from point cloud. 2019 IEEE/CVF Conference on 
+
+Page 10 of 11 Computer Vision and Pattern Recognition (CVPR) , 770–779URL: 
+
+> https://api.semanticscholar.org/CorpusID:54607410
+
+.[28] Team, O.D., 2020. Openpcdet: An open-source toolbox for 3d object detection from point clouds. https://github.com/open-mmlab/ OpenPCDet .[29] Tian, Y., Bai, S., Luo, Z., Wang, Y., Lv, Y., Wang, F.Y., 2024. Mam-baocc: Visual state space model for bev-based occupancy prediction with local adaptive reordering. ArXiv abs/2408.11464. URL: https: //api.semanticscholar.org/CorpusID:271916087 .[30] Vora, S., Lang, A.H., Helou, B., Beijbom, O., 2019. Pointpainting: Sequential fusion for 3d object detection. 2020 IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) , 4603– 4611URL: https://api.semanticscholar.org/CorpusID:208248084 .[31] Wan, R., Meng, W., Zhao, T., Lu, W., 2026. Bridging cross-modal sparsity via adaptive pillar propagation and hierarchical multi-granularity feature distillation for 3d object detection. Neu-rocomputing 665, 132195. URL: https://www.sciencedirect. com/science/article/pii/S092523122502867X , doi: https://doi.org/10. 1016/j.neucom.2025.132195 .[32] Wang, H., Shi, C., Shi, S., Lei, M., Wang, S., He, D., Schiele, B., Wang, L., 2023a. Dsvt: Dynamic sparse voxel transformer with rotated sets. 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 13520–13529URL: https://api. semanticscholar.org/CorpusID:255942736 .[33] Wang, X., Chen, X., Han, J., Zhang, Y., Zheng, D., 2023b. Local-to-global structure prior guided high-precision point cloud registration framework based on fpp. Measurement 214, 112840. URL: https: //www.sciencedirect.com/science/article/pii/S0263224123004049 ,doi: https://doi.org/10.1016/j.measurement.2023.112840 .[34] Wang, X., Hou, J., Liu, Z., Zhu, Y., 2025. Hybrid transformer-mamba model for 3d semantic segmentation. 2025 IEEE/RSJ Interna-tional Conference on Intelligent Robots and Systems (IROS) , 2217– 2223URL: https://api.semanticscholar.org/CorpusID:280018036 .[35] Wang, Z., Chen, Z., Wu, Y., Zhao, Z., Zhou, L., Xu, D., 2024. Pointramba: A hybrid transformer-mamba framework for point cloud analysis. ArXiv abs/2405.15463. URL: https://api. semanticscholar.org/CorpusID:270045264 .[36] Wu, D., Yang, F., Xu, B., Liao, P., Liu, B., 2024. A survey of deep learning based radar and vision fusion for 3d object detection in autonomous driving. ArXiv abs/2406.00714. URL: https://api. semanticscholar.org/CorpusID:270217797 .[37] Xie, Z., Zhao, Y., Zhang, F., Luo, B., Hu, W., Qiu, T., 2025. Mine-ssd: Dual-threshold set abstraction and radius-adaptive group-ing for 3d object detection in open-pit mines. Neurocomputing 657, 131507. URL: https://www.sciencedirect.com/science/article/ pii/S0925231225021794 , doi: https://doi.org/10.1016/j.neucom.2025. 131507 .[38] Yan, Y., Mao, Y., Li, B., 2018. Second: Sparsely embedded convo-lutional detection. Sensors (Basel, Switzerland) 18. URL: https: //api.semanticscholar.org/CorpusID:52957856 .[39] Yang, Z., Sun, Y., Liu, S., Jia, J., 2020. 3dssd: Point-based 3d single stage object detector, in: 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 11037–11045. doi: 10. 1109/CVPR42600.2020.01105 .[40] Zhang, G., Fan, L., He, C., Lei, Z., Zhang, Z., Zhang, L., 2024. Voxel mamba: Group-free state space models for point cloud based 3d object detection. ArXiv abs/2406.10700. URL: https://api. semanticscholar.org/CorpusID:270559452 .[41] Zhang, G., Ji, X., Qiu, B., Cai, Y., Liu, Y., Sui, X., Chen, Q., 2025a. Sfnet: A dual-enhanced rgbt tracker via global-local modality refine-ment and frequency-spatial cross-modal fusion. Optics and Lasers in Engineering 194, 109201. URL: https://www.sciencedirect. com/science/article/pii/S0143816625003860 , doi: https://doi.org/10. 1016/j.optlaseng.2025.109201 .[42] Zhang, X., Li, X., Zhou, M., Gan, M., Chen, C.L.P., 2025b. As-cformer: An adaptive strucure-aware cascaded transformer for 3d object detection. IEEE Transactions on Circuits and Systems for Video Technology URL: https://api.semanticscholar.org/CorpusID: 281498966 .[43] Zhou, G., Jiang, F., Dong, R., Wang, M., Xu, P., 2025. Enhanc-ing point cloud feature utilization for 3d object detection. IEEE Signal Processing Letters 32, 4254–4258. URL: https://api. semanticscholar.org/CorpusID:282634331 .
+
+Page 11 of 11

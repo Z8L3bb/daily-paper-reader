@@ -1,0 +1,446 @@
+Title: Super-Resolution of Airborne Laser Scanning Point Clouds for Forest Inventory
+
+URL Source: https://arxiv.org/pdf/2605.02201v2
+
+Published Time: Mon, 11 May 2026 00:52:17 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# Super-resolution of airborne laser scanning point clouds for forest inventory 
+
+## Jinyuan Shao a, Sangyoong Park b, Chunxi Zhao b, Ayman Habib b and Songlin Fei a,∗
+
+> a
+
+Department of Forestry and Natural Resources, Purdue University, USA 
+
+> b
+
+Lyles School of Civil and Construction Engineering, Purdue University, USA 
+
+A R T I C L E I N F O 
+
+Keywords :Point Clouds LiDAR Super-Resolution Deep Learning Forest 
+
+A B S T R A C T 
+
+Airborne Laser Scanning (ALS) can collect point clouds across large areas, enabling large-scale forest inventory. However, ALS point clouds are sparse and noisy, resulting in inaccurate individual-tree-level forest inventory, such as stem localization and tree size estimation. To overcome this problem, we propose a deep learning model, 3D Forest Super Resolution (3DFSR), to simultaneously improve point density and reduce noise for ALS forest point cloud. 3DFSR is a voxel-based Convolutional Neural Network (CNN) with a U-Net architecture. The proposed 3DFSR is evaluated on ALS point clouds collected in both temperate forests in the U.S. and boreal forests in Germany. Terrestrial Laser Scanning (TLS) and Mobile Laser Scanning (MLS) point clouds are used as references to evaluate the performance. Experimental results demonstrate that 3DFSR can generate finer point clouds of tree structure than other state-of-the-art point cloud super-resolution algorithms, achieving 0.249 m Chamfer Distance and 2.711 m Hausdorff Distance. Furthermore, to verify the effectiveness of super-resolution point clouds in forest inventory, we conduct experiments of stem detection, diameter at breast height (DBH) measurements, and stem reconstruction on both original ALS point clouds and 3DFSR enhanced point clouds. We find that stem detection and reconstruction algorithms developed for TLS/MLS point clouds can directly work on our 3DFSR point clouds, and DBH can be derived with circle-fitting method from the 3DFSR point cloud. F1 score of stem detection is improved from 0.71 on original ALS point clouds to 0.97 on super-resolution point clouds; DBH estimation improves from 13.45 cm Root Mean Square Error (RMSE) using allometric equations to 6.43 cm using circle fitting; comparing to stems reconstruction from MLS point clouds, stem reconstructed from 3DFSR point clouds has 0.170 m of Chamfer Distance and 0.377 m of Hausdorff Distance, and 0.95 R 2 volume estimation. Finally, we find that the proposed 3DFSR is applicable to process point densities from 10 to 1700 points/m 2; it also can be generalized across data collected from different LiDAR platforms without transfer learning. We hope that this study can expand the application of ALS point clouds in forest analysis. 
+
+## 1. Introduction 
+
+Forests are essential to human well-being by regulating climate, storing and cycling carbon, sustaining hydrological and nutrient flows, and providing timber, food and cultural benefits. Yet robust estimation of large-scale ecological and economic values they deliver remains uncertainty because most assessments still rely on coarse plot-scale invento-ries. In addition, rapid global changes are reshaping forest composition, productivity and disturbance regimes, and thus impacting the services and revenues that forests supply. Therefore, to accurately analyze and estimate forest ecolog-ical and economic values and to monitor their changes, it is necessary to obtain timely and spatially explicit individual tree-level forest inventory data. Airborne Laser Scanning (ALS) technique provides an opportunity for large-scale forest inventory. It captures geo-referenced 3D point clouds to represent forests, enabling detailed and nondestructive forest measurements across a large geographic area. ALS has been widely explored for various forest inventory tasks, such as crown delineation, height measurements, species recognition, and biomass es-timation (Dalponte et al., 2014; Wang et al., 2019, 2024; 
+
+> ∗
+
+Corresponding author  
+
+> sfei@purdue.edu
+
+(S. Fei) 
+
+> ORCID
+
+(s): 0000-0003-2772-0166 (S. Fei) 
+
+Oehmcke et al., 2024). These applications demonstrate the capability of ALS for forest inventory, and to provide spa-tially continuous and repeatable measurements across vast regions. However, the low density of ALS point clouds limits further detailed individual-tree-level forest inventory. ALS has a long sensing range to target objects and the reflected laser signal decreases with distance, making it more suscep-tible to noise and potentially leading to inaccurate or missed measurements (Soudarissanane et al., 2011). Although some studies have explored individual-tree-level forest inventory using ALS point clouds (e.g., Parkan and Tuia (2015) used ALS point clouds with 50 points/m 2 for tree segmentation, and Shao et al. (2023) introduced a clustering approach for tree detection on 3DEP (3D Elevation Program) data), ALS data often remain sparse and noisy. Such point dis-tributions frequently result in incomplete representation of trees, especially stems, making it difficult to extract fine-scale structural attributes such as accurate stem locations and diameter at breast height (DBH). This limitation restricts the performance of downstream tasks, including stem mapping and DBH estimation. Enhancing the density and quality of ALS forest point cloud can improve its applicability. Most studies on individual-tree-level inventory focus on the use of close-range sensing platforms such as Terrestrial Laser Scanning (TLS) and 
+
+Shao et al.: Preprint submitted to Elsevier Page 1 of 20 
+
+> arXiv:2605.02201v2 [cs.CV] 8 May 2026 Super-resolution of Forest ALS Point Clouds
+
+Mobile Laser Scanning (MLS) (Liang et al., 2016; Shao et al., 2024). This is because they have relatively short range of sensing to the target objects, so the captured point cloud has high point density and the shape of the tree can be cap-tured well. Research has shown TLS/MLS can achieve more accurate forest inventory results compared to ALS (Kankare et al., 2014; Lin et al., 2022). And the major reason is that a denser and more complete point clouds would provide more information and enable reliable detection of stems and more accurate DBH estimation. Therefore, improving the density of ALS point clouds is a critical step toward scalable and fine-resolution forest inventory at regional to continental scales. There is no super-resolution algorithm developed for ALS point clouds for forest environment. Existing point cloud upsampling or super-resolution methods are primar-ily designed for synthetic objects or vehicle-based urban scenes scanning (Zhang et al., 2022; Nunes et al., 2024), where geometric structures are relatively regular and well-defined. In contrast, forest environments exhibit irregular and unorganized characteristics, with complex interactions among stems, branches, and understory, making them dif-ferent from synthetic objects or urban scenes. In addition, ALS point clouds often have uneven point densities across different parts of a tree, a high level of noise, and sometimes incomplete scannings. Directly applying generic point cloud processing models to ALS forest data may lead predicted point clouds with uneven point distribution with added noise and cannot produce complete tree shapes. Some studies have explored individual tree point cloud completion (Xu et al., 2023; Bornand et al., 2024; Luo et al., 2026); however, they focus specifically on the completion of missing parts and are not applicable to scene-level upsampling and denoising. Consequently, a forest-specific super-resolution algorithm is needed that accounts for challenging forested environments and low-quality ALS point clouds, recovers stem geometry, and enhances structural details while maintaining consis-tency with the original ALS observations. In this study, we propose 3D Forest Super Resolution (3DFSR), a super-resolution algorithm for ALS forest point clouds to achieve more accurate forest inventory. The core concept of this model is to convert coordinate regression problem into voxel occupancy problem. The core module of our algorithm is a sparse convolutional U-Net that generates dense and clean point clouds from sparse and noisy ALS point clouds. Our algorithm can produce super-resolution point clouds whose density is comparable to TLS data and improve the quality and applicability of ALS point clouds. A comprehensive comparison between our algorithm and other representative approaches is conducted on ALS point cloud collected in three plots in temperate forests in the U.S. and two plots in boreal forests in Germany. In addition, we extensively compare the performance before and after point cloud super-resolution in stem detection and DBH estima-tion; and verify its potential on stem reconstruction. Finally, we validate the model’s capability regarding input point density by downsampling high-resolution UAV LiDAR data to different point densities; and explore its generalization across LiDAR platforms. To the best of our knowledge, this is the first study to explore super-resolution for scene-level ALS forest point clouds. 
+
+## 2. Related work 
+
+In this section, we review the research on retrieving forest attributes using ALS point clouds. Then, we introduce the related work on point cloud super-resolution. 
+
+2.1. ALS point clouds for forest inventory 
+
+Research using ALS for individual-tree-level forest in-ventory can be categorized as implicit predictions and ex-plicit measurements. 
+
+Implicit predictions. Implicit predictions take a point cloud or its attributes as input, and build a regression re-lationship to predict biometrics, such as number of trees, height, DBH, stem volume and biomass. Salas et al. (2010); Jucker et al. (2017) developed allometrtic models using tree height and crown diameter from ALS point clouds to estimate individual tree’s diameter or biomass. Apostol et al. (2020) developed a linear regression model to predict DBH with ALS derived height and crown diameter. Yu et al. (2011) used a Random Forest to predict single tree’s height, DBH, and stem volume with attributes extracted from tree point clouds. Briechle et al. (2020); Wang et al. (2024) devel-oped deep learning models to classify tree species. Oehmcke et al. (2022, 2024) used deep learning methods to predict biomass, wood volume, and carbon stocks for the entire forest from ALS point cloud. To achieve implicit predictions, annotated data are needed to train the model. In addition, for forest-level inventory, such as stem mapping, implicit predictions cannot provide explicit locational information (e.g., tree locations) 
+
+Explicit measurements. Explicit measurements directly detect or fit biometrics from point clouds. There have been a lot of studies showing tree height can be directly measured from ALS point clouds (Erfanifard et al., 2018; Wang et al., 2019; Lin et al., 2022), as laser pulses are not occluded before they encounter the tree top, so there is a relatively accurate height value (Wang et al., 2019). For number of trees, explicit methods conduct individual tree detection based on crown segmentation. For example, Li et al. (2012) develop an algorithm for individual tree segmentation based on geometry relationship between trees. Duncanson et al. (2014); Apostol et al. (2020) utilize CHM to detect indi-vidual trees. The problem of crown-based methods is that they cannot deal with suppressed trees under dominant or co-dominant trees (Cao et al., 2023). Detecting stems can solve this problem, Hyyppä et al. (2022) develop a direct measurement method to detect arcs to conduct stem detection. Amiri et al. (2017) develop a shape descriptors based method to detect single tree stems. However, due the sparsity of ALS point clouds, more detailed attributes, such as DBH, cannot be directly measured from ALS point clouds like TLS point clouds.   
+
+> Shao et al.: Preprint submitted to Elsevier Page 2 of 20 Super-resolution of Forest ALS Point Clouds
+
+In summary, both implicit predictions and explicit mea-surements have been used for individual-tree-level forest inventory, but implicit predictions often are supervised and need additional reference data to fit models, while explicit measurements are unsupervised without model fitting so attributes can be directly derived from point cloud itself. However, studies have shown that sparse ALS point clouds result in less accurate of tree inventory (Kankare et al., 2014; Lin et al., 2022). Therefore, increasing ALS point cloud den-sity can potentially improve forest inventory performance. 
+
+2.2. Point cloud super-resolution 
+
+Point cloud super-resolution, also known as point cloud upsampling, is one of the fundamental point cloud analysis tasks. It takes the low-resolution point cloud as input and generates a high-resolution point cloud with details. Existing methods can be divided into geometry-based and learning-based. 
+
+Geometry-based. Early works resample points from surfaces reconstructed from sparse points to achieve up-sampling. For example, Alexa et al. (2003) interpolates points at vertices of Voronoi diagram in the local tangent space. Lipman et al. (2007); Huang et al. (2009) present and adapt locally optimal projection (LOP) operator for surface reconstruction so that point cloud can be upsampled. Further, Huang et al. (2013) propose an edge-aware method to resample points from edges to corners, with the help of normal (a vector perpendicular to the surface). Geometry-based methods often unsupervised, meaning it does not need additonal data to train models. However, geometry-based methods heavily relies on the accuracy of the normals at given points and geometric priors. 
+
+Learning-based. Learning-based point cloud upsam-pling methods have been widely explored in recent years. Yu et al. (2018) first developed PU-Net for point cloud up-sampling task. PU-Net extracts multi-scale features for each point and expands them to achieve the target upsampling ra-tio, and then reconstructs point coordinates from feature lay-ers. Following this pattern of feature expansion, subsequent methods have achieved better results (Li et al., 2019; Yifan et al., 2019; Li et al., 2021; Rong et al., 2024). Yifan et al. (2019) developed a network to progressively expand feature layers and the point cloud is upsampled gradually; Li et al. (2021) proposed a spatial refiner after feature expansion for detailed coordinate reconstruction. Another kind of method first conducts unsupervised interpolation on a sparse point cloud, and then refines the coordinates for the interpolated point cloud. The pioneering work is Grad-PU, which first proposes a midpoint interpolation method and then develops a distance regressor for coordinate optimization (He et al., 2023). Subsequent studies focus on improving coordinate optimization. For example, PUDM is a conditional denois-ing diffusion probabilistic model for point cloud upsampling based on interpolated points (Qu et al., 2024); Liu et al. (2025) proposed a flow matching approach to upsample point clouds. One of the advantages of this method is that it can achieve arbitrary number of points for upsampling, avoiding the upsampling module design (He et al., 2023). Overall, geometry-based methods are unsupervised but heavily rely on prior knowledge; learning-based methods have shown great potential, but their performance is un-known on ALS point clouds with uneven density and high noise, especially in forest environments with irregular shape of trees and unordered structures, which limits the potential of using ALS point clouds to conduct detailed forest inven-tory. 
+
+## 3. Materials 
+
+We describe the data used in this section, including study sites, data collection and attributes, dataset creation, and reference data. 
+
+3.1. Study sites 
+
+Five plots are selected to conduct our research, three of which are in the U.S. and two in Germany. Plot I, II and III are located in West Lafayette, Indiana, USA, and Plot IV and V are located in Baden-Wuerttemberg, Germany. 
+
+Plot I. Plot I (40 °25’54"N 87 °02’24"W) is a black wal-nut ( Juglans nigra ) plantation established in 2007, which is located in West Lafayette, Indiana, USA.There are 92 trees in this plantation with a maximum height of 26.3 m and an average DBH of 39.10 cm. It has regular planting pattern on a 5 X 5 m spacing and there is no understory vegetation, so it is a forest with a simple structure. 
+
+Plot II. Plot II (40 °25’43"N 86 °56’15"W) is a forest research park located on the edge of the Purdue University campus. It has area of 24 ha of natural forest with mixed deciduous overstory trees and some understory vegetation. We selected a plot with 20 m radius as one of our study sites. In this plot, there are 16 trees with oak ( Quercus spp.) and beech ( Fagus grandfolia ) as the main species. The maximum tree height is 35 m and the average DBH is 37.06 cm. 
+
+Plot III. Plot III (40 °26’14"N 87 °02’12"W) is located at Martell Forest in West Lafayette, IN, US. This is a natural forest with an area of 8 ha. It has at least 20 overstory tree species. We select an area with 70 by 150 m. In this plot, there are overall 75 trees with an average DBH of 34.5 cm, and a maximum height of about 40 m. This is a temperate natural forest with a dense understory and complex structure. 
+
+Plot IV. Plot IV (49 °01’01"N 8 °41’12"E) is located in Bretten, Baden-Wuerttemberg, Germany. In this area, we select a plot of 45 m radius. It is a coniferous forest and contains only Douglas fir ( Pseudotsuga menziesii ). The maximum tree height is around 52 m and the average DBH is 69.21 cm. The terrain has an 8 degree slope. More information can be found in Weiser et al. (2022) 
+
+Plot V. Plot V (49 °01’47"N 8 °25’08"E) is located in Karlsruhe, Baden-Wuerttemberg, Germany. We also select square plot with 45 by 45 m. This is a mixed forest with both conifers and deciduous trees, with pine ( Pinus spp.) and oak as the main species. The maximum tree height is around 30 m and the average DBH is 54.6 cm. Detailed in formation can be found in Weiser et al. (2022).                                      
+
+> Shao et al.: Preprint submitted to Elsevier Page 3 of 20 Super-resolution of Forest ALS Point Clouds
+> Table 1
+> Study sites and their information.
+> Country Forest type Dominant species # of stems Stem density (stems/ha) Avg. DBH (cm) Plot I U.S. Plantation Black walnut 91 116 39.10 Plot II U.S. Mixed deciduous Oak; beech 30 480 37.09 Plot III U.S. Mixed deciduous Oak; maple 80 320 34.50 Plot IV Germany Coniferous Douglas fir 944 69.21 Plot V Germany Mixed Pine; oak 11 52 54.60 Plot1 Plot2 Plot3 Plot5  Plot4
+
+ALS point clouds  TLS/MLS point clouds  
+
+> Figure 1: Examples of ALS and TLS/MLS LiDAR point clouds used in this study.
+
+3.2. Data collection 
+
+We introduce data collection of low-resolution ALS data and high-resolution TLS/MLS data used in this study. Fig. 1 shows examples of ALS and TLS/MLS point clouds data for each plot, and Tab. 2 presents their attributes. 
+
+3.2.1. ALS data collection. 
+
+ALS data for Plot I, II and III were collected by the ALS system developed by VeriDaas Corporation (Denver, CO, USA). This system contains a Geiger-mode LiDAR sensor and an Applanix POS AV 610 for direct georeferencing. The Geiger-mode LiDAR sensor consists of arrays of Geiger-mode Avalanche Photodiode (GmAPD) detectors. Each of the GmAPD detectors is capable of detecting the return signal with a few photons Clifton et al. (2015). The extreme sensitivity of GmAPD detectors allows the design of LiDAR systems that operate at a lower energy, higher altitude, and faster flying speed, and acquire measurements in a much higher density compared to linear LiDAR systems. The VeriDaaS system has an array of 32 by 128 GmAPD de-tectors, which effectively collects 204,800,000 observations per second with a pulse repetition rate of 50 kHz. The use of a Palmer scanner, together with a 15-degree scan angle of the laser and scan pattern of a 50% swath overlap, enables multi-view data collection. The data were collected in leaf-off season December 2021 at a height of around 3700 m elevation. The final data product has an overall point density of 150 points/m 2.ALS data for Plot IV and V were acquired using a RIEGL VQ-780i full-waveform laser scanning system mounted on a Cessna C207 aircraft. The flight missions were conducted on 5 July 2019 under leaf-on conditions, consisting of par-allel flight strips supplemented by two orthogonal cross strips to ensure uniform coverage. The point clouds were georeferenced to ETRS89 / UTM zone 32 (EPSG:25832) with ellipsoidal heights (GRS80). More details can be found in Weiser et al. (2022). 
+
+3.2.2. TLS/MLS data collection. 
+
+The high-resolution data for Plot I, II, and III were col-lected using an MLS backpack system, Hovermap ST, devel-oped by Emesent. It is equipped with a 16 channels Velodyne LiDAR sensor with range from 0.4-100 m. To obtain a high-quality point cloud without occlusion, we walked through the forest with a zigzag trajectory and turned around at the edge of the forest to cover the target area when collecting data. The final data product was not georeferenced, so we manually registered it with the ALS data described above. The detailed characteristics of the data are shown in Tab 2. High-resolution data for Plot IV and V were collected using a RIEGL VZ-400 terrestrial laser scanner (1550 nm wavelength, 0.3 mrad beam divergence) operated at 300 kHz   
+
+> Shao et al.: Preprint submitted to Elsevier Page 4 of 20
+
+Super-resolution of Forest ALS Point Clouds 
+
+Table 2 
+
+Data characteristics of low-resolution of ALS and high-resolution TLS/MLS data. ALS TLS/MLS Sensor type Flying height (m) Data acquisition time Avg. point density (pts/m 2) Sensor type Range (m) Data acquisition time Avg. point density (pts/m 2)Plot I Geiger-mode 3700 12/12/2021 102 MLS 100 9/5/2024 7122 Plot II Geiger-mode 3700 12/12/2021 185 MLS 100 3/2/2023 6032 Plot III Geiger-mode 3700 12/12/2021 190 MLS 100 3/4/2024 8451 Plot IV Liner-mode 140 7/5/2019 134 TLS 600 7/4/2019 46321 Plot V Liner-mode 300 7/5/2019 148 TLS 600 7/30/2019 46478 
+
+PRF with 0.017 ° angular resolution. The scanner was de-ployed at 5–8 scan positions per survey, regularly distributed around selected target trees within target forest plots, with occasional tilted scans to capture full tree height; cylindrical and circular reflectors were installed for multi-scan regis-tration. Initial georeferencing was performed using RTK-GNSS measurements from one main scan position and one tie point, followed by tie-point registration and ICP-based refinement in RiSCAN PRO. Because GNSS accuracy under canopy was limited, the TLS point clouds were further geo-referenced by registering them to ULS point clouds via tree matching and ICP alignment, including height-offset correc-tion, to achieve accurate spatial positioning. Data collection were conducted between June and September 2019 under leaf-on conditions. More details can be found in Weiser et al. (2022). 
+
+3.3. Datasets for super-resolution 
+
+A high quality dataset is the prerequisite to train high performance deep learning models. In this study, the mode input is defined as low-resolution point cloud, and the out-put is defined as super-resolution point cloud which stems from high-resolution TLS/MLS point cloud. Therefore, low-resolution and high-resolution point clouds need to be spa-tially matched. Although they are already georeferenced during the data collection, to make sure the dataset quality, we manually conducted ICP using CloudCompare to make sure these two kinds of point clouds are spatially matched. In addition, due to differences between ALS and TLS/MLS data collection, TLS/MLS data often have very dense un-derstory points, while ALS data don’t due to the occlusion of the canopy. Our major goal is to recover existing ALS points, so the understory points collected from TLS/MLS need be excluded. Therefore, we use the method proposed by Shao et al. (2026) to remove understory points, because we want to make model learn how to improve existing ALS points, instead of imaging the structure of the understory vegetation. It should be noted that none of the testing data are used during the model training. All data described in 3.2 are for testing, and training data are from other areas described in Shao et al. (2024) and Weiser et al. (2022). 
+
+3.4. Field measurements 
+
+For Plot I, II and III, tree locations are recorded by RTK in the field. Then they are imported to CloudCompare and visually check the locations with georeferenced MLS point cloud data. DBH is measured using a diameter tape at 1.37 m (4.5 ft) above ground. For Plot IV, and V, tree locations are defined as the intersection of the stem centerline with the ground surface and derived by slicing the lowest part of the TLS point clouds to estimate the stem center in the x–y plane, and results are visually checked and corrected when necessary. DBH is measured in the field at 1.3 m above ground using a DBH tape. Crown diameter is estimated from the dripline of the crown, measured in two orthogonal directions using a Haglöf Vertex-IV hypsometer, and averaged to obtain the final crown diameter. 
+
+## 4. Method 
+
+A deep learning model is developed to generate super-resolution point clouds. In this section, we introduce the model’s architecture and training details. 
+
+4.1. 3DFSR 
+
+We develop an octree-based UNet model to predict super-resolution point clouds. This method converts point cloud into octree, and learns features via octree-based CNN, then generates points on octree. Unlike other techniques that upsample and denoise separately, it simultaneity conducts denoising and upsampling. Fig. 3 shows details of 3DFSR model architecture. 
+
+Octree construction. We first construct an octree on the input point cloud. Octree is a hierarchical tree data structure used to partition 3D space by recursively subdividing a volume into eight smaller child nodes. Each tree has a root node and eight child nodes, and each child node can serve as the root node of the next level of the octree (Meagher, 1982). Therefore, the core of building an octree is to determine the root node and the child nodes. Fig. 2 shows an illustration of an octree construction for a forest point cloud. We first calculate the bounding box of the input point cloud, which serves as the root node of the octree; then, we divide the point cloud that belongs to the root node into eight cubes of equal size, called octants. Each octant is considered as a child node that belongs to the current root node. Then, for each non-empty octant, we conduct the same discipline of construction, i.e., divide the octant into eight child octants again, and regard each octant as a child node. The depth of the octree increases by 1 with each octree division. To achieve a balance between computational efficiency and point density, we use a depth of 8 in this study. 
+
+Encoder. The encoder follows a bottom-up hierarchical feature extraction process. At the coarsest resolution (depth 
+
+𝐷 ), a 1 × 1 × 1 octree convolution projects the raw input 
+
+Shao et al.: Preprint submitted to Elsevier Page 5 of 20 Super-resolution of Forest ALS Point Clouds 
+
+Figure 2: Octree-based voxelization. Conv 1x1x1 
+
+> Group Norm
+> ReLU
+> Conv 3x3x3
+> Group Norm
+> ReLU
+> Conv 1x1x1
+> Group Norm
+> ReLU
+> Addition
+> Octree based
+> residual block
+> Skip
+> connection
+> Input octree
+> Output octree
+> Ls
+> Lr
+
+Figure 3: Model architecture of 3DFSR. 
+
+features into a higher-dimensional latent space. Each level then applies two residual residual blocks, where each resid-ual block consists of three consecutive octree convolutions with group normalization and ReLU activation, plus a skip connection that adds the block input to its output. This design helps stabilize training and preserves fine-grained geometry features. Between successive depths, we use downsampling blocks implemented as octree convolutions with kernel size 
+
+2 and stride 2. These blocks halve spatial resolution while increasing the dimensionality of the features, effectively ag-gregating the context of a larger receptive field. The resulting encoder representation captures both local shape details and global structural patterns. 
+
+Decoder. The decoder reconstructs high-resolution rep-resentations through a symmetric top-down pathway. For each depth level, we first use an upsampling block imple-mented as an octree transposed convolution with kernel size 
+
+2 and stride 2 to double the spatial resolution. The upsampled features are then fused with encoder features from the cor-responding depth of octree. This preserves high-frequency details that may otherwise be lost during downsampling. The fused features are refined by another residual block to improve spatial consistency before producing predictions. It 
+
+Shao et al.: Preprint submitted to Elsevier Page 6 of 20 Super-resolution of Forest ALS Point Clouds 
+
+should be noted that the skip connection happens on nodes are non-empty on both encoder and decoder. At each octree level, a shared prediction module decides whether a node is empty or occupied. Nodes identified as non-empty are sub-divided into eight octants, and their features are passed down to the child nodes. This process is repeated until the target octree depth is reached. At the finest level, displacements are predicted for each non-empty node to represent the final geometry. 
+
+Loss. In terms of the loss function, we combined struc-ture loss and regression loss, denoted as Ls and Lr. The structure loss is to optimize the existing nodes of the octree, while the regression loss is to optimize the overall shape of the point cloud. 
+
+𝐿 =
+
+> 𝑑
+
+∑
+
+> 𝑙 =2
+
+𝐿 𝑙 𝑠 + 𝐿 𝑟 , (1) 
+
+4.2. Model training 
+
+Training large point cloud scenes requires a significant amount of memory, which can exceed the capacity of GPUs. Therefore, dividing the entire point cloud scene into smaller blocks makes the training process computationally feasible. We split the entire point cloud scene into blocks with a spatial size of 10 m ×10 m ×10 m. Each of the blocks can be seen as an input data sample for deep learning models. For each block, we normalize its coordinates to [-1, 1] 3 while keeping its shape and relative distances between the points. Specifically, we first move the block to the origin (0,0,0) by subtracting its centroid, then we divide all points by half of its bounding box size (5 m in this case). Point cloud coordinates normalization is a common preprocessing step for neural networks (Shao et al., 2026). Since the learnable network parameters are randomly initialized in such a way that the distribution of the input data is preserved in the output, that preprocessing leads to faster convergence during optimization. During model training, we use the AdamW optimizer to update the parameters with initial learning rate of 0.0005 and weight decay of 0.05. In addition, we use lambda learning rate to adjust the learning rate during training. We train our model with 2000 epochs, and use early stop technique to choose the best model (model that has best performance on validation set). 
+
+## 5. Experiments and Results 
+
+In this section, we introduce six experiments to verify model’s performance from different perspective, including super-resolution quality, stem detection, DBH estimation, stem reconstruction, effects on point density variation, and model transferability. For each experiment, we first intro-duce baselines and evaluation metrics being used, and then present experimental results. 
+
+5.1. Super-resolution quality 
+
+5.1.1. Experimental setting 
+
+We use a set of methods and metrics to conduct this experiment to evaluate the quality of super-resolution, For baselines, we choose bilinear interpolation, PU-Net, GradPU. Bilinear interpolation is a kind of unsupervised method for point cloud super-resolution, PU-Net is the pioneer work to do point cloud upsampling with deep learning using feature expansion, and GradPU is representative work that follows paradigm of interpolation-refinement. All algorithms men-tioned above and the proposed 3DFSR are run on the five plots mentioned in Section 3.1. It should be noted that PU-Net and GradPU can only achieve upsampling by a fixed rate ( i.e. , four times in this experimental setting), while 3DFSR produces output with a fixed voxel size, without requiring the upsampling rate to be set. Therefore, to ensure a fair comparison, we downsample the output point cloud of 3DFSR to four times the number of input points. In terms of metrics, we use the Chamfer distance and Hausdorff distance. These metrics are commonly used to evaluate the similarity between two point clouds, where lower values indicate better reconstruction quality. 
+
+5.1.2. Super-resolution results 
+
+Super resolution results using different methods for five plots are shown in Fig. 4 and Fig. 5. Overall, naive models can produce super-resolution point clouds, but have bet-ter results after using forestry data to train. The proposed 3DFSR results are visually closest to the reference data, exhibiting clean and uniform distributed point clouds with smooth ground and complete shapes of tree. Both bilinear interpolation and GradPU show artifacts and discontinuities of stems, and there are still noisy points, but perform well on ground points. PUNet produces point clouds with less discontinuities and relatively uniform point distribution, but they are noisy in both ground and trees compared to the other three methods. Super resolution results at the single-tree level are shown in Fig. 6. From Plot I to V, black walnut, oak, maple ( Acer 
+
+spp.), fir ( Abies spp.), and pine are selected to represent the dominant species. 3DFSR can have complete tree shapes for all species. More importantly, only 3DFSR can produce complete circular shape of cross sections for stems, while other three barely recover cross sections and keep the origi-nal ALS point patterns. We report quantitative results in Tab. 3 with different algorithms on five plots. The proposed 3DFSR consistently achieves the best performance in all plots for both Chamfer Distance (0.410, 0.254, 0.249, 0.328, and 0.263, respec-tively) and Hausdorff Distance (5.735, 2.741, 2.921, 3.051 and 4.888, respectively). bilinear interpolation obtains the highest Chamfer Distance and Hausdorff Distance in Plot I; 3DFSR obtains the lowest Chamfer Distance in Plot III and lowest Hausdorff Distance in Plot II. Among all four baselines, bilinear interpolation and GradPU obtain similar Chamfer Distance and Hausdorff Distance in all five plots, e.g., 0.592 and 0.577 Chamfer Distance in Plot I, and 4.001   
+
+> Shao et al.: Preprint submitted to Elsevier Page 7 of 20 Super-resolution of Forest ALS Point Clouds
+
+## Plot I  Plot III 
+
+> ALS input PU -Net  (naive) GradPU  (naive) Reference
+
+## Plot II  Plot V Plot IV                                                       
+
+> Figure 4: Super-resolution results obtained from naive models of PU-Net and GradPU in five plots.
+> Table 3
+> Super-resolution quality comparison between different methods. The proposed 3DFSR achieves best Chamfer Distance (CD) and Hausdorff Distance (HD).
+> Plot I Plot II Plot III Plot IV Plot V CD HD CD HD CD HD CD HD CD HD Interpolation 0.591 10.969 0.526 4.403 0.348 4.001 0.581 6.170 0.515 4.946 PU-Net 0.452 7.699 0.294 3.441 0.427 4.703 0.343 6.864 0.453 5.056 GradPU 0.577 10.970 0.514 4.426 0.337 4.039 0.542 6.170 0.485 4.950 3DFSR (Ours) 0.410 5.735 0.254 2.741 0.249 2.921 0.328 3.051 0.263 4.888
+
+and 4.039 Hausdorff Distance in Plot III. PU-Net generally gets lower Chamfer Distance and Hausdorff Distance than bilinear interpolation and GradPU in four plots except for Plot III, but still higher than 3DFSR. 
+
+5.2. Stem detection 
+
+5.2.1. Experimental setting 
+
+In this experiment, we explore how super-resolution point clouds can improve the performance of stem detec-tion. We run stem detection algorithms developed for ALS and TLS/MLS, respectively, on both original ALS point clouds and corresponding super-resolution point clouds. For ALS stem detection method, we use stem detection function in Digital Forestry Toolbox (DFT) developed by Parkan (2018). It follows the hypothesis that the point density of a stem position is higher than that in the surrounding area to detect stems. For TLS/MLS stem detection method, we use LeSSO developed by Shao et al. (2026). This is a stem detection algorithm by detecting circle shapes on the cross section at breast height. We conduct this experiment in the five plots mentioned in Section 3.4. For stem detection metrics, we use True Positive (TP), False Positive (FP), False   
+
+> Shao et al.: Preprint submitted to Elsevier Page 8 of 20 Super-resolution of Forest ALS Point Clouds
+
+## Plot I  Plot III 
+
+> ALS input Interpolation PU -Net GradPU 3DFSR 4X (ours) 3DFSR (ours) Reference
+
+## Plot II  Plot V Plot IV  
+
+> Figure 5: Super-resolution results with different methods in five plots.
+
+Negative (FN), completeness, omission, commission and F1 score. 
+
+5.2.2. Stem detection results 
+
+We present stem mapping results obtained using the ALS-based DFT toolbox on both the original ALS point clouds and the super-resolution point clouds in Tab. 4, and results of TLS/MLS-based method, LeSSO, in Tab. 5. Since   
+
+> Shao et al.: Preprint submitted to Elsevier Page 9 of 20 Super-resolution of Forest ALS Point Clouds
+
+Walnut (plot I)  Maple (plot III) 
+
+> ALS input Interpolation PU -Net GradPU 3DFSR (ours) Reference
+
+Oak (plot II)  Pine (plot V) Fir (plot IV)  
+
+> Figure 6: Super-resoltuion results with different methods on single trees of dominant species in five plots.
+
+LeSSO is designed for high-density point clouds, it is only applied to the super-resolution data. For the results obtained with the DFT toolbox, the over-all performance shows marginal changes when moving from the original ALS data to the super resolution point clouds, with F1 score from 0.71 to 0.70. In terms of completeness, Plot I and Plot IV both achieve 1.00 for both data types, Plot III decreases slightly from 0.78 to 0.76, while Plot II and Plot V show improvements (from 0.67 to 0.76 and from 0.91 to 1.00, respectively). On the original ALS point clouds, the method produces a large number of FP, leading to high commission errors. On the super-resolution point clouds with higher point density, it generates more FP in four out of five plots, resulting in further increased commission errors. In terms of F1 scores, Plot I and III decrease slightly, while Plot II, IV, and V show improvements. LeSSO achieves higher performance (0.97 F1) than the DFT toolbox on the super-resolution point clouds (0.70 F1), but fails to produce results on the original ALS point clouds. Except for slightly lower completeness and higher omission in Plot V, LeSSO performs better (Plot I, II, and III) or similarly (Plot IV) than the DFT toolbox across all other metrics on the super-resolution point clouds. In addition to higher TP counts, the most notable difference is that LeSSO produces fewer FP than the DFT toolbox. As a result, LeSSO achieves completeness values ranging from 0.84 to 1.00 across all five plots, with low commission errors in most cases (0.00–0.09 in Plot I, II, III, and V, while Plot IV remains at 0.25). The corresponding F1 scores are higher than those of the DFT toolbox, reaching 1.00 in Plot I and exceeding 0.90 in Plot II, III, and V.   
+
+> Shao et al.: Preprint submitted to Elsevier Page 10 of 20
+
+Super-resolution of Forest ALS Point Clouds 
+
+Table 4 
+
+Stem detection results using ALS-based method, DFT (Digital Forestry Toolbox), on both original ALS and SR ALS point clouds. ALS-based method can detect stems on both original ALS and SR point clouds, and obtain similar performance. ALS-based method on ALS point clouds ALS-based method on super-resolution ALS point clouds TP FP FN Completeness Omission Commission F1 TP FP FN Completeness Omission Commission F1 Plot I 91 54 0 1.00 0.00 0.37 0.77 91 60 0 1.00 0.00 0.40 0.75 Plot II 20 9 10 0.67 0.33 0.31 0.68 23 12 7 0.76 0.23 0.34 0.71 Plot III 62 47 18 0.78 0.23 0.43 0.66 61 59 19 0.76 0.24 0.49 0.61 Plot IV 9 4 0 1.00 0.00 0.31 0.82 9 3 0 1.00 0.00 0.25 0.86 Plot V 10 13 1 0.91 0.09 0.57 0.59 11 9 0 1.00 0.00 0.45 0.71 Overall 192 127 29 0.87 0.13 0.40 0.71 195 143 26 0.88 0.12 0.42 0.70 Plot I  Plot II  Plot III  Plot IV  Plot V 
+
+Figure 7: DBH estimation with original ALS point clouds using allometric equations. 
+
+Table 5 
+
+Stem detection results using MLS-based method, LeSSO, on SR ALS point clouds. MLS-based method cannot detect stems on original ALS point cloud, but can produce results on SR point clouds. TLS/MLS-based method on super-resolution ALS point clouds TP FP FN Completeness Omission Commission F1 Plot I 91 0 0 1.00 0.00 0.00 1.00 Plot II 26 0 4 0.84 0.16 0.00 0.91 Plot III 76 1 4 0.95 0.05 0.01 0.97 Plot IV 9 3 0 1.00 0.00 0.25 0.86 Plot V 10 1 1 0.91 0.09 0.09 0.91 Overall 212 5 9 0.96 0.04 0.02 0.97 
+
+5.3. DBH estimation 
+
+5.3.1. Experimental setting 
+
+In this experiment, we explore how super-resolution point clouds influence DBH estimation. For DBH estimation from ALS point clouds, previous studies commonly apply the implicit method, i.e. allometry equations. And for point clouds with a clear circle shape on the cross section, circle fitting is the common method. Therefore, for original ALS point clouds, we use allometry equation to estimate DBH; for corresponding super-resolution point clouds, we use circle fitting results to estimate DBH. This experiment is also conducted on the five plots mentioned in 3.4. To evaluate the accuracy of DBH estimation, we use bias, Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and R 2.
+
+Table 6 
+
+DBH estimation results on ALS point clouds with allometric equations. Bias (cm) MAE (cm) RMSE (cm) R2
+
+Plot I 8.75 9.12 10.60 0.82 Plot II 5.97 9.47 11.71 0.88 Plot III 9.70 14.38 17.33 0.59 Plot IV 11.77 11.77 13.26 0.83 Plot V 4.84 8.32 10.33 0.77 Overall 8.50 10.92 13.45 0.76 
+
+Table 7 
+
+DBH estimation results on super-resolution ALS point clouds with circle fitting. Bias (cm) MAE (cm) RMSE (cm) R2
+
+Plot I -2.94 4.53 5.89 0.47 Plot II -2.86 4.87 5.85 0.92 Plot III -0.89 5.02 6.78 0.85 Plot IV 4.26 4.83 5.94 0.92 Plot V -3.02 6.01 9.31 0.84 Overall -1.90 4.84 6.43 0.87 
+
+5.3.2. DBH results 
+
+The relationship between the estimated DBH derived from the original ALS point clouds using allometric equa-tions and the reference DBH in Fig. 7, and detailed quanti-tative metrics are reported in Tab. 6. Across the five plots, the allometry-based method shows biases between 4.84 and 11.77 cm, MAE ranging from 8.32 to 14.78 cm, and RMSE 
+
+Shao et al.: Preprint submitted to Elsevier Page 11 of 20 Super-resolution of Forest ALS Point Clouds Plot I  Plot II  Plot III  Plot IV  Plot V  
+
+> Figure 8: DBH estimation with super-resolution ALS point clouds using circle fitting.
+
+from 10.33 to 17.33 cm. Fig. 7 exhibits a certain degree of overestimation, which is consistent with the positive bias values reported in Tab. 6. The R 2 values range from 0.59 to 0.88, indicating moderate to strong correlations depending on the plot conditions. Correspondingly, we present scatter plots of DBH ob-tained from super-resolution ALS point clouds using circle fitting, and show quantitative results in Tab. 7. In general, the differences between the estimated DBH based on super-resolution ALS and the reference values are smaller than those obtained with the allometry-based method (Tab. 6 and Tab. 7). MAE is improved from 10.92 to 4.84 cm, and RMSE is changed from 13.45 to 6.43 cm. The biases range from -3.02 to 4.26 cm across the five plots, with only one plot showing a positive bias (4.26 cm). The MAE values range from 4.53 to 6.01 cm, and the RMSE values range from 5.85 to 9.31 cm, which is consistent with the fact that most samples lie close to the identity line in Fig. 8. The R 2 values reach 0.92 in Plot II and IV and remain above 0.84 in most plots, except for Plot I (0.47). 
+
+5.4. Stem reconstruction 
+
+5.4.1. Experimental setting 
+
+To further verify whether super-resolution point clouds can be used to obtain more detailed attributes, we recon-struct stems on both super-resolution point clouds and high-resolution MLS point clouds. If stems can be reconstructed from super-resolution point clouds and reconstructed stems have similar geometry with stems reconstructed from high-resolution point clouds, it means super-resolution point clouds can be used for stem analysis. For reconstruction method, we choose Sector Median Points (SMP) proposed by Shao et al. (2026). SMP has been proven to have the capa-bility to reconstruct precise stem shapes on TLS/MLS point clouds. To see the difference between stems reconstructed from super-resolution point clouds and high-resolution point clouds, we first compare geometry quality using Chamfer Distance and Hausdorff Distance, and then show stem volume differences using MAE, RMSE and R 2. It should be noted that SMP was developed for temperate deciduous trees, so we select Plot I, II, III to conduct this experiment, as Plot IV and V are coniferous or mixed coniferous.                          
+
+> Table 8
+> Stem reconstruction performance in terms of Chamfer Distance (CD), Hausdorff Distance (HD), Mean Absolute Error (MAE), Root Mean Square Error (RMSE) and R 2computed by recon-structed stems from MLS point clouds and super-resolution point clouds. CD (m) HD (m) MAE (m 3)RMSE (m 3)R2
+> Plot I 0.117 0.225 0.11 0.22 0.98 Plot II 0.206 0.427 0.15 0.22 0.95 Plot III 0.220 0.535 0.12 0.18 0.80 Overall 0.170 0.377 0.13 0.20 0.96
+
+5.4.2. Stem reconstruction results 
+
+Stem reconstruction using MLS point clouds and super-resolution point clouds are shown in Fig. 9; and the qual-itative results are reported in Tab. 8. Experimental results show that the super-resolution point clouds can be success-fully used to reconstruct stems. For the geometric evalua-tion, the Chamfer Distance and Hausdorff Distance indicate that reconstructed stems from super-resolution point clouds match those from MLS point clouds. Specifically, the overall Chamfer Distance and Hausdorff Distance are 0.170 m and 0.377 m, respectively. Among the three plots, Plot I achieves the best performance with 0.117 m of Chamfer Distance and 0.225 m of Hausdorff Distance, while Plot III shows the largest discrepancy with 0.220 m of Chamfer Distance and 0.535 m of Hausdorff Distance. In terms of stem volume estimation, we plot the relationship in Fig. 10, stems recon-structed from super-resolution point clouds have consistent volume with stems reconstructed from high-resolution MLS point clouds. The overall MAE and RMSE are 0.13 m 3 and 0.20 m 3, and R 2 reaches 0.96, indicating stem geometry and volume can be extracted from super-resolution point clouds. 
+
+5.5. Variation of input point densities 
+
+5.5.1. Experimental setting 
+
+This experiment explores whether the proposed model can take data with different point densities as input, and how super-resolution results and their forest inventory re-sults vary with different input point densities . The data for this experiment are from Plot VI. To ensure density is the only variable in this experiment, we chose to downsample the UAV LiDAR point clouds to different level of point   
+
+> Shao et al.: Preprint submitted to Elsevier Page 12 of 20 Super-resolution of Forest ALS Point Clouds
+
+ALS point clouds  SR reconstruction 
+
+> Plot I Plot II Plot III
+
+SR point clouds  MLS point clouds MLS reconstruction  
+
+> Figure 9: Stem reconstruction based on super-resolution (SR) point clouds and Mobile Laser Scanning (MLS) point clouds.
+
+# Plot I  Plot II  Plot III  
+
+> Figure 10: Stem volume comparison between stem reconstructed from super-resolution point clouds and MLS point clouds.
+
+densities and use them as input separately. Downsampled point densities are set to 10, 25, 50, 75, 100, 250, 500, 1000, 1500 and 1700. This range of point densities covers from the linear-model ALS data (10 points/m 2) to high-resolution UAV LiDAR data (1700 points/m 2). For all mod-els in this experiment, we train models using one same georeferenced high-resolution MLS point cloud as reference and same hyperparameter settings mentioned in Section 4. Stem detection and DBH estimation methods used in this experiment are the same as the methods in Section 5.2 and Section 5.3. Chamfer Distance and Hausdorff Distance are used to evaluate the super-resolution performance, com-pleteness, omission, commission and F1 are used to evaluate stem detection performance, and MAE and RMSE are used to evaluate DBH estimation performance. 
+
+5.5.2. Density variation results 
+
+We show super-resolution results in Fig. 11, and report qualitative results obtained different input point densities in Tab. 9, plot the super-resolution performance trends in Fig. 12 and plot stem detection and DBH estimation perfor-mance trends in Fig. 13. Overall, the model can successfully   
+
+> Shao et al.: Preprint submitted to Elsevier Page 13 of 20
+
+Super-resolution of Forest ALS Point Clouds Downsampled inputs  Super -resolution outputs Super -resolution outputs  Downsampled inputs 
+
+> 10 points/m 2100 points/m 2 75 points/m 2 50 points/m 2 25 points/m 2
+> 250 points/m 21700 points/m 2 1500 points/m 2 1000 points/m 2 500 points/m 2
+
+Reference MLS point clouds Original UAV LiDAR point clouds 
+
+Figure 11: Super-resolution results using different densities as the input. 
+
+Figure 12: Performance variation on Chamfer Distance (left) and Hausdoff Distance (right) based on the change of input point densities. 
+
+produce super-resolution point clouds for all input densities. All generated super-resolution point clouds have dense and clean stem points, but have more clear canopy structures as the input densities increased. For some crowded areas, there are dense points between stems, and this also becomes better with point density increased. In terms of super-resolution quality, the model has the highest Chamfer Distance of 0.729 m and Hausdorff Distance of 2.692 m for 10 points/m 2,and lowest Chamfer Distance of 0.558 m and Hausdorff Distance of 2.232 m for 1700 points/m 2. With the increase of input point densities, as shown in Fig. 12, the overall trends 
+
+Shao et al.: Preprint submitted to Elsevier Page 14 of 20 Super-resolution of Forest ALS Point Clouds                        
+
+> Figure 13: Performance variation on Chamfer Distance (left) and Hausdorff Distance (right) based on the change of input point densities.
+> Table 9
+> The point cloud super-resolution performance varying with changes of input point densities in terms of Chamfer Distance (CD), Hausdorff Distance (HD) and output point densities. Input densities (points/m 2)CD (m) HD (m) 10 0.729 2.692 25 0.663 2.596 50 0.695 2.577 75 0.684 2.572 100 0.660 2.487 250 0.647 2.444 500 0.622 2.416 1000 0.571 2.296 1500 0.573 2.243 1700 0.558 2.232
+
+of Chamfer Distance and Hausdorff Distance gradually de-crease, meaning the super-resolution qualities are gradually improved. The performance of stem detection and DBH es-timation increases with higher input point densities. Specifi-cally, for stem detection, super-resolution point clouds from 10 points/m 2 have completeness, omission, commission, and F1 of 0.75, 0.25, 0.20, and 0.77, respectively; conversely, super-resolution point clouds from 1700 points/ 2 have 0.90, 0.10, 0.08, and 0.91 for those corresponding metrics. For DBH estimation, MAE decreases from 8.30 cm to 2.70 cm, while RMSE decreases from 11.01 cm to 3.51 cm. 
+
+5.6. Model generalization 
+
+5.6.1. Experimental setting 
+
+We further validate the model generalization capability across different LiDAR platforms. Specifically, we want to see whether a model trained on a LiDAR data obtained from one platform could be applied to unseen LiDAR data from another platform without transfer learning. To this end, we conduct two experiments. In the first one, we use the model trained based on ALS data described in Section 5.1, and test it on the original UAV LiDAR data used in Section 5.5.2.              
+
+> Shao et al.: Preprint submitted to Elsevier Page 15 of 20 Super-resolution of Forest ALS Point Clouds
+> Table 10
+> Generalization performance of the super-resolution model across LiDAR platforms.
+> Cross-platform setting CD (m) HD (m) Train on UAV, test on ALS 0.635 2.583 Train on ALS, test on UAV 0.726 2.961
+
+In the second experiment, we use the model trained using original UAV LiDAR data in Section 5.5.2, and test it on the ALS LiDAR data used in Section 5.1. Chamfer Distance and Hausdorff distance are used to evaluate the performance. 
+
+5.6.2. Model generalization results 
+
+Model generalization performance across LiDAR plat-forms is shown in Tab 10. Overall, the results indicate that the proposed model maintains a reasonable level of performance when applied to unseen LiDAR data from a different platform, even without any transfer learning or fine-tuning. When trained on UAV LiDAR data and tested on ALS data, the model achieves a Chamfer Distance of 0.635 m and a Hausdorff Distance of 2.583 m. Conversely, when trained on ALS data and evaluated on UAV LiDAR data, the performance slightly degrades, with a Chamfer Distance of 0.726 m and a Hausdorff Distance of 2.961 m. This suggests that the model trained on UAV data generalizes relative better to ALS data than vice versa. 
+
+## 6. Discussion 
+
+Using ALS point clouds to conduct large-scale forest analysis has both ecological and economic significance. However, ALS super-resolution in forest environments re-mains largely unexplored due to its complex and unordered structures and lower quality of data. In this study, we intro-duced the concept of point cloud super-resolution to forest environments for the first time, aiming to enhance the quality of LiDAR-derived forest point clouds and thereby improve the accuracy of downstream forest inventory tasks. The ef-fectiveness of our algorithm has been demonstrated by com-paring it to other representative methods on five datasets. In addition, after point cloud super-resolution, performances on stem mapping and DBH estimation have been improved, and stem can be reconstructed. To our knowledge, this is the first work exploring super-resolution technique on ALS point clouds to improve forest inventory. 
+
+6.1. Compare with baselines 
+
+Point cloud super-resolution or upsampling has emerged in recent years as a key task in point cloud analysis, with numerous studies proposing different algorithms to enhance sparsely sampled 3D data (Zhang et al., 2022; Kwon et al., 2023). Most research focuses on increasing point density (Qiu et al., 2022; Qian et al., 2021), but does not solve noise in scans, which is very common in real-world laser scanning (Mura et al., 2015). To examine the effectiveness of these upsampling approaches in complex forest scenes of ALS data, we compare three representative baselines to our proposed method: an unsupervised approach, bilin-ear interpolation; a feature-expansion–based model, PU-Net (Yu et al., 2018); an interpolation-refinement–based algorithm, GradPU (He et al., 2023). Experimental results show that PU-Net tends to increase point density uniformly but introduces more noise, whereas bilinear interpolation and GradPU produce noticeable holes. We attribute this to their underlying mechanisms: bilinear interpolation con-siders only nearest points within local neighborhoods, PU-Net performs minor perturbations through feature expansion on original points, while GradPU interpolates based on the nearest eight neighboring points without accounting for local density variations, which is common in data captured in for-est environment. Overall, our method substantially improves point cloud quality and achieves the best performance. It is also worth noting that the chosen baselines all generate a fixed upsampling ratio, requiring a predefined hyperparam-eter to determine the increase in point numbers, whereas our method predicts voxel occupancy according to a target resolution, determining whether each voxel is empty or occupied. Finally, all methods, including our 3DFSR, show limited improvement in super-resolving crown structures, which we attribute to the highly complex geometry of tree crowns and the fact that the training data of ground truth do not fully capture their true structural variability. 
+
+6.2. Impacts on stem detection 
+
+Stem detection is a basic but important task in forest Li-DAR point cloud analysis. For high-density TLS/MLS point clouds, most tree detection methods (e.g., 3DFin, LeSSO) rely on the identification of stem points because these data contain clear, contiguous stem surfaces, and a single cylin-drical stem typically suffices to indicate the presence of a tree (Laino et al., 2024; Shao et al., 2026). In contrast, ALS point clouds are much sparser and stem points are often missing or barely visible, making stem-based approaches developed for TLS/MLS ineffective. Consequently, tree de-tection algorithms developed for ALS depend primarily on crown segmentation and peak-point localization (Dalponte and Coomes, 2016; Amiri et al., 2018; Li et al., 2012). The stem detection method of DFT represents an effort to leverage the limited visibility of stem points by exploit-ing local point-density differences (Parkan, 2018), but this strategy often introduces many false positives because the predefined rules tend to mistakenly classify non-stem struc-tures as stems. Our approach addresses this limitation by applying point cloud super-resolution to ALS data, enhanc-ing both density and clarity so that originally sparse, irreg-ular stem points become well-defined cylindrical patterns. This improvement enables TLS/MLS-based stem detection algorithms to operate directly on super-resolved ALS point clouds, substantially increasing detection accuracy. This is because these methods are designed to identify cylindrical stems or circular cross-sections that become much clearer   
+
+> Shao et al.: Preprint submitted to Elsevier Page 16 of 20 Super-resolution of Forest ALS Point Clouds
+
+after super-resolution. Moreover, we observe that the appli-cation of ALS-based methods such as DFT to the super-resolved point clouds does not markedly affect their perfor-mance, as our algorithm uniformly increases point density across ground, stem, and crown regions, preserving the density-ratio cues on which DFT relies. 
+
+6.3. Implicit and explicit DBH estimation 
+
+Due to the sparsity of ALS point cloud data, it is usually impossible to directly measure DBH. This is because stems are poorly sampled by airborne LiDAR and trunk points are often very sparse in low-density scans (Zhou et al., 2025). To solve this question, allometric equations have been developed based on tree height and crown diameter for trees in different regions, forest types, and functional groups (Jucker et al., 2017). The advantage of this implicit approach is that DBH can be estimated using tree height and crown diameter even if there are no clear stem points in the point cloud (Salas et al., 2010). In this research, we improve the quality of ALS point cloud data by developing a deep learning based super-resolution method, making it denser and cleaner, so DBH can be directly measured by circle fitting. It should be noted that although our method enables explicit measurements of ALS point clouds after super-resolution, it does not mean that implicit predictions based on allometric equations are meaningless. The use of allometric equations does not need high quality data of ALS point clouds. Taking our research as an example, even though deep learning-based super-resolution can increase point cloud density, it is ineffective for the reconstruction of understory vegetation and stems that are not scanned. However, estimation based on allometric equations does not require the stem to be visible. This means that even with low-density ALS point clouds where the stem points are not visible, relatively accurate DBH estimates can still be obtained if individual tree can be recognized (Dalponte et al., 2018; Htoo et al., 2025). 
+
+6.4. Feasibility of stem reconstruction 
+
+The low density of ALS data often presents a challenge in reconstructing tree stems. Most studies on individual stem reconstruction rely on high-resolution UAV LiDAR or TLS/MLS data, and reconstructed geometry can be used for explicit estimation of detailed attributes, such as volume or biomass (Pyörälä et al., 2018; Brede et al., 2019; Shao et al., 2026). For ALS data, common practices utilize met-rics derived from ALS data to develop regression models for the estimation of volume or biomass (Hollaus et al., 2007; Lindberg and Hollaus, 2012). Our experiment on stem reconstruction further validates that super-resolution point clouds can support advanced structural analysis, stem recon-struction algorithms developed for TLS/MLS can be directly used on it without tuning. Reconstructed stem geometry and volume estimation results are consistent with MLS-derived results. This finding suggests that super-resolution of ALS point cloud technique could be used for individual stem level inventory across large forest areas. 
+
+6.5. Applicability of varying input point density 
+
+The applicability to point clouds of varying input densi-ties is crucial for forest point cloud analysis, as it determines whether an algorithm can be used on data collected from different LiDAR platforms. To investigate whether our pro-posed 3DFSR algorithm remains effective when applied to different input point densities, we conducted the experiment that downsample high-resolution UAV LiDAR point clouds to different point densities and use them as input to train models and perform super-resolution. The experimental re-sults demonstrate that our proposed voxel-based 3DFSR algorithm can successfully generate high-resolution point clouds for all input point clouds with densities ranging from 10 to 1,700 points/m 2. In terms of performance, our exper-iments reveal that the performance of point cloud super-resolution improves as input point density increases. We attribute this to the fact that higher-density inputs provide more complete and continuous point coverage, providing the model with richer information to facilitate the learning of the tree structures and overall forest scene distribution. Studies have also explored the impact of input point densities on the performance of forest analysis (Xiang et al., 2024; Wielgosz et al., 2024). Experiments conducted in these studies indicated that voxel-based deep learning methods can successfully segment individual trees from point clouds with different point densities. And they also observed that the performance of forest inventory based on segmentation results increases as point density. Collectively, our study and previous research demonstrate that voxel-based deep neural networks are capable of processing various forest point cloud analysis tasks (e.g., super-resolution and individual tree seg-mentation); furthermore, these networks remain effective across a wide of point densities, and the performance ex-hibits a positive correlation with point cloud density. These findings are beneficial for the subsequent development of algorithms for point clouds from multiple LiDAR platforms. 
+
+6.6. Generalization across LiDAR platforms 
+
+Applying well-trained models to unseen data of Li-DAR platforms is important to expand the generaliza-tion. Research has explored this question on segmentation tasks (Krisanski et al., 2021; Lu et al., 2025), and we study this question on super-resolution. Our cross-platform exper-iments that while the model is trained on a specific LiDAR platform, it maintains reasonable performance when applied to unseen data from a different platform. The performance gap between the two cross-platform settings can be attributed to differences in point density, noise characteristics, and scanning geometry between UAV and ALS LiDAR systems. UAV LiDAR data typically exhibit higher density and more detailed local structures, which may help the model learn richer geometric representations that transfer more effectively to ALS data. In contrast, models trained on ALS data may struggle to capture the finer details present in UAV data, leading to relatively higher errors. This further proves that voxel-based neural networks can handle different point densities LiDAR data for forest analysis.   
+
+> Shao et al.: Preprint submitted to Elsevier Page 17 of 20 Super-resolution of Forest ALS Point Clouds
+
+6.7. Limitations and future work 
+
+There are several limitations in this study. First, our method does not perform well for tree canopy. It produces artifacts in areas with dense tree branches. The main reason is that TLS/MLS does not capture noise-free canopy points, so the model can learn limited information from this condi-tion. Second, the model can only refine existing points and cannot generate data for areas that have not been scanned (e.g. unscanned understory or stems). This means that if the input data only have canopy structures, such as 3DEP, the model may not work. Third, the efficiency of its large-scale application is unknown. Areas of all plots used in this study are relatively small compared to stand or landscape-level coverage, so its real-world, large-scale application may take a long time. Take Plot I as an example, model inference of super-resolution using NVIDIA A5000 GPU (24 GB) takes 19 mins on 0.8 ha of forest. In the future, we will focus on improving the application of our method to large-scale forest ALS point clouds. 
+
+## 7. Conclusion 
+
+We introduced a deep learning model for ALS forest point cloud super-resolution. This model aims to fill the gap in the inaccurate estimation of forest attributes due to the low point density of forest ALS point clouds. It produces dense and clean point clouds from sparse and noisy ALS point clouds. In the evaluation of five plots from two different types of forests, our approach achieved the best perfor-mance compared to other representative upsampling algo-rithms. More importantly, we found that stem detection al-gorithms developed for TLS/MLS can be directly applied to super resolution point clouds, and produce accurate results; and subsequently, DBH can be estimated by circle fitting on super-resolution point clouds, outperforming allometry based methods. Our study shows that ALS point clouds can be enhanced through learning-based super-resolution, improving the accuracy of forest attribute estimation. 
+
+## 8. Acknowledgment 
+
+This work was partially supported by the National Insti-tute of Food and Agriculture, United States [grant number 2023-68012-38992].   
+
+> Shao et al.: Preprint submitted to Elsevier Page 18 of 20
+
+Super-resolution of Forest ALS Point Clouds 
+
+## References 
+
+Alexa, M., Behr, J., Cohen-Or, D., Fleishman, S., Levin, D., Silva, C.T., 2003. Computing and rendering point set surfaces. IEEE Transactions on visualization and computer graphics 9, 3–15. Amiri, N., Polewski, P., Heurich, M., Krzystek, P., Skidmore, A.K., 2018. Adaptive stopping criterion for top-down segmentation of als point clouds in temperate coniferous forests. ISPRS journal of photogram-metry and remote sensing 141, 265–274. Amiri, N., Polewski, P., Yao, W., Krzystek, P., Skidmore, A., 2017. De-tection of single tree stems in forested areas from high density als point clouds using 3d shape descriptors. ISPRS Annals of the Photogramme-try, Remote Sensing and Spatial Information Sciences 4, 35–42. Apostol, B., Petrila, M., Lorenţ, A., Ciceu, A., Gancz, V., Badea, O., 2020. Species discrimination and individual tree detection for predicting main dendrometric characteristics in mixed temperate forests by use of airborne laser scanning and ultra-high-resolution imagery. Science of The Total Environment 698, 134074. Bornand, A., Abegg, M., Morsdorf, F., Rehush, N., 2024. Completing 3d point clouds of individual trees using deep learning. Methods in Ecology and Evolution 15, 2010–2023. Brede, B., Calders, K., Lau, A., Raumonen, P., Bartholomeus, H.M., Herold, M., Kooistra, L., 2019. Non-destructive tree volume estimation through quantitative structure modelling: Comparing uav laser scanning with terrestrial lidar. Remote Sensing of Environment 233, 111355. Briechle, S., Krzystek, P., Vosselman, G., 2020. Classification of tree species and standing dead trees by fusing uav-based lidar data and multispectral imagery in the 3d deep neural network pointnet++. ISPRS annals of the photogrammetry, remote sensing and spatial information sciences 2, 203–210. Cao, Y., Ball, J.G., Coomes, D.A., Steinmeier, L., Knapp, N., Wilkes, P., Disney, M., Calders, K., Burt, A., Lin, Y., et al., 2023. Benchmarking airborne laser scanning tree segmentation algorithms in broadleaf forests shows high accuracy only for canopy trees. International Journal of Applied Earth Observation and Geoinformation 123, 103490. Clifton, W.E., Steele, B., Nelson, G., Truscott, A., Itzler, M., Entwistle, M., 2015. Medium altitude airborne geiger-mode mapping lidar system, in: Laser Radar Technology and Applications XX; and Atmospheric Propagation XII, SPIE. pp. 39–46. Dalponte, M., Coomes, D.A., 2016. Tree-centric mapping of forest carbon density from airborne laser scanning and hyperspectral data. Methods in ecology and evolution 7, 1236–1245. Dalponte, M., Frizzera, L., Ørka, H.O., Gobakken, T., Næsset, E., Gianelle, D., 2018. Predicting stem diameters and aboveground biomass of individual trees using remote sensing data. Ecological Indicators 85, 367–376. Dalponte, M., Ørka, H.O., Ene, L.T., Gobakken, T., Næsset, E., 2014. Tree crown delineation and tree species classification in boreal forests using hyperspectral and als data. Remote sensing of environment 140, 306– 317. Duncanson, L., Cook, B., Hurtt, G., Dubayah, R., 2014. An efficient, multi-layered crown delineation algorithm for mapping individual tree structure across multiple ecosystems. Remote Sensing of Environment 154, 378–386. Erfanifard, Y., Stereńczak, K., Kraszewski, B., Kamińska, A., 2018. Devel-opment of a robust canopy height model derived from als point clouds for predicting individual crown attributes at the species level. International Journal of Remote Sensing 39, 9206–9227. He, Y., Tang, D., Zhang, Y., Xue, X., Fu, Y., 2023. Grad-pu: Arbitrary-scale point cloud upsampling via gradient descent with learned distance functions, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 5354–5363. Hollaus, M., Wagner, W., Maier, B., Schadauer, K., 2007. Airborne laser scanning of forest stem volume in a mountainous environment. Sensors 7, 1559–1577. Htoo, K.K., Onishi, M., Rahman, M.F., Takeshige, R., Kitajima, K., On-oda, Y., 2025. Development of crown-based allometric equations for estimating stem diameter and above-ground biomass using uav-lidar in 23 species-rich natural forests of japan. Journal of Forest Research 30, 491–501. Huang, H., Li, D., Zhang, H., Ascher, U., Cohen-Or, D., 2009. Consol-idation of unorganized point clouds for surface reconstruction. ACM transactions on graphics (TOG) 28, 1–7. Huang, H., Wu, S., Gong, M., Cohen-Or, D., Ascher, U., Zhang, H., 2013. Edge-aware point set resampling. ACM transactions on graphics (TOG) 32, 1–12. Hyyppä, E., Kukko, A., Kaartinen, H., Yu, X., Muhojoki, J., Hakala, T., Hyyppä, J., 2022. Direct and automatic measurements of stem curve and volume using a high-resolution airborne laser scanning system. Science of Remote Sensing 5, 100050. Jucker, T., Caspersen, J., Chave, J., Antin, C., Barbier, N., Bongers, F., Dalponte, M., van Ewijk, K.Y., Forrester, D.I., Haeni, M., et al., 2017. Allometric equations for integrating remote sensing imagery into forest monitoring programmes. Global change biology 23, 177–190. Kankare, V., Vauhkonen, J., Tanhuanpää, T., Holopainen, M., Vastaranta, M., Joensuu, M., Krooks, A., Hyyppä, J., Hyyppä, H., Alho, P., et al., 2014. Accuracy in estimation of timber assortments and stem distribution–a comparison of airborne and terrestrial laser scanning techniques. ISPRS Journal of Photogrammetry and Remote Sensing 97, 89–97. Krisanski, S., Taskhiri, M.S., Gonzalez Aracil, S., Herries, D., Turner, P., 2021. Sensor agnostic semantic segmentation of structurally diverse and complex forest point clouds using deep learning. Remote Sensing 13, 1413. Kwon, S., Hur, J.H., Kim, H., 2023. Deep learning-based point cloud upsampling: a review of recent trends. JMST Advances 5, 105–111. Laino, D., Cabo, C., Prendes, C., Janvier, R., Ordonez, C., Nikonovas, T., Doerr, S., Santin, C., 2024. 3dfin: A software for automated 3d forest inventories from terrestrial point clouds. Forestry: An International Journal of Forest Research 97, 479–496. Li, R., Li, X., Fu, C.W., Cohen-Or, D., Heng, P.A., 2019. Pu-gan: a point cloud upsampling adversarial network, in: Proceedings of the IEEE/CVF international conference on computer vision, pp. 7203–7212. Li, R., Li, X., Heng, P.A., Fu, C.W., 2021. Point cloud upsampling via disentangled refinement, in: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp. 344–353. Li, W., Guo, Q., Jakubowski, M.K., Kelly, M., 2012. A new method for segmenting individual trees from the lidar point cloud. Photogrammetric Engineering & Remote Sensing 78, 75–84. Liang, X., Kankare, V., Hyyppä, J., Wang, Y., Kukko, A., Haggrén, H., Yu, X., Kaartinen, H., Jaakkola, A., Guan, F., et al., 2016. Terrestrial laser scanning in forest inventories. ISPRS journal of photogrammetry and remote sensing 115, 63–77. Lin, Y.C., Shao, J., Shin, S.Y., Saka, Z., Joseph, M., Manish, R., Fei, S., Habib, A., 2022. Comparative analysis of multi-platform, multi-resolution, multi-temporal lidar data for forest inventory. Remote Sensing 14, 649. Lindberg, E., Hollaus, M., 2012. Comparison of methods for estimation of stem volume, stem number and basal area from airborne laser scanning data in a hemi-boreal forest. Remote Sensing 4, 1004–1023. Lipman, Y., Cohen-Or, D., Levin, D., Tal-Ezer, H., 2007. Parameterization-free projection for geometry reconstruction. ACM Transactions on Graphics (ToG) 26, 22–es. Liu, Z.S., He, C., Li, L., 2025. Efficient point clouds upsampling via flow matching. arXiv preprint arXiv:2501.15286 . Lu, H., Li, B., Yang, G., Fan, G., Wang, H., Pang, Y., Wang, Z., Lian, Y., Xu, H., Huang, H., 2025. Towards a point cloud understanding framework for forest scene semantic segmentation across forest types and sensor platforms. Remote Sensing of Environment 318, 114591. Luo, B., Yang, J., Shi, S., Gan, R., Wu, Z., Wang, S., Wang, A., Du, L., Gong, W., 2026. Inceptionformer: A deep learning framework for uav lidar point cloud completion to improve tree parameters estimation in dense forests. Remote Sensing of Environment 338, 115348. Meagher, D., 1982. Geometric modeling using octree encoding. Computer graphics and image processing 19, 129–147. Mura, M., McRoberts, R.E., Chirici, G., Marchetti, M., 2015. Estimating and mapping forest structural diversity using airborne laser scanning 
+
+Shao et al.: Preprint submitted to Elsevier Page 19 of 20 Super-resolution of Forest ALS Point Clouds 
+
+data. Remote Sensing of Environment 170, 133–142. Nunes, L., Marcuzzi, R., Mersch, B., Behley, J., Stachniss, C., 2024. Scaling diffusion models to real-world 3d lidar scene completion, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 14770–14780. Oehmcke, S., Li, L., Revenga, J.C., Nord-Larsen, T., Trepekli, K., Gieseke, F., Igel, C., 2022. Deep learning based 3d point cloud regression for estimating forest biomass, in: Proceedings of the 30th international conference on advances in geographic information systems, pp. 1–4. Oehmcke, S., Li, L., Trepekli, K., Revenga, J.C., Nord-Larsen, T., Gieseke, F., Igel, C., 2024. Deep point cloud regression for above-ground forest biomass estimation from airborne lidar. Remote Sensing of Environment 302, 113968. Parkan, M., 2018. mparkan/digital-forestry-toolbox v1.0.2. URL: https: //doi.org/10.5281/zenodo.1252955 , doi: 10.5281/zenodo.1252955 .Parkan, M., Tuia, D., 2015. Individual tree segmentation in deciduous forests using geodesic voting, in: 2015 IEEE international geoscience and remote sensing symposium (IGARSS), IEEE. pp. 637–640. Pyörälä, J., Liang, X., Saarinen, N., Kankare, V., Wang, Y., Holopainen, M., Hyyppä, J., Vastaranta, M., 2018. Assessing branching structure for biomass and wood quality estimation using terrestrial laser scanning point clouds. Canadian Journal of Remote Sensing 44, 462–475. Qian, G., Abualshour, A., Li, G., Thabet, A., Ghanem, B., 2021. Pu-gcn: Point cloud upsampling using graph convolutional networks, in: Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp. 11683–11692. Qiu, S., Anwar, S., Barnes, N., 2022. Pu-transformer: Point cloud upsam-pling transformer, in: Proceedings of the Asian conference on computer vision, pp. 2475–2493. Qu, W., Shao, Y., Meng, L., Huang, X., Xiao, L., 2024. A conditional denoising diffusion probabilistic model for point cloud upsampling, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 20786–20795. Rong, Y., Zhou, H., Xia, K., Mei, C., Wang, J., Lu, T., 2024. Repkpu: Point cloud upsampling with kernel point representation and deformation, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 21050–21060. Salas, C., Ene, L., Gregoire, T.G., Næsset, E., Gobakken, T., 2010. Mod-elling tree diameter from airborne laser scanning derived variables: A comparison of spatial statistical models. Remote Sensing of Environ-ment 114, 1277–1285. Shao, G., Fei, S., Shao, G., 2023. A robust stepwise clustering approach to detect individual trees in temperate hardwood plantations using airborne lidar data. Remote Sensing 15, 1241. Shao, J., Choi, D.H., Liu, J., Tian, X., Thapa, B., Lee, S., Habib, A., Fei, S., 2026. A three-stage framework for stand-level automated stem volume estimation in temperate forests using mobile laser scanning. Remote Sensing of Environment 335, 115246. Shao, J., Lin, Y.C., Wingren, C., Shin, S.Y., Fei, W., Carpenter, J., Habib, A., Fei, S., 2024. Large-scale inventory in natural forests with mobile lidar point clouds. Science of Remote Sensing 10, 100168. Soudarissanane, S., Lindenbergh, R., Menenti, M., Teunissen, P., 2011. Scanning geometry: Influencing factor on the quality of terrestrial laser scanning points. ISPRS journal of photogrammetry and remote sensing 66, 389–399. Wang, L., Lu, D., Xu, L., Robinson, D.T., Tan, W., Xie, Q., Guan, H., Chapman, M.A., Li, J., 2024. Individual tree species classification using low-density airborne multispectral lidar data via attribute-aware cross-branch transformer. Remote Sensing of Environment 315, 114456. Wang, Y., Lehtomäki, M., Liang, X., Pyörälä, J., Kukko, A., Jaakkola, A., Liu, J., Feng, Z., Chen, R., Hyyppä, J., 2019. Is field-measured tree height as reliable as believed–a comparison study of tree height estimates from field measurement, airborne laser scanning and terrestrial laser scanning in a boreal forest. ISPRS journal of photogrammetry and remote sensing 147, 132–145. Weiser, H., Schäfer, J., Winiwarter, L., Krašovec, N., Fassnacht, F.E., Höfle, B., 2022. Individual tree point clouds and tree measurements from multi-platform laser scanning in german forests. Earth System Science Data 14, 2989–3012. Wielgosz, M., Puliti, S., Xiang, B., Schindler, K., Astrup, R., 2024. Segmentanytree: A sensor and platform agnostic deep learning model for tree segmentation using laser scanning data. Remote Sensing of Environment 313, 114367. Xiang, B., Wielgosz, M., Kontogianni, T., Peters, T., Puliti, S., Astrup, R., Schindler, K., 2024. Automated forest inventory: Analysis of high-density airborne lidar point clouds with 3d deep learning. Remote Sensing of Environment 305, 114078. Xu, D., Chen, G., Jing, W., 2023. A single-tree point cloud completion approach of feature fusion for agricultural robots. Electronics 12, 1296. Yifan, W., Wu, S., Huang, H., Cohen-Or, D., Sorkine-Hornung, O., 2019. Patch-based progressive 3d point set upsampling, in: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp. 5958–5967. Yu, L., Li, X., Fu, C.W., Cohen-Or, D., Heng, P.A., 2018. Pu-net: Point cloud upsampling network, in: Proceedings of the IEEE conference on computer vision and pattern recognition, pp. 2790–2799. Yu, X., Hyyppä, J., Vastaranta, M., Holopainen, M., Viitala, R., 2011. Pre-dicting individual tree attributes from airborne laser point clouds based on the random forests technique. ISPRS Journal of Photogrammetry and remote sensing 66, 28–37. Zhang, Y., Zhao, W., Sun, B., Zhang, Y., Wen, W., 2022. Point cloud upsampling algorithm: A systematic review. Algorithms 15, 124. Zhou, M., Li, C., Li, Z., 2025. Extraction of individual tree attributes using ultra-high-density point clouds acquired by low-cost uav-lidar in eucalyptus plantations. Annals of Forest Science 82, 20. 
+
+Shao et al.: Preprint submitted to Elsevier Page 20 of 20

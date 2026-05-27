@@ -1,0 +1,188 @@
+Title: SAGE3D: Soft-guided attention and graph excitation for 3D point cloud corner detection
+
+URL Source: https://arxiv.org/pdf/2605.15088v1
+
+Published Time: Fri, 15 May 2026 01:38:17 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+## SAGE3D: SOFT-GUIDED ATTENTION AND GRAPH EXCITATION FOR 3D POINT CLOUD CORNER DETECTION 
+
+## Batuhan Arda Bekar ⋆ Can Sarı ⋆ H¨ useyin Can G¨ ulkan ⋆ Barıs ¸ ¨ Ozcan ⋆⋆ Bahc ¸es ¸ehir University Computer Engineering 
+
+## {batuhanarda.bekar, can.sari, huseyin.gulkan }@bahcesehir.edu.tr, baris.ozcan@bau.edu.tr 
+
+ABSTRACT 
+
+We present SAGE3D, a hybrid Transformer-based model for corner detection in airborne LiDAR point clouds. We propose a multi-stage solution built on a hierarchical encoder-decoder architecture that progressively downsamples point clouds through Set Abstraction layers and recovers per-point predic-tions via Feature Propagation. We introduce two innovations: Soft-Guided Attention, which injects ground-truth corner labels as a log-prior into attention logits during training to improve precision; then an Excitatory Graph Neural Network positioned at strategic resolutions in the hierarchy, employing positive-only message passing where high-confidence corners reinforce predictions through learned boosting, optimizing for recall. The hierarchical design enables multi-scale feature extraction while our guided attention and excitatory modules ensure corner signals are amplified rather than diluted across scales. 
+
+Index Terms — 3d point clouds, corner detection, graph neural network 
+
+1. INTRODUCTION 
+
+The automatic reconstruction of 3D building models from airborne LiDAR point clouds is a fundamental task in ur-ban scene understanding, with applications spanning smart cities [1], digital twin generation, and autonomous driv-ing [2]. Accurate corner detection is the critical prerequisite for wireframe reconstruction, yet it faces unique challenges compared to 2D image analysis. The primary difficulty is extreme class imbalance: corners typically constitute less than 1% of points, with the vast ma-jority belonging to planar surfaces. Furthermore, point clouds lack the regular grid structure of images, requiring special-ized architectures that can reason about local geometry while maintaining global context. Recent advances in point cloud processing have estab-lished hierarchical architectures as the dominant paradigm. PointNet++ [3] introduced Set Abstraction layers that pro-gressively downsample points while aggregating local fea-  
+
+> (a) Input (b) Raw Output (c) Corners
+
+Fig. 1 . SAGE3D pipeline. (a) Raw LiDAR input. (b) Per-point corner probabilities (gray →red). (c) Final corners after DBSCAN. tures, followed by Feature Propagation for per-point predic-tions. Point Transformer [4] extended this with vector atten-tion mechanisms that capture fine-grained geometric relation-ships. However, these methods treat all points equally during feature learning, which is suboptimal when the task exhibits severe class imbalance. Graph Neural Networks (GNNs) offer a complementary approach by enabling message passing between points based on spatial proximity [5]. Traditional message passing may tend to over-smooth features, suppressing isolated corner sig-nals in favor of their predominantly non-corner neighbors. In this paper, we propose SAGE3D, a hybrid architecture that addresses these challenges through two key innovations. First, we introduce Soft-Guided Attention , inspired by teacher forcing [6] and privileged information learning [7], which leverages ground-truth corner proximity during training to bias transformer attention toward geometrically salient re-gions. Second, we propose an Excitatory Graph Neural Net-work , inspired by Graph Attention Networks [8], where high-confidence corners boost neighboring predictions through strictly positive message passing. Our contributions are: (1) Soft-Guided Attention that injects ground-truth corner prox-imity as a differentiable log-prior; (2) an Excitatory GNN with positive-only message passing; and (3) 4D position encodings augmenting relative coordinates with Euclidean distance. 
+
+> arXiv:2605.15088v1 [cs.CV] 14 May 2026
+
+2. METHODOLOGY 
+
+Inspired by Point2Roof [9], our encoder-decoder architecture processes raw point clouds to detect wireframe corners. The encoder hierarchically abstracts features through four Set Ab-straction (SA) layers, while the decoder restores point-wise predictions via Feature Propagation (FP) layers with skip con-nections. Input point clouds contain 8 channels: normalized XYZ coordinates (3), RGBA color and intensity (5). We first randomly subsample 2560 points from the original point cloud, and enter the encoder. 
+
+2.1. Encoder: Set Abstraction 
+
+Each SA layer downsamples points and aggregates local fea-tures. SA1–SA3 use multi-scale grouping with Point Trans-former blocks, while SA4 uses single-scale grouping with Soft-Guided Attention. CentroidGNN modules are applied after SA2 and SA4 to amplify corner-related features. 
+
+Downsampling. FPS selects representative subsets at each layer, progressively reducing points via 4x, 2x, 2x, 4x downsampling from 2560 to 40 points through the four SA layers. 
+
+Point Transformer with 4D Position Encoding. Each Point Transformer block aggregates neighbor information us-ing vector attention [10]. Given center point i with features 
+
+fi and coordinates pi, we use k-NN to gather the K nearest neighbors ( K ∈ { 16 , 32 }). We compute 4D position encod-ings: 
+
+δj = θ ([ pi − pj , ∥pi − pj ∥]) (1) where θ is a two-layer MLP. Vector attention computes weights through element-wise subtraction: 
+
+wj = ϕ(qi − kj + δj ), ˜fi = X
+
+> j
+
+softmax (w)j ⊙ (vj + δj )
+
+(2) where q, k, v are linear projections and ϕ is an MLP. 
+
+Soft-Guided Attention. At SA4, we bias attention to-ward likely corners by adding a log-prior to attention logits: 
+
+w′ 
+
+> j
+
+= wj + log( yj + ϵ) (3) where yj ∈ [0 , 1] are soft labels computed from ground truth during training, and ϵ = 0 .01 . Following the Learning Using Privileged Information (LUPI) paradigm [7], this log-prior acts purely as a training signal to shape the learned atten-tion weights. At inference, where there exists no ground truth data, the guidance is removed and we utilize the identical Vec-tor Attention mechanism shown in Equation (2). 
+
+CentroidGNN: Excitatory Message Passing. Cen-troidGNN applies excitatory-only message passing after SA2 and SA4. Unlike standard GNNs that can suppress features, our design only amplifies: 
+
+f ′ 
+
+> i
+
+= fi + σ(α) · ψ
+
+ X 
+
+> j∈N (i)
+
+˜aij · mij 
+
+ (4) where mij = ReLU (MLP ([ fi, f j , d ij ])) are positive-only messages, ˜aij = aij · (1 + ci · cj ) are attention weights boosted by corner-to-corner affinity, ψ is a learned transform, and σ(α) is a sigmoid-gated mixing coefficient. 
+
+2.2. Decoder: Feature Propagation 
+
+The decoder restores full resolution through four FP layers with U-Net-style skip connections [11]. Each FP layer up-samples features using inverse-distance weighted interpola-tion from three nearest neighbors [3]: 
+
+fi =
+
+P3 
+
+> j=1
+
+wj · fj
+
+P3 
+
+> j=1
+
+wj
+
+, wj = 1
+
+∥pi − pj ∥2 + ϵ (5) 
+
+2.3. Output Heads 
+
+Two parallel heads process the final 128-dimensional fea-tures: a classification head (MLP: 128 →64 →1) produc-ing per-point corner logits, and a regression head (MLP: 128 →64 →3) predicting 3D offset vectors toward the nearest ground-truth vertex. 
+
+3. LOSS DESIGN 
+
+Our training objective combines distance-weighted classifica-tion and regression losses: L = Ldist + Loffset .
+
+Soft Label Generation. We generate soft corner labels based on proximity to ground-truth vertices using exponential decay: ycls  
+
+> i
+
+= exp( −di/d thresh ), where di = min j ∥pi − vj ∥
+
+and dthresh = 0 .05 .
+
+Distance-Weighted Focal Loss. We use focal loss [12] with proximity-based weighting: 
+
+Ldist = 1
+
+N
+
+X
+
+> i
+
+wi · α(1 − pt)γ · BCE (ˆ yi, y i) (6) where wi = 1 + β exp( −di/d thresh ) with β = 2 .0, and 
+
+pt =
+
+(
+
+ˆyi if yi = 1 1 − ˆyi otherwise (7) 
+
+Offset Regression Loss. For points within dthresh of a corner, we supervise offset prediction with Smooth L1 loss, following the design of existing 3D object detection meth-ods [13]. 
+
+4. POST-PROCESSING AND INFERENCE 
+
+At inference, points exceeding confidence threshold τ = 0 .3
+
+are selected as corner candidates with offset-refined positions. We apply DBSCAN [14] with ϵ = 0 .05 and minPts = 1 to group nearby predictions, then compute cluster centroids as final corners. Fig. 2 . SAGE3D architecture. The encoder uses four Set Abstraction layers with Point Transformer blocks; CentroidGNN modules at SA2 and SA4 boost corner features. The decoder upsamples via 3-NN interpolation with skip connections.  
+
+> (a) SA1 (Local) (b) SA3 (Global)
+
+Fig. 3 . k-NN grouping at different depths. Same K covers larger spatial extent in deeper layers. 
+
+5. EXPERIMENTAL RESULTS 5.1. Implementation Details 
+
+The model is implemented in PyTorch and trained on a desk-top PC with an RTX 4070 GPU (12GB VRAM), batch size 14. We use AdamW with weight decay 0.01 and OneCycleLR schedule over 60 epochs (max LR 0.01, 10% warmup, cosine annealing). Training takes roughly 1 day on the Building3D Tallinn dataset. We evaluate using Average Corner Offset (ACO), Corner Precision (CP), Corner Recall (CR), and Corner-F1 (CF1) with Hungarian algorithm matching [15]. 
+
+Table 1 . Ablation study on Building3D Entry-Level dataset. 
+
+Architecture CP CR F1 
+
+PointNet++ (Base) 88.9 68.4 75.98 + CentroidGNN 87.6 73.3 78.16 + Point Transformer 84.8 80.6 81.15 + Soft-Guided Attention 91.5 79.7 83.99 Table 2 . Corner detection results on Building3D Tallinn dataset. 
+
+Method ACO ↓ CP CR CF1 
+
+PointMAE ∗ 0.330 75.0 47.0 58.0 PointM2AE ∗ 0.320 79.0 58.0 67.0 Point2Roof [9] 0.390 65.0 30.0 41.0 Supervised [16] 0.290 90.0 53.0 66.0 PBWR [17] 0.222 98.5 68.8 81.0 BWFormer † [18] 0.203 92.5 86.6 89.4 
+
+SAGE3D (Ours) 0.134 91.9 74.4 82.2  
+
+> ∗Building3D baseline. †From public leaderboard.
+
+5.2. Ablation Study 
+
+Table 1 presents an architectural comparison on the Build-ing3D Entry-Level dataset, progressively adding components to evaluate their individual contributions. 
+
+5.3. Quantitative Results 
+
+Table 2 compares SAGE3D against published methods on the Building3D Tallinn dataset. Fig. 4 . CentroidGNN probability boost ( ∆p). Red regions show increased corner confidence after excitatory message passing. SAGE3D achieves 82.2% CF1 while attaining an ACO of 
+
+0.134 , reducing average corner offset by 39.6% compared to PBWR and 34.3% compared to BWFormer. This matters be-cause wireframe quality is highly sensitive to endpoint accu-racy: small corner localization errors propagate into incorrect edge endpoints and skewed roof polygons. 
+
+Hardware Comparison. PBWR reports training on a single NVIDIA A6000 requiring approximately six days, while BWFormer uses 8 ×A800 GPUs for about 1.5 days. Our SAGE3D model trains on a single RTX 4070 in roughly one day, providing highly accurate corner detection while remaining accessible without enterprise-grade infrastructure. 
+
+6. CONCLUSION 
+
+This paper introduces SAGE3D, a hybrid Transformer and GNN architecture for efficient 3D corner detection. By proposing Soft-Guided Attention to inject geometric priors and an Excitatory GNN to boost recall, we achieve state-of-the-art localization accuracy (0.134 ACO) on the Building3D benchmark using a single consumer-grade GPU. This estab-lishes SAGE3D as a viable solution for resource-constrained environments where deployment efficiency and geometric precision are highly relevant. 
+
+7. REFERENCES 
+
+[1] Yuzhou Liu, Lingjie Zhu, Xiaodong Ma, Hanqiao Ye, Xiang Gao, Xianwei Zheng, and Shuhan Shen, “Poly-room: Room-aware transformer for floorplan recon-struction,” in European Conference on Computer Vision .Springer, 2024, pp. 322–339. [2] Bencheng Liao, Shaoyu Chen, Xinggang Wang, Tian-heng Cheng, Qian Zhang, Wenyu Liu, and Chang Huang, “Maptrv2: An end-to-end framework for on-line vectorized hd map construction,” in International Journal of Computer Vision , 2024. [3] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J Guibas, “Pointnet++: Deep hierarchical feature learning on point sets in a metric space,” Advances in Neural Information Processing Systems , vol. 30, 2017. [4] Hengshuang Zhao, Li Jiang, Jiaya Jia, Philip HS Torr, and Vladlen Koltun, “Point transformer,” in IEEE/CVF International Conference on Computer Vision , 2021, pp. 16259–16268. [5] Yue Wang, Yongbin Sun, Ziwei Liu, Sanjay E Sarma, Michael M Bronstein, and Justin M Solomon, “Dy-namic graph cnn for learning on point clouds,” ACM Transactions on Graphics , vol. 38, no. 5, pp. 1–12, 2019. [6] Alex M Lamb, Anirudh Goyal, Ying Zhang, Saizheng Zhang, Aaron C Courville, and Yoshua Bengio, “Pro-fessor forcing: A new algorithm for training recurrent networks,” Advances in Neural Information Processing Systems , vol. 29, 2016. [7] Vladimir Vapnik and Akshay Vashist, “Learning using privileged information: Similarity control and knowl-edge transfer,” Journal of Machine Learning Research ,vol. 12, pp. 2023–2049, 2011. [8] Petar Velickovic, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Lio, and Yoshua Bengio, “Graph attention networks,” in International Confer-ence on Learning Representations , 2018. [9] Li Li, Minhyuk Sung, Anton Duber, and Niloy J Mi-tra, “Point2roof: End-to-end 3d building roof model-ing from airborne lidar point clouds,” ISPRS Journal of Photogrammetry and Remote Sensing , vol. 193, pp. 17–28, 2022. [10] Xiaoyang Wu, Yixing Lao, Li Jiang, Xihui Liu, and Hengshuang Zhao, “Point transformer v2: Grouped vector attention and partition-based pooling,” in Ad-vances in Neural Information Processing Systems , 2022, vol. 35, pp. 33330–33342. [11] Olaf Ronneberger, Philipp Fischer, and Thomas Brox, “U-net: Convolutional networks for biomedical im-age segmentation,” in Medical Image Computing and Computer-Assisted Intervention , 2015, pp. 234–241. [12] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollar, “Focal loss for dense object detection,” 
+
+IEEE Transactions on Pattern Analysis and Machine In-telligence , vol. 42, no. 2, pp. 318–327, 2020. [13] Ross Girshick, “Fast R-CNN,” in IEEE International Conference on Computer Vision , 2015, pp. 1440–1448. [14] Martin Ester, Hans-Peter Kriegel, Jorg Sander, and Xi-aowei Xu, “A density-based algorithm for discovering clusters in large spatial databases with noise,” in Inter-national Conference on Knowledge Discovery and Data Mining , 1996, pp. 226–231. [15] Harold W Kuhn, “The hungarian method for the assign-ment problem,” Naval Research Logistics Quarterly ,vol. 2, no. 1-2, pp. 83–97, 1955. [16] Ruisheng Wang, Jiju Peethambaran, and Dong Chen, “Building3d: An urban-scale dataset and bench-marks for learning roof structures from point clouds,” 
+
+IEEE/CVF International Conference on Computer Vi-sion , pp. 20076–20085, 2023. [17] Zhaiyu Huang, Fan Zhang, Zeren Hu, Yao Jin, and Siyan Chen, “Pbwr: Parametric building wireframe re-construction from aerial lidar point clouds,” ISPRS Jour-nal of Photogrammetry and Remote Sensing , vol. 203, pp. 1–14, 2023. [18] Yuzhou Liu, Lingjie Zhu, Hanqiao Ye, Shangfeng Huang, Xiang Gao, Xianwei Zheng, and Shuhan Shen, “Bwformer: Building wireframe reconstruction from airborne lidar point cloud with transformer,” in Pro-ceedings of the Computer Vision and Pattern Recogni-tion Conference , 2025, pp. 22215–22224.
