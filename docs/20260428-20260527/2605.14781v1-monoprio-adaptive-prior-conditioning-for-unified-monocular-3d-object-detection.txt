@@ -1,0 +1,485 @@
+Title: MonoPRIO: Adaptive Prior Conditioning for Unified Monocular 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2605.14781v1
+
+Published Time: Fri, 15 May 2026 01:43:12 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# MonoPRIO: Adaptive Prior Conditioning for Unified Monocular 3D Object Detection 
+
+Leon Davies a, ∗, Qinggang Meng a, Mohamad Saada a, Baihua Li a, Simon Sølvsten b  
+
+> aDepartment of Computer Science, Loughborough University, Epinal Way, Loughborough, LE11 3TU, Leicestershire, United Kingdom
+> bEuropean Center for Risk &Resilience Studies, University of Southern Denmark, Degnevej 14, Esbjerg, 6705, Denmark
+
+Abstract 
+
+Monocular 3D object detection remains challenging because metric size and depth are underdetermined by single-view evidence, particularly under occlusion, truncation, and projection-induced scale-depth ambiguity. Although recent methods improve depth and geometric reasoning, metric size remains unstable in unified multi-class settings, where class variability and partial visibility broaden plausible size modes. We propose MonoPRIO, a unified monocular 3D detector that targets this bottleneck through adaptive prior conditioning in the size pathway. MonoPRIO constructs class-aware size prototypes o ffl ine, routes each decoder query to a soft mixture prior, applies uncertainty-aware log-space conditioning, and uses Cluster-Aligned Prior (CAP) regularisation on matched positives during training. On the o ffi cial KITTI test server, MonoPRIO achieves the strongest fully reported unified multi-class result among methods reporting complete Car, Pedestrian, and Cyclist metrics. In the car-only setting, it also achieves the strongest 3D bounding-box AP across Easy /Moderate /Hard categories among compared methods without extra data, while using substantially less compute than MonoCLUE. Ablations and diagnostics show complementary gains from routed injection and CAP, with the largest benefits in ambiguity-prone, partially occluded, and low-data regimes. These findings indicate that adaptive priors are most e ff ective when image evidence underdetermines metric size, while atypical geometry or extreme visibility loss can still cause mismatch between routed priors and true instance geometry. Code, trained models, result logs, and reproducibility material are available at https://github.com/bigggs/MonoPRIO .
+
+1. Introduction 
+
+Monocular 3D object detection is a central visual percep-tion problem for autonomous driving, as it o ff ers a low-cost camera-only deployment path while remaining fundamentally ill-posed under single-view geometry [1]. Its practical value is clear, but metric 3D recovery from a single image remains challenging, and multiple size-depth configurations can pro-duce highly similar image evidence. This ambiguity becomes more severe under occlusion, truncation, and long-range ob-servations, where visible object extent is limited and geomet-ric cues are weak. Recent methods have advanced monocu-lar 3D detection through stronger depth reasoning, geometry-aware modelling, and query-based transformer decoding [2, 3, 4, 5]. Earlier anchor- and center-guided pipelines also estab-lished strong and competitive baselines [6, 7, 8, 9]. However, improved depth prediction and richer query interaction do not fully resolve a persistent mechanism-level issue. Metric size remains unstable when visual evidence is partial. In many dif-ficult scenes, detectors can still fit multiple plausible size hy-potheses that are compatible with similar 2D evidence, as il-lustrated in Fig. 1. As a result, local depth improvements do not always translate into stable object dimensions, and residual        
+
+> ∗Corresponding author
+> Email addresses: l.davies2@lboro.ac.uk (Leon Davies),
+> q.meng@lboro.ac.uk (Qinggang Meng), m.saada@lboro.ac.uk
+> (Mohamad Saada), b.li@lboro.ac.uk (Baihua Li), simos@sam.sdu.dk
+> (Simon Sølvsten)
+
+size errors continue to propagate to 3D IoU and bird’s-eye-view (BEV) alignment. This unresolved issue is amplified in unified multi-class set-tings. A single detector must simultaneously model categories with long-tailed frequency and di ff erent intra-class size vari-ability. Under partial visibility, the set of plausible dimensions broadens further, especially for smaller or less frequent classes. Under ambiguous observations, detectors can produce high-variance dimensions, while overly rigid priors can suppress atypical but valid instances. Unified models therefore require a size-estimation strategy that improves stability while preserving instance-specific flexibility. These observations indicate that an important remaining bot-tleneck lies in metric size prediction. We therefore focus on branch-local size stabilisation while keeping matching and the remaining prediction heads unchanged. We address this with MonoPRIO, a unified monocular 3D detector that instantiates this strategy in the size pathway. Mono-PRIO builds class-aware prototype banks o ffl ine, routes each decoder query to a soft mixture prior, conditions log-space size prediction with routed uncertainty, and introduces Cluster-Aligned Prior (CAP), a training-time regularisation term that encour-ages matched predictions to remain close to plausible proto-type manifolds. CLIP features [10] are used only for o ffl ine bank construction, and no online CLIP feature extraction is in-troduced at inference. This preserves the base detector pipeline and maintains computational overhead close to the base model. On the o ffi cial KITTI test server, MonoPRIO achieves the strongest fully reported unified multi-class result among meth-
+
+> arXiv:2605.14781v1 [cs.CV] 14 May 2026
+
+A. Monocular Size-Depth Ambiguity                          
+
+> Near-source scene
+> Far-source scene
+> 10m
+> 20m
+> 30m
+> 40m
+> observer
+> z=16 .4m
+> 10m
+> 20m
+> 30m
+> 40m
+> observer
+> z=25 .1m
+> Smaller + Closer
+> A=7736 |l=3 .45m |z=16 .4m
+> Larger + Farther
+> A=7594 |l=4 .82m |z=25 .1m
+> Similar Projected 2D Support Figure 1: Monocular size-depth ambiguity in KITTI scenes. The highlighted smaller-closer and larger-farther targets exhibit similar projected 2D support in the image, but di ff erent metric attributes: the projected support area is similar ( A=7736 vs. A=7594), while object length and depth di ff er ( l=3.45 m ,z=16 .4 m vs.
+> l=4.82 m ,z=25 .1 m). This motivates adaptive prior conditioning for size estimation.
+
+ods that report complete Car, Pedestrian, and Cyclist metrics, while maintaining near-MonoDGP e ffi ciency. On the car-only benchmark, MonoPRIO also achieves the strongest 3D bounding-box AP across Easy /Moderate /Hard on the o ffi cial KITTI test set among methods without extra data. We provide mechanism ablations and diagnostics across ambiguity regimes, routing be-haviour, low-data settings, and failure cases. Our main contributions are summarised as follows 
+
+• We propose MonoPRIO, a unified monocular 3D detec-tion method that introduces adaptive prior conditioning in the size pathway through o ffl ine class-aware banks, query-routed mixture priors, uncertainty-aware log-space fusion, and CAP regularisation. 
+
+• We formulate an ambiguity-focused prior-conditioning principle for monocular size estimation where priors should be query-adaptive and uncertainty-calibrated rather than fixed class templates. 
+
+• MonoPRIO achieves the strongest fully reported unified KITTI o ffi cial-test result among methods reporting com-plete Car, Pedestrian, and Cyclist metrics, and the strongest car-only o ffi cial KITTI test 3D bounding-box AP across Easy /Moderate /Hard among methods without extra data. Under matched e ffi ciency measurement settings, Mono-PRIO uses substantially less compute than MonoCLUE while remaining close to MonoDGP. 
+
+2. Related Work 
+
+2.1. Monocular 3D Detection 
+
+Monocular 3D detection is more geometrically under con-strained than multi-view camera settings, since metric geometry must be inferred from a single image [11, 12]. Early monocular pipelines explored several ways to recover 3D structure from a single image, including geometric 3D-box lifting, orthographic feature transforms, and later anchor-, keypoint-, and center-guided CNN detectors [13, 14, 15, 16, 17, 6, 7, 8, 9]. Subse-quent methods strengthened geometric and depth cues through depth priors, depth distributions, depth-guided convolutions, and geometry-guided modelling [18, 19, 20, 21]. Recent refine-ments further improved monocular reasoning through comple-mentary depth design, foreground-depth supervision, and depth-aware masking under occlusion [22, 23, 24]. E ffi ciency-aware and task-adaptive monocular designs have also been explored. MonoPoly develops a scalable anchor-free monocular detector with auxiliary training heads and an explicit accuracy–e ffi ciency trade-o ff , while MonoA 2 improves monocular 3D detection through adaptive depth sampling and augmented multi-task heads [25, 26]. More recent DETR-style monocular detectors improved depth-guided transformers, decoupled-query designs, and geometry-aware priors [2, 3]. These advances improve depth inference, geometric consistency, e ffi ciency, and task-specific representa-tions, but they do not primarily target stability of metric size prediction under ambiguous evidence. 
+
+2.2. Contextual and Adaptive Reasoning 
+
+Recent monocular detectors increasingly improve query rep-resentations through context, memory, clustering, and struc-tured attribute interaction. MonoCLUE enriches decoder queries with local clustering and scene-level memory to improve ro-bustness under partial visibility [4]. MonoCoP models inter-attribute feature dependencies with adaptive chain-of-prediction modules and uncertainty-aware path selection [5]. MonoDGP focuses on geometry-error modelling, decoupled query initial-ization, and segmentation-guided feature enhancement, show-ing that structured geometry-aware decoder design can improve monocular reasoning [3]. Beyond monocular image-only de-tection, boundary-aware point-cloud detectors such as BADet show that explicit geometric boundary correlations can improve 3D proposal refinement when reliable 3D measurements are 2(A) Offline Prior Bank Construction   
+
+> Images + Labels
+> CLIP RN50 (Frozen)
+> Log-space stats
+> Log-size clustering
+> log (h, w, l )K
+> Visual K-means
+> Whitened CLIP K
+> Deduplicate
+> Merge
+> bank stats
+
+Prior Bank 
+
+> Visual centroids
+> Linear size stats
+> Log-manifold stats
+
+(B) Online Detection, Injection, and Training   
+
+> Input image
+> ResNet-50 backbone
+> Multi-scale projection
+> Visual Encoder
+> 2D visual decoder
+> LID depth predictor
+> Depth Encoder
+> 3D depth-guided decoder
+> Query formation
+> qi, p cls
+> Query projection
+> Prototype projection
+> Class-sliced logits ( pcls )
+> Softmax Routing
+> Prior mean & uncertainty
+> Size residual head
+> Log-space prior injection
+> Class
+> 2D box
+> 3D Size
+> Depth
+> Angle
+> Detection heads
+> MonoPRIO router
+> Frozen priors
+> pcls
+> qi
+> Matched positives
+> Cluster-Aligned Prior (CAP)
+> Objective
+> Ldet +Lcap
+> Detection losses
+> Ldet
+> Training only
+> Hungarian matching
+
+Figure 2: MonoPRIO pipeline. (A) O ffl ine construction of a class-aware prior bank from labelled training instances. (B) Online query routing to a soft mixture prior, uncertainty-aware log-space size conditioning, and train-time CAP regularisation on matched positives. MonoPRIO augments only the size pathway of the base MonoDGP detector. Grey blocks denote inherited MonoDGP components and outputs, light-blue blocks denote prior-bank construction /storage, amber denotes frozen CLIP extraction, green denotes MonoPRIO modules, and red dashed boxes denote loss terms. In Panel B, dashed connectors indicate training-only flow. qi
+
+denotes the decoder query and pcls the class probabilities used for class-sliced routing. 
+
+available [27]. Collectively, these methods demonstrate strong gains from adaptive contextual and geometric reasoning, while their primary focus remains depth, geometry, feature coupling, or proposal refinement rather than explicit size-prior routing. 
+
+2.3. Priors, Uncertainty, and Size Stabilisation 
+
+Prior-informed and uncertainty-aware strategies are central in modern monocular 3D detection, and earlier depth-prior and geometry-aware formulations showed that structured geomet-ric cues and uncertainty-aware modelling can reduce monoc-ular ambiguity [2, 3, 4, 5, 6, 18, 21]. However, most prior mechanisms are used to strengthen depth reasoning, contex-tual enrichment, or attribute coupling. Explicit adaptive prior conditioning aimed at stabilising metric size in the size branch remains less explored. 
+
+3. Method 
+
+3.1. MonoPRIO Overview 
+
+MonoPRIO targets metric size prediction, where monocular ambiguity can make object dimensions unstable under partial evidence in unified multi-class detection. It addresses this with query-adaptive prior conditioning through o ffl ine class-aware prior-bank construction, query-level routing to a mixture prior, uncertainty-aware log-space size conditioning, and CAP regu-larisation on matched positives during training. Together, these components provide structured prior support while preserving instance-specific residual flexibility. Figure 2 summarises the full pipeline. The prior bank is constructed o ffl ine and frozen before detector training. At in-ference, each decoder query is routed to class-consistent pro-totype statistics, producing a query-specific prior mean and un-certainty for log-space size conditioning. CAP is used only dur-ing training on matched positives. 
+
+3.2. Base Detector 
+
+MonoPRIO builds on a MonoDGP backbone [3] and modi-fies only the size pathway while keeping the matching strategy and remaining prediction heads unchanged. This restriction is deliberate: metric size is the attribute most directly entangled with scale-depth ambiguity, so targeting this branch isolates the eff ect of prior conditioning and keeps attribution clear in abla-tions. Let the final 2D decoder query for instance i be qi ∈ RD,with class probability vector pi. MonoPRIO uses ( qi, pi) to route a query-specific size prior, then fuses it into the size resid-ual head in log-space. We attach routing at this final 2D query because it is the most object-centric, visually grounded repre-sentation shared by the downstream 3D heads, enabling branch-local size conditioning without modifying the remaining detec-tion pathway. 33.3. O ffl ine Class-Aware Prior-Bank 
+
+We build class-specific prior banks o ffl ine from the detec-tor training split of the target dataset. Each labelled instance is filtered by class-aware visibility and truncation thresholds. The corresponding crop is encoded by CLIP RN50 [10]. CLIP fea-tures are used only for o ffl ine bank construction; online routing uses only stored prototype centroids and bank statistics. CLIP is frozen and not used during detector training or test-time in-ference. This o ffl ine design separates geometric and visual sources of variation before detector training. Metric dimensions define the physical modes that the size branch should respect, while vi-sual appearance helps distinguish subtypes within those modes, such as viewpoint and residual intra-class shape variation. The bank is therefore constructed to anchor prototypes in metric size space before appearance is used for refinement. This re-duces the risk of grouping instances primarily by appearance, since visually similar instances can still di ff er in physical di-mensions. Keeping CLIP frozen and o ffl ine also prevents the prior bank from becoming an additional train-time or test-time feature extractor, so the online detector remains lightweight and the e ff ects of routing and CAP regularisation can be isolated in ablations. For instance size di = (hi, wi, li), we operate in log-space: ˜di = log( di + ϵ). (1) We first cluster ˜ di to form coarse geometry groups of simi-lar physical dimensions, then cluster visual features within each group to form appearance-consistent subtypes. This geometry-first then appearance-second strategy separates physically dis-tinct size modes before finer visual subtype partitioning, reduc-ing cross-mode mixing relative to a single-stage clustering pass. Groups below a minimum support threshold are merged to the nearest retained prototype by visual-centroid similarity, with count-weighted updates of prototype statistics. Each final pro-totype stores linear moments ( μk, σ k) and log-space manifold parameters ( μlog  
+
+> k
+
+, Σlog  
+
+> k
+
+), where 
+
+Σlog  
+
+> k
+
+= Vlog  
+
+> k
+
+diag( ηk) Vlog ⊤ 
+
+> k
+
+. (2) Here, Vlog  
+
+> k
+
+contains eigenvectors of the prototype covari-ance in log-space, and ηk contains the corresponding eigenval-ues. In practice, class-aware filtering keeps su ffi ciently visible and non-severely truncated instances per class before bank con-struction. Linear statistics ( μk, σ k) are used for routed prior for-mation, while log-space manifold statistics ( Vlog  
+
+> k
+
+, η k, μ log  
+
+> k
+
+) de-fine the CAP geometry. 
+
+3.4. Query Routing and Uncertainty-Aware Mixture Prior 
+
+Given query qi and stored prototype visual centroid vk, we project and normalise both: 
+
+q′ 
+
+> i
+
+= Wqqi
+
+∥Wqqi∥ , v′ 
+
+> k
+
+= Wkvk
+
+∥Wkvk∥ . (3) Routing logits are 
+
+ℓik = α q′⊤  
+
+> i
+
+v′
+
+> k
+
+. (4) where α is a fixed temperature scaling term ( α = 1/ √256). Class probabilities gate routing over class slices S c:˜aik =
+
+
+
+softmax( ℓi,S c )k pic , k ∈ S c
+
+0, otherwise, aik = ˜aik 
+
+P j ˜ai j 
+
+. (5) In implementation, the class probabilities used for gating are detached when forming ˜ aik , so routing consumes semantic confidence while avoiding additional gradient coupling from prior losses into the classification branch. Class gating first restricts competition to prototypes within each class slice and then renormalises across active slices, allowing routing to re-main probabilistic when class confidence is di ff use while col-lapsing toward a single slice as classification sharpens. The routed mixture prior is ˆμi =
+
+X
+
+> k
+
+aik μk,
+
+m2,i =
+
+X
+
+> k
+
+aik (σ2 
+
+> k
+
++ μ2 
+
+> k
+
+),
+
+ˆσi =
+
+q
+
+max( m2,i − ˆμ2 
+
+> i
+
+, ϵ ).
+
+(6) The mixture statistics ˆ μi and ˆ σi are computed element-wise over size dimensions ( h, w, l). Here ˆ σi is query-level routed uncertainty, while σk is the prototype-level size deviation. This routing formulation couples semantic plausibility with instance adaptation. Class gating limits routing to plausible prototype slices, soft mixture weights avoid brittle hard assign-ment, and ˆ σi provides a query-level uncertainty signal for down-stream prior-strength control. In implementation terms, Wq and 
+
+Wk are learned jointly with the detector, whereas bank statistics (μk, σ k, μ log  
+
+> k
+
+, Vlog  
+
+> k
+
+, η k) are frozen after o ffl ine construction, prior to detector training. 
+
+3.5. Log-Space Prior-Conditioned Size Prediction 
+
+The size head predicts a residual vector ri in log-space. We inject the routed prior mean as ˆsi = exp  ri + λi ⊙ log( ˆ μi + ϵ) , λi = λ0 ci gi, (7) where λ0 is a base prior-strength hyperparameter, ci = Pc pic βcls 
+
+> c
+
+is class-conditioned scaling, and gi = (1 + ˆσi/σ s)−1 attenuates prior influence under high uncertainty, with σs a fixed uncertainty-scale hyperparameter. Products and divisions are applied element-wise over ( h, w, l). This parameterisation preserves positivity while retaining instance-specific residual freedom around routed priors, instead of collapsing predictions toward a rigid class mean. Operating in log-space also makes conditioning addi-tive in a space that better matches multiplicative size variation than direct linear correction. 43.6. Cluster-Aligned Prior (CAP) Regularisation 
+
+CAP shapes the optimisation landscape during training, while routed injection modifies the predicted size estimate. CAP is applied only on matched positives, so it regularises plausible as-signments rather than all queries indiscriminately. This restric-tion keeps CAP aligned with the detector’s existing supervision pathway. The prior bank is intended to shape metric size esti-mates for detections that have already been assigned to ground-truth objects, rather than to impose object-like dimensions on unmatched background queries. Applying the loss only after detector matching therefore avoids coupling prior regularisa-tion to low-confidence or background predictions. CAP is also a soft prototype-manifold regulariser rather than a hard nearest-prototype constraint. A matched instance can re-main compatible with multiple plausible size modes, so CAP weights prototype distances by the routed assignment distri-bution instead of forcing a single discrete choice. This pre-serves instance-specific residual freedom in the size head while discouraging predictions from drifting outside plausible class-conditioned size manifolds. Let xi = log( ˆ si) for matched prediction i. The prototype-wise whitened distance is md 2 
+
+> ik
+
+= Vlog ⊤ 
+
+> k
+
+(xi − μlog  
+
+> k
+
+) ⊙ η−1/2 
+
+> k
+> 22
+
+. (8) The CAP loss is 
+
+Lcap = 1
+
+N+
+
+> N+
+
+X
+
+> i=1
+
+wcap 
+
+> yi
+
+X
+
+> k
+
+aik md 2
+
+> ik
+
+, (9) where wcap  
+
+> yi
+
+is a class-dependent CAP weight for ground-truth class yi, and N+ is the number of matched positives in the mini-batch. Weighting by aik keeps CAP soft, avoiding brit-tle attraction to a single prototype when multiple plausible size modes remain consistent with the query. For the CAP weight-ing path only, routing weights use staged gradient flow: de-tached in early epochs, linearly blended detached /non-detached in a transition phase, and fully di ff erentiable in later epochs. The full training objective is then 
+
+L = Ldet + λcap ρ(e) Lcap , (10) where ρ(e) keeps CAP at full strength in early training and then linearly reduces CAP weight in later epochs. All prior-bank construction is o ffl ine; at inference, MonoPRIO uses only stored bank statistics and lightweight routing in the size branch. 
+
+4. Experimental Setup 
+
+4.1. Dataset and Protocols 
+
+We evaluate on KITTI [28]. Following common practice [29], we use the 3,712 /3,769 train /val split for local analysis. Benchmark results are reported on the o ffi cial KITTI test server. Car is evaluated at IoU 0.7, while Pedestrian /Cyclist are evalu-ated at IoU 0.5. Local validation results are reported as medians over five runs. 
+
+4.2. Baselines and Metrics 
+
+We compare against representative monocular methods in-cluding MonoDGP [3], MonoCLUE [4], MonoCoP [5], and prior strong baselines [2, 6, 7, 8, 9]. Primary metrics are AP 3D|R40 
+
+and AP BEV |R40 . We report unified moderate-score average (Uni-Mod), size MAE on matched true positives, and Outlier ra-tio@20% for mechanism analysis. UniMod = 13
+
+ AP Car 3D,Mod@0 .7 + AP Ped 3D,Mod@0 .5
+
++ AP Cyc 3D,Mod@0 .5
+
+,
+
+(11) For mechanism analysis, size MAE is computed on matched true positives as mean absolute error over ( h, w, l), while relative size error is used for Rel MAE and for the Outlier ratio@20%, defined as the fraction of matched true positives whose relative size error exceeds 20%. These metrics are complementary. AP measures final de-tection quality after confidence ranking, localisation, depth, and size estimation are combined, whereas the matched true-positive size metrics isolate the behaviour of the size branch more di-rectly. This distinction is important because MonoPRIO is de-signed to stabilise metric size rather than to replace the full detection pipeline. UniMod provides a compact summary of the unified multi-class setting, while the class-wise AP, size MAE, relative error, and outlier analyses show whether gains arise from broad detection improvements or from reduced size instability in ambiguity-prone cases. 
+
+4.3. Implementation Details 
+
+For local analysis, each run selects checkpoints by Car AP 3D|R40 
+
+Moderate on the validation split, and reported validation re-sults are medians over five runs. Offi cial KITTI test submis-sion trains on the full KITTI training set and uses predictions from epoch 250 without split-specific retuning. Offl ine prior banks are fixed per training split and reused across repeated runs, so di ff erences between MonoDGP, routed injection, and Injection +CAP reflect the proposed size-path changes rather than changes in prototype construction. CAP uses the routing-gradient staging policy described in Section 3.6. Runtime, FLOPs, and parameter counts are measured under identical software, hardware, input-resolution, and batch-size settings on a single RTX 5090 GPU using batch size 1 and 384 ×1280 input resolu-tion. 
+
+5. Experimental Results and Analysis 
+
+5.1. KITTI Main Results Under Unified Training 
+
+Table 1 reports the primary unified-training comparison on KITTI using o ffi cial test submissions and five-run local valida-tion medians. Within each split block, methods are ordered by Car AP 3D|R40 Moderate where reported. On the o ffi cial test split, MonoPRIO yields the strongest fully reported unified multi-class test result among methods that report Car, Pedestrian, and Cyclist together, with the best Moderate AP on Car and Pedes-trian while remaining competitive on Cyclist. MonoPRIO reaches 5Table 1: KITTI unified-training results on test and validation splits. Car is reported for BEV /3D at IoU =0.7; Pedestrian /Cyclist are reported for 3D at IoU =0.5. Test values are o ffi cial benchmark submission results; Val values are medians over five runs. Unreported entries are shown as “–”. Best is bold , second-best is underlined within each split block. † indicates use of additional depth data. Methods that do not report complete unified multi-class results are included only where the corresponding entries are available; fully reported unified comparisons are based on methods with complete Car, Pedestrian, and Cyclist entries. The separate car-only benchmark is reported in Table 8. 
+
+Split Method Car AP BEV |R40 Car AP 3D|R40 Ped. AP 3D|R40 Cyc. AP 3D|R40 
+
+Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard Test GUPNet [6] – – – – – – 14.72 9.53 7.87 4.18 2.65 2.09 DEVIANT [18] 29.65 20.44 17.43 21.88 14.46 11.89 13.43 8.65 7.69 5.05 3.13 2.59 MonoCon [8] 31.12 22.10 19.00 22.50 16.46 13.95 13.10 8.41 6.94 2.80 1.92 1.55 MonoPoly-L [25] – – – – – – 11.05 7.74 6.94 5.73 3.40 2.79 MonoUNI [9] 33.28 23.05 19.39 24.75 16.73 13.49 15.78 10.34 8.74 7.34 4.28 3.78 OPA-3D † [21] 15.65 10.49 19.22 24.60 17.05 14.25 – – – – – –MonoDDE [7] 33.58 23.46 20.37 24.93 17.14 15.10 11.13 7.32 6.67 5.94 3.78 3.33 MonoDGP [3] 35.19 24.50 21.29 26.05 18.55 15.95 15.04 9.89 8.38 5.28 2.82 2.65 MonoCoP [5] – – – – – – 15.61 10.33 8.53 8.89 5.08 5.25 
+
+MonoA 2 [26] – – – – – – 12.95 8.51 7.56 4.39 2.28 2.31 MonoCLUE [4] 35.83 24.59 21.36 26.59 18.70 15.99 16.18 10.45 8.75 5.93 3.20 2.94 
+
+MonoPRIO (Ours) 35.50 24.66 21.54 26.83 18.93 16.25 16.31 10.74 9.08 7.72 4.32 3.61 Val MonoDGP [3] 37.451 26.938 24.416 29.536 21.136 18.802 12.311 9.270 7.268 9.813 4.921 4.422 MonoCLUE [4] 38.249 28.119 24.656 29.344 21.416 18.495 11.658 8.579 7.043 11.180 5.741 5.259 
+
+MonoPRIO (Ours) 38.390 28.538 24.723 30.413 21.856 18.965 12.408 9.361 7.332 12.402 5.988 5.899 
+
+18.93 (Car Mod. AP 3D|R40 ) and 10.74 (Ped Mod. AP 3D|R40 ), compared with 18.70 and 10.45 for MonoCLUE on the same of-ficial split. Local five-run validation medians also favour Mono-PRIO under the same unified protocol. These results are con-sistent with the main empirical pattern of the paper: query-adaptive prior conditioning is especially beneficial in the uni-fied multi-class regime, where class imbalance and projection ambiguity are jointly present. 
+
+5.2. Mechanism Ablation 
+
+Table 2 isolates size-path behaviour on matched true posi-tives rather than measuring the full e ff ect on detection AP. Rel-ative to MonoDGP, routed prior injection increases UniMod from 12.0944 to 12.2942 and lowers the Outlier ratio@20% from 0.0011 to 0.0008, indicating better control of large size failures among matched detections. Adding CAP further in-creases UniMod to 12.3169 and slightly improves unified MAE to 0.1103 while preserving low outlier behaviour. The small ab-solute MAE di ff erences should therefore be read as evidence of size-branch stabilisation, not as the complete detection perfor-mance gain, which is reflected by the AP comparisons in Ta-bles 1 and 3. 
+
+5.3. E ffi ciency and Accuracy-Cost Trade-o ff 
+
+Table 3 shows that MonoPRIO improves unified accuracy with near-baseline cost relative to MonoDGP. It leaves FLOPs  
+
+> Table 2: Size-path diagnostic ablation on KITTI validation. Size-quality met-rics are computed on matched true positives and reported as medians over five runs. This table isolates size-estimation behaviour and should be interpreted together with AP results in Tables 1 and 3.
+
+Method Car MAE ↓
+
+Ped MAE ↓
+
+Cyc MAE ↓
+
+Uni MAE ↓
+
+Outlier @20% ↓
+
+UniMod 
+
+↑
+
+MonoDGP 0.1124 0.0915 0.1047 0.1106 0.0011 12.0944 Injection only 0.1124 0.0919 0.0961 0.1104 0.0008 12.2942 Injection + CAP 0.1118 0.0930 0.0933 0.1103 0.0010 12.3169 
+
+unchanged, adds only 0.33M parameters, and increases latency by 1.24 ms under the matched measurement protocol. This sup-ports the intended branch-local design. The gain comes from conditioning the size pathway with routed priors rather than from scaling the backbone, adding a heavier decoder, or in-creasing general feature capacity. Compared with MonoCLUE, MonoPRIO provides a stronger accuracy-cost trade-o ff in this setting. MonoCLUE uses addi-tional compute and latency for broader contextual reasoning, while MonoPRIO targets the metric-size bottleneck directly. This suggests that lightweight prior conditioning is a useful complement to stronger visual /depth reasoning when the dom-inant failure mode is size ambiguity rather than insu ffi cient de-tector capacity. 6Table 3: Effi ciency under unified accuracy reporting on the validation split. AP 3D|R40 Moderate values are medians over five runs. Run-time /FLOPs /parameters are measured on one RTX 5090 with batch size 1 and input resolution 384 ×1280. Best is bold , second-best is underlined. 
+
+Method Params 
+
+↓
+
+FLOPs 
+
+↓
+
+Latency 
+
+↓ AP 3D|R40 Mod. ↑
+
+(M) (G) (ms) Car Ped Cyc UniMod MonoDGP 42.16 68.99 43.06 21.136 9.270 4.921 12.105 MonoCLUE 44.17 72.71 68.57 21.416 8.579 5.741 11.412 
+
+MonoPRIO 42.49 68.99 44.30 21.856 9.361 5.988 12.307 
+
+5.4. Qualitative Results 
+
+Figure 3 provides representative di ffi cult cases. Across these examples, MonoPRIO generally yields tighter localisation and more consistent BEV footprints than the compared baselines. The clearest visual gains appear in partially visible or truncation-prone cases, where compared baselines more often over- or under-estimate object extent. 
+
+5.5. Ambiguity-Regime and Routing Analysis 
+
+To evaluate where adaptive priors are most e ff ective, we analyse matched true positives by occlusion level, routed un-certainty, and prototype-routing concentration. These diagnos-tics are designed to separate three related e ff ects. Occlusion bins test whether the gains align with degraded visual evidence, routed-uncertainty bins test whether the mixture prior produces a meaningful confidence signal, and prototype-utilisation statis-tics show how CAP changes the use of the prior bank during training. All three analyses are computed on matched true pos-itives and focus on size-estimation behaviour rather than con-flating size errors with false positives or missed detections. Table 4 shows a selective-gain pattern across visibility regimes. MonoPRIO is slightly behind MonoDGP for fully visible in-stances, but is best in partly and largely occluded bins. This distribution of gains suggests that adaptive priors are most ef-fective when visual evidence is degraded. 
+
+> Table 4: Occlusion-stratified unified size error. Values are unified 3D size MAE on matched true positives.
+
+Method Fully visible Partly occluded Largely occluded MonoDGP 0.1068 0.1091 0.1231 MonoCLUE 0.1087 0.1125 0.1281 MonoPRIO 0.1081 0.1087 0.1220 
+
+Table 5 links routed uncertainty to error behaviour. Higher routed uncertainty ( ˆ σi) is associated with larger size error and higher outlier ratio, supporting ˆ σi as a confidence-related indi-cator for prior assignment. Comparing Injection only against Injection +CAP shows that CAP mainly improves robustness in the higher-uncertainty regime while maintaining competitive low-sigma behaviour.                                        
+
+> Table 5: Size error versus routed-prior uncertainty on matched KITTI valida-tion true positives. Sigma bins are terciles of routed-prior uncertainty ˆ σi, where lower sigma indicates higher-confidence prior assignment. Size MAE denotes mean absolute size error, Rel MAE denotes mean relative size error averaged over ( h,w,l), and Outlier ratio@20% denotes the fraction of matched true pos-itives whose mean relative size error exceeds 20%. Method Unc. bin Size MAE ↓
+> Rel MAE ↓
+> Outlier @20% ↓
+> Injection +CAP Low σ0.1095 0.0469 0.0009 Injection only Low σ0.1112 0.0472 0.0003 Injection +CAP Mid σ0.1110 0.0459 0.0008 Injection only Mid σ0.1082 0.0444 0.0005 Injection +CAP High σ0.1117 0.0519 0.0012 Injection only High σ0.1130 0.0519 0.0016
+
+Table 6 characterises how CAP changes routing dynamics. Relative to Injection only, Injection +CAP increases Top-1 rout-ing share and reduces the number of active prototypes per class, indicating a more concentrated use of the prior bank during training. This concentration should be interpreted jointly with the uncertainty and low-data analyses, since higher Top-1 con-centration is not necessarily beneficial in isolation.                             
+
+> Table 6: Prototype-routing diagnostics on matched KITTI validation true posi-tives. Values are medians over five runs. ∆is Injection +CAP minus Injection only. Active prototypes are reported as used /total per class; Top-1 share quan-tifies routing concentration. Diagnostic Class Injection only Injection
+> +CAP ∆
+> Top-1 share ↑
+> Car 0.3257 0.3767 +0.0510 Ped. 0.4201 0.9965 +0.5764 Cyc. 0.3086 0.8987 +0.5901 Active prototypes ↓
+> Car 10 /10 5/10 -5 Ped. 12 /13 2/13 -10 Cyc. 7/12 4/12 -3
+
+5.6. Low-Data Behaviour 
+
+Table 7 evaluates a stronger-prior variant under data-scarce training while keeping the deterministic prior construction pro-tocol unchanged. The stronger setting increases size-path prior conditioning (routed injection and CAP weight) relative to the default 100% configuration, while keeping prior-bank construc-tion and routing fixed. At both 20% and 40% data, MonoPRIO improves all reported categories, with the largest gains on Cy-clist and Pedestrian. These results indicate that stronger prior influence is most beneficial when supervision is limited. Because stronger prior conditioning can over-regularise atypical instances under full-data conditions, we retain the weaker default setting for the 100% configuration. 
+
+5.7. Failure Cases 
+
+Figure 4 highlights boundary conditions where MonoPRIO can underperform. Severe occlusion leaves limited visual ev-idence, which can destabilise routing and degrade local 3D fit 7Figure 3: Qualitative comparison on KITTI val. Representative ambiguity-prone cases with scale uncertainty. Dashed green boxes /footprints denote ground truth; solid red /orange /blue boxes /footprints denote MonoDGP /MonoCLUE /MonoPRIO predictions. Upper-right insets show target 2D-box overlap, lower-right insets show local BEV footprint alignment, and gray BEV outlines indicate nearby context objects. Table 7: Low-data prior-strength variant at 20% and 40% data. Values are AP 3D|R40 Moderate medians over five runs. Car uses IoU =0.7; Pedes-trian /Cyclist use IoU =0.5. ∆ is MonoPRIO minus the second-best method in each column. 
+
+Data split Method Car Ped. Cyc. UniMod 20% MonoDGP 15.446 1.426 2.032 6.281 MonoCLUE 15.936 2.141 1.864 6.667 MonoPRIO 16.086 3.455 4.700 8.154 
+
+∆ +0.150 +1.314 +2.668 +1.487 40% MonoDGP 18.798 5.130 3.916 9.348 MonoCLUE 18.186 4.513 3.413 9.028 MonoPRIO 19.355 5.860 6.301 10.131 
+
+∆ +0.557 +0.730 +2.385 +0.783 
+
+and BEV alignment. Long-range scale-depth ambiguity arises from very small image extent at large distance, where multiple metric interpretations remain plausible and prior conditioning can select the wrong mode. Prior-geometry mismatch appears on a largely visible pedestrian that is not well represented by the bank, so stronger conditioning can over-regularise size and localisation. Together, these failures suggest adaptive priors are most e ff ective when ambiguity is structured and the bank matches the observed instance, and less reliable when evidence is limited or the instance lies outside the bank’s typical cover-age. 
+
+5.8. Secondary Car-Only Evaluation 
+
+Table 8 is reported as a secondary setting to characterise boundary conditions for the prior-conditioning mechanism. In car-only training, inter-class ambiguity is reduced, so class-aware routed priors are less central than in unified multi-class detection. MonoPRIO is stronger than MonoCLUE on the of-ficial KITTI car-only test benchmark across all reported Car AP 3D|R40 di ffi culty levels. This secondary setting indicates com-petitive car-only behaviour, while the strongest MonoPRIO gains are retained in the unified multi-class regime. 
+
+5.9. When Adaptive Priors Help, and When They Hurt 
+
+Across the unified KITTI setting, the empirical gains of MonoPRIO are structured rather than uniform. The strongest improvements are concentrated in regimes where monocular evidence is more ambiguous, including partly and largely oc-cluded cases and low-data training splits (Tables 4, 7). By con-trast, fully visible cases show smaller or less consistent margins (Table 4). This pattern is consistent with the intended scope of the method: adaptive priors are most useful when direct image evidence underdetermines metric size. This behaviour follows from the role of the prior as an addi-tional constraint, not a replacement for visual evidence. When visible extent and depth cues are reliable, the base detector can often infer object dimensions with lower ambiguity, so routed priors provide limited additional information. Under partial oc-clusion, truncation, or long-range projection, however, similar 2D support can correspond to multiple metric sizes. In these cases, the routed prior helps narrow the size hypothesis space 8Figure 4: Failure cases on KITTI val. Representative low-IoU cases where MonoPRIO underperforms the compared methods on localised 3D fit and BEV footprint alignment, covering severe occlusion, scale-depth ambiguity, and prior-geometry mismatch. Dashed green boxes /footprints are ground truth; solid red /orange /blue boxes /footprints are MonoDGP /MonoCLUE /MonoPRIO predictions; upper-right insets show target 2D overlap and lower-right insets show local BEV alignment. 
+
+and reduces the tendency toward large physically implausible deviations. The mechanism-level diagnostics are aligned with this be-haviour. Routed uncertainty is positively associated with size error and outlier tendency (Table 5), which is consistent with in-terpreting ˆ σi as a confidence-related indicator of harder cases. The ablation results further indicate a complementary split of roles: routed injection provides most of the immediate reduc-tion in large size failures, while CAP adds robustness and stabil-ity in harder regimes (Table 2). The associated routing concen-tration trend under CAP (Table 6) is not an objective by itself; it is meaningful when it coincides with lower error and improved robustness. The same results also clarify boundary conditions. In sim-pler or less ambiguous settings, such as fully visible bins or re-duced inter-class competition in car-only training, the marginal value of stronger prior conditioning is lower, and improvements can become smaller or inconsistent across AP and size-error metrics (Tables 4, 8). The failure cases in Figure 4 show the re-maining hard regime: atypical geometries and severe occlusion can still cause mismatch between the routed prior and true ob-ject geometry. Overall, the evidence suggests that adaptive pri-ors are most valuable when monocular ambiguity is structured and multimodal in unified detection. Future gains are likely to come from broader prior-bank coverage and more reliable rout-ing under extreme visibility degradation. These observations also limit the interpretation of the pro-posed prior mechanism. MonoPRIO should not be viewed as a universal correction layer for all monocular 3D errors, but as a branch-local stabilisation mechanism whose benefit depends on the availability of representative prior modes and reliable query routing. When an object lies outside the support of the prior bank, or when severe occlusion leaves too little evidence for re-liable routing, stronger prior conditioning can bias the predic-tion toward an incorrect but plausible size mode. This suggests that future extensions should focus on improving prior-bank coverage, detecting out-of-support assignments, and adapting prior strength more explicitly to visibility and routing confi-dence. 
+
+6. Conclusion 
+
+This paper targets a specific weakness of monocular 3D de-tection: unstable metric size estimation under size-depth ambi-guity, especially in unified multi-class training where occlusion, truncation, and class variability broaden plausible size modes. MonoPRIO addresses this by introducing query-adaptive prior conditioning in the size pathway through routed class-aware priors and training-time regularisation. Experiments on KITTI show that this design yields strong unified KITTI performance while preserving near-baseline ef-ficiency. Mechanism ablations and diagnostics further indicate that the gains are not confined to headline AP improvements: routed priors and CAP jointly reduce large size failures and im-prove robustness in ambiguity-prone regimes, consistent with the intended role of adaptive prior conditioning in monocular size prediction. The results also clarify the scope of the approach. Adaptive 9Table 8: Car-only KITTI test results. Car is reported for BEV /3D at IoU =0.7 on the o ffi cial KITTI test benchmark. Extra-data methods are listed first, followed by methods without extra data. Best is bold , second-best is underlined, computed among methods without extra data. 
+
+# Method Data Car AP BEV |R40 Car AP 3D|R40 Easy Mod. Hard Easy Mod. Hard MonoDTR [30] LiDAR 28.59 20.38 17.14 21.99 15.39 12.73 DID-M3D [31] LiDAR 32.95 22.76 19.83 24.40 16.29 13.75 OccupancyM3D [32] LiDAR 35.38 24.18 21.37 25.55 17.02 14.79 MonoTAKD [33] LiDAR 38.75 27.76 24.14 27.91 19.43 16.51 MonoPGC [34] Depth 32.50 23.14 20.30 24.68 17.17 14.14 OPA-3D [21] Depth 33.54 22.53 19.22 24.60 17.05 14.25 GUPNet [6] None – – – 20.11 14.20 11.77 MonoFlex [35] None 28.23 19.75 16.89 19.94 13.89 12.07 MonoRCNN [36] None 25.48 18.11 14.10 18.36 12.65 10.03 DEVIANT [18] None 29.65 20.44 17.43 21.88 14.46 11.89 MonoPoly-L [25] None 29.57 22.23 19.75 22.94 16.13 13.01 MonoCon [8] None 31.12 22.10 19.00 22.50 16.46 13.95 MonoDETR [2] None 33.60 22.11 18.60 25.00 16.47 13.58 MonoUNI [9] None – – – 24.75 16.73 13.49 FD3D [23] None 34.20 23.72 20.76 25.38 17.12 14.50 MonoCD [22] None 33.41 22.81 19.57 25.53 16.59 14.53 MonoMAE [24] None 34.15 24.93 21.76 25.60 18.84 16.78 MonoDGP [3] None 35.24 25.23 22.02 26.35 18.72 15.97 MonoCoP [5] None 36.77 25.57 22.62 27.54 19.11 16.33 MonoA 2 [26] None 31.71 23.14 20.45 23.24 17.55 15.26 MonoCLUE [4] None 36.15 26.15 22.81 27.94 19.70 16.69 
+
+# MonoPRIO (Ours) None 35.74 26.05 22.90 28.12 19.85 16.93 
+
+priors are most useful when monocular evidence underdeter-mines metric geometry, but they are less decisive when visual cues are already strong or when the routed bank does not repre-sent the observed instance well. Future work should therefore focus on broader prior-bank coverage, out-of-support detection, and prior-strength adaptation under severe visibility degrada-tion. 
+
+Acknowledgements 
+
+The authors acknowledge funding support from WTW. The authors also acknowledge the use of the Apollo High Perfor-mance Computing service at Loughborough University. 
+
+References 
+
+[1] R. Qian, X. Lai, X. Li, 3d object detection for autonomous driving: A survey, Pattern Recognition 130 (2022) 108796. doi:10.1016/j.patcog.2022.108796 .[2] R. Zhang, H. Qiu, T. Wang, Z. Guo, Z. Cui, Y. Qiao, H. Li, P. Gao, MonoDETR: Depth-guided transformer for monocular 3d object detection, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2023, pp. 9155–9166. 10 [3] F. Pu, Y. Wang, J. Deng, W. Yang, MonoDGP: Monocular 3d object detection with decoupled-query and geometry-error priors, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2025. [4] S. Yang, M. Lee, J. Lee, S. Lee, MonoCLUE: Object-aware clustering enhances monocular 3d object detection, Proceedings of the AAAI Conference on Artificial Intelli-gence 40 (14) (2026) 11721–11729. [5] Z. Zhang, A. Kumar, G. C. Ganesan, X. Liu, Unleashing the power of chain-of-prediction for monocular 3d object detection, arXiv preprint arXiv:2505.04594 (2025). [6] Y. Lu, X. Ma, L. Yang, T. Zhang, Y. Liu, Q. Chu, J. Yan, W. Ouyang, Geometry uncertainty projection network for monocular 3d object detection, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2021. [7] Z. Li, Z. Qu, Y. Zhou, J. Liu, H. Wang, L. Jiang, Diversity matters: Fully exploiting depth clues for reliable monocu-lar 3d object detection, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2022, pp. 2791–2800. [8] X. Liu, N. Xue, T. Wu, Learning auxiliary monocular con-texts helps monocular 3d object detection, in: Proceed-ings of the AAAI Conference on Artificial Intelligence (AAAI), 2022, pp. 1810–1818. [9] J. Jia, Z. Li, Y. Shi, MonoUNI: A unified vehicle and infrastructure-side monocular 3d object detection network with su ffi cient depth clues, in: Advances in Neural Infor-mation Processing Systems (NeurIPS), 2023. [10] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, G. Krueger, I. Sutskever, Learning transferable visual models from natural language supervision, in: Proceed-ings of the 38th International Conference on Machine Learning (ICML), 2021, pp. 8748–8763. [11] Y. Wang, V. C. Guizilini, T. Zhang, Y. Wang, H. Zhao, J. Solomon, DETR3D: 3d object detection from multi-view images via 3d-to-2d queries, in: Proceedings of the 5th Conference on Robot Learning (CoRL), 2022, pp. 180–191. [12] Z. Li, W. Wang, H. Li, E. Xie, C. Sima, T. Lu, Y. Qiao, J. Dai, BEVFormer: Learning bird’s-eye-view representa-tion from multi-camera images via spatiotemporal trans-formers, in: European Conference on Computer Vision (ECCV), 2022. [13] X. Chen, K. Kundu, Z. Zhang, H. Ma, S. Fidler, R. Urta-sun, Monocular 3d object detection for autonomous driv-ing, in: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016. [14] A. Mousavian, D. Anguelov, J. Flynn, J. Kosecka, 3d bounding box estimation using deep learning and geome-try, in: Proceedings of the IEEE conference on Computer Vision and Pattern Recognition, 2017, pp. 7074–7082. [15] T. Roddick, A. Kendall, R. Cipolla, Orthographic fea-ture transform for monocular 3d object detection, arXiv preprint arXiv:1811.08188 (2018). [16] G. Brazil, X. Liu, M3d-rpn: Monocular 3d region pro-posal network for object detection, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2019. [17] Z. Liu, Z. Wu, R. Tóth, Smoke: Single-stage monocular 3d object detection via keypoint estimation, in: Proceed-ings of the IEEE /CVF conference on computer vision and pattern recognition workshops, 2020, pp. 996–997. [18] A. Kumar, G. Brazil, E. Corona, A. Parchami, X. Liu, DEVIANT: Depth equivariant network for monocular 3d object detection, in: European Conference on Computer Vision (ECCV), 2022, pp. 664–683. [19] M. Ding, Y. Huo, H. Yi, Z. Wang, J. Shi, Z. Lu, P. Luo, Learning depth-guided convolutions for monocular 3d ob-ject detection, in: Proceedings of the IEEE /CVF Confer-ence on computer vision and pattern recognition work-shops, 2020, pp. 1000–1001. [20] C. Reading, A. Harakeh, J. Chae, S. L. Waslander, Cate-gorical depth distribution network for monocular 3d ob-ject detection, in: Proceedings of the IEEE /CVF confer-ence on computer vision and pattern recognition, 2021, pp. 8555–8564. [21] Y. Su, Y. Di, G. Zhai, F. Manhardt, J. R. Rambach, B. Busam, D. Stricker, F. Tombari, OPA-3D: Occlusion-aware pixel-wise aggregation for monocular 3d object detection, IEEE Robotics and Automation Letters 8 (3) (2023) 1327–1334. [22] L. Yan, P. Yan, S. Xiong, X. Xiang, Y. Tan, MonoCD: Monocular 3d object detection with complementary depths, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2024, pp. 10248–10257. [23] Z. Wu, Y. Gan, Y. Wu, R. Wang, X. Wang, J. Pu, FD3D: Exploiting foreground depth map for feature-supervised monocular 3d object detection, in: Proceed-ings of the AAAI Conference on Artificial Intelligence (AAAI), Vol. 38, 2024, pp. 6189–6197. [24] X. Jiang, S. Jin, X. Zhang, L. Shao, S. Lu, MonoMAE: Enhancing monocular 3d detection through depth-aware masked autoencoders, in: Advances in Neural Informa-tion Processing Systems (NeurIPS), 2024. 11 [25] H. Guan, C. Song, Z. Zhang, T. Tan, Monopoly: A practi-cal monocular 3d object detector, Pattern Recognition 132 (2022) 108967. [26] J. Dong, S. Zhou, Y. Hu, Y. Huang, J. Jiang, W. Zuo, S. Chen, N. Zheng, Monoa2: Adaptive depth with aug-mented head for monocular 3d object detection, Pattern Recognition (2025) 112418. [27] R. Qian, X. Lai, X. Li, Badet: Boundary-aware 3d ob-ject detection from point clouds, Pattern recognition 125 (2022) 108524. [28] A. Geiger, P. Lenz, R. Urtasun, Are we ready for au-tonomous driving? the KITTI vision benchmark suite, in: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2012, pp. 3354–3361. [29] X. Chen, K. Kundu, Y. Zhu, A. G. Berneshawi, H. Ma, S. Fidler, R. Urtasun, 3d object proposals for accurate object class detection, in: C. Cortes, N. Lawrence, D. Lee, M. Sugiyama, R. Garnett (Eds.), Advances in Neural Information Processing Systems, Vol. 28, Curran Associates, Inc., 2015. URL https://proceedings.neurips. cc/paper_files/paper/2015/file/ 6da37dd3139aa4d9aa55b8d237ec5d4a-Paper.pdf 
+
+[30] K.-C. Huang, T.-H. Wu, H.-T. Su, W. H. Hsu, MonoDTR: Monocular 3d object detection with depth-aware trans-former, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2022, pp. 4002–4011. [31] L. Peng, X. Wu, Z. Yang, H. Liu, D. Cai, DID-M3D: Decoupling instance depth for monocular 3d object de-tection, in: European Conference on Computer Vision (ECCV), 2022, pp. 71–88. [32] L. Peng, J. Xu, H. Cheng, Z. Yang, X. Wu, W. Qian, W. Wang, B. Wu, D. Cai, Learning occupancy for monoc-ular 3d object detection, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2024, pp. 10281–10292. [33] H.-I. Liu, C. Wu, J.-H. Cheng, W. Chai, S.-Y. Wang, G. Liu, H. Latapie, J.-C. Wu, J.-N. Hwang, H.-H. Shuai, W.-H. Cheng, MonoTAKD: Teaching assistant knowledge distillation for monocular 3d object detection, in: Pro-ceedings of the IEEE /CVF Conference on Computer Vi-sion and Pattern Recognition (CVPR), 2025, pp. 22266– 22275. [34] Z. Wu, Y. Gan, L. Wang, G. Chen, J. Pu, MonoPGC: Monocular 3d object detection with pixel geometry contexts, in: 2023 IEEE International Conference on Robotics and Automation (ICRA), IEEE, 2023, pp. 4842– 4849. [35] Y. Zhang, J. Lu, J. Zhou, Objects are di ff erent: Flexi-ble monocular 3d object detection, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2021, pp. 3289–3298. [36] X. Shi, Q. Ye, X. Chen, C. Chen, Z. Chen, T.-K. Kim, Geometry-based distance decomposition for monocular 3d object detection, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2021, pp. 15172–15181. 12

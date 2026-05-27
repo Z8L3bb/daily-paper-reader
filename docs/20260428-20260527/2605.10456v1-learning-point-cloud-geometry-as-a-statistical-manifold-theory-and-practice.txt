@@ -1,0 +1,1396 @@
+Title: Learning Point Cloud Geometry as a Statistical Manifold: Theory and Practice
+
+URL Source: https://arxiv.org/pdf/2605.10456v1
+
+Published Time: Tue, 12 May 2026 03:22:20 GMT
+
+Number of Pages: 31
+
+Markdown Content:
+This paper has been accepted for publication in Robotics: Science and Systems (RSS) 2026. 
+
+# Learning Point Cloud Geometry as a Statistical Manifold: Theory and Practice 
+
+Jinwoo Lee ∗,1 Jiwoo Kim ∗,1 Woojae Shin 1 Giseop Kim 2 Hyondong Oh 1,† 
+
+> 1
+
+Korea Advanced Institute of Science and Technology (KAIST), Daejeon, Republic of Korea  
+
+> 2
+
+Daegu Gyeongbuk Institute of Science and Technology (DGIST), Daegu, Republic of Korea Emails: {jinwoolee, tars0523, oj7987, h.oh }@kaist.ac.kr , gsk@dgist.ac.kr 
+
+Raw PCA 
+
+POLI (Proposed) Ground Truth Fig. 1: Point cloud geometries estimated by different methods on the HeLiPR dataset, visualized with 300 samples per distribution. PCA struggles to recover underlying geometry, whereas POLI preserves geometry aligned with the ground truth. 
+
+Abstract —Point clouds are a fundamental representation for robotic perception tasks such as localization, mapping, and object pose estimation. However, LiDAR-acquired point clouds are inherently sparse and non-uniform, providing incomplete observations of the underlying geometry. Such sparsity and non-uniformity hinder reliable geometric reasoning, leading to de-graded performance in downstream perception tasks. To mitigate these issues, prior work has attempted to compensate for the sparsity and non-uniformity of point clouds by estimating point cloud geometry. However, in the absence of an explicit model of point cloud geometry, existing approaches have predominantly relied on either hand-crafted statistics of local point distributions or end-to-end supervised deep learning, which often suffer from limited scalability or require large amounts of accurately labeled training data. To address these challenges, we explicitly model and estimate point cloud geometry under a principled mathe-matical formulation. Theoretically, we represent the point cloud geometry as a statistical manifold induced by a family of Gaussian 
+
+> ∗
+
+Equal contribution. †Corresponding author. 
+
+distributions that captures the local geometry of each point. Building on this formulation, we design a probabilistic model that predicts per-point local geometry in the form of a Gaussian distribution. Practically, we introduce a deep neural network to instantiate the estimation of these Gaussian distributions, and term the resulting estimator as Point-to-Ellipsoid (POLI). By consistently estimating point-wise local geometry across diverse point clouds, POLI learns a mapping between point cloud observations and their underlying geometry. Importantly, this mapping is learned in a self-supervised manner, removing the reliance on labeled data while maintaining strong geometric inductive biases. The resulting representation integrates seam-lessly into existing robotic perception pipelines without requiring architectural modifications. Extensive experiments demonstrate that the proposed theory and practice enable accurate and robust estimation of point cloud geometry and consistently improve performance across a wide range of robotic perception tasks. The implementation of our proposed method is publicly available at https://github.com/jinwoolee1230/POLI. 
+
+> arXiv:2605.10456v1 [cs.RO] 11 May 2026
+
+I. I NTRODUCTION 
+
+Point clouds are widely used in robotic perception tasks such as localization, mapping, and object pose estimation [4, 23, 24, 31, 33, 36, 38, 47]. However, point clouds acquired by LiDAR are sparse and non-uniform, providing incomplete observations of the underlying geometry. This limits reliable geometric reasoning and degrades the performance of down-stream perception tasks [18, 29, 37, 42]. To mitigate these limitations, existing robotic perception systems have fundamentally relied on estimating the underly-ing geometry from point clouds to enrich the available geomet-ric information [31, 33]. Without an explicit model of point cloud geometry, most systems treat local point distributions as implicit representations of the underlying surface geometry and estimate point-wise local geometry using hand-crafted statistics over local neighborhoods [14, 24, 31, 33, 34, 36, 40, 41]. However, in practice, point distributions are strongly influenced by sensor resolution and viewpoint, reflecting ob-servation artifacts rather than underlying geometry. To overcome such heuristic limitations, end-to-end super-vised deep learning approaches have been proposed [2, 3, 37, 42]. While these methods have shown improved scalability, they delegate most of the geometric reasoning to neural net-works, resulting in strong dependence on large-scale annotated data and limited incorporation of geometric inductive biases. Moreover, their representations have limitations in being in-tegrated into robotic downstream tasks, and it is difficult to guarantee consistent geometric representations [42]. In both cases, the lack of a principled model limits the accuracy and scalability of point cloud geometry estimation. By contrast, if the relationship between point clouds and underlying geometry is formulated in a principled mathemat-ical way, accurate and scalable geometry estimation becomes possible, with the potential to benefit a wide range of robotic perception systems. Motivated by this perspective, we propose a principled mathematical formulation for point cloud geome-try estimation, together with its theoretical foundations and a practical implementation. Specifically, we model point cloud geometry as a statistical manifold induced by a family of three-dimensional (3D) Gaus-sian distributions, where each distribution encodes the local geometry associated with a point. Based on this formulation, we construct a principled probabilistic framework for estimat-ing point-wise covariances and introduce deep learning as a practical instantiation of this framework. This learning frame-work equips neural networks with strong geometric inductive biases while enabling self-supervised learning without requir-ing accurate labels. The resulting covariance estimator, termed Point-to-Ellipsoid (POLI), learns a mapping between point cloud observations and their underlying geometry by con-sistently estimating point-wise local geometry across diverse point clouds. Moreover, POLI can be seamlessly integrated into existing robotic perception pipelines [17, 24, 41, 43] without requiring structural modifications. II. P OINT CLOUD GEOMETRY ESTIMATION 
+
+Point cloud geometry plays a fundamental role in robotic perception pipelines, as it enables informative representations of point clouds. Existing methods for point cloud geometry estimation can be broadly categorized into two classes: hand-crafted neighborhood statistics and deep learning–based ap-proaches. In this section, we review representative methods from both categories and discuss their limitations. 
+
+A. Hand-Crafted Neighborhood Statistics 
+
+Hand-crafted neighborhood statistics, methods that approx-imate the underlying surface geometry using local point dis-tributions within a neighborhood, were originally introduced to improve robotic perception performance. Notably, iterative closest point (ICP)-based registration methods estimate local geometry to construct reliable error metrics. Point-to-plane ICP [30] estimates a local planar surface from neighboring points, enabling a plane-based residual. GICP [33] represents local geometry using a covariance matrix obtained from the local point distribution, enabling an adaptive residual metric. VGICP [16] aggregates point-wise local statistics within voxel grids, enabling robust local geometry estimation. In correspondence estimation, local geometry is estimated to obtain distinctive point features. PFH [31] and FPFH [32] en-code local geometry using angular relationships between point normals and inter-point directions within a local neighborhood. SHOT [36] encodes local geometry by accumulating normal orientation distributions within a local reference frame, and RoPS [11] represents local geometry using statistics of local point distributions obtained from rotational projections. While these statistical approaches have been effective across a wide range of applications, they estimate local geometry directly from observed point neighborhoods using statistical techniques such as principal component analysis (PCA). Con-sequently, their accuracy depends on the observation process, including sensor resolution and viewpoint. In addition, their performance is sensitive to neighborhood selection, limiting their scalability, as shown in Fig. 1. 
+
+B. Learning-Based Approaches 
+
+To improve the scalability of conventional methods, learning-based approaches have been proposed. Many existing works focus on point-wise surface normal estimation [20, 21, 22], which provides a compact description of local geometry. However, normals alone fail to capture geometric properties such as local planar extent or curvature, limiting their utility in downstream tasks. Another line of work aims to densify point clouds or reconstruct complete surface geometry using generative mod-els [18, 26, 29, 37, 42, 46]. While these methods can pro-duce visually dense reconstructions, predicting geometry in unobserved regions often leads to inaccurate and inconsistent estimates. Moreover, they typically require dense scans for training, which are difficult to obtain in practice, and can also incur high computational cost. More discussion is provided in Supplementary Material SF. Despite their empirical success, many learning-based ap-proaches rely on fully end-to-end training without explicitly modeling the underlying geometric structure. As a result, geometric reasoning is implicitly delegated to neural networks, leading to a strong dependence on large amounts of carefully annotated training data and fundamental limitations in accu-racy and scalability. From this perspective, we introduce a new problem formulation that models point cloud geometry as a statistical manifold, together with a solid theoretical foundation and a practical instantiation via neural networks. Crucially, our formulation enables self-supervised learning, requiring neither dense scans nor perfect transformation labels, thereby substantially expanding the range of datasets that can be leveraged for geometry estimation. III. T HEORY : M ODELING POINT CLOUD GEOMETRY 
+
+In this section, we present a theoretical formulation that models point cloud geometry as a statistical manifold and derives a probabilistic framework for its estimation. 
+
+A. Point Cloud Geometry as a Statistical Manifold 
+
+A statistical manifold is a smooth manifold formed by a family of probability distributions parameterized by a contin-uous parameter space [1]. Since each element on a statistical manifold represents a probability distribution rather than a sin-gle point measurement, modeling local surface geometry with individual distributions provides an expressive representation of the underlying surface while reducing the reliance on dense observations. Building on this idea, we model point cloud geometry as a statistical manifold, denoted by Mg, induced by Gaussian distributions that encode local surface geometry. Beyond modeling, we formulate the corresponding estimation problem and provide a practical instantiation by adopting Gaussian distributions, which are analytically tractable and well-suited for compact geometric representation. 
+
+Definition 1 (Statistical Manifold of World Geometry) . The statistical manifold Mg represents the underlying world sur-face manifold through a probabilistic approximation in a global reference frame. The manifold Mg is defined as a family of 3D Gaussian distributions, each parameterized by a mean ¯xgi ∈ R3 and a covariance matrix Cgi ∈ S3+. Each Gaussian distribution defines the probability density that an observed point xi is measured with respect to a local tangent plane at ¯xgi .
+
+When xi is acquired from a high-precision LiDAR sensor, the resulting Gaussian distribution approximates the local planar geometry as shown in Fig. 2. In this formulation, the covariance matrix Cgi provides a quantitative representation of the geometry [27] in the neighborhood of ¯xgi .
+
+Proposition 1 (Statistical Manifold Representation from Different Sensor Frames) . Given the sensor pose Tp =(Rp, tp) ∈ SE (3) relative to the global reference frame, the parameters ¯xpi and Cpi of the local statistical manifold Mp
+
+are defined by transforming the global model Mg into the sensor frame via Tp−1:
+
+Fig. 2: A visualization illustrating how underlying geometry can be represented as a statistical manifold. It explains that two points observed in different coordinate frames can be regarded as samples drawn from the same underlying distribution. 
+
+¯xpi ≜ R⊤ 
+
+> p
+
+(¯xgi − tp), Cpi ≜ R⊤ 
+
+> p
+
+Cgi Rp.
+
+Analogously, for a second observation frame with pose Tq =(Rq, tq) ∈ SE (3) , the parameters ¯xqi and Cqi of the statistical manifold Mq are defined via Tq−1:
+
+¯xqi ≜ Rq⊤(¯xgi − tq), Cqi ≜ Rq⊤Cgi Rq.
+
+Let P ≜ (p1, . . . , pN ) and Q ≜ (q1, . . . , qN ) denote two scans acquired from frames Tp and Tq, respectively, with known correspondences (pi, qi). Each point is independently sampled as a noisy observation from its local Gaussian dis-tribution, i.e., pi ∼ N (¯xpi , Cpi ) and qi ∼ N (¯xqi , Cqi ),with per-point covariances Cp ≜ (Cp1 , . . . , CpN ) and Cq ≜
+
+(Cq1 , . . . , CqN ). Note that, P and Q originate from manifolds related by an isometric rigid-body transformation of the same underlying world surface, they share identical local geometry (i.e., Cgi ). Under this local geometric model, the displacement 
+
+di for the i-th pair is defined by the relative transformation 
+
+T ≜ T−1 
+
+> q
+
+Tp as: 
+
+di ≜ qi − Tp i, di ∼ N (0, 2Cqi ) . (1) Derivation of Eq. (1) is provided in Supplementary Mate-rial SA. 
+
+Lemma 1 (Re-parameterization) . Given the relative transfor-mation T, the conditional likelihood of a target point qi given its source point pi depends only on the residual in Eq. (1) :
+
+p(qi | pi, T, Cqi ) ≡ p(di | T, Cqi ). (2) 
+
+This re-parameterization is justified by an invertible change of variables with unit Jacobian. Under the local geometric model in Eq. (1) , we obtain: 
+
+p(qi | pi, T, Cqi ) = 1
+
+p(2 π)3 |2Cqi | exp  − 12 d⊤ 
+
+> i
+
+(2 Cqi )−1di
+
+ .
+
+Derivation of Eq. (2) is provided in Supplementary Mate-rial SA. Proposition 2 (Factorized Correspondence Likelihood) . The conditional likelihood of the target set Q given the fixed source set P factorizes as: 
+
+p(Q |P , T, Cq) = 
+
+> N
+
+Y
+
+> i=1
+
+p(qi | pi, T, Cqi )=
+
+> N
+
+Y
+
+> i=1
+
+1
+
+p(2 π)3 |2Cqi | exp 
+
+
+
+− 12 d⊤ 
+
+> i
+
+(2 Cqi )−1di
+
+
+
+,
+
+(3) 
+
+where the last equality follows from Lemma 1. B. Probabilistic Modeling for Covariance Estimation 
+
+Under a probabilistic model that relates two scans acquired from the same underlying scene, their relative pose, and the local geometry, we derive a maximum likelihood estimation (MLE) framework. Within this framework, we formulate an optimization problem to estimate the underlying local geometry in terms of point-wise covariances. 
+
+Assumption 1 (Probabilistic Modeling) . We aim to estimate the covariances Cq from observations D = ( Q, ˜T), condi-tioned on the source set P. Here, ˜T denotes a relative pose measurement between the sensor frames at which the scans are acquired, representing an observation of the underlying trans-formation T (e.g., a relative pose measured by a GNSS–INS system). We write the marginal likelihood as: 
+
+p(D | P , Cq) = 
+
+Z
+
+p(D, T | P , Cq) dT
+
+(marginalization) 
+
+=
+
+Z
+
+p(Q | ˜T, P, T, Cq) p( ˜T | T, P, Cq) p(T | P , Cq) dT
+
+(chain rule) 
+
+=
+
+Z
+
+p(Q |P , T, Cq) p( ˜T | T) p(T) dT
+
+(conditional independence )
+
+∝
+
+Z
+
+p(Q |P , T, Cq)p( ˜T | T) dT. (4) 
+
+(uniform prior for p(T))We model the relationships among the variables as follows. The latent pose T is assumed to be independent of (P, Cq),and we adopt a non-informative prior p(T) ∝ 1. The ob-served pose ˜T depends solely on the latent pose T, and is conditionally independent of Q given (P, T, Cq). Intuitively, once P is given, the latent pose T—representing the relative transformation between P and Q—serves as the primary fac-tor driving both ˜T and Q. Specifically, ˜T is generated directly from a realization of T, while Q is determined by the com-bination of T and the intrinsic factor Cq. These dependency relationships are illustrated in Fig. 3. We assume that any potential dependencies beyond those explicitly modeled are negligible, allowing us to focus on the key dependencies in our formulation. Further discussion is provided in Supplementary Material SE. ˜T T Q Cq
+
+Fig. 3: Probabilistic model as a directed acyclic graph, where edges denote direct conditional dependencies. 
+
+Definition 2 (Energy Function) . To simplify the expression of 
+
+p(D | P , Cq) and facilitate the derivation of its MLE, we derive the energy function of the integrand in Eq. 4, i.e., the negative log-probability of the corresponding distribution. For the pose likelihood (i.e., p( ˜T | T)), we assume a Gaussian noise model: 
+
+p( ˜T | T) = 1(2 π)3 |Γ|1/2 exp 
+
+
+
+− 12 ξ(T)⊤Γ−1 ξ(T)
+
+
+
+, (5) 
+
+where ξ(T) = Log 
+
+
+
+T−1 ˜T
+
+
+
+∈ R6 and Γ denotes the covariance of the measurement noise. Combining Eqs. (3) and (5), we define the energy: 
+
+Φ( T; Cq) ≜ − log 
+
+
+
+p(Q | P , T, Cq) p( ˜T | T)
+
+
+
+= 12
+
+> N
+
+X
+
+> i=1
+
+h
+
+log |2Cqi| + d⊤ 
+
+> i
+
+(2 Cqi)−1di
+
+i
+
++ 12 log |Γ| + 12 ξ(T)⊤Γ−1ξ(T) + const. (6) 
+
+Then, the marginal likelihood from Assumption 1 can be written as: 
+
+p(D | P , Cq) ∝
+
+Z
+
+p(Q | P , T, Cq) p( ˜T | T) dT
+
+∝
+
+Z
+
+exp   − Φ( T; Cq) dT.
+
+(7) 
+
+Proposition 3 (Laplace Approximation) . The integral in Eq. (7) is generally intractable due to the nonlinearity of 
+
+Φ( T; Cq) over SE (3) . We therefore adopt a Laplace approxi-mation, which approximates the integral by fitting a Gaussian to the integrand around its mode (most probable pose ˆT). This yields a closed-form, differentiable surrogate objective with stable gradients, avoiding the computational overhead of sampling-based alternatives [25]. Since the integrand is proportional to exp   − Φ( T; Cq), the dominant contribution comes from the neighborhood of the minimizer of Φ. Accord-ingly, we first compute the mode pose 
+
+ˆT ≜ arg min  
+
+> T
+
+Φ( T; Cq), (8) 
+
+and apply a second-order Taylor expansion of Φ around ˆT
+
+p(D | P , Cq) ≈ K0 (2 π)3 H( ˆT) −1/2 exp   − Φ( ˆT; Cq),
+
+(9) 
+
+where K0 is constant and H( ˆT) ∈ R6×6 denotes the Hessian of Φ with respect to a SE (3) perturbation, evaluated at ˆT:
+
+H( ˆT) ≜ ∇2
+
+> T
+
+Φ( T; Cq) T= ˆT . (10) Corollary 1 (Geometry Estimation) . Consequently, the MLE for the covariances is obtained by maximizing the approximate marginal likelihood, equivalently 
+
+ˆCq = arg max 
+
+> Cq
+
+p(D | P , Cq) (11) 
+
+≈ arg min 
+
+> Cq
+
+12 log |H( ˆT)| + Φ( ˆT; Cq). (12) With this probabilistic formulation, we estimate point cloud geometry in the form of point-wise covariances Cq, which are elements of the statistical manifold representing the underlying geometry. This probabilistic framework only requires reason-ably accurate relative pose measurements ˜T and consistent correspondences (pi, qi), enabling self-supervised learning without relying on dense point clouds or explicit ground-truth geometry in the following section. IV. P RACTICE : L EARNING POINT CLOUD GEOMETRY 
+
+In this section, we describe how to solve the optimization problem in Corollary 1. The covariance set to be optimized, 
+
+Cq ∈ R6×N , which comprises six parameters per covariance across N correspondences, requires a high-dimensional, non-convex optimization problem that is impractical to solve using classical optimization methods. Therefore, we reformulate the problem as learning a mapping from the input point cloud 
+
+Q to the set of covariance matrix Cq. Specifically, we train a neural network to predict Cq such that the objective in Eq. (12) is minimized. The remainder of this section is organized as follows: We first present a neural network architecture of a covariance estimator that predicts point-wise covariances, then introduce a certifiably correct and differentiable optimization layer for the mode pose estimation and gradient calculation, and finally summarize the overall training and inference proce-dure. Through this formulation, we enable the network to infer the underlying geometry of the point cloud input as a set of point-wise covariances that constitute the statistical manifold. 
+
+A. Covariance Estimator 
+
+A neural network that learns to predict point-wise covari-ance must be permutation invariant, extract local features in the underlying geometry, and handle variable-sized and non-uniform point sets. Therefore, we design a neural network inspired by PointNet++ [28] to predict a per-point covariance matrix. Given a point cloud, a subset of points is selected via farthest point sampling, and neighborhoods are queried around them using a ball query. Each neighborhood is normalized to its centroid frame and encoded by applying a shared multi layer perceptron (MLP) to each point individually, followed by max pooling to obtain a fixed-length representation of the region. The resulting local features are back-propagated to the original point cloud using distance-weighted interpolation and skip connections, producing point-wise feature represen-tations. For each point qi, the network predicts six parameters that define a lower-triangular matrix Li. The covariance is then constructed as Cqi = LiLi⊤, which guarantees Cqi ⪰ 0.Network architecture is illustrated in Fig. 4 
+
+Fig. 4: Network architecture of covariance estimator. 
+
+B. Certifiably Correct Differentiable Optimization Layer 
+
+Given network-predicted covariances Cq, we should esti-mate the mode pose in Eq. (8): 
+
+ˆT = arg min 
+
+> T
+> N
+
+X
+
+> i=1
+
+d⊤
+
+> i
+
+ 2Cqi
+
+−1di + ξ(T)⊤Γ−1ξ(T). (13) However, to the best of our knowledge, solving Eq. (13) is challenging due to the nonlinearity introduced by SE (3) and the anisotropy of the weighting factor [12, 13]. Moreover, even when using iterative solvers, convergence to the true optimum is not guaranteed, so gradients obtained by implicit function theorem (IFT) [5] may be biased toward suboptimal solutions [13]. Accordingly, we relax Eq. (13) to: 
+
+ˆT ≈ arg min 
+
+> T
+> N
+
+X
+
+> i=1
+
+d⊤
+
+> i
+
+ 2Cqi
+
+−1di. (14) This relaxation is well suited to our training setup, where the correspondence set C ≜ (P, Q) is constructed under a reference pose ˜T by selecting nearest-neighbor pairs between 
+
+P and Q and rejecting pairs whose distances exceed a pre-defined threshold. As a result, information about ˜T is implic-itly embedded in C and continues to guide the optimization even after the relaxation. Although this relaxation does not exactly solve the original problem, it enables us to leverage SDPRLayer [13]. SDPRLayer [13] provides certifiably globally optimal so-lutions, supports differentiation through the optimizer (al-lowing gradients to be computed at the optimum), and is computationally efficient. By making the inner pose estimation step both certifiably optimal and differentiable, we can train (i.e., backpropagate) the entire network end-to-end on large-scale datasets in a self-supervised manner. Details on the certifiable global optimization and differentiation are provided in Supplementary Material SB, while the relaxation leading to Eq. (14) is described in Supplementary Material SC. 
+
+C. Overall Training and Inference Procedure 
+
+Algorithms 1 and 2 summarize the training and inference procedures of POLI, respectively. During training, the neural network predicts a point-wise lower-triangular matrix L from the target point cloud Q, and the covariance set is constructed as Cq = LL ⊤. Given Cq and the correspondence set 
+
+C, SDPRLayer [13] estimates the relative transformation ˆT
+
+between P and Q in a differentiable manner. The network is then optimized by back-propagating the proposed loss through Algorithm 1 Training Stage of POLI ( PO int-to-el LI psoid) 
+
+Require: Neural Network NN (·; Θ), C, ˜T, Learning Rate η,point cloud P and point cloud Q
+
+Ensure: Updated parameters Θ
+
+1: /* Predict Lower-Triangular Matrices */ 
+
+2: L ← NN (Q; Θ)
+
+3: /* Construct Covariances */ 
+
+4: Cq ← LL ⊤
+
+5: /* Certifiably Correct Differentiable Optimization */ 
+
+6: ˆT, d ˆ TdC q ← SDPRLayer (Cq, C, P, Q)
+
+7: /* Loss Calculation */ 
+
+8: L(Θ) = Φ( ˆT; Cq ) + 12 log |H( ˆT)|
+
+9: /* Neural Network Update */ 
+
+10: Θ ← Θ − η∇ΘL
+
+Algorithm 2 Inference Stage of POLI 
+
+Require: Trained Neural Network NN (·; Θ∗), point cloud Q
+
+Ensure: Estimated covariance Cq
+
+1: /* Predict Lower-Triangular Matrices */ 
+
+2: L ← NN (Q; Θ∗)
+
+3: /* Construct Covariances */ 
+
+4: Cq ← LL ⊤
+
+5: return CqCovariance Estimation 
+
+> (PointNet++)
+> 46.4 ms (62.8%)
+> Certifiably Correct
+> Differentiable Optimization
+> (SDPRLayer)
+> 9.4 ms (12.7%)
+> Loss Calculation
+> 0.5 ms (0.7%)
+> Neural Network Update
+> 17.6 ms (23.9%)
+> Drag labels · close to save & re-render PDF
+> Training Pipeline · Time Share
+> OS2_128 voxel=1.0 m N=16038 pts (100-step warmup · 100-step profile) total mean 73.9 ms (13.5 Hz)
+
+Fig. 5: Runtime composition of POLI training pipeline. this differentiable optimization layer. The total training time is reported in Fig. 5. For an input containing approximately 16,000 points, each training step requires 73.9 ms. During inference, the trained network predicts lower-triangular matrices L for Q, from which the point-wise covariance sets are obtained as Cq = LL ⊤. The resulting covariances serve as local geometry for downstream tasks. V. E XPERIMENTS 
+
+POLI learns to predict the underlying geometry of point clouds by estimating point-wise covariance, making it a ver-satile module for a broad range of robotic perception tasks. In this section, we evaluate the effectiveness of POLI when integrated into robotic perception tasks: object pose estima-tion, LiDAR odometry, and scan augmentation. By leveraging accurately estimated point-wise covariance, we integrate it into existing pipelines through multiple representations. For object pose estimation, we incorporate the point-wise normals predicted by POLI into an FPFH-based local de-scriptor [31] and evaluate its effectiveness by measuring 0
+
+> 20
+> 40
+> 60
+> 80
+> 100
+
+Bunny Armadillo Lucy 
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+
+Asian Dragon Thai Statue Dragon   
+
+> 300 600 1000
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+
+Happy Buddha   
+
+> 300 600 1000
+> Number of Points
+
+Train Avg.   
+
+> 300 600 1000
+
+Test Avg.    
+
+> POLI+FPFH (Ours) KISS-Matcher TEASER RPM-Net
+
+Fig. 6: Performance comparison on object pose estimation across different sparsity levels. the registration success rate. For LiDAR scan matching, we integrate the covariance predicted by POLI into the GICP [33] framework and evaluate its LiDAR odometry performance. We also assess POLI’s scan augmentation capability by mea-suring downstream performance improvements when POLI-based augmentation is applied to robotic perception pipelines. Detailed experimental setups and results are provided in the Supplementary Material SD. 
+
+A. Object Pose Estimation 
+
+Setup. We evaluated POLI on the Stanford 3D Scanning Repository [7]. The training split consists of Bunny, Ar-madillo, Asian Dragon, Lucy, and Thai Statue , while the test split consists of Dragon and Happy Buddha . For train-ing, we generated scan pairs by independently sampling 
+
+N ∈ {500 , 1,000 } points from the training objects and applying random axis–angle rotations up to 60 ◦. For testing, we generated point clouds from the test objects with N ∈{300 , 400 , 500 , 600 , 700 , 800 , 900 , 1,000 } points, using 100 pairs per object. For correspondence estimation, we followed the Open3D FPFH pipeline [48], using POLI normals (the eigenvector of Cq along its smallest eigenvalue) and selecting inliers via ROBIN [35]. As baselines, we evaluated KISS-Matcher [24], TEASER [43], and RPM-Net [44] (Note that RPM-Net is trained on a large dataset and involves iterative registration). 
+
+Result. A registration is considered successful if the rotation 10 2  
+
+> 10 1
+> OS2-128
+> ICP Variants System
+
+Bridge  
+
+> ICP Variants System
+
+Riverside  
+
+> ICP Variants System
+
+Roundabout  
+
+> ICP Variants System
+
+Town  
+
+> ICP Variants System
+
+DCC  
+
+> ICP Variants System
+
+KAIST          
+
+> Point-to-Point Point-to-Plane GICP VGICP POLI+GICP KISS GenZ A-LOAM F-LOAM 10 1
+> 10 0
+> VLP-16
+
+Fig. 7: Comparison of LiDAR odometry performance across different algorithms based on RPE (m). The best results are marked with diamonds enclosed by rings, and the second-best results are marked with hollow diamonds. 0 200 400 600 
+
+X [m] 
+
+0
+
+100 
+
+200 
+
+300 
+
+400 
+
+500 
+
+> Y [m]
+> Ground Truth
+> Point-to-Point
+> Point-to-Plane
+> GICP
+> VGICP
+> POLI+GICP
+
+Fig. 8: Comparison of LiDAR odometry trajectories for dif-ferent ICP variants on the DCC04 sequence. error is ≤ 10 ◦ [23]. As shown in Fig. 6, POLI+FPFH achieves higher registration success rates across most settings and sparsity levels, and generalizes to the unseen Dragon 
+
+and Happy Buddha , indicating benefits of accurate geometry estimation. 
+
+B. LiDAR Odometry 
+
+Setup. We conducted our LiDAR scan matching experi-ments on the HeLiPR dataset [15]. The Roundabout , Town ,
+
+Riverside , and Bridge sequences were used for training, while the KAIST and DCC sequences were reserved for testing. No-tably, the sequences in HeLiPR [15] exhibit no spatial overlap. Experiments were performed using two LiDAR sensors: the Velodyne VLP-16 and the Ouster OS2-128. Voxel grid downsampling was applied with voxel sizes of 0.2 m for the VLP-16 and 1.0 m for the OS2-128. As baselines, we evaluated point-to-point ICP [4], point-to-plane ICP [30], GICP [33], and VGICP [16] under the same experimental settings. In addition, we compared our method with LiDAR odometry systems. For the VLP-16, A-LOAM [45] and F-LOAM [39] were used, while for the OS2-128, KISS-ICP [38] and GenZ-ICP [19] were evaluated. To assess the original performance of these LiDAR odometry systems, we used their default configurations. 
+
+Result. Performance was evaluated using relative pose error (RPE), as shown in Fig. 7. The proposed method consistently outperformed classical ICP-based approaches across all se-quences. Furthermore, it achieved performance comparable to LiDAR odometry systems. Despite being evaluated on unseen environments ( DCC and KAIST ), POLI+GICP demonstrated consistent performance, showing its generalizability as shown in Fig. 8. These results indicate that estimating local geometry with POLI and using it for scan matching is highly beneficial. 
+
+C. Scan Augmentation 
+
+A key advantage of POLI is that it models point-cloud geometry probabilistically via estimated covariances, enabling principled scan augmentation through sampling and mathemat-ically grounded densification (Fig. 9(a,b,c) and Fig. S.4). This allows us to densify LiDAR scans and plug it into existing robotic perception pipelines with minimal integration effort. We validate this via cross-dataset experiments on KITTI [9] and HeLiPR [15], focusing on LiDAR odometry and global registration. For both LiDAR odometry and scan registration, we use the VLP-16 scan dataset from HeLiPR and the 16-beam setting of KITTI used in [42]. For global registration, we randomly sample scan pairs within a 12 m range. For POLI, we employ the network trained in Section V-B on the HeLiPR [15] VLP-16 dataset. The results are summarized in Tables I, and II, and visual-ized in Figs. S.2 and 3. Here, “+ Method” (e.g., + POLI) de-notes applying the downstream pipeline to point clouds densi-fied using the corresponding augmentation method. Compared (a) Original point cloud (b) Estimated covariances from POLI (c) Augmented scan from POLI 
+
+Fig. 9: Scan augmentation process using POLI: raw scan, estimated covariances, and augmented scan generated by sampling. TABLE I: LiDAR odometry results with augmentation methods, evaluated using RPE (m) at ∆ = 100 [10]. The best results are shown in bold, and the second-best results are underlined.                                                                                       
+
+> HeLiPR [15] KITTI [9] Method Bridge Riverside Roundabout Town DCC KAIST 00 01 02 03 04 05 06 07 08 09 10 KISS-ICP [38] 14.94 8.95 5.13 5.37 9.74 3.83 2.50 14.82 2.98 1.77 2.49 2.19 3.89 1.50 3.44 2.71 2.03 +PCA [48] 14.37 7.82 5.00 5.13 11.21 4.28 9.54 14.37 21.95 4.74 2.18 4.64 16.44 4.90 5.06 5.76 4.20 +TULIP [42] 12.80 15.48 3.52 3.27 6.60 2.59 2.76 6.78 16.79 2.36 1.33 2.57 3.52 1.83 3.75 2.55 2.76
+> +POLI 3.89 1.92 1.16 1.03 1.77 0.95 2.32 16.24 2.95 1.78 2.01 1.97 3.58 1.30 3.42 2.39 1.66
+
+TABLE II: Success rate (%) of global registration using augmentation methods. The best results are shown in bold, and the second-best results are underlined.                         
+
+> HeLiPR [15]
+> Method Raw + PCA [48] + TULIP [42] + POLI
+> KISS-Matcher [24] 65.33% 66.67% 46.67% 75.67 %TEASER [43] 74.33% 72.33% 61.00% 81.67 %
+> KITTI [9]
+> Method Raw + PCA [48] + TULIP [42] + POLI
+> KISS-Matcher [24] 54.55% 55.64% 65.09 %60.73% TEASER [43] 64.36% 63.09% 71.82% 79.09 %
+
+TABLE III: Global registration success rate (%) across differ-ent resolutions on [9]. The best results are shown in bold, and the second-best results are underlined.                            
+
+> KISS-Matcher [24] TEASER [43] Resolution Raw +POLI Gain (%) Base +POLI Gain (%) 16 beams 54.55 60.73 +11.3 64.36 79.09 +22.9 32 beams 87.27 86.18 −1.3 71.82 92.10 +28.2 64 beams 94.91 96.91 +2.1 97.82 97.64 −0.2
+
+TABLE IV: RPE and absolute pose error (APE) (m) [10] in 
+
+DCC [15]. The best results are shown in bold.                                  
+
+> FAST-LIO [41] GLIM [17] Metric ([m], [°]) Raw +POLI Gain (%) Raw +POLI Gain (%) RPE ( ∆=100) Trans. 4.734 3.200 −32.4 7.006 6.864 −2.0 RPE ( ∆=100) Rot. 5.296 3.180 −40.0 7.649 7.390 −3.4 APE Trans. 101.05 44.79 −55.7 56.94 35.61 −37.5 APE Rot. 36.61 12.80 −65.1 17.23 10.06 −41.6
+
+against PCA [48] and TULIP [42] (state-of-the-art LiDAR up-sampling algorithm trained in KITTI [9]), POLI consistently performs best on both KITTI [9] and HeLiPR [15]. While TULIP [42] suffers from performance degradation under un-seen data, POLI remains robust to variations in sensor type, field of view, and mounting configuration (e.g., the heavily occluded frontal region in HeLiPR [15]), highlighting the benefit of its strong geometric inductive bias induced by the combination of principled modeling and deep learning. In addition, we evaluate global registration performance on the KITTI [9] dataset under varying LiDAR resolutions by downsampling the original scans to 16-, 32-, and 64-channel configurations. Importantly, no resolution-specific models are trained; instead, a single model is used across all LiDAR res-olutions. As shown in Table III, POLI improves performance in most cases, demonstrating strong robustness to resolution changes. In particular, the performance gains are more pro-nounced in low-resolution settings, indicating that POLI ef-fectively mitigates information loss caused by sparse sensing. Note that POLI inference takes 10 ms per 10 , 000 points scan on an NVIDIA RTX 4060 Ti GPU. Furthermore, we assess the plug-and-play capability of POLI by integrating it into several existing LiDAR localization and mapping systems [17, 41]. Without any system-specific tuning or retraining, POLI yields substantial performance improvements across all evaluated pipelines, as illustrated in Table IV. These results suggest that POLI generalizes well across diverse robotic perception systems. VI. L IMITATIONS 
+
+Although the proposed method achieves consistent improve-ments across multiple benchmarks, several limitations remain. First, our method faces challenges under out-of-distribution (OOD) scenarios. For example, when trained on HeLiPR [15] and tested on KITTI [9], POLI still improves downstream performance, but with smaller gains than in the in-domain setting. As shown in Table I, POLI substantially outperforms other augmentation baselines on HeLiPR [15], whereas its advantage becomes less pronounced on KITTI [9]. Second, our method relies on a local low-order geometric repre-sentation. A 3D Gaussian covariance captures only second-order moments—i.e., the first-fundamental-form aspects of the surface such as local anisotropy and tangential extent—and is therefore agnostic to the second fundamental form that encodes local surface curvature [8]. As a result, while our covariances faithfully describe dominant structures such as local planarity [27], they do not natively encode higher-order differential invariants (e.g., curvatures). Third, finding the global optimum of Eq. (13) in a differentiable manner remains challenging. A promising future direction is to develop a tighter relaxation of Eq. (13), for example, by exploiting Chordal Relaxation formulations. VII. C ONCLUSION 
+
+This paper revisits the role of point cloud geometry in robotic perception and highlights that a broad range of down-stream tasks are fundamentally grounded in accurate estima-tion of underlying geometric structure. From this perspective, we introduced a unified theoretical and practical framework that models surface geometry as a statistical manifold and employs deep learning for principled estimation of point cloud geometry. Unlike prior learning-based methods and heuristic statistical approaches, our formulation is grounded in explicit mathematical principles that govern both geometric modeling and learning, thereby enabling self-supervised learning with strong geometric inductive biases. As a practical implementation, we proposed POLI, alearning-based point cloud geometry estimator that directly predicts point-wise geometry in the form of Gaussian covari-ances. By enforcing geometric constraints during training in a principled manner, POLI learns a mapping between point cloud and their underlying geometry, producing consistent and informative geometric representations. Extensive experiments demonstrate that the proposed theory and practice successfully estimate the point cloud geometry, and consistently improve performance across a wide range of robotic perception tasks, where the learned geometry can be seamlessly integrated as 3D covariances, surface normals, or augmented point clouds. Overall, this work bridges geometric modeling and learning-based inference, offering a unified perspective on point cloud geometry representation and establishing statistical manifold-based covariance learning for geometric modeling as a promis-ing paradigm for robust and scalable 3D robotic perception. ACKNOWLEDGMENT 
+
+This work was supported by the National Research Foun-dation of Korea (NRF) grant funded by the Korea government (MSIT) (No. 2023R1A2C2003130), and by the Unmanned Ve-hicles Core Technology Research and Development Program through the National Research Foundation of Korea (NRF) and the Unmanned Vehicle Advanced Research Center (UVARC), funded by the Ministry of Science and ICT, Republic of Korea (No. 2020M3C1C1A01082375). REFERENCES 
+
+[1] Shun-ichi Amari and Hiroshi Nagaoka. Methods of infor-mation geometry , volume 191. American Mathematical Soc., 2000. URL https://books.google.co.kr/books?hl= ko&lr=&id=vc2FWSo7wLUC&oi=fnd&pg=PR7&dq= Methods+of+information+geometry&ots=4JsyKx44L &sig=ZMJpkAT36TZSpRPPkYM-gxyXLLM&redir esc=y#v=onepage&q=Methods%20of%20information% 20geometry&f=false. [2] Yizhak Ben-Shabat and Stephen Gould. DeepFit: 3D Surface Fitting via Neural Network Weighted Least Squares. In European Conference on Computer Vi-sion (ECCV) , 2020. doi: 10.1007/978-3-030-58452-8 2. URL https://link.springer.com/chapter/10.1007/ 978-3-030-58452-8 2. [3] Yizhak Ben-Shabat, Michael Lindenbaum, and Anath Fischer. Nesti-Net: Normal Estimation for Unstructured 3D Point Clouds Using Convolutional Neural Networks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,2019. doi: 10.1109/CVPR.2019.01035. URL https://openaccess.thecvf.com/content CVPR 2019/ html/Ben-Shabat Nesti-Net Normal Estimation for Unstructured 3D Point Clouds Using Convolutional CVPR 2019 paper.html. [4] Paul J. Besl and Neil D. McKay. A Method for Registration of 3D Shapes. IEEE Transactions on Pattern Analysis and Machine Intelligence , 14(2):239– 256, 1992. doi: 10.1109/34.121791. URL https://www. spiedigitallibrary.org/conference-proceedings-of-spie/ 1611/1/Method-for-registration-of-3-D-shapes/10.1117/ 12.57955.short. [5] Mathieu Blondel, Quentin Berthet, Marco Cuturi, Roy Frostig, Stephan Hoyer, Felipe Llinares-L´ opez, Fabian Pedregosa, and Jean-Philippe Vert. Efficient and modular implicit differentiation. Advances in neural information processing systems , 35:5230–5242, 2022. URL https: //proceedings.neurips.cc/paper files/paper/2022/hash/ 228b9279ecf9bbafe582406850c57115-Abstract-Conference. html. [6] Jesus Briales and Javier Gonzalez-Jimenez. Convex global 3d registration with lagrangian duality. In Pro-ceedings of the IEEE conference on computer vision and pattern recognition , pages 4960–4969, 2017. [7] Brian Curless and Marc Levoy. A volumetric method for building complex models from range images. In Proceed-ings of the 23rd annual conference on Computer graphics and interactive techniques , pages 303–312, 1996. URL https://dl.acm.org/doi/abs/10.1145/237170.237269. [8] Manfredo P Do Carmo. Differential geometry of curves and surfaces: revised and updated second edition .Courier Dover Publications, 2016. [9] Andreas Geiger, Philip Lenz, and Raquel Urtasun. Are we ready for autonomous driving? the kitti vision bench-mark suite. In 2012 IEEE conference on computer vision and pattern recognition , pages 3354–3361. IEEE, 2012. URL https://ieeexplore.ieee.org/abstract/document/ 6248074. [10] Michael Grupp. EVO: Python Package for the Evaluation of Odometry and SLAM, 2017. URL https://github.com/ MichaelGrupp/evo. [11] Yulan Guo, Ferdous Sohel, Mohammed Bennamoun, Min Lu, and Jianwei Wan. Rotational Projection Statistics for 3D Local Surface Description and Object Recognition. 
+
+International Journal of Computer Vision , 105(1):63–86, 2013. doi: 10.1007/s11263-013-0627-y. URL https:// link.springer.com/article/10.1007/s11263-013-0627-y. [12] Connor Holmes, Frederike D¨ umbgen, and Timothy Bar-foot. On semidefinite relaxations for matrix-weighted state-estimation problems in robotics. IEEE Transac-tions on Robotics , 40:4805–4824, 2024. URL https: //ieeexplore.ieee.org/abstract/document/10706005. [13] Connor Holmes, Frederike D¨ umbgen, and Timothy D Barfoot. SDPRLayers: Certifiable Backpropagation Through Polynomial Optimization Problems in Robotics. 
+
+IEEE Transactions on Robotics , 2025. URL https: //ieeexplore.ieee.org/abstract/document/11029144/. [14] Hugues Hoppe, Tony DeRose, Tom Duchamp, John McDonald, and Werner Stuetzle. Surface reconstruction from unorganized points. In Proceedings of the 19th annual conference on computer graphics and interactive techniques , pages 71–78, 1992. URL https://dl.acm.org/ doi/abs/10.1145/133994.134011. [15] Minwoo Jung, Wooseong Yang, Dongjae Lee, Hyeon-jae Gil, Giseop Kim, and Ayoung Kim. HeLiPR: Heterogeneous LiDAR Dataset for Inter-LiDAR Place Recognition Under Spatiotemporal Variations. The In-ternational Journal of Robotics Research , 43(3):1867– 1883, 2024. URL https://journals.sagepub.com/doi/full/ 10.1177/02783649241242136. [16] Kenji Koide, Masashi Yokozuka, Shuji Oishi, and At-suhiko Banno. Voxelized GICP for Fast and Accu-rate 3D Point Cloud Registration. In Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) , pages 11054–11059, 2021. URL https://ieeexplore.ieee.org/abstract/document/9560835. [17] Kenji Koide, Masashi Yokozuka, Shuji Oishi, and At-suhiko Banno. GLIM: 3D range-inertial localiza-tion and mapping with GPU-accelerated scan match-ing factors. Robotics and Autonomous Systems , 179: 104750, 2024. URL https://www.sciencedirect.com/ science/article/pii/S0921889024001349. [18] Youngsun Kwon, Minhyuk Sung, and Sung-Eui Yoon. Implicit LiDAR network: LiDAR super-resolution via interpolation weight prediction. In 2022 international conference on robotics and automation (ICRA) , pages 8424–8430. IEEE, 2022. URL https://ieeexplore.ieee.org/ abstract/document/9811992. [19] Daehan Lee, Hyungtae Lim, and Soohee Han. GenZ-ICP: Generalizable and Degeneracy-Robust LiDAR Odometry Using an Adaptive Weighting. IEEE Robotics and Automation Letters , 9(1):456–463, 2024. URL https: //ieeexplore.ieee.org/abstract/document/10753079. [20] Jan Eric Lenssen, Christian Osendorfer, and Jonathan Masci. Deep iterative surface normal estimation. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 11247–11256, 2020. URL https://openaccess.thecvf.com/content CVPR 2020/html/Lenssen Deep Iterative Surface Normal Estimation CVPR 2020 paper.html. [21] Qing Li, Huifang Feng, Xun Gong, and Yu-Shen Liu. Learning Normals of Noisy Points by Local Gradient-Aware Surface Filtering. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 28828–28838, 2025. URL https://openaccess.thecvf.com/content/ICCV2025/html/ Li Learning Normals of Noisy Points by Local Gradient-Aware Surface Filtering ICCV 2025 paper. html. [22] Yuanqi Li, Jingcheng Huang, Hongshen Wang, Peiyuan Lv, Yansong Liu, Jiuming Zheng, Jie Guo, and Yanwen Guo. High-quality Point Cloud Oriented Normal Estimation via Hybrid Angular and Euclidean Distance Encoding. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 1287–1296, 2025. URL https://openaccess.thecvf.com/ content/CVPR2025/html/Li High-quality Point Cloud Oriented Normal Estimation via Hybrid Angular and CVPR 2025 paper.html. [23] Hyungtae Lim, Beomsoo Kim, Daebeom Kim, Eu-ngchang Mason Lee, and Hyun Myung. Quatro++: Robust global registration exploiting ground segmen-tation for loop closing in LiDAR SLAM. The In-ternational Journal of Robotics Research , 43(5):685– 715, 2024. URL https://journals.sagepub.com/doi/full/10. 1177/02783649231207654. [24] Hyungtae Lim, Daebeom Kim, Gunhee Shin, Jingnan Shi, Ignacio Vizzo, Hyun Myung, Jaesik Park, and Luca Carlone. KISS-Matcher: Fast and Robust Point Cloud Registration Revisited. In Proceedings of the IEEE International Conference on Robotics and Automation ,2025. URL https://ieeexplore.ieee.org/abstract/document/ 11127458. [25] David JC MacKay. Information theory, inference and learning algorithms . Cambridge university press, 2003. URL https://books.google.co.kr/ books?hl=ko&lr=&id=AKuMj4PN EMC&oi=fnd& pg=PR11&dq=Information+theory,+inference+ and+learning+algorithms&ots=EOnrla3wBb&sig= 6ziiQReq1O5rpGa9MGPyKNwGdeI&redir esc=y#v= onepage&q=Information%20theory%2C%20inference% 20and%20learning%20algorithms&f=false. [26] Lucas Nunes, Rodrigo Marcuzzi, Benedikt Mersch, Jens Behley, and Cyrill Stachniss. Scaling Diffusion Models to Real-World 3D LiDAR Scene Completion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 14770–14780, 2024. URL https://openaccess.thecvf.com/content/CVPR2024/html/ Nunes Scaling Diffusion Models to Real-World 3D LiDAR Scene Completion CVPR 2024 paper.html. [27] Mark Pauly, Richard Keiser, and Markus Gross. Multi-scale feature extraction on point-sampled surfaces. In 
+
+Computer Graphics Forum , volume 22, pages 281–289. Wiley Online Library, 2003. URL https://onlinelibrary. wiley.com/doi/full/10.1111/1467-8659.00675. [28] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J. Guibas. PointNet++: Deep Hierarchical Feature Learning on Point Sets in a Metric Space. In Advances in Neural Information Processing Systems , 2017. URL https://proceedings.neurips.cc/paper/2017/hash/ d8bf84be3800d12f74d8b05e9b89836f-Abstract.html. [29] Shi Qiu, Saeed Anwar, and Nick Barnes. Pu-transformer: Point cloud upsampling transformer. In Proceedings of the Asian conference on computer vision , pages 2475– 2493, 2022. URL https://openaccess.thecvf.com/content/ ACCV2022/html/Qiu PU-Transformer Point Cloud Upsampling Transformer ACCV 2022 paper.html. [30] Szymon Rusinkiewicz and Marc Levoy. Efficient Vari-ants of the ICP Algorithm. In Proceedings of the Interna-tional Conference on 3D Digital Imaging and Modeling ,2001. URL https://ieeexplore.ieee.org/abstract/document/ 924423. [31] Radu Bogdan Rusu, Zoltan C. Marton, Nico Blodow, and Michael Beetz. Persistent Point Feature Histograms for 3D Point Clouds. In Proceedings of the 10th Inter-national Conference on Intelligent Autonomous Systems (IAS) , 2008. URL https://ebooks.iospress.nl/doi/10.3233/ 978-1-58603-887-8-119. [32] Radu Bogdan Rusu, Nico Blodow, and Michael Beetz. Fast Point Feature Histograms (FPFH) for 3D registra-tion. In 2009 IEEE International Conference on Robotics and Automation , pages 3212–3217. IEEE, 2009. [33] Avi Segal, Dirk Haehnel, and Sebastian Thrun. Generalized-ICP. In Proceedings of Robotics: Science and Systems , 2009. URL https://www.robots.ox.ac.uk/ 
+
+> ∼
+
+avsegal/resources/papers/Generalized ICP.pdf. [34] Minkyun Seo, Hyungtae Lim, Kanghee Lee, Luca Car-lone, and Jaesik Park. BUFFER-X: Towards Zero-Shot Point Cloud Registration in Diverse Scenes. arXiv preprint arXiv:2503.07940 , 2025. URL https://arxiv.org/ abs/2503.07940. [35] Jingnan Shi, Heng Yang, and Luca Carlone. ROBIN: a graph-theoretic approach to reject outliers in robust estimation using invariants. In 2021 IEEE International Conference on Robotics and Automation (ICRA) , pages 13820–13827. IEEE, 2021. URL https://ieeexplore.ieee. org/abstract/document/9562007. [36] Federico Tombari, Samuele Salti, and Luigi Di Stefano. Unique Signatures of Histograms for Local Surface Description. In Proceedings of the European Con-ference on Computer Vision (ECCV) , pages 356–369, 2010. URL https://link.springer.com/chapter/10.1007/ 978-3-642-15558-1 26. [37] Ignacio Vizzo, Benedikt Mersch, Rodrigo Marcuzzi, Louis Wiesmann, Jens Behley, and Cyrill Stachniss. Make it dense: Self-supervised geometric scan comple-tion of sparse 3D lidar scans in large outdoor envi-ronments. IEEE Robotics and Automation Letters , 7 (3):8534–8541, 2022. URL https://ieeexplore.ieee.org/ abstract/document/9812507. [38] Ignacio Vizzo, Tiziano Guadagnino, Benedikt Mersch, Louis Wiesmann, Jens Behley, and Cyrill Stachniss. KISS-ICP: In Defense of Point-to-Point ICP – Simple, Accurate, and Robust Registration If Done the Right Way. IEEE Robotics and Automation Letters , 8(2):1029– 1036, 2023. URL https://ieeexplore.ieee.org/abstract/ document/10015694/. [39] Han Wang, Chen Wang, Chun-Lin Chen, and Lihua Xie. F-LOAM: Fast Lidar Odometry and Mapping. In 
+
+Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems , 2021. URL https: //ieeexplore.ieee.org/abstract/document/9636655. [40] Wei Xu, Yixi Cai, Dawei He, Jiarong Lin, and Fu Zhang. FAST-LIO: A Fast, Robust LiDAR-Inertial Odometry Package by Tightly-Coupled Iterated Kalman Filter. 
+
+IEEE Robotics and Automation Letters , 2021. doi: 10.1109/LRA.2021.3064227. URL https://ieeexplore. ieee.org/abstract/document/9372856/. [41] Wei Xu, Yixi Cai, Dawei He, Jiarong Lin, and Fu Zhang. FAST-LIO2: Fast Direct LiDAR-Inertial Odometry. IEEE Transactions on Robotics , 2022. doi: 10.1109/TRO.2022.3141876. URL https://ieeexplore. ieee.org/abstract/document/9697912/. [42] Bin Yang, Patrick Pfreundschuh, Roland Siegwart, Marco Hutter, Peyman Moghadam, and Vaishakh Patil. Tulip: Transformer for upsampling of lidar point clouds. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15354–15364, 2024. URL https://openaccess.thecvf.com/content/CVPR2024/ html/Yang TULIP Transformer for Upsampling of LiDAR Point Clouds CVPR 2024 paper.html. [43] Heng Yang, Jingnan Shi, and Luca Carlone. Teaser: Fast and certifiable point cloud registration. IEEE Transactions on Robotics , 37(2):314–333, 2020. URL https://ieeexplore.ieee.org/abstract/document/9286491/. [44] Zi Jian Yew and Gim Hee Lee. RPM-Net: Robust Point Matching Using Learned Features. In 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 11821–11830, 2020. doi: 10.1109/CVPR42600.2020.01184. URL https://openaccess.thecvf.com/content CVPR 2020/ html/Yew RPM-Net Robust Point Matching Using Learned Features CVPR 2020 paper.html. [45] Ji Zhang and Sanjiv Singh. LOAM: Lidar Odometry and Mapping in Real-time. In Proceedings of Robotics: Science and Systems , Berkeley, USA, July 2014. doi: 10. 15607/RSS.2014.X.007. URL https://www.ri.cmu.edu/ pub files/2014/7/Ji LidarMapping RSS2014 v8.pdf. [46] Linqi Zhou, Yilun Du, and Jiajun Wu. 3D shape generation and completion through point-voxel diffusion. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 5826–5835, 2021. URL https://openaccess.thecvf.com/content/ICCV2021/ html/Zhou 3D Shape Generation and Completion Through Point-Voxel Diffusion ICCV 2021 paper. html?ref=https://githubhelp.com. [47] Qian-Yi Zhou, Jaesik Park, and Vladlen Koltun. Fast Global Registration. In Proceedings of the European Conference on Computer Vision (ECCV) , pages 766– 782, 2016. URL https://link.springer.com/chapter/10. 1007/978-3-319-46475-6 47. [48] Qian-Yi Zhou, Jaesik Park, and Vladlen Koltun. Open3D: A Modern Library for 3D Data Processing. arXiv preprint arXiv:1801.09847 , 2018. URL https://arxiv.org/ abs/1801.09847. S U P P L E M E N T A R Y M A T E R I A L 
+
+# Learning Point Cloud Geometry as a Statistical Manifold: Theory and Practice 
+
+## Jinwoo Lee *,1 Jiwoo Kim *,1 Woojae Shin 1 Giseop Kim 2 Hyondong Oh †,1  
+
+> 1
+
+Korea Advanced Institute of Science and Technology (KAIST), Daejeon, Republic of Korea  
+
+> 2
+
+Daegu Gyeongbuk Institute of Science and Technology (DGIST), Daegu, Republic of Korea 
+
+Emails: {jinwoolee, tars0523, oj7987, h.oh }@kaist.ac.kr , gsk@dgist.ac.kr  
+
+> *
+
+Equal contribution. † Corresponding author. Table of Contents 
+
+SA. Derivation of Residual Distribution and Likelihood SA.1. Residual Distribution of di
+
+SA.2. Likelihood Re-Parameterization via di
+
+SB. Certifiably Optimal and Differentiable Weighted Least Square Problem SB.1. Certifiably Optimal Solution for Weight Least Square Problem SB.2. Implicit Function Theorem Under Abadie Constraint Qualification SC. Relaxation on Mode Pose Estimation SD. Experimental Details SD.1. Object Pose Estimation SD.2. LiDAR Odometry SD.3. Scan Augmentation: LiDAR Odometry SD.4. Scan Augmentation: Global Registration SD.5. Computation Time Analysis SE. Detailed Discussion on Probabilistic Modeling SF. Advantages of Ellipsoidal Representation SF.1. Advantages of Gaussian Ellipsoidal Representation SF.2. Scene Completion vs. Local Geometric Abstraction SF.3. Towards Sensor-Agnostic Geometric Perception 
+
+# List of Figures 
+
+Fig. SC1. Comparison of Optimization Trajectories Between Relaxed and Exact Methods Fig. SD1. Evaluation of LiDAR Odometry Performance Fig. SE1. Runtime Comparison Fig. SE1. Probabilistic Modeling Comparison Fig. SE2. Object Pose Estimation Comparison Between T-Q-C and T-T-Q-C Fig. SE3. Scene Augmentation Between T-Q-C and T-T-Q-C Fig. S1. Ellipsoidal Geometric Structure Estimation Using POLI Fig. S2. Localization and Mapping With POLI-Augmented Scan Fig. S3. Global Registration With POLI-Augmented Scan Fig. S4. Data Augmentation Using POLI SA. D ERIVATION OF RESIDUAL DISTRIBUTION AND LIKELIHOOD RE-PARAMETERIZATION 
+
+SA.1. Residual distribution of di
+
+Following Section III, we have: 
+
+pi ∼ N 
+
+
+
+R⊤ 
+
+> p
+
+(¯ xgi − tp), R⊤ 
+
+> p
+
+Cgi Rp
+
+
+
+,
+
+qi ∼ N 
+
+
+
+R⊤ 
+
+> q
+
+(¯ xgi − tq ), R⊤ 
+
+> q
+
+Cgi Rq
+
+
+
+.
+
+Define the residual di as: 
+
+di ≜ qi − Tp i.
+
+Using the Gaussian perturbation forms: 
+
+pi = R⊤ 
+
+> p
+
+(¯ xgi − tp) + ϵpi ,
+
+qi = R⊤ 
+
+> q
+
+(¯ xgi − tq ) + ϵqi ,
+
+we obtain 
+
+di =
+
+
+
+R⊤ 
+
+> q
+
+(¯ xgi − tq ) + ϵqi
+
+
+
+− T
+
+
+
+R⊤ 
+
+> p
+
+(¯ xgi − tp) + ϵpi
+
+
+
+= R⊤ 
+
+> q
+
+(¯ xgi − tq ) − TR ⊤ 
+
+> p
+
+(¯ xgi − tp)
+
+| {z }  
+
+> =0(T=T−1
+> qTp)
+
++ϵqi − Rϵpi ,
+
+where R ≜ T[: 3 , : 3] = R⊤ 
+
+> q
+
+Rp. Since ϵpi and ϵqi are independent zero-mean Gaussian perturbations with covariances 
+
+R⊤ 
+
+> p
+
+Cgi Rp and R⊤ 
+
+> q
+
+Cgi Rq , respectively, we have: 
+
+di ∼ N 
+
+
+
+0, R⊤ 
+
+> q
+
+Cgi Rq + R R⊤ 
+
+> p
+
+Cgi Rp
+
+R⊤
+
+.
+
+Moreover, using R = R⊤ 
+
+> q
+
+Rp, we obtain: 
+
+R R⊤ 
+
+> p
+
+Cgi Rp
+
+R⊤ = R⊤ 
+
+> q
+
+Rp
+
+ R⊤ 
+
+> p
+
+Cgi Rp
+
+R⊤ 
+
+> p
+
+Rq = R⊤ 
+
+> q
+
+Cgi Rq .
+
+Therefore, the residual distribution becomes: 
+
+di ∼ N 
+
+
+
+0, 2 R⊤ 
+
+> q
+
+Cgi Rq
+
+
+
+= N 0, 2Cqi
+
+. (S1) 
+
+SA.2. Likelihood re-parameterization via di
+
+Fix pi and T = ( R, t). Define the residual: 
+
+di ≜ qi − Tp i = qi − (Rp i + t).
+
+This defines a bijective change of variables in qi, with an inverse map: 
+
+qi = di + Tp i = di + ( Rp i + t).
+
+The Jacobian of di with respect to qi is: 
+
+∂di
+
+∂qi
+
+= I3, det 
+
+ ∂di
+
+∂qi
+
+
+
+= 1 .
+
+By the change-of-variables formula for probability densities, we have the re-parameterization: 
+
+p(qi | pi, T, Cqi ) = p(di | pi, T, Cqi ) det 
+
+ ∂di
+
+∂qi
+
+
+
+= p(di | pi, T, Cqi ).
+
+Following the Eq. (S1), the above identity implies the re-parameterization: 
+
+p(qi | pi, T, Cqi ) ≡ p(di | T, Cqi ).SB. C ERTIFIABLY OPTIMAL AND DIFFERENTIABLE WEIGHTED LEAST SQUARE PROBLEM 
+
+In this section, we provide a detailed description of the SDPRLayer [13], specifically addressing how to obtain the globally optimal solution for the relaxed problem in Eq. (14) and how to derive the corresponding gradients. 
+
+SB.1. Certifiably Optimal Solution for Weight Least Square Problem 
+
+The optimization problem from Eq. (14) must ( i) guarantee a globally optimal solution and ( ii ) allow computing the gradient with respect to the weight matrices Wi ≜ (2 Cqi )−1 at that optimum: 
+
+ˆT = arg min 
+
+> T
+> N
+
+X
+
+> i=1
+
+d⊤ 
+
+> i
+
+Widi.
+
+By encoding the rotation constraints as polynomial equalities, we can obtain a homogeneous quadratically constrained quadratic program (QCQP): 
+
+min  
+
+> x∈R13
+
+x⊤Q x 
+
+s.t. x⊤Aℓx = 0 , ℓ = 1 , . . . , m, 
+
+x⊤A0x = 1 .
+
+(QCQP) This formulation is composed of the following elements (for a detailed derivation, we refer the reader to [6]): 
+
+x =
+
+
+
+h
+
+vec( R)
+
+t
+
+ ∈ R13 , h ∈ R, R ∈ SO (3) , t ∈ R3.
+
+Qi =
+
+
+
+q⊤ 
+
+> i
+
+Wiqi − pi ⊗ Wiqi
+
+⊤  Wiqi
+
+⊤
+
+− pi ⊗ Wiqi
+
+ (pip⊤ 
+
+> i
+
+) ⊗ Wi − pi ⊗ Wi
+
+ Wiqi
+
+ − pi ⊗ Wi
+
+⊤ Wi
+
+
+
+Q =
+
+> N
+
+X
+
+> i=1
+
+Qi ∈ S13 .
+
+r⊤ 
+
+> i
+
+rj − δij h2 = 0 (S2) 
+
+i, j ∈ { 1, 2, 3}, (orthonormality) 
+
+> 3
+
+X
+
+> r=1
+
+R2 
+
+> rj
+
+−
+
+> 3
+
+X
+
+> c=1
+
+R2 
+
+> ic
+
+= 0 (S3) 
+
+i, j ∈ { 1, 2, 3}, (row/column length balancing) 
+
+rj × rk − h ri = 0 (S4) 
+
+(i, j, k ) cyclic , (right-handedness) 
+
+x⊤A0x = 1 , A0 = ehe⊤ 
+
+> h
+
+(i.e., h2 = 1) (S5) Here ri, rj denote the columns of the rotation matrix R, and Rrj , R ic are its scalar entries. Each scalar relation in Eqs. (S2)– (S4) is of the form x⊤Aℓx = 0 . This results in a total of m = 24 rotation constraints: 6 from orthonormality Eq. (S2), 9 from row/column balancing Eq. (S3), and 9 from right-handedness Eq. (S4) (which consists of 3 vector equations). Each Aℓ
+
+is a suitable matrix in S13 (the set of 13 × 13 symmetric matrices). The final constraint Eq. (S5) is the single homogeneous normalizer, using A0 = ehe⊤ 
+
+> h
+
+, where eh = [1 , 0, . . . , 0] ⊤ ∈ R13 is the basis vector for h, to fix the global scale ( h2 = 1 ). Let us introduce the lifted variable X = xx ⊤ ∈ S13 . Dropping the nonconvex rank constraint rank( X) = 1 gives Shor’s semidefinite relaxation, which is a semidefinite program (SDP): 
+
+min  
+
+> X∈S13
+
+⟨Q, X⟩
+
+s.t. ⟨Aℓ, X⟩ = 0 , ℓ = 1 , . . . , m, 
+
+⟨A0, X⟩ = 1 ,
+
+X ⪰ 0.
+
+(SDP) The relaxation is tight if the optimal solution X⋆ to SDP is rank-one. In this instance, the globally optimal homogeneous vector ˆx can be exactly recovered via the decomposition X⋆ = ˆ xˆx⊤. Conversely, if rank( X⋆) > 1, the relaxation is not tight. In such cases, redundant constraints are typically incorporated to strengthen the relaxation and encourage a rank-one solution. Finally, a candidate pose is extracted from the SDP solution via a rounding procedure to ensure feasibility for QCQP; this candidate is accepted if the gap between the rounded primal objective and the SDP value is sufficiently small. 
+
+SB.2. Implicit Function Theorem Under Abadie Constraint Qualification 
+
+In addition to obtaining a globally optimal solution, we must compute gradients for back-propagation through the layer. Consider the QCQP with equality constraints 
+
+gℓ(x) ≜ x⊤Aℓx = 0 , ℓ = 1 , . . . , m, g0(x) ≜ x⊤A0x − 1 = 0 .
+
+Define the Lagrangian 
+
+L(x, λ; θ) = x⊤Q(θ) x +
+
+> m
+
+X
+
+> ℓ=0
+
+λℓ gℓ(x), λ ∈ Rm+1 .
+
+At a globally optimal primal–dual pair (ˆ x, ˆλ), the KKT conditions are 
+
+∇xL(ˆ x, ˆλ; θ) = 0, (S6) 
+
+g(ˆ x) = 0, (S7) where g(x) ≜ [g0(x), g 1(x), . . . , g m(x)] ⊤. Since Q(θ) and Aℓ are symmetric, the stationarity condition expands to 
+
+∇xL(x, λ; θ) = 2 Q(θ) + 
+
+> m
+
+X
+
+> ℓ=0
+
+λℓAℓ
+
+!
+
+x.
+
+Let z = [ x⊤, λ⊤]⊤. The KKT conditions Eqs. (S6)– (S7) can be written compactly as a root-finding system K(z, θ ) = 0 with 
+
+K(z, θ ) := 
+
+∇xL(x, λ; θ)
+
+g(x)
+
+
+
+=
+
+2( Q(θ) + Pmℓ=0 λℓAℓ) xg(x)
+
+
+
+.
+
+Under Abadie’s constraint qualification (ACQ), appropriate second-order sufficient conditions, and smooth dependence of the constraint manifold on θ, the KKT system admits a locally unique differentiable selection of solutions in a neighborhood of (ˆ z, θ )S1 . Applying the implicit function theorem (IFT) to K(z, θ ) = 0 yields 
+
+M dz = − N dθ, M = ∇zK(ˆ z, θ ), N = ∇θ K(ˆ z, θ ),
+
+where M is the Jacobian with respect to the primal–dual variables and N is the Jacobian with respect to parameters. Because redundant constraints may be present, we form a full-row-rank sub-Jacobian Gr by removing linearly dependent rows from the constraint Jacobian. Writing the resulting row-reduced differential KKT system as 
+
+Mr
+
+ dx
+
+dλr
+
+
+
+= − N dθ, Mr = 2 
+
+ ¯H G⊤
+
+> r
+
+Gr 0
+
+
+
+,
+
+we use ¯H = Q(θ) + Pmℓ=0 ˆλℓAℓ (the Lagrangian Hessian, also referred to as the certificate matrix) and Gr (a full-row-rank selection of the constraint Jacobian). The Jacobian of the optimal primal variable with respect to parameters is then 
+
+∂ ˆx
+
+∂θ = −P M † 
+
+> r
+
+N, P = I 0 , M† 
+
+> r
+
+= M⊤
+
+> r
+
+ Mr M⊤
+
+> r
+
+−1. (S8) These relations provide the Jacobian of the recovered globally optimal pose parameters (and hence ˆT) with respect to the cost parameters θ, enabling end-to-end differentiation through the SDPR layer. Accordingly, we collect all weight matrices into the cost-parameter vector θ ≜ vec( W1, . . . , WN ) (equivalently, θ ≜ {Wi}Ni=1 ). For any downstream training loss L( ˆT),gradients with respect to an individual weight entry [Wi]ab follow from the chain rule: 
+
+∂L
+
+∂[Wi]ab 
+
+= ∂L
+
+∂ ˆT
+
+∂ ˆT
+
+∂ ˆx
+
+∂ ˆx
+
+∂θ ∂θ ∂[Wi]ab 
+
+, i = 1 , . . . , N, a, b ∈ { 1, 2, 3}.
+
+> S1 The redundant constraints commonly used to tighten the SDP relaxation may violate the linear independence constraint qualification (LICQ). In this setting, ACQ serves as an appropriate regularity condition that guarantees the existence of a differentiable local solution selection, thereby enabling implicit differentiation of the KKT system after row-reducing the constraint Jacobian.
+
+SC. R ELAXATION ON MODE POSE ESTIMATION 
+
+SC.1. Relaxation on Mode Pose Estimation 
+
+In this section, we provide a justification for the relaxation applied to the mode pose estimation in the main paper, i.e., the transition from Eq. (13) to Eq. (14). In the inner optimization stage, our goal is to estimate the mode pose by minimizing the correspondence residual together with an explicit pose regularization term. In the main text, the exact inner objective (Eq. (13)) is written as 
+
+ˆT = arg min 
+
+> T
+> N
+
+X
+
+> i=1
+
+d⊤
+
+> i
+
+ 2Cqi
+
+−1di + ξ(T)⊤Γ−1ξ(T),
+
+To simplify the presentation of the relaxation, we introduce abstract variables x and z, where f (x; z) denotes the correspondence residual term and g(z) denotes the pose regularization term. Here, x corresponds to the covariance parameters and z represents the transformation. Under this notation, optimization of the exact objective using an alternating training scheme can be expressed as: zt = arg min  
+
+> z
+
+f (xt; z) + g(z),xt+1 = arg min  
+
+> x
+
+f (x; zt) + g(zt). (S9) Our relaxed inner stage corresponds to eliminating the explicit pose regularization from the z-update, while retaining it in the 
+
+x-update: 
+
+zrelaxed  
+
+> t
+
+= arg min  
+
+> z
+
+f (xt; z),xrelaxed  
+
+> t+1
+
+= arg min  
+
+> x
+
+f (x; zrelaxed  
+
+> t
+
+) + g zrelaxed 
+
+> t
+
+. (S10) The key observation is that, when the pose regularization term g(z) does not substantially alter the mode pose favored by the correspondence residual, replacing Eq. (S9) with Eq. (S10) yields a similar pose estimate. As a result, the subsequent x-updates are guided by nearly identical poses, and both the exact and relaxed formulations converge to comparable fixed points. This behavior is illustrated in Fig. SC1. In Scenario A (Fig. SC SC1a), the optima favored by f and g are inconsistent, leading to a significant discrepancy between 
+
+z⋆f (the minimizer of f ) and z⋆f +g (the minimizer of f + g); consequently, the relaxed optimization can deviate from the exact solution. In contrast, in Scenario B (Fig. SC SC1b), the minimizers of f and f + g are well aligned, both favoring z ≈ 0. In this case, the relaxed optimization trajectory closely follows the exact one and converges to the same global optimum. Empirically, in the neural network training experiment, optimizing the inner problem under the relaxed formulation leads to a monotonic decrease in both the correspondence residual and the pose regularization term throughout training (Fig. SC SC1c– SC1d). This observation indicates that the pose estimates produced by the relaxed solver remain consistent with those obtained from the exact formulation. We attribute this behavior primarily to the correspondence construction strategy used in our pipeline. Specifically, correspondences are established under a reference pose ˜T via nearest-neighbor matching with distance thresholding. Consequently, correspondences that would only become valid under poses far from ˜T are suppressed a priori, which implicitly constrains the feasible pose space even in the absence of an explicit pose regularization term. (a) Optimization trajectory 1: scenario A (b) Optimization trajectory 2: scenario B 0 250K 500K 750K 1M 1.25M 1.5M 1.75M 
+
+> Training Step
+> 0.0000
+> 0.0005
+> 0.0010
+> 0.0015
+> 0.0020
+> 0.0025
+> Loss
+
+(c) Correspondence loss f (x, z ) along training steps 0 250K 500K 750K 1M 1.25M 1.5M 1.75M  
+
+> Training Step
+> 0.005
+> 0.010
+> 0.015
+> 0.020
+> 0.025
+> 0.030
+> 0.035
+> 0.040
+> Loss
+
+(d) Pose loss g(z) along training steps 
+
+Fig. SC1: Comparison of optimization trajectories between relaxed and exact methods. In (a) Scenario A, where f (x, z ) = (x − z)2 + ( z − 5) 2 and g(z) = 10 z2, the optimal values of z for f and g differ significantly, leading to a large gap between the relaxed and exact methods. In (b) Scenario B, where f (x, z ) = x2 + 3( z − x)2 and g(z) = 2 z2, the optimal z values for f and g are consistent at z ≈ 0, showing that the relaxed method effectively converges to the global optimum. (c) and (d) represent the correspondence loss f and pose loss g, respectively. It is observed that both losses gradually decrease when training under the relaxed condition. SD. E XPERIMENTAL DETAILS 
+
+SD.1. Object Pose Estimation 
+
+Dataset. All experiments were conducted using models from the Stanford 3D Scanning Repository [7]. As a training dataset, we selected five object models— Bunny, Armadillo, Asian Dragon, Lucy, and Thai Statue —and generated synthetic point cloud pairs by independently sampling N ∈ { 500 , 1,000 } points from each model. For each object category and for each point count, 300 training samples were generated (i.e., 300 samples for N = 500 and 300 samples for N = 1,000). For a test dataset, we selected two object models— Dragon and Happy Buddha —and generated point cloud pairs by independently sampling N ∈ { 300 , 400 , 500 , 600 , 700 , 800 , 900 , 1,000 } points from each model. For each object category, 100 samples were generated. All point clouds were subjected to spherical normalization, after which relative pose transformations were synthesized using random axis–angle rotations with maximum rotation angles of 60 ◦. Correspondences between scan pairs were established via nearest neighbor search before applying the random axis–angle rotations. 
+
+Training Setup. The network was trained for 10 epochs using the Adam optimizer with a learning rate of 1 × 10 −4. With a batch size of 1, each epoch required less than 3 minutes. All experiments were performed on a single workstation equipped with an NVIDIA RTX 4060 GPU. 
+
+Object Pose Estimation with POLI. Correspondence estimation using POLI followed the Open3D [48] FPFH [32] pipeline. Surface normals were computed using POLI, where the normal direction corresponds to the eigenvector of the covariance matrix 
+
+Cq associated with its smallest eigenvalue. FPFH [32] features were then extracted using Open3D [48] with a feature extraction radius of 0.3 m. Inlier correspondences were selected using ROBIN [35] (maximum clique) with a noise bound of 0.1 m. 
+
+Baseline Algorithms. For the baseline algorithms, KISS-Matcher [24], TEASER [43], and RPM-Net [44] were used. For KISS-Matcher [24], a voxel size of 0.03 m was used, while all other parameters were kept at their default values. For TEASER [43], we used the same FPFH [32] radius as above and set the solver parameters to cbar 2 = 1 .0, GNC f actor = 1 .4,and max-iteration = 100 . For RPM-Net [44], the pretrained model provided by the authors was used. Due to the scale mismatch introduced by spherical normalization, the normalized point clouds were uniformly rescaled by a factor of 25 before inference. This scaling factor was selected empirically as it yielded the best performance among several tested scales. 
+
+Evaluation Metric. A pose estimation was considered successful if the rotation error was less than or equal to 10 ◦ [23]. SD.2. LiDAR Odometry 
+
+Dataset. We used the HeLiPR [15] dataset for training. The dataset was collected using two sensors: an Ouster OS2-128, which provides up to approximately 260 , 000 points per scan (10Hz), and a Velodyne VLP-16, which provides up to approximately 30 , 000 points per scan (10Hz). For both sensors, datasets were constructed with multiple voxel downsampling resolutions. Specifically, three voxel sizes were used for each sensor: 0.2 m, 0.5 m, and 1.0 for VLP-16, and 1.0 m, 1.5 m, and 2.0 m for OS2-128. For training, the Roundabout, Town, Riverside, and Bridge sequences were used, while the KAIST and 
+
+DCC sequences were reserved for evaluation. During preprocessing, only the 3D coordinates of points were used without intensity information. All point coordinates were normalized by dividing by 100 and represented in the native sensor coordinate frame. No maximum range filtering or additional point removal was applied. Consecutive LiDAR scans were used as point cloud pairs for training. Correspondences were obtained by first aligning the two scans using the GNSS–INS transformation and then performing nearest neighbor search. 
+
+Training Setup. Separate models were trained for each sensor–voxel configuration, resulting in a total of six models. Training was performed with a batch size of 1, and each epoch required approximately 1.5 hours. For the VLP-16 dataset, the models were trained for 12, 12, and 21 epochs for voxel sizes of 0.2 m, 0.5 m, and 1.0 m, respectively. For the OS2-128 dataset, the models were trained for 11, 11, and 14 epochs for voxel sizes of 1.0 m, 1.5 m, and 2.0 m, respectively. All models were optimized using the Adam optimizer with a learning rate of 1 × 10 −4. All experiments were conducted on a single workstation equipped with an NVIDIA RTX 4080 SUPER GPU. 
+
+LiDAR Odometry with POLI Augmentation. To perform LiDAR odometry with the trained model, we integrated POLI into a GICP [33]-based framework. Using the covariance predicted by POLI, correspondences obtained via nearest neighbor search were refined through iterative Mahalanobis distance minimization, resulting in the final LiDAR odometry pipeline. 
+
+Baseline Algorithms. For comparison, ICP-based methods including Point-to-Point ICP [4], Point-to-Plane ICP [30], GICP [33], and VGICP [16] were evaluated under the same preprocessing and voxelization settings. In addition, two state-of-the-art odometry systems were tested for each sensor. For VLP-16, A-LOAM [45] and F-LOAM [39] were used, while for OS2-128, KISS-ICP [38] and GenZ-ICP [19] were evaluated. Since these systems employ their own downsampling strategies, raw point clouds were provided as an input to ensure fair comparison. 
+
+Evaluation Metric. Odometry performance was measured using the relative pose error [10] (RPE) metric reported in the main text. 
+
+Result Summary. As shown in Fig. SD1, the proposed method consistently outperformed classical ICP–based approaches across all evaluation metrics, while achieving higher translation accuracy and comparable rotation accuracy relative to dedicated LiDAR odometry systems. Despite being evaluated on unseen environments ( DCC and KAIST ), POLI+GICP demonstrated consistent performance, demonstrating its generalizability. These results indicate that estimating local geometry with POLI and using it as a metric for scan matching is highly beneficial. VLP-16 OS2-128 Rotation (deg) Translation (m) Rotation (deg) Translation (m) 
+
+Fig. SD1: Evaluation of LiDAR odometry performance using VLP-16 and OS2-128 sensors. Performance is assessed using root mean square error values with error bars representing ±0.5 standard deviations of RPE (m). For each sensor and sequence, three voxel sizes are evaluated, comparing five ICP variants ( Point-to-Point [4], Point-to-Plane [30], GICP [33], VGICP [16], and 
+
+POLI+GICP ). In addition, two LiDAR odometry systems are compared for each sensor ( A-LOAM [45] and F-LOAM [39] for VLP-16; GenZ-ICP [19] and KISS-ICP [38] for OS2-128). The RMSE of the best-performing method is highlighted by hollow diamond for each sequence. SD.3. Scan Augmentation: LiDAR Odometry 
+
+Dataset. We conduct experiments on two LiDAR scan datasets: HeLiPR [15] and KITTI [9]. From HeLiPR [15], we use all sequences of data collected with a Velodyne VLP-16 sensor. We additionally evaluate on KITTI [9] odometry sequences 00–10. For this evaluation, the original KITTI [9] scans are converted into a 16-channel LiDAR configuration by selecting one ring every four vertical scan lines. 
+
+Training Setup. POLI directly adopts the weights pretrained in HeLiPR [15] dataset with a voxel size of 0.2 m. 
+
+LiDAR Odometry with POLI. The trained model predicts point-wise covariance that represents local geometric structures. For each covariance, additional points are sampled to augment the original scan, producing a geometry-enhanced point cloud. The augmented scans are then integrated into the KISS-ICP [38] LiDAR odometry pipeline for pose estimation. Since accurate geometric representation is critical for odometry, point sampling is restricted to highly reliable regions of the Gaussian ellipsoidal distributions estimated by the network. Specifically, seven points are sampled within the 0.05 σ region of each distribution to reduce noise and improve registration precision. 
+
+Baseline Algorithms. We also construct LiDAR odometry systems using augmented scans obtained from two baselines: principal component analysis (PCA), which is widely used for point cloud geometric estimation, and TULIP [42], a range image-based scan densification method. For the PCA baseline, local covariance is estimated using PCA with the 24 nearest neighbors for each point. Points are then sampled from the resulting Gaussian distribution in the same manner as POLI, i.e., seven points within the 0.05 σ region. The sampled points are used to augment the original scans and are subsequently integrated into the KISS-ICP [38]LiDAR odometry pipeline. For TULIP [42] we use the publicly released pretrained model trained on KITTI [9]. Following the original pipeline, LiDAR scans are converted into 16 × 1024 range images and fed into the network. The network outputs 64 × 1024 range images, which are reprojected into 3D point clouds. The resulting points are likewise incorporated into the LiDAR odometry system for pose estimation. 
+
+Evaluation Metric. We evaluate all methods using standard LiDAR odometry metrics by comparing trajectory estimation performance across all HeLiPR [15] sequences and KITTI [9] sequences 00–10. Specifically, we evaluate RPE with a delta of 100 frames. 
+
+SD.4. Scan Augmentation: Global Registration 
+
+Dataset. We evaluate global registration on both HeLiPR [15] and KITTI [9]. All six sequences of HeLiPR [15] are used, and KITTI [9] odometry sequences 00–10 are included for evaluation. For each sequence, 50 point-cloud pairs are randomly sampled with an inter-scan distance of up to 12 m. This results in a total of 300 pairs for HeLiPR [15] and 550 pairs for KITTI [9]. 
+
+Training Setup. POLI directly adopts the weights pretrained in HeLiPR [15] dataset with a voxel size of 0.2 m. 
+
+Registration with POLI Augmentation. POLI samples points from high-confidence regions defined by the estimated Gaussian covariance to improve geometric reliability. For HeLiPR [15] 50 points are sampled within 0.3σ of each distribution, whereas for KITTI [9], 40 points are sampled within a tighter 0.1σ region. The sampled points are used to augment the original scans, and the augmented scans are subsequently integrated into the KISS-Matcher [24] registration system for transformation estimation. 
+
+Baseline Algorithms. For TULIP [42], we use the publicly released pretrained model trained on KITTI [9]. For the PCA baseline, point clouds are first downsampled with a voxel size of 0.2 m, and PCA is performed within a neighborhood radius of 0.5 m to estimate local covariance. To ensure a fair comparison, both the number of sampled points and the sampling regions are set identical to those used in POLI. For both baselines, the resulting augmented points are likewise incorporated into the same registration system. Even with extensive tuning of PCA parameters, POLI consistently outperforms the PCA baseline. 
+
+Evaluation Protocol. Performance is measured by evaluating registration accuracy across all sampled scan pairs from both datasets, enabling a comprehensive comparison under varying environments and sensor configurations. 
+
+SD.5. Computation Time 
+
+In robotic perception, real-time performance is not optional but rather a fundamental system requirement. Perception modules operate within tight control loops and must continuously process streaming sensory data with minimal latency. This constraint is particularly critical in applications such as localization and mapping, where delayed geometric interpretation can directly degrade state estimation accuracy and overall system stability. Accordingly, computational efficiency becomes a primary evaluation criterion when selecting or designing perception algorithms. In this study, we systematically analyze the computation time of several algorithms used for fundamental geometric structure estimation. The reported runtime corresponds to the sum of the algorithm execution time and the point augmentation time, and both components are jointly visualized. The augmentation process—Gaussian sampling for PCA and POLI, and 3D reprojection of the range image for TULIP [42]—was implemented with CUDA acceleration. In practice, the sampling process 5k 10k 15k 20k 25k 30k 
+
+Number of Points 
+
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> Runtime (ms)
+> TULIP
+> CUDA PCA
+> Open3D PCA
+> POLI
+
+Fig. SD2: Runtime comparison of PCA (CPU/GPU), TULIP [42], and the proposed POLI with respect to the number of input points. from the covariance matrix is highly parallelizable and executes orders of magnitude faster than the dominant computational components, such as neural network inference or PCA eigen-decomposition. As a result, the augmentation overhead is negligible and does not affect the overall runtime trends. Specifically, we compare the following methods:  
+
+> •
+
+PCA 
+
+– CUDA-accelerated GPU implementation 
+
+– CPU-based implementation provided by Open3D [48]  
+
+> •
+
+TULIP [42], a baseline method introduced in prior work  
+
+> •
+
+POLI, the proposed method To evaluate scalability with respect to input size, experiments were conducted on point clouds containing 5,000, 10,000, 15,000, 20,000, 25,000, and 30,000 points. For each configuration, the execution time was measured and compared across all methods. However, since TULIP [42] relies on a range-image representation with a fixed input resolution of 16 × 1024 ,runtime comparisons were only feasible for point sets containing up to approximately 15,000 points. The results show that TULIP [42] exhibits strong real-time performance with almost constant execution time across all evaluated cases. This behavior is primarily attributed to its fixed-resolution range-image–based processing pipeline, which decouples runtime from the number of input points. However, this design also imposes an inherent limitation: the number of points that can be processed is bounded by the image resolution. Handling denser point clouds would therefore require increasing the input image size and retraining the network accordingly, reducing scalability and flexibility. The CUDA-accelerated PCA achieves significantly faster performance than its CPU-based counterpart; however, its runtime increases with the number of points and is eventually surpassed by the proposed POLI method at larger scales. SE. D ETAILED DISCUSSION ON PROBABILISTIC MODELING 
+
+The overall training objective of the neural network can be decomposed into a pose likelihood term and a correspondence likelihood term: 
+
+arg min 
+
+> C
+
+12 log H( ˆT) + 12 ξ( ˆT)⊤Γ−1ξ( ˆT)
+
+| {z }
+
+> pose likelihood
+
++ 12
+
+> N
+
+X
+
+> i=1
+
+h
+
+log 2Ci + d⊤ 
+
+> i
+
+(2 Ci)−1di
+
+i| {z }
+
+> correspondence likelihood
+
+. (MLE of T-T-Q-C) In this section, we discuss the necessity and validity of our probabilistic formulation (shown in Fig. SE1(b), T-T-Q-C), whose MLE objective consists of two components: the correspondence likelihood and the pose likelihood. As shown in the main paper, incorporating the pose likelihood term introduces additional mathematical complexity. Therefore, it is important to justify the necessity of this term. From the above formulation, a natural question arises. If the transformation between P and Q is already known exactly, i.e., ˆT = ˜T, the uncertainty in the pose likelihood vanishes, and only the correspondence likelihood remains. In this situation, would it not be sufficient to optimize only the correspondence likelihood? Furthermore, even if the transformation is not perfectly accurate but highly reliable (e.g., provided by modern GNSS–INS systems), could we approximately rely solely on the correspondence likelihood? Following this line of reasoning, one may alternatively adopt a simplified probabilistic model that treats the transformation as a fixed and known quantity, i.e., T = ˜T, rather than as a latent variable. In this case, 
+
+T is no longer an unknown to be inferred, which substantially simplifies the objective; this corresponds to the formulation shown in Fig. SE1(a), denoted as T-Q-C. Motivated by this observation, we conduct comparative experiments between the two probabilistic models, T-Q-C and T-T-Q-C. In contrast to the MLE objective of T-T-Q-C, the MLE objective of T-Q-C admits a much simpler form, which can be written as follows: 
+
+arg min 
+
+> C
+
+12
+
+> N
+
+X
+
+> i=1
+
+h
+
+log |2Ci| + d⊤ 
+
+> i
+
+(2 Ci)−1di
+
+i
+
+(MLE of T-Q-C) which corresponds to considering only the correspondence likelihood, without incorporating the pose likelihood. At first glance, this simplification suggests that, given access to the transformation that is close to ground-truth transformation, the learning problem reduces to estimating correspondence covariances alone, making the pose likelihood seemingly unnecessary. To investigate whether this intuition holds in practice, we compare the performance of two strategies (i.e., MLE of T-Q-C and MLE T-T-Q-C) under various conditions. ˜T Q Cq
+
+> (a) Directed Acyclic Graph of T-Q-C Formulation
+
+# ˜T T Q Cq (b) Directed Acyclic Graph of T-T-Q-C Formulation 
+
+Fig. SE1: (a) corresponds to a probabilistic model, referred to as T–Q–C, that assumes an exact (noise-free) transformation, whereas (b) corresponds to a probabilistic model, referred to as T–T–Q–C, that does not assume an exact transformation. 
+
+Case 1: Exact ground-truth transformation available. We use dense and highly accurate point clouds from the Stanford 3D Scanning Repository [7] and randomly sample a fixed number of points. This sampling procedure is repeated to generate two independent point clouds sharing the same underlying geometry. Arbitrary rigid transformations are applied to both scans to create a pair of point clouds (P, Q), with the relative rigid transformation between them serving as the known ground-truth transformation T∗. Two models are trained on this data: one using only the correspondence (i.e., MLE of T-Q-C) and the other using both likelihood terms (i.e., MLE of T-T-Q-C). During evaluation, the exact transformation T∗ is used for likelihood computation. Result is shown in Fig. SE2(a). 
+
+Case 2: Inaccurate transformation available. We follow the same procedure as above, except that the transformation used during likelihood computation is perturbed by injecting zero-mean Gaussian noise into the translation component of T∗, with standard deviations of 0.01, 0.02, and 0.03 for Fig. SE2(b), (c), and (d), respectively. This setting reflects practical robotic scenarios where only noisy pose measurements are available rather than true ground-truth transformations. The experimental results show that when the ground-truth transformation is available, the performance gap between the two training strategies is negligible across different point cloud resolutions. In contrast, when an inaccurate transformation is used, the difference becomes substantial, and jointly leveraging both likelihood (i.e., MLE of T-T-Q-C) terms consistently yields significantly better performance. These findings confirm that our probabilistic modeling is both reasonable and well-justified. In particular, the proposed formulation combining correspondence and pose likelihoods is crucial when the ground-truth transformation is unavailable. (a) With exact ground-truth (b) N (0 , 0.01) (c) N (0 , 0.02) (d) N (0 , 0.03) 
+
+Fig. SE2: (a) corresponds to the model trained using the exact ground-truth transformation, whereas (b), (c), and (d) show the results obtained when Gaussian noise, as indicated in each caption, is injected into the translation component of the transformation during training.  
+
+> (a) Assuming perfect pose label (T-Q-C) (b) Assuming imperfect pose label (T-T-Q-C)
+
+Fig. SE3: (a) shows the result obtained by training under a probabilistic model that assumes an exact (noise-free) transformation, whereas (b) shows the result obtained by training under a probabilistic model that does not assume an exact transformation. Although this distinction may appear minor under idealized conditions, it becomes significant in practical robotic scenarios where accurate ground-truth transformations are often unavailable. Moreover, the proposed formulation enables training with quasi–ground-truth poses from LiDAR odometry, avoiding reliance on expensive sensing suites such as GNSS–INS. To further evaluate the impact of this limitation under realistic conditions where only quasi-ground-truth poses are available, we conduct additional experiments on a scene-level point cloud dataset. We use models trained for 12 epochs on the HeLiPR [15] VLP-16 dataset with a voxel size of 0.5,m, following the training protocol described in Section SD.2.. We compare the point cloud geometry predicted by each training strategy. As illustrated in Fig. SE3, clear qualitative differences can be observed. When optimizing only the correspondence likelihood, the estimated geometry tends to be conservative, particularly on planar structures such as walls, where the reconstructed surfaces appear under-expressed and incomplete. In contrast, when the pose likelihood is jointly incorporated during training, the model captures structural elements such as walls and floors more aggressively and produces geometrically more faithful representations. Beyond these qualitative observations, we further evaluate how the differences in learned geometry affect downstream tasks. Specifically, we assess both models on a LiDAR odometry task to quantify the practical impact of the learned geometric representations. During evaluation, the covariances predicted by the model are incorporated into Generalized-ICP (GICP) [33], and performance is measured on the HeLiPR [15] KAIST sequence using relative pose error (RPE) across different temporal intervals ∆. The results in Table S1 show that the proposed T-T-Q-C formulation consistently outperforms T-Q-C, emphasizing the importance of probabilistic modeling that accounts for uncertainty in transformation labels. TABLE S1: LiDAR odometry evaluation on HeLiPR KAIST04 using RPE (m) (RMSE at different ∆).                 
+
+> Method GICP [33] + T-Q-C + T-T-Q-C + T-Q-C + T-T-Q-C + T-Q-C + T-T-Q-C
+> (∆ = 1 )(∆ = 50 )(∆ = 100 )RMSE –0.0385 0.0186 1.8846 0.6747 5.4912 2.0053
+
+SF. A DVANTAGES OF ELLIPSOIDAL REPRESENTATION 
+
+SF.1. Advantages of Gaussian Ellipsoidal Representation 
+
+Gaussian ellipsoids provide both efficiency and controllability as a local geometric representation. First, they are computa-tionally efficient: the network only needs to predict a compact covariance parameterization (e.g., six degrees of freedom for a symmetric 3 × 3 covariance), so the output space is not overly complex. Empirically, we observe that training typically converges within a few hours in most settings. Second, they offer controllability without distorting the raw sensor geometry: the network does not move the raw measurements, but instead learns how much to trust each point locally by predicting its covariance. At inference time, the user can control the effective strictness of the representation by choosing a confidence scale (e.g., using a 1σ or 0.1σ). 
+
+SF.2. Scene Completion vs. Local Geometric Abstraction 
+
+While generative models often aim to complete an entire scene from partial scans, full-scene completion is not a well-posed objective. The unobserved geometry can be fundamentally ambiguous, and any hallucinated completion may introduce structures that do not exist in the real world, which can be detrimental in downstream robotic perception and decision-making. In contrast, our goal is not to reconstruct every unobserved detail, but to predict the local geometric structure around the observed measurements in an abstract and physically grounded form. Rather than requiring globally consistent scene synthesis, the model only needs to capture how local neighborhoods behave—e.g., the directionality, anisotropy, and uncertainty of local surface geometry around each measurement. In many geometric perception pipelines, fine-grained global completeness is unnecessary; what matters is reliable local geometry. Therefore, Gaussian ellipsoidal representations provide a pragmatic alternative to scene-completion generative modeling, offering a controllable abstraction aligned with robotic geometric perception. 
+
+SF.3. Towards Sensor-Agnostic Geometric Perception 
+
+One of the fundamental problems geometric perception must address is reliable operation under real-world diversity. In practical deployment, the sensing process is rarely stationary: sensor hardware and configurations vary widely, measurement density and angular resolution change, fields-of-view differ, and the level of noise, occlusion, and partial observability fluctuates across environments. As a consequence, a method that performs well under a specific sensing regime often fails to maintain the same level of stability and accuracy once the sensing conditions deviate from those assumed during its design or calibration. A central driver of this gap is the quality of geometric evidence available from observations. When measurements are sparse—for instance, in low-channel LiDAR settings—local geometry becomes under-sampled, and the information required for reliable association and constraint formation becomes fundamentally weaker. This scarcity amplifies ambiguity in correspondence, reduces constraint informativeness, and increases sensitivity to outliers and partial visibility. In contrast, when observations are sufficiently dense to richly capture the underlying surfaces, geometric perception problems often enter a markedly easier regime: local neighborhoods are clearly defined, the induced constraints are better conditioned, and optimization tends to be less fragile. These considerations motivate representations that reduce the discrepancy between sensing regimes at the geometric abstraction level. Rather than forcing downstream algorithms to compensate for sparsity through ad-hoc retuning, a more principled approach is to provide a local representation that captures the structure of geometry around each observation. Gaussian ellipsoidal representations offer such an interface: they do not hallucinate unobserved surfaces, yet they enrich sparse measurements with an uncertainty-aware description of local shape and anisotropy. By transforming raw measurements into a physically grounded and controllable local abstraction, they can improve performance across diverse sensing conditions. Ground-truth geometry 
+
+POLI-estimated geometry (VLP-16, voxel size 0.2 m) 
+
+POLI-estimated geometry (VLP-16, voxel size 0.5 m) 
+
+POLI-estimated geometry (OS2-128, voxel size 1.0 m) 
+
+POLI-estimated geometry (OS2-128, voxel size 1.5 m) 
+
+POLI-estimated geometry (OS2-128, voxel size 2.0 m) Fig. S1: Ellipsoidal geometric structure estimation using POLI. Qualitative visualization of point cloud geometry estimated by POLI under varying sensor modalities and voxel resolutions. The point-wise covariance matrices produced by POLI are represented as ellipsoids, highlighting the underlying local geometric structures. GLIM [17] GLIM [17] + POLI 
+
+Fig. S2: Localization and mapping with POLI-augmented scan. Qualitative visualization of localization and mapping results on the DCC sequence from the HeLiPR [15] VLP-16 dataset. Top: results obtained using the state-of-the-art LiDAR odometry system GLIM [17]. Bottom: results obtained using GLIM [17] augmented with POLI. Before Registration KISS-Matcher [24] KISS-Matcher [24] + POLI Fig. S3: Global registration with POLI-augmented scan. Qualitative visualization of global registration results using POLI-augmented scans. Left : input point cloud pair. Middle : results from KISS-Matcher [24]. Right : results from KISS-Matcher [24] augmented with POLI. DCC Riverside Bridge Town Roundabout KAIST 
+
+Raw PCA POLI Fig. S4: Data augmentation using POLI. Qualitative visualization of scan augmentation results using POLI on the HeLiPR [15] VLP-16 dataset. Left: raw point cloud. Middle: PCA-based augmentation results. Right: POLI-based augmentation results. PCA struggles to generalize under range-dependent variations in point density, whereas POLI demonstrates robust generalization across such variations.
