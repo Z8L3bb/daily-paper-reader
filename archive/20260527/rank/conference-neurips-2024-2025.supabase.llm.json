@@ -1,0 +1,3321 @@
+{
+  "top_k": 200,
+  "generated_at": "2026-05-27T20:48:49.196761+00:00",
+  "papers": [
+    {
+      "id": "openreview-neurips-2024-lqdcdqievd",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Spherical Frustum Sparse Convolution Network for LiDAR Point Cloud Semantic Segmentation",
+      "abstract": "LiDAR point cloud semantic segmentation enables the robots to obtain fine-grained semantic information of the surrounding environment. Recently, many works project the point cloud onto the 2D image and adopt the 2D Convolutional Neural Networks (CNNs) or vision transformer for LiDAR point cloud semantic segmentation. However, since more than one point can be projected onto the same 2D position but only one point can be preserved, the previous 2D projection-based segmentation methods suffer from inevitable quantized information loss, which results in incomplete geometric structure, especially for small objects. To avoid quantized information loss, in this paper, we propose a novel spherical frustum structure, which preserves all points projected onto the same 2D position. Additionally, a hash-based representation is proposed for memory-efficient spherical frustum storage. Based on the spherical frustum structure, the Spherical Frustum sparse Convolution (SFC) and Frustum Farthest Point Sampling (F2PS) are proposed to convolve and sample the points stored in spherical frustums respectively. Finally, we present the Spherical Frustum sparse Convolution Network (SFCNet) to adopt 2D CNNs for LiDAR point cloud semantic segmentation without quantized information loss. Extensive experiments on the SemanticKITTI and nuScenes datasets demonstrate that our SFCNet outperforms previous 2D projection-based semantic segmentation methods based on conventional spherical projection and shows better performance on small object segmentation by preserving complete geometric structure. Codes will be available at https://github.com/IRMVLab/SFCNet.",
+      "authors": [
+        "Yu Zheng",
+        "Guangming Wang",
+        "Jiuming Liu",
+        "Marc Pollefeys",
+        "Hesheng Wang"
+      ],
+      "primary_category": "LiDAR Point Cloud Semantic Segmentation",
+      "categories": [
+        "LiDAR Point Cloud Semantic Segmentation",
+        "2D Projection",
+        "Quantized Information Loss"
+      ],
+      "published": "2024-09-25T18:11:55.251+00:00",
+      "link": "https://openreview.net/forum?id=LqdcdqIeVD",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-79q206xswc",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Is Your LiDAR Placement Optimized for 3D Scene Understanding?",
+      "abstract": "The reliability of driving perception systems under unprecedented conditions is crucial for practical usage. Latest advancements have prompted increasing interest in multi-LiDAR perception. However, prevailing driving datasets predominantly utilize single-LiDAR systems and collect data devoid of adverse conditions, failing to capture the complexities of real-world environments accurately. Addressing these gaps, we proposed Place3D, a full-cycle pipeline that encompasses LiDAR placement optimization, data generation, and downstream evaluations. Our framework makes three appealing contributions. 1) To identify the most effective configurations for multi-LiDAR systems, we introduce the Surrogate Metric of the Semantic Occupancy Grids (M-SOG) to evaluate LiDAR placement quality. 2) Leveraging the M-SOG metric, we propose a novel optimization strategy to refine multi-LiDAR placements. 3) Centered around the theme of multi-condition multi-LiDAR perception, we collect a 280,000-frame dataset from both clean and adverse conditions. Extensive experiments demonstrate that LiDAR placements optimized using our approach outperform various baselines. We showcase exceptional results in both LiDAR semantic segmentation and 3D object detection tasks, under diverse weather and sensor failure conditions.",
+      "authors": [
+        "Ye Li",
+        "Lingdong Kong",
+        "Hanjiang Hu",
+        "Xiaohao Xu",
+        "Xiaonan Huang"
+      ],
+      "primary_category": "Autonomous Driving",
+      "categories": [
+        "Autonomous Driving",
+        "LiDAR Semantic Segmentation",
+        "Sensor Placement"
+      ],
+      "published": "2024-09-25T18:07:39.942+00:00",
+      "link": "https://openreview.net/forum?id=79q206xswc",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-wcx04wn34u",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "LiT: Unifying LiDAR \"Languages\" with LiDAR Translator",
+      "abstract": "LiDAR data exhibits significant domain gaps due to variations in sensors, vehicles, and driving environments, creating “language barriers” that limit the effective use of data across domains and the scalability of LiDAR perception models. To address these challenges, we introduce the LiDAR Translator (LiT), a framework that directly translates LiDAR data across domains, enabling both cross-domain adaptation and multi-domain joint learning. LiT integrates three key components: a scene modeling module for precise foreground and background reconstruction, a LiDAR modeling module that models LiDAR rays statistically and simulates ray-drop, and a fast, hardware-accelerated ray casting engine. LiT enables state-of-the-art zero-shot and unified domain detection across diverse LiDAR datasets, marking a step toward data-driven domain unification for autonomous driving systems. Source code and demos are available at: https://yxlao.github.io/lit.",
+      "authors": [
+        "Yixing Lao",
+        "Tao Tang",
+        "Xiaoyang Wu",
+        "Peng Chen",
+        "Kaicheng Yu",
+        "Hengshuang Zhao"
+      ],
+      "primary_category": "LiDAR Translation",
+      "categories": [
+        "LiDAR Translation",
+        "Domain Unification",
+        "3D Detection"
+      ],
+      "published": "2024-09-25T18:09:16.692+00:00",
+      "link": "https://openreview.net/forum?id=wcX04Wn34u",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-63xewav1lu",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Fine-grained Image-to-LiDAR Contrastive Distillation with Visual Foundation Models",
+      "abstract": "Contrastive image-to-LiDAR knowledge transfer, commonly used for learning 3D representations with synchronized images and point clouds, often faces a self-conflict dilemma. This issue arises as contrastive losses unintentionally dissociate features of unmatched points and pixels that share semantic labels, compromising the integrity of learned representations. To overcome this, we harness Visual Foundation Models (VFMs), which have revolutionized the acquisition of pixel-level semantics, to enhance 3D representation learning. Specifically, we utilize off-the-shelf VFMs to generate semantic labels for weakly-supervised pixel-to-point contrastive distillation. Additionally, we employ von Mises-Fisher distributions to structure the feature space, ensuring semantic embeddings within the same class remain consistent across varying inputs. Furthermore, we adapt sampling probabilities of points to address imbalances in spatial distribution and category frequency, promoting comprehensive and balanced learning. Extensive experiments demonstrate that our approach mitigates the challenges posed by traditional methods and consistently surpasses existing image-to-LiDAR contrastive distillation methods in downstream tasks. We have included the code in supplementary materials.",
+      "authors": [
+        "Yifan Zhang",
+        "Junhui Hou"
+      ],
+      "primary_category": "self-supervised learning",
+      "categories": [
+        "self-supervised learning",
+        "cross-modal distillation",
+        "3D representation learning"
+      ],
+      "published": "2024-09-25T18:09:18.218+00:00",
+      "link": "https://openreview.net/forum?id=63xeWav1lU",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-eqhqzrjy75",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "STONE: A Submodular Optimization Framework for Active 3D Object Detection",
+      "abstract": "3D object detection is fundamentally important for various emerging applications, including autonomous driving and robotics. A key requirement for training an accurate 3D object detector is the availability of a large amount of LiDAR-based point cloud data. Unfortunately, labeling point cloud data is extremely challenging, as accurate 3D bounding boxes and semantic labels are required for each potential object. This paper proposes a unified active 3D object detection framework, for greatly reducing the labeling cost of training 3D object detectors. Our framework is based on a novel formulation of submodular optimization, specifically tailored to the problem of active 3D object detection. In particular, we address two fundamental challenges associated with active 3D object detection: data imbalance and the need to cover the distribution of the data, including LiDAR-based point cloud data of varying difficulty levels. Extensive experiments demonstrate that our method achieves state-of-the-art performance with high computational efficiency compared to existing active learning methods. The code is available at [https://github.com/RuiyuM/STONE](https://github.com/RuiyuM/STONE)",
+      "authors": [
+        "RUIYU MAO",
+        "Sarthak Kumar Maharana",
+        "Rishabh K Iyer",
+        "Yunhui Guo"
+      ],
+      "primary_category": "Active learning",
+      "categories": [
+        "Active learning",
+        "3D object detection"
+      ],
+      "published": "2024-09-25T18:11:06.732+00:00",
+      "link": "https://openreview.net/forum?id=EQHQzRJy75",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-nlphknjnnz",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Just Add $100 More: Augmenting Pseudo-LiDAR Point Cloud for Resolving Class-imbalance Problem",
+      "abstract": "Typical LiDAR-based 3D object detection models are trained with real-world data collection, which is often imbalanced over classes.\nTo deal with it, augmentation techniques are commonly used, such as copying ground truth LiDAR points and pasting them into scenes.\nHowever, existing methods struggle with the lack of sample diversity for minority classes and the limitation of suitable placement.\nIn this work, we introduce a novel approach that utilizes pseudo LiDAR point clouds generated from low-cost miniatures or real-world videos, which is called Pseudo Ground Truth augmentation (PGT-Aug).\nPGT-Aug involves three key steps: (i) volumetric 3D instance reconstruction using a 2D-to-3D view synthesis model, (ii) object-level domain alignment with LiDAR intensity simulation, and (iii) a hybrid context-aware placement method from ground and map information. \nWe demonstrate the superiority and generality of our method through performance improvements in extensive experiments conducted on popular benchmarks, i.e., nuScenes, KITTI, and Lyft, especially for the datasets with large domain gaps captured by different LiDAR configurations.\nThe project webpage is https://just-add-100-more.github.io.",
+      "authors": [
+        "Mincheol Chang",
+        "Siyeong Lee",
+        "Jinkyu Kim",
+        "Namil Kim"
+      ],
+      "primary_category": "Autonomous Driving",
+      "categories": [
+        "Autonomous Driving",
+        "Class Imbalance",
+        "Data Augmentation"
+      ],
+      "published": "2024-09-25T18:09:56.852+00:00",
+      "link": "https://openreview.net/forum?id=NlpHKNjNNZ",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-gboq0acqoo",
+      "source": "NeurIPS-2024-Rejected-Public",
+      "title": "DH-Fusion: Depth-Aware Hybrid Feature Fusion for Multimodal 3D Object Detection",
+      "abstract": "State-of-the-art LiDAR-camera 3D object detectors usually focus on feature fusion. However, they neglect the factor of depth while designing the fusion strategy. In this work, we for the first time point out that different modalities play different roles as depth varies via statistical analysis and visualization. Based on this finding, we propose a Depth-Aware Hybrid Feature Fusion (DH-Fusion) strategy that guides the weights of point cloud and RGB image modalities by introducing depth encoding at both global and local levels. Specifically, the Depth-Aware Global Feature Fusion (DGF) module adaptively adjusts the weights of image Bird's-Eye-View (BEV) features in multi-modal global features via depth encoding. Furthermore, to compensate for the information lost when transferring raw features to the BEV space, we propose a Depth-Aware Local Feature Fusion (DLF) module, which adaptively adjusts the weights of original voxel features and multi-view image features in multi-modal local features via depth encoding. Extensive experiments on the nuScenes dataset demonstrate that our DH-Fusion method surpasses previous state-of-the-art methods w.r.t. NDS. Moreover, our DH-Fusion is more robust to various kinds of corruptions, outperforming previous methods on nuScenes-C w.r.t. both NDS and mAP.",
+      "authors": [
+        "Mingqian Ji",
+        "Jian Yang",
+        "Shanshan Zhang"
+      ],
+      "primary_category": "Depth Aware",
+      "categories": [
+        "Depth Aware",
+        "Multi Modality",
+        "3D Object Detection"
+      ],
+      "published": "2024-05-10T06:37:05.025+00:00",
+      "link": "https://openreview.net/forum?id=gBOQ0ACqoO",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-j2wootkbx0",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "DiffuBox: Refining 3D Object Detection with Point Diffusion",
+      "abstract": "Ensuring robust 3D object detection and localization is crucial for many applications in robotics and autonomous driving. Recent models, however, face difficulties in maintaining high performance when applied to domains with differing sensor setups or geographic locations, often resulting in poor localization accuracy due to domain shift. To overcome this challenge, we introduce a novel diffusion-based box refinement approach. This method employs a domain-agnostic diffusion model, conditioned on the LiDAR points surrounding a coarse bounding box, to simultaneously refine the box's location, size, and orientation. We evaluate this approach under various domain adaptation settings, and our results reveal significant improvements across different datasets, object classes and detectors. Our PyTorch implementation is available at https://github.com/cxy1997/DiffuBox.",
+      "authors": [
+        "Xiangyu Chen",
+        "Zhenzhen Liu",
+        "Katie Z Luo",
+        "Siddhartha Datta",
+        "Adhitya Polavaram",
+        "Yan Wang",
+        "Yurong You",
+        "Boyi Li",
+        "Marco Pavone",
+        "Wei-Lun Chao",
+        "Mark Campbell",
+        "Bharath Hariharan",
+        "Kilian Q Weinberger"
+      ],
+      "primary_category": "Domain Adaptation",
+      "categories": [
+        "Domain Adaptation",
+        "Denoising Diffusion Models",
+        "3D Object Detection"
+      ],
+      "published": "2024-09-25T18:10:55.746+00:00",
+      "link": "https://openreview.net/forum?id=J2wOOtkBx0",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-ndoehx1acq",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "One for All: Multi-Domain Joint Training for Point Cloud Based 3D Object Detection",
+      "abstract": "The current trend in computer vision is to utilize one universal model to address all various tasks. Achieving such a universal model inevitably requires incorporating multi-domain data for joint training to learn across multiple problem scenarios. In point cloud based 3D object detection, however, such multi-domain joint training is highly challenging, because large domain gaps among point clouds from different datasets lead to the severe domain-interference problem. In this paper, we propose OneDet3D, a universal one-for-all model that addresses 3D detection across different domains, including diverse indoor and outdoor scenes, within the same framework and only one set of parameters. We propose the domain-aware partitioning in scatter and context, guided by a routing mechanism, to address the data interference issue, and further incorporate the text modality for a language-guided classification to unify the multi-dataset label spaces and mitigate the category interference issue. The fully sparse structure and anchor-free head further accommodate point clouds with significant scale disparities. Extensive experiments demonstrate the strong universal ability of OneDet3D to utilize only one trained model for addressing almost all 3D object detection tasks (Fig. 1). We will open-source the code for future research and applications.",
+      "authors": [
+        "Zhenyu Wang",
+        "Ya-Li Li",
+        "Hengshuang Zhao",
+        "Shengjin Wang"
+      ],
+      "primary_category": "3D object detection",
+      "categories": [
+        "3D object detection"
+      ],
+      "published": "2024-09-25T18:09:08.553+00:00",
+      "link": "https://openreview.net/forum?id=ndoeHX1Acq",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-rpzwsdjc4n",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "FFAM: Feature Factorization Activation Map for Explanation of 3D Detectors",
+      "abstract": "LiDAR-based 3D object detection has made impressive progress recently, yet most existing models are black-box, lacking interpretability. Previous explanation approaches primarily focus on analyzing image-based models and are not readily applicable to LiDAR-based 3D detectors. In this paper, we propose a feature factorization activation map (FFAM) to generate high-quality visual explanations for 3D detectors. FFAM employs non-negative matrix factorization to generate concept activation maps and subsequently aggregates these maps to obtain a global visual explanation. To achieve object-specific visual explanations, we refine the global visual explanation using the feature gradient of a target object. Additionally, we introduce a voxel upsampling strategy to align the scale between the activation map and input point cloud. We qualitatively and quantitatively analyze FFAM with multiple detectors on several datasets. Experimental results validate the high-quality visual explanations produced by FFAM. The code is available at \\url{https://anonymous.4open.science/r/FFAM-B9AF}.",
+      "authors": [
+        "Shuai Liu",
+        "Boyang Li",
+        "Zhiyu Fang",
+        "Mingyue Cui",
+        "Kai Huang"
+      ],
+      "primary_category": "Explainable artificial intelligence",
+      "categories": [
+        "Explainable artificial intelligence",
+        "visual explanation",
+        "3D object detection"
+      ],
+      "published": "2024-09-25T18:09:53.472+00:00",
+      "link": "https://openreview.net/forum?id=rpZWSDjc4N",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-yetirxhsh1",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Towards Learning Group-Equivariant Features for Domain Adaptive 3D Detection",
+      "abstract": "The performance of 3D object detection in large outdoor point clouds deteriorates significantly in an unseen environment due to the inter-domain gap. To address these challenges, most existing methods for domain adaptation harness self-training schemes and attempt to bridge the gap by focusing on a single factor that causes the inter-domain gap, such as objects' sizes, shapes, and foreground density variation. However, the resulting adaptations suggest that there is still a substantial inter-domain gap left to be minimized. We argue that this is due to two limitations: 1) Biased pseudo-label collection from self-training. 2) Multiple factors jointly contributing to how the object is perceived in the unseen target domain. In this work, we propose a grouping-exploration strategy framework,  Group Explorer Domain Adaptation ($\\textbf{GroupEXP-DA}$), to addresses those two issues. Specifically, our grouping divides the available label sets into multiple clusters and ensures all of them have equal learning attention with the group-equivariant spatial feature, avoiding dominant types of objects causing imbalance problems. Moreover, grouping learns to divide objects by considering inherent factors in a data-driven manner, without considering each factor separately as existing works. On top of the group-equivariant spatial feature that selectively detects objects similar to the input group, we additionally introduce an explorative group update strategy that reduces the false negative detection in the target domain, further reducing the inter-domain gap. During inference, only the learned group features are necessary for making the group-equivariant spatial feature, placing our method as a simple add-on that can be applicable to most existing detectors. We show how each module contributes to substantially bridging the inter-domain gaps compared to existing works across large urban outdoor datasets such as NuScenes, Waymo, and KITTI.",
+      "authors": [
+        "Sangyun Shin",
+        "Yuhang He",
+        "Madhu Vankadari",
+        "Ta-Ying Cheng",
+        "Qian Xie",
+        "Andrew Markham",
+        "Niki Trigoni"
+      ],
+      "primary_category": "Domain Adaptive 3D Detection",
+      "categories": [
+        "Domain Adaptive 3D Detection",
+        "Domain Adaptation",
+        "3D Detection",
+        "Self-Training"
+      ],
+      "published": "2024-09-25T18:12:00.515+00:00",
+      "link": "https://openreview.net/forum?id=YEtirXhsh1",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-5tgkacy7uv",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "LION: Linear Group RNN for 3D Object Detection in Point Clouds",
+      "abstract": "The benefit of transformers in large-scale 3D point cloud perception tasks, such as 3D object detection, is limited by their quadratic computation cost when modeling long-range relationships. In contrast, linear RNNs have low computational complexity and are suitable for long-range modeling. Toward this goal, we propose a simple and effective window-based framework built on Linear group RNN (i.e., perform linear RNN for grouped features) for accurate 3D object detection, called LION. The key property is to allow sufficient feature interaction in a much larger group than transformer-based methods. However, effectively applying linear group RNN to 3D object detection in highly sparse point clouds is not trivial due to its limitation in handling spatial modeling. To tackle this problem, we simply introduce a 3D spatial feature descriptor and integrate it into the linear group RNN operators to enhance their spatial features rather than blindly increasing the number of scanning orders for voxel features. To further address the challenge in highly sparse point clouds, we propose a 3D voxel generation strategy to densify foreground features thanks to linear group RNN as a natural property of auto-regressive models. \nExtensive experiments verify the effectiveness of the proposed components and the generalization of our LION on different linear group RNN operators including Mamba, RWKV, and RetNet. Furthermore, it is worth mentioning that our LION-Mamba achieves state-of-the-art on Waymo, nuScenes, Argoverse V2, and ONCE datasets. Last but not least, our method supports kinds of advanced linear RNN operators (e.g., RetNet, RWKV, Mamba, xLSTM and TTT) on small but popular KITTI dataset for a quick experience with our linear RNN-based framework.",
+      "authors": [
+        "Zhe Liu",
+        "Jinghua Hou",
+        "Xinyu Wang",
+        "Xiaoqing Ye",
+        "Jingdong Wang",
+        "Hengshuang Zhao",
+        "Xiang Bai"
+      ],
+      "primary_category": "3D Object Detection",
+      "categories": [
+        "3D Object Detection",
+        "Linear RNN"
+      ],
+      "published": "2024-09-25T18:07:26.662+00:00",
+      "link": "https://openreview.net/forum?id=5tGkAcY7uV",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-y4thp5jilp",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "A Simple yet Universal Framework for Depth Completion",
+      "abstract": "Consistent depth estimation across diverse scenes and sensors is a crucial challenge in computer vision, especially when deploying machine learning models in the real world. Traditional methods depend heavily on extensive pixel-wise labeled data, which is costly and labor-intensive to acquire, and frequently have difficulty in scale issues on various depth sensors. In response, we define Universal Depth Completion (UniDC) problem. We also present a baseline architecture, a simple yet effective approach tailored to estimate scene depth across a wide range of sensors and environments using minimal labeled data. \nOur approach addresses two primary challenges: generalizable knowledge of unseen scene configurations and strong adaptation to arbitrary depth sensors with various specifications. To enhance versatility in the wild, we utilize a foundation model for monocular depth estimation that provides a comprehensive understanding of 3D structures in scenes. Additionally, for fast adaptation to off-the-shelf sensors, we generate a pixel-wise affinity map based on the knowledge from the foundation model. We then adjust depth information from arbitrary sensors to the monocular depth along with the constructed affinity. Furthermore, to boost up both the adaptability and generality, we embed the learned features into hyperbolic space, which builds implicit hierarchical structures of 3D data from fewer examples. Extensive experiments demonstrate the proposed method's superior generalization capabilities for UniDC problem over state-of-the-art depth completion. Source code is publicly available at https://github.com/JinhwiPark/UniDC.",
+      "authors": [
+        "Jin-Hwi Park",
+        "Hae-Gon Jeon"
+      ],
+      "primary_category": "Few-shot Depth Completion",
+      "categories": [
+        "Few-shot Depth Completion",
+        "hyperbolic representation",
+        "foundation model"
+      ],
+      "published": "2024-09-25T18:13:44.494+00:00",
+      "link": "https://openreview.net/forum?id=Y4tHp5Jilp",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "query:lidar-d-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-93gz2lmftm",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "UNION: Unsupervised 3D Object Detection using Object Appearance-based Pseudo-Classes",
+      "abstract": "Unsupervised 3D object detection methods have emerged to leverage vast amounts of data without requiring manual labels for training. Recent approaches rely on dynamic objects for learning to detect mobile objects but penalize the detections of static instances during training. Multiple rounds of (self) training are used to add detected static instances to the set of training targets; this procedure to improve performance is computationally expensive. To address this, we propose the method UNION. We use spatial clustering and self-supervised scene flow to obtain a set of static and dynamic object proposals from LiDAR. Subsequently, object proposals' visual appearances are encoded to distinguish static objects in the foreground and background by selecting static instances that are visually similar to dynamic objects. As a result, static and dynamic mobile objects are obtained together, and existing detectors can be trained with a single training. In addition, we extend 3D object discovery to detection by using object appearance-based cluster labels as pseudo-class labels for training object classification. We conduct extensive experiments on the nuScenes dataset and increase the state-of-the-art performance for unsupervised 3D object discovery, i.e. UNION more than doubles the average precision to 38.4. The code is available at github.com/TedLentsch/UNION.",
+      "authors": [
+        "Ted Lentsch",
+        "Holger Caesar",
+        "Dariu Gavrila"
+      ],
+      "primary_category": "3D Object Detection",
+      "categories": [
+        "3D Object Detection",
+        "Multi-Modal Data",
+        "Self-Supervision"
+      ],
+      "published": "2024-09-25T18:07:47.052+00:00",
+      "link": "https://openreview.net/forum?id=93gz2lmFtm",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-rco9frp8aj",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "ImOV3D: Learning Open Vocabulary Point  Clouds 3D Object Detection from Only 2D Images",
+      "abstract": "Open-vocabulary 3D object detection (OV-3Det) aims to generalize beyond the limited number of base categories labeled during the training phase. The biggest bottleneck is the scarcity of annotated 3D data, whereas 2D image datasets are abundant and richly annotated. Consequently, it is intuitive to leverage the wealth of annotations in 2D images to alleviate the inherent data scarcity in OV-3Det. In this paper, we push the task setup to its limits by exploring the potential of using solely 2D images to learn OV-3Det. The major challenges for this setup is the modality gap between training images and testing point clouds, which prevents effective integration of 2D knowledge into OV-3Det. To address this challenge, we propose a novel framework ImOV3D to leverage pseudo multimodal representation containing both images and point clouds (PC) to close the modality gap. The key of ImOV3D lies in flexible modality conversion where 2D images can be lifted into 3D using monocular depth estimation and can also be derived from 3D scenes through rendering. This allows unifying both training images and testing point clouds into a common image-PC representation, encompassing a wealth of 2D semantic information and also incorporating the depth and structural characteristics of 3D spatial data. We carefully conduct such conversion to minimize the domain gap between training and test cases. Extensive experiments on two benchmark datasets, SUNRGBD and ScanNet, show that ImOV3D significantly outperforms existing methods, even in the absence of ground truth 3D training data. With the inclusion of a minimal amount of real 3D data for fine-tuning, the performance also significantly surpasses previous state-of-the-art. Codes and pre-trained models are released on the  https://github.com/yangtiming/ImOV3D.",
+      "authors": [
+        "Timing Yang",
+        "Yuanliang Ju",
+        "Li Yi"
+      ],
+      "primary_category": "Open Vocabulary 3D Detection · Pseudo Multimodal Learning",
+      "categories": [
+        "Open Vocabulary 3D Detection · Pseudo Multimodal Learning"
+      ],
+      "published": "2024-09-25T18:08:57.938+00:00",
+      "link": "https://openreview.net/forum?id=RCO9fRP8AJ",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-fe91mhgeg2",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Promptable 3-D Object Localization with Latent Diffusion Models",
+      "abstract": "Accurate identification and localization of objects in 3-D scenes are essential for advancing comprehensive 3-D scene understanding. Although diffusion models have demonstrated impressive capabilities across a broad spectrum of computer vision tasks, their potential in both 2-D and 3-D object detection remains underexplored. Existing approaches typically formulate detection as a ''noise-to-box'' process, but they rely heavily on direct coordinate regression, which limits adaptability for more advanced tasks such as grounding-based object detection. To overcome these challenges, we propose a promptable 3-D object recognition framework, which introduces a diffusion-based paradigm for flexible and conditionally guided 3-D object detection. Our approach encodes bounding boxes into latent representations and employs latent diffusion models to realize a ''promptable noise-to-box'' transformation. This formulation enables the refinement of standard 3-D object detection using textual prompts, such as class labels. Moreover, it naturally extends to grounding object detection through conditioning on natural language descriptions, and generalizes effectively to few-shot learning by incorporating annotated exemplars as visual prompts. We conduct thorough evaluations on three key 3-D object recognition tasks: general 3-D object detection, few-shot detection, and grounding-based detection. Experimental results demonstrate that our framework achieves competitive performance relative to state-of-the-art methods, validating its effectiveness, versatility, and broad applicability in 3-D computer vision.",
+      "authors": [
+        "Cheng-Yao Hong",
+        "Li-Heng Wang",
+        "Tyng-Luh Liu"
+      ],
+      "primary_category": "3-D Object Detection",
+      "categories": [
+        "3-D Object Detection",
+        "Diffusion Model"
+      ],
+      "published": "2025-09-18T17:38:20.226+00:00",
+      "link": "https://openreview.net/forum?id=FE91MHgEg2",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-weoms8aw1w",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Towards 3D Objectness Learning in an Open World",
+      "abstract": "Recent advancements in 3D object detection and novel category detection have made significant progress, yet research on learning generalized 3D objectness remains insufficient. In this paper, we delve into learning open-world 3D objectness, which focuses on detecting all objects in a 3D scene, including novel objects unseen during training. Traditional closed-set 3D detectors struggle to generalize to open-world scenarios, while directly incorporating 3D open-vocabulary models for open-world ability struggles with vocabulary expansion and semantic overlap. To achieve generalized 3D object discovery, We propose OP3Det, a class-agnostic Open-World Prompt-free 3D Detector to detect any objects within 3D scenes without relying on hand-crafted text prompts. We introduce the strong generalization and zero-shot capabilities of 2D foundation models, utilizing both 2D semantic priors and 3D geometric priors for class-agnostic proposals to broaden 3D object discovery. Then, by integrating complementary information from point cloud and RGB image in the cross-modal mixture of experts, OP3Det dynamically routes uni-modal and multi-modal features to learn generalized 3D objectness. Extensive experiments demonstrate the extraordinary performance of OP3Det, which significantly surpasses existing open-world 3D detectors by up to 16.0% in AR and achieves a 13.5% improvement compared to closed-world 3D detectors.",
+      "authors": [
+        "Taichi Liu",
+        "Zhenyu Wang",
+        "Ruofeng Liu",
+        "Guang Wang",
+        "Desheng Zhang"
+      ],
+      "primary_category": "Open world",
+      "categories": [
+        "Open world",
+        "3D Object Detection"
+      ],
+      "published": "2025-09-18T17:40:23.121+00:00",
+      "link": "https://openreview.net/forum?id=wEOmS8Aw1W",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-ioleslc80f",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "3DET-Mamba: Causal Sequence Modelling for End-to-End 3D Object Detection",
+      "abstract": "Transformer-based architectures have been proven successful in detecting 3D objects from point clouds. However, the quadratic complexity of the attention mechanism struggles to encode rich information as point cloud resolution increases. Recently, state space models (SSM) such as Mamba have gained great attention due to their linear complexity and long sequence modeling ability for language understanding. To exploit the potential of Mamba on 3D scene-level perception, for the first time, we propose 3DET-Mamba, which is a novel SSM-based model designed for indoor 3d object detection. Specifically, we divide the point cloud into different patches and use a lightweight yet effective Inner Mamba to capture local geometric information. To observe the scene from a global perspective, we introduce a novel Dual Mamba module that models the point cloud in terms of spatial distribution and continuity. Additionally, we design a Query-aware Mamba module that decodes context features into object sets under the guidance of learnable queries. Extensive experiments demonstrate that 3DET-Mamba surpasses previous 3DETR on indoor 3D detection benchmarks such as ScanNet, improving AP25/AP50 from 65.0\\%/47.0\\% to 70.4\\%/54.4\\%, respectively.",
+      "authors": [
+        "Mingsheng Li",
+        "Jiakang Yuan",
+        "Sijin Chen",
+        "Lin Zhang",
+        "Anyu Zhu",
+        "Xin Chen",
+        "Tao Chen"
+      ],
+      "primary_category": "3D Object Detection",
+      "categories": [
+        "3D Object Detection",
+        "Mamba"
+      ],
+      "published": "2024-09-25T18:07:10.727+00:00",
+      "link": "https://openreview.net/forum?id=iOleSlC80F",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-7iezwcc7rb",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "OpenBox: Annotate Any Bounding Boxes in 3D",
+      "abstract": "Unsupervised and open-vocabulary 3D object detection has recently gained attention, particularly in autonomous driving, where reducing annotation costs and recognizing unseen objects are critical for both safety and scalability. However, most existing approaches uniformly annotate 3D bounding boxes, ignore objects’ physical states, and require multiple self-training iterations for annotation refinement, resulting in suboptimal quality and substantial computational overhead. To address these challenges, we propose OpenBox, a two-stage automatic annotation pipeline that leverages a 2D vision foundation model. In the first stage, OpenBox associates instance-level cues from 2D images processed by a vision foundation model with the corresponding 3D point clouds via context-aware refinement. In the\nsecond stage, it categorizes instances by rigidity and motion state, then generates adaptive bounding boxes with class-specific size statistics. As a result, OpenBox produces high-quality 3D bounding box annotations without requiring self-training.\nExperiments on the Waymo Open Dataset (WOD), the Lyft Level 5 Perception dataset, and the nuScenes dataset demonstrate improved accuracy and efficiency over baselines.",
+      "authors": [
+        "In-Jae Lee",
+        "Mungyeom Kim",
+        "Kwonyoung Ryu",
+        "Pierre Musacchio",
+        "Jaesik Park"
+      ],
+      "primary_category": "3D Object Detection",
+      "categories": [
+        "3D Object Detection",
+        "Autonomous Driving",
+        "Automatic Annotation",
+        "Open-Vocabulary"
+      ],
+      "published": "2025-09-18T17:40:56.548+00:00",
+      "link": "https://openreview.net/forum?id=7ieZWCc7rB",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-yktqnqtepd",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "Towards Flexible 3D Perception: Object-Centric Occupancy Completion Augments 3D Object Detection",
+      "abstract": "While 3D object bounding box (bbox) representation has been widely used in autonomous driving perception, it lacks the ability to capture the precise details of an object's intrinsic geometry. Recently, occupancy has emerged as a promising alternative for 3D scene perception. However, constructing a high-resolution occupancy map remains infeasible for large scenes due to computational constraints. Recognizing that foreground objects only occupy a small portion of the scene, we introduce object-centric occupancy as a supplement to object bboxes. This representation not only provides intricate details for detected objects but also enables higher voxel resolution in practical applications. We advance the development of object-centric occupancy perception from both data and algorithm perspectives. On the data side, we construct the first object-centric occupancy dataset from scratch using an automated pipeline. From the algorithmic standpoint, we introduce a novel object-centric occupancy completion network equipped with an implicit shape decoder that manages dynamic-size occupancy generation. This network accurately predicts the complete object-centric occupancy volume for inaccurate object proposals by leveraging temporal information from long sequences. Our method demonstrates robust performance in completing object shapes under noisy detection and tracking conditions. Additionally, we show that our occupancy features significantly enhance the detection results of state-of-the-art 3D object detectors, especially for incomplete or distant objects in the Waymo Open Dataset.",
+      "authors": [
+        "Chaoda Zheng",
+        "Feng Wang",
+        "Naiyan Wang",
+        "Shuguang Cui",
+        "Zhen Li"
+      ],
+      "primary_category": "Object Centric",
+      "categories": [
+        "Object Centric",
+        "Occupancy",
+        "LiDAR",
+        "Detection",
+        "Long Sequence"
+      ],
+      "published": "2024-09-25T18:09:35.978+00:00",
+      "link": "https://openreview.net/forum?id=yktQNqtepd",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-lmhnrt0bnm",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "VoxDet: Rethinking 3D Semantic Scene Completion as Dense Object Detection",
+      "abstract": "Semantic Scene Completion (SSC) aims to reconstruct the 3D geometry and semantics of the surrounding environment. With dense voxel labels, prior works typically formulate SSC as a *dense segmentation task*, independently classifying each voxel. However, this paradigm neglects critical instance-centric discriminability, leading to instance-level incompleteness and adjacent ambiguities. To address this, we highlight a \"free lunch\" of SSC labels: the voxel-level class label has implicitly told the instance-level insight, which is ever-overlooked by the community. Motivated by this observation, we first introduce a training-free **Voxel-to-Instance (VoxNT) trick**: a simple yet effective method that freely converts voxel-level class labels into instance-level offset labels. Building on this, we further propose **VoxDet**, an instance-centric framework that reformulates the voxel-level SSC as *dense object detection* by decoupling it into two sub-tasks: offset regression and semantic prediction. Specifically, based on the lifted 3D volume, VoxDet first uses (a) Spatially-decoupled Voxel Encoder to generate disentangled feature volumes for the two sub-tasks, which learn task-specific spatial deformation in the densely projected tri-perceptive space. Then, we deploy (b) Task-decoupled Dense Predictor to address SSC via dense detection. Here, we first regress a 4D offset field to estimate distances (6 directions) between voxels and the corresponding object boundaries in the voxel space. The regressed offsets are then used to guide the instance-level aggregation in the classification branch, achieving instance-aware scene completion. VoxDet can be deployed on both camera and LiDAR input and jointly achieves state-of-the-art results on both benchmarks, which gives 63.0 IoU on the SemanticKITTI test set, **ranking 1$^{st}$** on the online leaderboard.",
+      "authors": [
+        "Wuyang Li",
+        "Zhu Yu",
+        "Alexandre Alahi"
+      ],
+      "primary_category": "3D Semantic Scene Completion",
+      "categories": [
+        "3D Semantic Scene Completion",
+        "Free-lunch",
+        "Voxel-to-Instance (VoxNT) Trick",
+        "Dense Object Detection"
+      ],
+      "published": "2025-09-18T17:28:18.019+00:00",
+      "link": "https://openreview.net/forum?id=lMhNrt0Bnm",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-yferzf9v1b",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Distil-E2D: Distilling Image-to-Depth Priors for Event-Based Monocular Depth Estimation",
+      "abstract": "Event cameras are neuromorphic vision sensors that asynchronously capture pixel-level intensity changes with high temporal resolution and dynamic range. These make them well suited for monocular depth estimation under challenging lighting conditions. However, progress in event-based monocular depth estimation remains constrained by the quality of supervision: LiDAR-based depth labels are inherently sparse, spatially incomplete, and prone to artifacts. Consequently, these signals are suboptimal for learning dense depth from sparse events. To address this problem, we propose Distil-E2D, a framework that distills depth priors from the image domain into the event domain by generating dense synthetic pseudolabels from co-recorded APS or RGB frames using foundational depth models. These pseudolabels complement sparse LiDAR depths with dense semantically rich supervision informed by large-scale image-depth datasets. To reconcile discrepancies between synthetic and real depths, we introduce a Confidence-Guided Calibrated Depth Loss that learns nonlinear depth alignment and adaptively weights supervision by alignment confidence. Additionally, our architecture integrates past predictions via a Context Transformer and employs a Dual-Decoder Training scheme that enhances encoder representations by jointly learning metric and relative depth abstractions. Experiments on benchmark datasets show that Distil-E2D achieves state-of-the-art performance in event-based monocular depth estimation across both event-only and event+APS settings.",
+      "authors": [
+        "Jie Long Lee",
+        "Gim Hee Lee"
+      ],
+      "primary_category": "event camera",
+      "categories": [
+        "event camera",
+        "neuromorphic vision",
+        "monocular depth estimation"
+      ],
+      "published": "2025-09-18T17:33:00.158+00:00",
+      "link": "https://openreview.net/forum?id=yFerzf9v1b",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-crxzkxskow",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Event-Driven Dynamic Scene Depth Completion",
+      "abstract": "Depth completion in dynamic scenes poses significant challenges due to rapid ego-motion and object motion, which can severely degrade the quality of input modalities such as RGB images and LiDAR measurements. Conventional RGB-D sensors often struggle to align precisely and capture reliable depth under such conditions. In contrast, event cameras with their high temporal resolution and\nsensitivity to motion at the pixel level provide complementary cues that are beneficial in dynamic environments. To this end, we propose EventDC, the first event-driven depth completion framework. It consists of two key components: Event-Modulated Alignment (EMA) and Local Depth Filtering (LDF). Both modules adaptively learn the two fundamental components of convolution operations: offsets and weights conditioned on motion-sensitive event streams. In the encoder, EMA leverages events to modulate the sampling positions of RGB-D features to achieve pixel redistribution for improved alignment and fusion. In the decoder, LDF refines depth estimations around moving objects by learning motion-aware masks from events. Additionally, EventDC incorporates two loss terms to further benefit global alignment and enhance local depth recovery. Moreover, we establish the first benchmark for event-based depth completion comprising one real-world and two synthetic datasets to facilitate future research. Extensive experiments on this benchmark demonstrate the superiority of our EventDC. [Project page](https://yanzq95.github.io/projectpage/EventDC/index.html).",
+      "authors": [
+        "Zhiqiang Yan",
+        "Jianhao Jiao",
+        "Zhengxue Wang",
+        "Gim Hee Lee"
+      ],
+      "primary_category": "depth completion",
+      "categories": [
+        "depth completion",
+        "event guidance",
+        "dynamic scene"
+      ],
+      "published": "2025-09-18T17:28:58.867+00:00",
+      "link": "https://openreview.net/forum?id=cRxzKxsKow",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-ahccbzulr7",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "TREND: Unsupervised 3D Representation Learning via Temporal Forecasting for LiDAR Perception",
+      "abstract": "Labeling LiDAR point clouds is notoriously time-and-energy-consuming, which spurs recent unsupervised 3D representation learning methods to alleviate the labeling burden in LiDAR perception via pretrained weights. Existing work focus on either masked auto encoding or contrastive learning on LiDAR point clouds, which neglects the temporal LiDAR sequence that naturally accounts for object motion (and their semantics). Instead, we propose TREND, short for Temporal REndering with Neural fielD, to learn 3D representation via forecasting the future observation in an unsupervised manner. TREND integrates forecasting for 3D pre-training through a Recurrent Embedding scheme to generate 3D embeddings across time and a Temporal LiDAR Neural Field specifically designed for LiDAR modality to represent the 3D scene, with which we compute the loss using differentiable rendering. We evaluate TREND on 3D object detection and LiDAR semantic segmentation tasks on popular datasets, including Once, Waymo, NuScenes, and SemanticKITTI. TREND generally improves from-scratch models across datasets and tasks and brings gains of 1.77\\% mAP on Once and 2.11\\% mAP on NuScenes, which are up to 400\\% more improvement compared to previous SOTA unsupervised 3D pre-training methods. Codes and models will be available.",
+      "authors": [
+        "Runjian Chen",
+        "Hyoungseob Park",
+        "Bo Zhang",
+        "Wenqi Shao",
+        "Ping Luo",
+        "Alex Wong"
+      ],
+      "primary_category": "Unsupervised 3D Representation Learning",
+      "categories": [
+        "Unsupervised 3D Representation Learning",
+        "Temporal Forecasting",
+        "LiDAR Perception"
+      ],
+      "published": "2025-09-18T17:32:55.338+00:00",
+      "link": "https://openreview.net/forum?id=AHccBzULR7",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-bh56ijtrb9",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "What We Miss Matters: Learning from the Overlooked in Point Cloud Transformers",
+      "abstract": "Point Cloud Transformers have become a cornerstone in 3D representation for their ability to model long-range dependencies via self-attention. However, these models tend to overemphasize salient regions while neglecting other informative regions, which limits feature diversity and compromises robustness.\nTo address this challenge, we introduce BlindFormer, a novel contrastive attention learning framework that redefines saliency by explicitly incorporating features typically neglected by the model. The proposed Attentional Blindspot Mining (ABM) suppresses highly attended regions during training, thereby guiding the model to explore its own blind spots. This redirection of attention expands the model’s perceptual field and uncovers richer geometric cues.\nTo consolidate these overlooked features, BlindFormer employs Blindspot-Aware Joint Optimization (BJO), a joint learning objective that integrates blindspot feature alignment with the original pretext task. BJO enhances feature discrimination while preserving performance on the primary task, leading to more robust and generalizable representations.\nWe validate BlindFormer on several challenging benchmarks and demonstrate consistent performance gains across multiple Transformer backbones. Notably, it improves Point-MAE by +13.4\\% and PointGPT-S by +6.3\\% on OBJ-BG under Gaussian noise. These results highlight the importance of mitigating attentional biases in 3D representation learning, revealing BlindFormer’s superior ability to handle perturbations and improve feature discrimination.",
+      "authors": [
+        "Yi Wang",
+        "Jiaze Wang",
+        "Ziyu Guo",
+        "Renrui Zhang",
+        "Donghao Zhou",
+        "Guangyong Chen",
+        "Anfeng Liu",
+        "Pheng-Ann Heng"
+      ],
+      "primary_category": "Point Cloud Understanding",
+      "categories": [
+        "Point Cloud Understanding",
+        "Representation Learning"
+      ],
+      "published": "2025-09-18T17:36:56.401+00:00",
+      "link": "https://openreview.net/forum?id=bh56ijtRb9",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-sj5witctu6",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Point4Bit: Post Training 4-bit Quantization for Point Cloud 3D Detection",
+      "abstract": "Voxel-based 3D object detectors have achieved remarkable performance in point cloud perception, yet their high computational and memory demands pose significant challenges for deployment on resource-constrained edge devices. Post-training quantization (PTQ) provides a practical means to compress models and accelerate inference; however, existing PTQ methods for point cloud detection are typically limited to INT8 and lack support for lower-bit formats such as INT4, which restricts their deployment potential. In this paper, we present Point4bit, the first general 4-bit PTQ framework tailored for voxel-based 3D object detectors. To tackle challenges in low-bit quantization, we propose two key techniques: (1) Foreground-aware Piecewise Activation Quantization (FA-PAQ), which leverages foreground structural cues to improve the quantization of sparse activations; and (2) Gradient-guided Key Weight Quantization (G-KWQ), which preserves task-critical weights through gradient-based analysis to reduce quantization-induced degradation. Extensive experiments demonstrate that Point4bit achieves INT4 quantization with minimal accuracy loss with less than 1.5\\% accuracy drop. Moreover, we validate its generalization ability on point cloud classification and segmentation tasks, demonstrating broad applicability. Our method further advances the bit-width limitation of point cloud quantization to 4 bits, demonstrating strong potential for efficient deployment on resource-constrained edge devices.",
+      "authors": [
+        "Jianyu Wang",
+        "Yu Wang",
+        "Shengjie Zhao",
+        "Sifan Zhou"
+      ],
+      "primary_category": "Point Cloud Detection",
+      "categories": [
+        "Point Cloud Detection",
+        "Post-training Quantization",
+        "Model Compression"
+      ],
+      "published": "2025-09-18T17:33:02.042+00:00",
+      "link": "https://openreview.net/forum?id=sj5wiTCtu6",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-anl9huwims",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Asymmetric Dual Self-Distillation for 3D Self-Supervised Representation Learning",
+      "abstract": "Learning semantically meaningful representations from unstructured 3D point clouds remains a central challenge in computer vision, especially in the absence of large-scale labeled datasets. While masked point modeling (MPM) is widely used in self-supervised 3D learning, its reconstruction-based objective can limit its ability to capture high-level semantics. We propose AsymDSD, an Asymmetric Dual Self-Distillation framework that unifies masked modeling and invariance learning through prediction in the latent space rather than the input space. AsymDSD builds on a joint embedding architecture and introduces several key design choices: an efficient asymmetric setup, disabling attention between masked queries to prevent shape leakage, multi-mask sampling, and a point cloud adaptation of multi-crop. AsymDSD achieves state-of-the-art results on ScanObjectNN (90.53\\%) and further improves to 93.72\\% when pretrained on 930k shapes, surpassing prior methods.",
+      "authors": [
+        "Remco F. Leijenaar",
+        "Hamidreza Kasaei"
+      ],
+      "primary_category": "self-supervised learning",
+      "categories": [
+        "self-supervised learning",
+        "representation learning",
+        "3D point clouds",
+        "masked modeling",
+        "invariance learning",
+        "self-distillation",
+        "unsupervised learning"
+      ],
+      "published": "2025-09-18T17:43:17.491+00:00",
+      "link": "https://openreview.net/forum?id=ANl9HuwIMs",
+      "pdf_url": null,
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2024-47loymzxep",
+      "source": "NeurIPS-2024-Accepted",
+      "title": "E2E-MFD: Towards End-to-End Synchronous Multimodal Fusion Detection",
+      "abstract": "Multimodal image fusion and object detection are crucial for autonomous driving. While current methods have advanced the fusion of texture details and semantic information, their complex training processes hinder broader applications. Addressing this challenge, we introduce E2E-MFD, a novel end-to-end algorithm for multimodal fusion detection. E2E-MFD streamlines the process, achieving high performance with a single training phase. It employs synchronous joint optimization across components to avoid suboptimal solutions associated to individual tasks. Furthermore, it implements a comprehensive optimization strategy in the gradient matrix for shared parameters, ensuring convergence to an optimal fusion detection configuration. Our extensive testing on multiple public datasets reveals E2E-MFD's superior capabilities, showcasing not only visually appealing image fusion but also impressive detection outcomes, such as a 3.9\\% and  2.0\\% $\\text{mAP}_{50}$ increase on horizontal object detection dataset M3FD and oriented object detection dataset DroneVehicle, respectively, compared to state-of-the-art approaches.",
+      "authors": [
+        "Jiaqing Zhang",
+        "Mingxiang Cao",
+        "Weiying Xie",
+        "Jie Lei",
+        "DaixunLi",
+        "Wenbo Huang",
+        "Yunsong Li",
+        "Xue Yang"
+      ],
+      "primary_category": "Multimodal Fusion",
+      "categories": [
+        "Multimodal Fusion",
+        "Object detection"
+      ],
+      "published": "2024-09-25T18:07:30.825+00:00",
+      "link": "https://openreview.net/forum?id=47loYmzxep",
+      "pdf_url": null,
+      "tags": [
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "type": "intent_query",
+      "tag": "lidar-d-det",
+      "paper_tag": "query:lidar-d-det",
+      "query_text": "attention mechanisms for sparse 3D point cloud feature aggregation",
+      "sim_scores": {
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-bh56ijtrb9": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yferzf9v1b",
+          "score": 0.09983633387888699,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.06517094017094004,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "lidar-d-det",
+      "paper_tag": "query:lidar-d-det",
+      "query_text": "auxiliary supervision and sparse convolution optimization for LiDAR based 3D detection",
+      "sim_scores": {
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-ahccbzulr7": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-79q206xswc": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2024-nlphknjnnz": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.011235955056179775,
+          "rank": 29
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yferzf9v1b",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-79q206xswc",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-crxzkxskow",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-wcx04wn34u",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-weoms8aw1w",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.1737891737891738,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-47loymzxep",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "lidar-d-det",
+      "paper_tag": "query:lidar-d-det",
+      "query_text": "multi modal fusion for robust 3D object detection using virtual point clouds and depth completion",
+      "sim_scores": {
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "openreview-neurips-2024-47loymzxep": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "openreview-neurips-2024-yktqnqtepd": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2024-y4thp5jilp": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.01,
+          "rank": 40
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-47loymzxep",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-crxzkxskow",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-weoms8aw1w",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.0319204604918889,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "lidar-d-det",
+      "paper_tag": "query:lidar-d-det",
+      "query_text": "two stage 3D object detection with cascade refinement and RoI head innovations",
+      "sim_scores": {
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2024-yktqnqtepd": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-weoms8aw1w",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.0319204604918889,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "stage-D-det",
+      "paper_tag": "query:stage-D-det",
+      "query_text": "attention mechanisms for sparse point cloud feature aggregation",
+      "sim_scores": {
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-bh56ijtrb9": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yferzf9v1b",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "stage-D-det",
+      "paper_tag": "query:stage-D-det",
+      "query_text": "auxiliary supervision and sparse convolution optimization for 3D detection",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.009259259259259259,
+          "rank": 48
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yferzf9v1b",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-47loymzxep",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-weoms8aw1w",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-79q206xswc",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+          "score": 0.09983633387888699,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "stage-D-det",
+      "paper_tag": "query:stage-D-det",
+      "query_text": "multi modal fusion and robustness against sparse and noisy point clouds",
+      "sim_scores": {
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.011235955056179775,
+          "rank": 29
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2024-47loymzxep": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-47loymzxep",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-63xewav1lu",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ahccbzulr7",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-79q206xswc",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.06517094017094004,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.0319204604918889,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yferzf9v1b",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "stage-D-det",
+      "paper_tag": "query:stage-D-det",
+      "query_text": "novel two stage 3D object detection architectures with cascade refinement",
+      "sim_scores": {
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2024-yktqnqtepd": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2024-93gz2lmftm",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-j2wootkbx0",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ioleslc80f",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-rco9frp8aj",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-nlphknjnnz",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-weoms8aw1w",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yktqnqtepd",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-ndoehx1acq",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-gboq0acqoo",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2024-yetirxhsh1",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sj5witctu6",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-anl9huwims",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2024-47loymzxep",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-y4thp5jilp",
+          "score": 0.0319204604918889,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2024-lqdcdqievd",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "3D point cloud data captured by LiDAR sensors",
+      "sim_scores": {
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2024-79q206xswc": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2024-wcx04wn34u": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2024-nlphknjnnz": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2024-y4thp5jilp": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.009523809523809525,
+          "rank": 45
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.009433962264150943,
+          "rank": 46
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "sim_scores": {
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-bh56ijtrb9": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.011235955056179775,
+          "rank": 29
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "combining multiple sensor modalities for enhanced perception",
+      "sim_scores": {
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "dense depth map estimation from sparse LiDAR data",
+      "sim_scores": {
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2024-y4thp5jilp": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-79q206xswc": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2025-ahccbzulr7": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2024-wcx04wn34u": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2024-nlphknjnnz": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "detecting objects in three-dimensional space",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2024-yktqnqtepd": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "lidar-d-det",
+      "paper_tag": "keyword:lidar-d-det",
+      "query_text": "synthetic point cloud generated from depth completion",
+      "sim_scores": {
+        "openreview-neurips-2024-y4thp5jilp": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "LiDAR point cloud data for 3D perception",
+      "sim_scores": {
+        "openreview-neurips-2025-ahccbzulr7": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2024-79q206xswc": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2024-wcx04wn34u": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2024-nlphknjnnz": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.009259259259259259,
+          "rank": 48
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "cascaded refinement of proposals in object detection",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "efficient sparse convolution operations on point clouds",
+      "sim_scores": {
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2024-63xewav1lu": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-neurips-2025-bh56ijtrb9": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "integrating multiple sensor modalities for robust detection",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2024-47loymzxep": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2025-yferzf9v1b": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        },
+        "openreview-neurips-2025-crxzkxskow": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "three-dimensional object detection from point clouds",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2024-yetirxhsh1": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2024-rco9frp8aj": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2024-5tgkacy7uv": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2024-gboq0acqoo": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2024-j2wootkbx0": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2024-93gz2lmftm": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "openreview-neurips-2024-eqhqzrjy75": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2024-lqdcdqievd": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-7iezwcc7rb": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-weoms8aw1w": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2025-sj5witctu6": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2025-lmhnrt0bnm": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2024-rpzwsdjc4n": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2025-anl9huwims": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        },
+        "openreview-neurips-2024-yktqnqtepd": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "stage-D-det",
+      "paper_tag": "keyword:stage-D-det",
+      "query_text": "two-stage detection architecture with region proposal",
+      "sim_scores": {
+        "openreview-neurips-2025-fe91mhgeg2": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2024-ndoehx1acq": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2024-ioleslc80f": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        }
+      }
+    }
+  ],
+  "global_candidate_ids": [
+    "openreview-neurips-2024-btllwaorfs",
+    "openreview-neurips-2025-muxbo5f8ml",
+    "openreview-neurips-2024-gboq0acqoo",
+    "openreview-neurips-2024-lqdcdqievd",
+    "openreview-neurips-2024-wik6bwuxje",
+    "openreview-neurips-2024-lxuxvjsocp",
+    "openreview-neurips-2025-fe91mhgeg2",
+    "openreview-neurips-2025-gqhuet0v6f",
+    "openreview-neurips-2024-0sjbw05a2w",
+    "openreview-neurips-2025-91gzt22sef",
+    "openreview-neurips-2025-gm65gk3uoj",
+    "openreview-neurips-2025-yferzf9v1b",
+    "openreview-neurips-2025-q3cu6ltlqe",
+    "openreview-neurips-2025-0nexr6ldig",
+    "openreview-neurips-2025-4f6mer1dqs",
+    "openreview-neurips-2025-ahccbzulr7",
+    "openreview-neurips-2024-79q206xswc",
+    "openreview-neurips-2025-c5e4tgdcj3",
+    "openreview-neurips-2024-xxvfj4p8nr",
+    "openreview-neurips-2024-kmxdv4blhn",
+    "openreview-neurips-2025-diyduh4ntd",
+    "openreview-neurips-2025-zpgpdhupce",
+    "openreview-neurips-2024-qkfiwnhp6k",
+    "openreview-neurips-2025-5ttuwjgqht",
+    "openreview-neurips-2024-ndoehx1acq",
+    "openreview-neurips-2024-yetirxhsh1",
+    "openreview-neurips-2024-gqrwhroxrg",
+    "openreview-neurips-2024-efkw0ogzor",
+    "openreview-neurips-2025-crxzkxskow",
+    "openreview-neurips-2025-q2fu0jdhuw",
+    "openreview-neurips-2024-f8mrwxlnrz",
+    "openreview-neurips-2025-zkv3cn40te",
+    "openreview-neurips-2024-eqhqzrjy75",
+    "openreview-neurips-2024-mocrdx0n7b",
+    "openreview-neurips-2025-bntezdplfh",
+    "openreview-neurips-2025-evtxnxah0f",
+    "openreview-neurips-2024-93gz2lmftm",
+    "openreview-neurips-2024-j2wootkbx0",
+    "openreview-neurips-2024-7nbaots3f8",
+    "openreview-neurips-2024-rco9frp8aj",
+    "openreview-neurips-2025-jugw5alhnf",
+    "openreview-neurips-2024-m8melyzuwp",
+    "openreview-neurips-2024-occfkzxded",
+    "openreview-neurips-2025-anl9huwims",
+    "openreview-neurips-2024-4jn7kwphsd",
+    "openreview-neurips-2024-5tgkacy7uv",
+    "openreview-neurips-2025-ytmfbtiopq",
+    "openreview-neurips-2025-reahulrjzr",
+    "openreview-neurips-2025-sj5witctu6",
+    "openreview-neurips-2024-4pcu9c8lex",
+    "openreview-neurips-2025-lmhnrt0bnm",
+    "openreview-neurips-2024-rpzwsdjc4n",
+    "openreview-neurips-2024-sfpxuqzdpi",
+    "openreview-neurips-2025-vzwjhxe8pf",
+    "openreview-neurips-2025-7iezwcc7rb",
+    "openreview-neurips-2025-toi181tmax",
+    "openreview-neurips-2024-x33owjqyh0",
+    "openreview-neurips-2024-63xewav1lu",
+    "openreview-neurips-2024-9bu627mtfs",
+    "openreview-neurips-2024-lkdckv31t7",
+    "openreview-neurips-2024-v3y785tn7b",
+    "openreview-neurips-2024-jzog9gvof6",
+    "openreview-neurips-2025-0knzasl9na",
+    "openreview-neurips-2024-ioleslc80f",
+    "openreview-neurips-2025-weoms8aw1w",
+    "openreview-neurips-2024-kttk65vkvd",
+    "openreview-neurips-2024-mssrhxwzp7",
+    "openreview-neurips-2024-0lau89u4oe",
+    "openreview-neurips-2025-lf0w2gmnbg",
+    "openreview-neurips-2025-x8xtrq5gik",
+    "openreview-neurips-2024-ttuxtv2yra",
+    "openreview-neurips-2025-pqagmig0az",
+    "openreview-neurips-2024-tbvlqjdfca",
+    "openreview-neurips-2025-2tqcroh3io",
+    "openreview-neurips-2024-gzwydj3c26",
+    "openreview-neurips-2024-xxe8ml1bco",
+    "openreview-neurips-2024-nds9ejz4pe",
+    "openreview-neurips-2024-zfbqnl1ais",
+    "openreview-neurips-2024-yktqnqtepd",
+    "openreview-neurips-2024-02ciz8qedc",
+    "openreview-neurips-2025-nz4mfzczix",
+    "openreview-neurips-2024-igcatq4n1r",
+    "openreview-neurips-2025-r8zhrmm4ue",
+    "openreview-neurips-2024-ehfcxpdsrw",
+    "openreview-neurips-2025-t64fa2hczn",
+    "openreview-neurips-2025-soqznbcbjy",
+    "openreview-neurips-2024-mgz3jux9ws",
+    "openreview-neurips-2025-4xl00jwq1z",
+    "openreview-neurips-2024-y4thp5jilp",
+    "openreview-neurips-2024-mtopymksrk",
+    "openreview-neurips-2025-7ck1qqojsl",
+    "openreview-neurips-2024-nlphknjnnz",
+    "openreview-neurips-2025-i6bey5ru64",
+    "openreview-neurips-2024-bjrbalodrj",
+    "openreview-neurips-2024-cx2o6xz03h",
+    "openreview-neurips-2024-vzoybrqj4o",
+    "openreview-neurips-2025-ytwrzp8mno",
+    "openreview-neurips-2025-bh56ijtrb9",
+    "openreview-neurips-2024-hkewwaqmck",
+    "openreview-neurips-2025-2zjh76smif",
+    "openreview-neurips-2024-1fikbpewu9",
+    "openreview-neurips-2025-pcekio7cer",
+    "openreview-neurips-2025-6aaixhco6c",
+    "openreview-neurips-2025-43v0raygrg",
+    "openreview-neurips-2024-7s53dajlwz",
+    "openreview-neurips-2024-wcx04wn34u",
+    "openreview-neurips-2024-1elfgsnbgc",
+    "openreview-neurips-2024-os14qxhy55",
+    "openreview-neurips-2025-iipsp4ouyx",
+    "openreview-neurips-2025-obovyrrsy2",
+    "openreview-neurips-2024-hgqs1b4ecy",
+    "openreview-neurips-2025-t2rdzbtbk5",
+    "openreview-neurips-2025-oyx9cc9wav",
+    "openreview-neurips-2025-hvftxe19me",
+    "openreview-neurips-2024-jj2peazpwk",
+    "openreview-neurips-2025-2y2m0dzbfl",
+    "openreview-neurips-2024-g7lyp11erv",
+    "openreview-neurips-2025-m3zxsdl2rk",
+    "openreview-neurips-2025-cjrggdnfg2",
+    "openreview-neurips-2024-47loymzxep",
+    "openreview-neurips-2025-mo4u4mg0ot",
+    "openreview-neurips-2025-6uwv6ytamu"
+  ],
+  "global_pool_lane_top_k": 30,
+  "global_pool_limit": 120,
+  "global_pool_guaranteed_per_lane": 2,
+  "global_pool_effective_size": 122,
+  "reranked_at": "2026-05-27T20:51:16.881555+00:00",
+  "llm_ranked": [
+    {
+      "paper_id": "openreview-neurips-2024-gboq0acqoo",
+      "score": 9.0,
+      "evidence_en": "DH-Fusion introduces depth-aware hybrid feature fusion for LiDAR-camera 3D object detection, effectively combining modalities.",
+      "evidence_cn": "DH-Fusion引入深度感知混合特征融合用于LiDAR-相机三维物体检测，有效结合模态",
+      "canonical_evidence": "DH-Fusion引入深度感知混合特征融合用于LiDAR-相机三维物体检测，有效结合模态",
+      "tldr_en": "DH-Fusion proposes a depth-aware hybrid feature fusion strategy for LiDAR-camera 3D detection, adaptively weighting modalities based on depth, achieving state-of-the-art performance.",
+      "tldr_cn": "针对现有LiDAR-相机3D检测器在融合时忽视深度因素的问题，DH-Fusion首次揭示不同模态在不同深度下的作用差异，并提出深度感知混合特征融合策略，通过全局和局部深度编码动态调节多模态特征的权重，显著提升了鲁棒性和检测精度，在多个基准上达到最优。",
+      "title_zh": "DH-Fusion：用于多模态三维物体检测的深度感知混合特征融合",
+      "motivation_cn": "现有LiDAR-相机融合方法在设计融合策略时忽略了深度因素的影响。",
+      "method_cn": "提出深度感知混合特征融合策略，在全局和局部层面通过深度编码自适应调节点云和图像特征的融合权重。",
+      "result_cn": "在多个多模态3D检测基准上取得了领先性能，验证了深度感知融合的有效性。",
+      "conclusion_cn": "深度感知融合显著提升了多模态检测器的鲁棒性和精度，为传感器融合提供了新思路。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-bh56ijtrb9",
+      "score": 9.0,
+      "evidence_en": "BlindFormer enhances point cloud transformers by mining overlooked regions via contrastive attention, improving feature diversity.",
+      "evidence_cn": "BlindFormer通过对比注意力挖掘被忽略的区域，提升点云Transformer的特征多样性",
+      "canonical_evidence": "BlindFormer通过对比注意力挖掘被忽略的区域，提升点云Transformer的特征多样性",
+      "tldr_en": "BlindFormer addresses the overemphasis on salient regions in point cloud transformers by introducing Attentional Blindspot Mining, a contrastive attention framework that expands perceptual field and enriches geometric features from overlooked regions, improving robustness.",
+      "tldr_cn": "针对点云Transformer自注意力机制偏向显著区域而忽视其他信息区域的缺陷，BlindFormer提出注意力盲点挖掘方法，通过训练时抑制高注意力区域迫使模型探索被忽略的部分，从而扩展感知场并捕获更丰富的几何特征。该框架在点云分类与分割任务上显著提升了特征多样性和鲁棒性，为点云Transformer的注意力学习提供了新的有效范式。",
+      "title_zh": "我们忽略的很重要：从点云Transformer中学习被忽视的信息",
+      "motivation_cn": "点云Transformer的自注意力机制过度关注显著区域，忽视其他信息区域，限制特征多样性和鲁棒性。",
+      "method_cn": "提出BlindFormer，通过注意力盲点挖掘（ABM）抑制训练时的高关注区域，引导模型探索被忽略的区域以丰富几何特征。",
+      "result_cn": "在3D点云分类和分割任务上，BlindFormer一致提升了性能并增强了鲁棒性。",
+      "conclusion_cn": "通过对比注意力学习挖掘被忽略的点云区域，BlindFormer显著改进了点云Transformer的特征表示能力。",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention mechanisms for sparse 3D point cloud feature aggregation"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-j2wootkbx0",
+      "score": 9.0,
+      "evidence_en": "diffusion-based box refinement for LiDAR 3D detection",
+      "evidence_cn": "基于扩散模型的LiDAR 3D检测框精化",
+      "canonical_evidence": "基于扩散模型的LiDAR 3D检测框精化",
+      "tldr_en": "Proposes DiffuBox, a diffusion model that refines coarse 3D bounding boxes by conditioning on surrounding LiDAR points, improving localization under domain shift.",
+      "tldr_cn": "针对3D目标检测在域迁移下定位精度下降的问题，提出基于扩散模型的框精化方法DiffuBox。该方法以粗检测框周围的LiDAR点作为条件，通过点扩散过程同时优化目标的位置、尺寸和方向。实验表明在不同数据集和类别上，DiffuBox显著提升了检测精度，证明了扩散模型在3D精化中的有效性。",
+      "title_zh": "DiffuBox：基于点扩散的3D目标检测精化",
+      "motivation_cn": "现有3D检测器在域迁移时定位精度差，缺乏鲁棒的框精化机制。",
+      "method_cn": "提出DiffuBox，利用条件点扩散模型对粗边界框进行位置、尺寸和方向的联合精化。",
+      "result_cn": "在多个域适应设置下显著提升检测性能，超越了现有精化方法。",
+      "conclusion_cn": "扩散模型为3D检测的域自适应和精化提供了新的有效范式。",
+      "matched_requirement_id": "req-7",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "two stage 3D object detection with cascade refinement and RoI head innovations"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-ioleslc80f",
+      "score": 9.0,
+      "evidence_en": "SSM-based 3D object detection from point clouds with efficient sequence modeling",
+      "evidence_cn": "基于状态空间模型的点云3D目标检测，具有高效序列建模",
+      "canonical_evidence": "基于状态空间模型的点云3D目标检测，具有高效序列建模",
+      "tldr_en": "Presents 3DET-Mamba, a novel 3D object detector that uses Mamba for efficient long-sequence modeling on point clouds, achieving competitive performance with lower complexity than transformers.",
+      "tldr_cn": "Transformer在3D点云目标检测中表现出色，但其二次复杂度难以处理高分辨率点云。本文首次将状态空间模型Mamba用于3D场景级感知，提出3DET-Mamba。方法将点云分块，使用内部Mamba捕获局部几何，再通过外部Mamba建模场景上下文。在室内检测基准上，该方法以线性复杂度取得与Transformer相当或更优的性能。",
+      "title_zh": "3DET-Mamba: 因果序列建模用于端到端3D目标检测",
+      "motivation_cn": "注意力机制二次复杂度限制了点云高分辨率特征编码。",
+      "method_cn": "提出基于Mamba的3D检测器，通过内外部Mamba分别建模局部和全局特征。",
+      "result_cn": "在室内3D检测数据集上达到与SOTA相当的性能，且计算复杂度更低。",
+      "conclusion_cn": "状态空间模型为高效3D目标检测提供了新方向，尤其适合长序列点云。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-y4thp5jilp",
+      "score": 9.0,
+      "evidence_en": "depth completion framework for dense depth estimation across sensors",
+      "evidence_cn": "跨传感器稠密深度估计的深度补全框架",
+      "canonical_evidence": "跨传感器稠密深度估计的深度补全框架",
+      "tldr_en": "Proposes a universal depth completion framework that estimates dense depth from spare inputs across diverse sensors and scenes with minimal labeled data.",
+      "tldr_cn": "针对不同传感器间深度估计的尺度泛化难题，定义通用深度补全问题，提出一种简单有效的基线架构，利用最少标注数据实现跨传感器和场景的稠密深度估计，解决了泛化知识匮乏和传感器特性适应问题，在多个基准上表现优越。",
+      "title_zh": "一个简单通用的深度补全框架",
+      "motivation_cn": "传统深度补全依赖大量像素级标注且难适应不同深度传感器尺度差异。",
+      "method_cn": "提出通用深度补全问题定义，设计简单基线架构，利用少量标注数据实现跨传感器深度估计。",
+      "result_cn": "在多种传感器和场景下取得一致且高精度的深度完成结果。",
+      "conclusion_cn": "该方法为深度补全的通用化部署提供了有效且轻量的解决方案。",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-eqhqzrjy75",
+      "score": 9.0,
+      "evidence_en": "active 3D object detection framework using LiDAR point clouds",
+      "evidence_cn": "利用LiDAR点云的主动3D目标检测框架",
+      "canonical_evidence": "利用LiDAR点云的主动3D目标检测框架",
+      "tldr_en": "Proposes an active learning framework based on submodular optimization to reduce labeling cost for LiDAR-based 3D object detection.",
+      "tldr_cn": "针对3D目标检测标注成本高的问题，提出基于子模优化的主动学习框架，专门用于LiDAR点云的3D目标检测，通过有效样本选择大幅降低训练检测器所需的标注量，在保证检测精度同时显著减少标注开销。",
+      "title_zh": "STONE：面向主动3D目标检测的子模优化框架",
+      "motivation_cn": "训练高精度3D检测器需大量LiDAR点云标注，标注成本极高。",
+      "method_cn": "提出基于子模优化的统一主动3D检测框架，解决点云选择中的两个基本挑战。",
+      "result_cn": "在降低标注成本的同时保持检测性能，优于现有主动学习方法。",
+      "conclusion_cn": "为3D检测提供经济高效的数据标注策略，推动大规模应用。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-79q206xswc",
+      "score": 9.0,
+      "evidence_en": "LiDAR placement optimization for 3D scene understanding",
+      "evidence_cn": "面向3D场景理解的LiDAR放置优化",
+      "canonical_evidence": "面向3D场景理解的LiDAR放置优化",
+      "tldr_en": "Proposes a pipeline for optimizing LiDAR sensor placement to improve 3D perception, with surrogate metric and data generation.",
+      "tldr_cn": "针对多LiDAR系统放置缺乏优化的问题，提出Place3D全周期流程，包含基于语义占用栅格的代理度量来评估LiDAR配置，并生成数据用于下游评估，显著提升3D场景理解性能。",
+      "title_zh": "面向3D场景理解的LiDAR放置优化",
+      "motivation_cn": "现有驾驶数据集多采用单LiDAR且缺乏恶劣条件数据，难以反映真实环境复杂性。",
+      "method_cn": "提出Place3D流程，引入M-SOG度量优化多LiDAR配置，并生成相应数据。",
+      "result_cn": "优化后的LiDAR放置显著提高下游感知任务性能。",
+      "conclusion_cn": "为多传感器系统设计提供了系统化评估与优化工具，推动可靠感知。",
+      "matched_requirement_id": "req-11",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "LiDAR point cloud data for 3D perception"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-yktqnqtepd",
+      "score": 9.0,
+      "evidence_en": "object-centric occupancy completion augments 3D object detection",
+      "evidence_cn": "以对象为中心的占用补全增强3D目标检测",
+      "canonical_evidence": "以对象为中心的占用补全增强3D目标检测",
+      "tldr_en": "Introduces object-centric occupancy to supplement bounding boxes, improving 3D object detection with high-resolution geometry details.",
+      "tldr_cn": "针对3D边界框无法表达物体精确几何的问题，提出以对象为中心的占用栅格表示，作为边界框的补充，在高分辨率下捕获物体细节，从而增强3D检测性能，并在实际应用中可行。",
+      "title_zh": "面向灵活3D感知：以对象为中心的占用补全增强3D目标检测",
+      "motivation_cn": "3D边界框缺乏对物体内在几何的精确描述，占用栅格计算量大。",
+      "method_cn": "引入以对象为中心的占用表示，与边界框互补，允许更高体素分辨率。",
+      "result_cn": "在3D目标检测任务中，检测精度得到显著提升。",
+      "conclusion_cn": "该表示方式灵活且有效，为3D感知提供了更丰富的几何信息。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-ndoehx1acq",
+      "score": 8.0,
+      "evidence_en": "point cloud based 3D object detection across domains",
+      "evidence_cn": "跨域点云三维物体检测",
+      "canonical_evidence": "跨域点云三维物体检测",
+      "tldr_en": "OneDet3D proposes a universal model for 3D object detection from point clouds across diverse indoor/outdoor scenes via domain-aware partitioning, enabling joint multi-domain training.",
+      "tldr_cn": "点云三维物体检测面临多域数据联合训练时严重的域干扰问题。OneDet3D提出域感知划分技术，在散射和聚集操作中嵌入域特异性处理，使得单一参数模型能同时应对室内外多种场景的点云检测。实验证明，该模型在多个基准数据集上取得与专用模型相当甚至更优的性能，为通用三维检测迈出重要一步。",
+      "title_zh": "一以贯之：面向点云三维物体检测的多域联合训练",
+      "motivation_cn": "点云三维检测的多域联合训练因域差异大而相互干扰。",
+      "method_cn": "设计OneDet3D，通过域感知划分在散射和聚集阶段实现域特定处理。",
+      "result_cn": "在室内外多个数据集上，统一模型达到与专用模型相近的性能。",
+      "conclusion_cn": "OneDet3D验证了单模型多域点云检测的可行性，提升模型泛化性。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-93gz2lmftm",
+      "score": 8.0,
+      "evidence_en": "UNION uses LiDAR point clouds for unsupervised 3D object detection.",
+      "evidence_cn": "UNION使用LiDAR点云进行无监督三维物体检测",
+      "canonical_evidence": "UNION使用LiDAR点云进行无监督三维物体检测",
+      "tldr_en": "UNION is an unsupervised 3D object detection method that uses LiDAR data, spatial clustering, and scene flow to generate object proposals, then leverages visual appearance encoding to distinguish static foreground objects, reducing computational cost compared to multi-round self-training approaches.",
+      "tldr_cn": "针对现有无监督3D检测方法通过多轮自训练加入静态物体导致计算开销大的问题，UNION提出利用空间聚类和自监督场景流从LiDAR数据中获取动静物体提议，并通过外观编码区分前景与背景静态物体，实现单轮高效训练。实验表明该方法在检测性能与效率上取得改善，为大规模无标签数据下的3D物体检测提供了更实用的方案。",
+      "title_zh": "UNION：基于物体外观伪类的无监督三维物体检测",
+      "motivation_cn": "现有无监督3D检测方法需要多轮自训练，计算开销大。",
+      "method_cn": "通过空间聚类和自监督场景流从LiDAR生成动静物体提议，并用外观编码区分静态前景与背景。",
+      "result_cn": "实验表明UNION在无监督3D检测任务上高效且性能提升。",
+      "conclusion_cn": "UNION提出了一种高效的单轮无监督3D检测方法，避免了迭代自训练的计算负担。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-crxzkxskow",
+      "score": 8.0,
+      "evidence_en": "event-driven depth completion using LiDAR measurements",
+      "evidence_cn": "使用LiDAR测量的事件驱动深度补全",
+      "canonical_evidence": "使用LiDAR测量的事件驱动深度补全",
+      "tldr_en": "Proposes EventDC, an event-driven depth completion framework for dynamic scenes leveraging event cameras and LiDAR, achieving robust dense depth estimation.",
+      "tldr_cn": "针对动态场景中传统RGB-D传感器难以精确对齐和捕获深度的问题，提出事件驱动的深度补全框架EventDC。该框架利用事件相机的高时间分辨率与LiDAR稀疏测量，通过事件调制对齐和局部深度滤波自适应学习卷积偏移和权重，在动态环境下实现鲁棒的密集深度估计，为自动驾驶和机器人动态深度感知提供了有效解决方案。",
+      "title_zh": "事件驱动的动态场景深度补全",
+      "motivation_cn": "动态场景下传统RGB-D传感器深度补全失效，事件相机可提供高速运动线索。",
+      "method_cn": "提出EventDC，包含事件调制对齐(EMA)和局部深度滤波(LDF)两个自适应学习模块。",
+      "result_cn": "在动态场景深度补全基准上显著优于已有方法，表现出强鲁棒性。",
+      "conclusion_cn": "首次实现事件驱动的深度补全，为动态环境下的多模态融合感知提供了新思路。",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-5tgkacy7uv",
+      "score": 8.0,
+      "evidence_en": "linear group RNN for 3D object detection in point clouds",
+      "evidence_cn": "用于点云3D目标检测的线性分组RNN",
+      "canonical_evidence": "用于点云3D目标检测的线性分组RNN",
+      "tldr_en": "Proposes LION, a window-based 3D detector using linear group RNN for efficient long-range modeling in sparse point clouds, outperforming transformers.",
+      "tldr_cn": "针对Transformer在稀疏点云中建模长程关系计算开销大，提出基于窗口的线性分组RNN检测器LION。通过大分组内特征交互，实现高效准确的三维目标检测。实验证明LION在精度和效率上均优于主流方法。",
+      "title_zh": "LION：面向点云3D目标检测的线性分组RNN",
+      "motivation_cn": "Transformer在稀疏点云检测中面临平方复杂度，限制了实用。",
+      "method_cn": "提出LION，采用线性分组RNN在窗口内实现大范围特征交互，提升效率。",
+      "result_cn": "在多个点云检测基准上取得领先的精度与速度权衡。",
+      "conclusion_cn": "线性RNN为稀疏三维检测提供了有效的长程建模替代方案。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-63xewav1lu",
+      "score": 8.0,
+      "evidence_en": "contrastive image-to-LiDAR knowledge transfer for 3D representation learning",
+      "evidence_cn": "图像到LiDAR对比知识迁移用于3D表征学习",
+      "canonical_evidence": "图像到LiDAR对比知识迁移用于3D表征学习",
+      "tldr_en": "Leverages visual foundation models to improve image-to-LiDAR contrastive distillation, addressing feature dissociation in multi-modal representation learning.",
+      "tldr_cn": "针对图像到LiDAR对比学习中特征分离的问题，利用视觉基础模型生成语义标签进行弱监督像素到点对比蒸馏，并通过冯·米塞斯分布结构化特征空间，增强了多模态3D表征的语义一致性。",
+      "title_zh": "利用视觉基础模型的细粒度图像到LiDAR对比蒸馏",
+      "motivation_cn": "现有对比损失会意外地分离语义相同的非匹配像素与点，损害表征完整性。",
+      "method_cn": "利用现成视觉基础模型生成语义标签，进行弱监督像素到点对比蒸馏，并采用分布建模特征空间。",
+      "result_cn": "学习到的3D表征在下游任务中展现更强的语义区分能力。",
+      "conclusion_cn": "该方法有效融合多模态信息，提升3D表征的泛化性与语义完整性。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-ahccbzulr7",
+      "score": 8.0,
+      "evidence_en": "unsupervised 3D representation learning for LiDAR perception via temporal forecasting",
+      "evidence_cn": "通过时间预测进行LiDAR感知的无监督3D表征学习",
+      "canonical_evidence": "通过时间预测进行LiDAR感知的无监督3D表征学习",
+      "tldr_en": "TREND proposes unsupervised 3D representation learning for LiDAR point clouds by forecasting future observations, leveraging temporal sequences and neural fields, to relieve labeling burden.",
+      "tldr_cn": "针对LiDAR点云标注成本高的问题，TREND利用时间序列预测未来观测，通过循环嵌入和时间LiDAR神经场实现无监督3D表征学习。该方法在不用标注的情况下预训练模型，有效提升下游感知任务性能。",
+      "title_zh": "TREND：通过时间预测进行LiDAR感知的无监督3D表征学习",
+      "motivation_cn": "LiDAR点云标注耗时耗力，现有无监督方法多忽略时间序列信息。",
+      "method_cn": "提出TREND框架，结合循环嵌入和时间神经场，通过预测未来观测进行无监督预训练。",
+      "result_cn": "在LiDAR感知任务上学习到有效表征，减少标注依赖。",
+      "conclusion_cn": "TREND为LiDAR点云的无监督预训练提供了一种利用时序信息的新方法。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-nlphknjnnz",
+      "score": 8.0,
+      "evidence_en": "augments LiDAR 3D object detection training with pseudo LiDAR point clouds generated from 2D-to-3D view synthesis",
+      "evidence_cn": "利用二维到三维视图合成生成的伪LiDAR点云增强LiDAR三维物体检测训练",
+      "canonical_evidence": "利用二维到三维视图合成生成的伪LiDAR点云增强LiDAR三维物体检测训练",
+      "tldr_en": "Proposes PGT-Aug, which generates pseudo LiDAR point clouds from low-cost images to augment minority classes in LiDAR-based 3D object detection, addressing class imbalance.",
+      "tldr_cn": "提出PGT-Aug方法，通过低成本图像生成伪LiDAR点云，用于增强LiDAR三维物体检测中的少数类训练样本，解决类别不平衡问题。该方法利用二维到三维视图合成模型进行体积三维实例重建，并进行域对齐和点采样，从而生成多样化的伪点云。实验表明，在KITTI等数据集上显著提升了少数类检测精度。该工作为LiDAR数据增强提供了高效的新方案。",
+      "title_zh": "只需增加100美元：用伪LiDAR点云增强解决类别不平衡问题",
+      "motivation_cn": "LiDAR三维检测数据存在类别不平衡，现有增强方法缺乏少数类样本多样性。",
+      "method_cn": "利用二维到三维视图合成从低成本视频或模型生成伪LiDAR真值点云并进行对象级域对齐。",
+      "result_cn": "在多个LiDAR检测基准上有效提升了少数类别的检测性能。",
+      "conclusion_cn": "通过伪点云增强，低成本地缓解了LiDAR三维检测中的类别不平衡问题。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "synthetic point cloud generated from depth completion"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-lqdcdqievd",
+      "score": 8.0,
+      "evidence_en": "proposes spherical frustum sparse convolution to preserve all points, enabling efficient operations for LiDAR point clouds",
+      "evidence_cn": "提出球面视锥稀疏卷积保留所有点，实现LiDAR点云的高效操作",
+      "canonical_evidence": "提出球面视锥稀疏卷积保留所有点，实现LiDAR点云的高效操作",
+      "tldr_en": "Proposes a spherical frustum sparse convolution network for LiDAR point cloud semantic segmentation, which avoids quantized information loss by preserving all points and using sparse convolution to process full point clouds, achieving improved segmentation of small objects.",
+      "tldr_cn": "针对LiDAR点云语义分割中2D投影方法导致的量化信息损失问题，提出球面视锥稀疏卷积网络。该方法利用球面视锥结构保留全部点，并结合稀疏卷积进行高效处理，在语义分割任务中显著提升小物体分割性能。",
+      "title_zh": "面向LiDAR点云语义分割的球面视锥稀疏卷积网络",
+      "motivation_cn": "解决现有2D投影式LiDAR点云分割方法因投影量化导致信息丢失、小物体几何结构不完整的难题。",
+      "method_cn": "提出球面视锥结构保存所有点，设计对应的稀疏卷积网络直接处理3D点云以进行语义分割。",
+      "result_cn": "在LiDAR点云语义分割任务上，方法有效保留小物体信息，提高分割精度。",
+      "conclusion_cn": "球面视锥稀疏卷积网络避免量化损失，为LiDAR点云语义分割提供了一种更完整且高效的框架。",
+      "matched_requirement_id": "req-16",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "efficient sparse convolution operations on point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-yetirxhsh1",
+      "score": 8.0,
+      "evidence_en": "3D object detection in large outdoor point clouds with domain adaptation",
+      "evidence_cn": "在大型室外点云中进行三维目标检测并适应域间差异",
+      "canonical_evidence": "在大型室外点云中进行三维目标检测并适应域间差异",
+      "tldr_en": "Addresses domain gap in 3D object detection from outdoor point clouds by learning group-equivariant features to handle multiple domain shift factors jointly, improving cross-domain generalization.",
+      "tldr_cn": "针对室外点云3D目标检测中的域间差异问题，提出学习群等变特征以联合处理多种域偏移因素，通过组等变特征学习提升跨域检测性能。实验表明，方法能有效减小域间隙，增强模型在未知环境中的泛化能力。",
+      "title_zh": "面向域自适应3D检测的学习群等变特征方法",
+      "motivation_cn": "3D目标检测在未知环境中性能因域间隙严重下降。",
+      "method_cn": "提出群等变特征学习，联合处理物体尺寸、形状和密度变化等多因素。",
+      "result_cn": "在跨域设置中有效减小域间隙，提升检测准确率。",
+      "conclusion_cn": "群等变特征学习为域自适应3D检测提供了有效解决方案。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-7iezwcc7rb",
+      "score": 7.0,
+      "evidence_en": "OpenBox uses a two-stage pipeline combining 2D foundation model and 3D point clouds for 3D bounding box annotation, integrating multimodal cues.",
+      "evidence_cn": "OpenBox利用两阶段管线结合2D基础模型与3D点云进行三维边界框标注，整合多模态线索",
+      "canonical_evidence": "OpenBox利用两阶段管线结合2D基础模型与3D点云进行三维边界框标注，整合多模态线索",
+      "tldr_en": "OpenBox introduces a two-stage annotation pipeline that leverages a 2D vision foundation model and 3D point clouds to automatically produce high-quality 3D bounding boxes for open-vocabulary detection, reducing computational overhead.",
+      "tldr_cn": "针对现有无监督标注方法忽略物体物理状态、需多次迭代的问题，OpenBox设计了一个两阶段自动标注流程，利用2D基础模型提取实例级线索并与3D点云关联，通过上下文感知精化生成高质量3D边界框，在开放词汇设定下显著提升了标注效率和检测器训练性能。",
+      "title_zh": "OpenBox：标注任意三维边界框",
+      "motivation_cn": "现有无监督3D检测标注方法忽视物体物理状态且需多次迭代，质量欠佳且计算开销大。",
+      "method_cn": "提出两阶段自动标注管线，利用2D基础模型提取实例线索，通过上下文精化与三维点云关联生成3D边界框。",
+      "result_cn": "实验表明OpenBox在多个数据集上提高了标注质量和效率。",
+      "conclusion_cn": "OpenBox通过有效地结合2D和3D信息，为开放词汇3D检测提供了高质量的自动标注方法。",
+      "matched_requirement_id": "req-15",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "integrating multiple sensor modalities for robust detection"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-sj5witctu6",
+      "score": 7.0,
+      "evidence_en": "first 4-bit PTQ framework for voxel-based 3D object detectors on point clouds",
+      "evidence_cn": "首个面向体素化3D点云目标检测的4位后训练量化框架",
+      "canonical_evidence": "首个面向体素化3D点云目标检测的4位后训练量化框架",
+      "tldr_en": "Introduces Point4Bit, a 4-bit post-training quantization method for voxel-based 3D object detectors, enabling efficient deployment on edge devices while maintaining accuracy.",
+      "tldr_cn": "体素化3D目标检测器性能出色但计算量大，现有后训练量化方法局限于8位，限制了边缘部署。本文提出Point4Bit，首个通用4位后训练量化框架，通过前景感知分段激活量化和权重补偿等技术克服低位量化挑战。实验表明该方法在显著压缩模型的同时保持检测精度，推动点云3D检测在资源受限设备上的应用。",
+      "title_zh": "Point4Bit: 面向点云3D检测的后训练4位量化",
+      "motivation_cn": "3D检测模型高计算与内存需求阻碍边缘部署，现有量化仅支持8位。",
+      "method_cn": "提出4位后训练量化框架Point4Bit，包含前景感知分段激活量化等关键技术。",
+      "result_cn": "在多个3D检测模型上实现4位量化，精度损失极小。",
+      "conclusion_cn": "4位量化有效平衡了3D检测性能与效率，拓宽了边缘部署场景。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-wcx04wn34u",
+      "score": 6.0,
+      "evidence_en": "LiDAR data translation for cross-domain adaptation",
+      "evidence_cn": "LiDAR数据跨域迁移翻译",
+      "canonical_evidence": "LiDAR数据跨域迁移翻译",
+      "tldr_en": "LiT translates point clouds across domains using scene modeling, statistical ray modeling, and ray casting, enabling state-of-the-art zero-shot and unified domain detection.",
+      "tldr_cn": "针对LiDAR数据在不同传感器、车辆和场景下的域差异问题，提出LiDAR翻译器LiT。LiT通过场景建模模块、统计射线建模及硬件加速射线投射，实现跨域点云直接转换，从而支持零样本和统一域检测。实验表明，LiT在多个检测数据集上取得了领先的跨域和联合学习性能，为LiDAR感知模型的可扩展性提供了新思路。",
+      "title_zh": "LiT：通过LiDAR翻译器统一LiDAR语言",
+      "motivation_cn": "不同LiDAR收集的点云存在显著域差异，限制模型泛化。",
+      "method_cn": "设计LiT框架，包含场景建模、统计射线建模和射线投射引擎。",
+      "result_cn": "实现零样本和统一域的最先进检测性能。",
+      "conclusion_cn": "LiT有效弥合LiDAR域鸿沟，提升感知模型的可扩展性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-rpzwsdjc4n",
+      "score": 6.0,
+      "evidence_en": "explainable AI for LiDAR-based 3D detectors",
+      "evidence_cn": "基于LiDAR的三维检测器可解释性",
+      "canonical_evidence": "基于LiDAR的三维检测器可解释性",
+      "tldr_en": "FFAM generates visual explanations for LiDAR-based 3D object detectors using non-negative matrix factorization on feature maps, refined by object-specific gradients.",
+      "tldr_cn": "现有LiDAR三维物体检测器多为黑箱，缺乏可解释性。FFAM利用非负矩阵分解生成概念激活图，并通过目标特征梯度优化视觉解释，同时引入体素上采样策略。实验表明，FFAM能产生高质量的视觉解释，有助于理解三维检测器的决策行为，促进检测模型的可信部署。",
+      "title_zh": "FFAM：用于三维检测器解释的特征分解激活图",
+      "motivation_cn": "LiDAR三维检测器黑箱特性限制其应用中的信任。",
+      "method_cn": "FFAM使用非负矩阵分解生成激活图，并用目标梯度精炼。",
+      "result_cn": "提供高质量对象级视觉解释，揭示检测器关注区域。",
+      "conclusion_cn": "FFAM为三维检测器提供了有效的解释手段，提升模型透明度。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-fe91mhgeg2",
+      "score": 6.0,
+      "evidence_en": "Proposes diffusion-based prompted 3D object detection, applicable to point clouds.",
+      "evidence_cn": "提出基于扩散模型的可提示3D物体检测，可应用于点云",
+      "canonical_evidence": "提出基于扩散模型的可提示3D物体检测，可应用于点云",
+      "tldr_en": "This paper proposes a promptable 3D object detection framework using latent diffusion models, encoding bounding boxes as tokens for flexible and conditionally guided detection, applicable to point cloud-based tasks.",
+      "tldr_cn": "针对现有3D检测方法依赖直接坐标回归导致灵活性和适应性不足的问题，本文提出基于潜在扩散模型的可提示三维物体定位框架，将检测转化为噪声到包围盒的扩散过程，支持灵活的文本或条件引导。该方法为3D物体检测提供了一种新颖的生成式范式，有潜力应用于点云等数据形式的检测任务。",
+      "title_zh": "基于潜在扩散模型的可提示三维物体定位",
+      "motivation_cn": "现有3D检测方法多依赖坐标回归，限制了灵活的条件引导检测。",
+      "method_cn": "将检测建模为扩散过程，通过编码边界框为令牌实现可提示的3D物体识别框架。",
+      "result_cn": "在多个3D检测基准上展示了扩散模型的有效性和灵活性。",
+      "conclusion_cn": "扩散模型为3D物体检测提供了一种新的灵活范式，支持开放词汇和条件引导。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-rco9frp8aj",
+      "score": 6.0,
+      "evidence_en": "open-vocabulary 3D detection on point clouds from 2D images",
+      "evidence_cn": "从2D图像学习的开放词汇点云3D检测",
+      "canonical_evidence": "从2D图像学习的开放词汇点云3D检测",
+      "tldr_en": "Proposes ImOV3D, learning open-vocabulary 3D object detection on point clouds using only 2D images, bridging the modality gap for cost-efficient deployment.",
+      "tldr_cn": "为解决3D检测标注稀缺问题，提出ImOV3D仅用2D图像训练开放词汇点云3D检测器。通过跨模态知识迁移，在测试时直接处理点云，实现新类别的泛化。实验表明该方法能有效利用丰富的2D标注，降低3D检测的标注成本。",
+      "title_zh": "ImOV3D：仅从2D图像学习开放词汇点云3D目标检测",
+      "motivation_cn": "3D目标检测标注昂贵，2D图像标注丰富但模态不同。",
+      "method_cn": "提出ImOV3D框架，利用2D图像中的开放词汇知识训练点云检测器。",
+      "result_cn": "在开放词汇设置下取得有竞争力的性能，减少了对3D标注的依赖。",
+      "conclusion_cn": "为低成本、可扩展的3D检测系统提供了新路径。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-lmhnrt0bnm",
+      "score": 6.0,
+      "evidence_en": "reformulates 3D semantic scene completion as dense object detection",
+      "evidence_cn": "将3D语义场景补全重新定义为稠密目标检测",
+      "canonical_evidence": "将3D语义场景补全重新定义为稠密目标检测",
+      "tldr_en": "Proposes VoxDet, which treats semantic scene completion as dense object detection, leveraging instance-level insights from voxel labels to improve instance discrimination and completeness.",
+      "tldr_cn": "现有语义场景补全方法视为稠密分割任务，忽略实例级区分性，导致实例不完整。本文提出VoxDet，将场景补全重新定义为稠密目标检测，并利用训练免费的体素到实例转换技巧，从类别标签中获取实例信息。方法提升了场景补全中的实例完整性和边界清晰度，在多个基准上取得最佳性能。",
+      "title_zh": "VoxDet: 将3D语义场景补全重新思考为稠密目标检测",
+      "motivation_cn": "传统场景补全方法缺乏实例级区分，造成实例不完整和边界歧义。",
+      "method_cn": "将场景补全转为稠密目标检测，并设计体素到实例转换技巧。",
+      "result_cn": "在场景补全数据集上实现实例完整性和语义准确性的双重提升。",
+      "conclusion_cn": "将检测视角引入场景补全有效利用了标签中的实例信息，开辟了新方向。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-weoms8aw1w",
+      "score": 6.0,
+      "evidence_en": "open-world class-agnostic 3D object detection from point clouds without text prompts",
+      "evidence_cn": "无需文本提示、与类别无关的开放世界三维物体检测，直接从点云学习",
+      "canonical_evidence": "无需文本提示、与类别无关的开放世界三维物体检测，直接从点云学习",
+      "tldr_en": "Proposes OP3Det, a class-agnostic open-world 3D detector that discovers all objects in 3D scenes without text prompts, but not specifically designed for LiDAR or two-stage pipeline.",
+      "tldr_cn": "提出OP3Det，一种与类别无关的开放世界三维检测器，无需文本提示即可在三维场景中发现所有物体。该方法旨在解决现有检测器无法泛化到新类别的问题。虽非针对LiDAR或两阶段设计，但为三维开放世界检测提供了可行思路。",
+      "title_zh": "走向开放世界中的三维物体性学习",
+      "motivation_cn": "现有三维检测器难以泛化到开放世界，未见类别检测能力不足。",
+      "method_cn": "提出与类别无关的开放世界提示无关三维检测器，通过强基线实现通用物体发现。",
+      "result_cn": "能够检测任意物体，包括训练时未见过的类别。",
+      "conclusion_cn": "为开放世界三维检测设立了新范式，推动三维感知向更通用性发展。",
+      "matched_requirement_id": "req-12",
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-yferzf9v1b",
+      "score": 4.0,
+      "evidence_en": "addresses sparse LiDAR depth supervision by generating dense synthetic pseudolabels",
+      "evidence_cn": "通过生成稠密合成伪标签解决稀疏LiDAR深度监督问题",
+      "canonical_evidence": "通过生成稠密合成伪标签解决稀疏LiDAR深度监督问题",
+      "tldr_en": "Distills image depth priors to event-based depth estimation, using dense synthetic labels to overcome the sparsity of LiDAR supervision, enabling better depth maps from events.",
+      "tldr_cn": "事件相机在挑战光照下具有单目深度估计潜力，但LiDAR深度标签稀疏且不完整，制约学习效果。本工作提出Distil-E2D框架，将图像域的深度先验蒸馏至事件域，生成稠密合成伪标签。实验证明该方法能有效提升事件驱动深度估计的精度，为从稀疏LiDAR标签学习高密度深度提供新思路。",
+      "title_zh": "Distil-E2D: 为基于事件的单目深度估计蒸馏图像到深度先验",
+      "motivation_cn": "基于事件的深度估计受限于稀疏LiDAR深度标签，导致学习密度深度困难。",
+      "method_cn": "通过蒸馏图像域深度先验到事件域，生成稠密合成伪标签。",
+      "result_cn": "在事件相机深度估计基准上取得性能提升。",
+      "conclusion_cn": "跨模态蒸馏能有效缓解稀疏监督问题，为事件相机深度估计提供实用方案。",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-anl9huwims",
+      "score": 4.0,
+      "evidence_en": "uses attention mechanisms for point cloud feature learning",
+      "evidence_cn": "使用注意力机制进行点云特征学习",
+      "canonical_evidence": "使用注意力机制进行点云特征学习",
+      "tldr_en": "Proposes a self-distillation framework with masked attention for 3D representation learning from point clouds.",
+      "tldr_cn": "针对无监督3D点云表征学习，提出非对称双自蒸馏框架，结合掩码建模与不变性学习，通过潜空间预测和注意力机制防止形状泄露，统一了掩码建模与对比学习，提升了语义表征质量。",
+      "title_zh": "面向3D自监督表征学习的非对称双自蒸馏",
+      "motivation_cn": "现有掩码点建模依赖重建目标，限制高层语义捕获。",
+      "method_cn": "提出非对称双自蒸馏框架，在潜空间统一掩码建模与不变性学习，禁用掩码查询间注意力以防止形状泄露。",
+      "result_cn": "在点云理解任务中取得优越的语义表征性能。",
+      "conclusion_cn": "该方法有效结合自蒸馏与掩码建模，为3D预训练提供新范式。",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention mechanisms for sparse 3D point cloud feature aggregation"
+    },
+    {
+      "paper_id": "openreview-neurips-2024-47loymzxep",
+      "score": 4.0,
+      "evidence_en": "end-to-end synchronous multimodal fusion detection",
+      "evidence_cn": "端到端同步多模态融合检测",
+      "canonical_evidence": "端到端同步多模态融合检测",
+      "tldr_en": "Proposes an end-to-end multimodal fusion detection method that jointly optimizes fusion and detection in a single training phase, achieving efficient and accurate perception for autonomous driving.",
+      "tldr_cn": "针对多模态图像融合与目标检测任务训练流程复杂、易陷入次优解的问题，提出端到端同步多模态融合检测算法E2E-MFD。该方法采用同步联合优化策略，共享参数梯度矩阵综合优化，实现融合与检测在单一训练阶段内端到端协同收敛。在多个多模态数据集上的实验表明，E2E-MFD相比分阶段训练方法显著提升了检测精度与效率，为自动驾驶感知系统提供了简洁高效的融合检测方案。",
+      "title_zh": "E2E-MFD：面向端到端同步多模态融合检测",
+      "motivation_cn": "现有多模态融合检测方法训练流程复杂，限制应用。",
+      "method_cn": "提出端到端同步联合优化算法，在单一训练阶段内实现融合与检测协同。",
+      "result_cn": "在多个数据集上实现高精度检测，训练流程简化。",
+      "conclusion_cn": "E2E-MFD为多模态融合检测提供了高效端到端解决方案。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception"
+    }
+  ],
+  "llm_ranked_at": "2026-05-27T21:01:23.910457+00:00",
+  "display_min_score": 4.0,
+  "pruned_at": "2026-05-27T21:01:23.960877+00:00"
+}
