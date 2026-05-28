@@ -1,0 +1,867 @@
+Title: PQDT: Pseudo-Query Dual Transformer for Robust Point Cloud Restoration
+
+URL Source: https://arxiv.org/pdf/2605.25127v1
+
+Published Time: Tue, 26 May 2026 01:22:36 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# PQDT: Pseudo-Query Dual Transformer for Robust Point Cloud Restoration 
+
+## Haoqing Wu 1,2 Alexa Nawotki 1 Jochen Garcke 2,31Mercedes-Benz AG, Germany 2University of Bonn, Germany 3Fraunhofer SCAI, Germany 
+
+{haoqing.wu,alexa.nawotki }@mercedes-benz.com garcke@ins.uni-bonn.de 
+
+## Abstract 
+
+Point clouds are a fundamental 3D representation in com-puter vision, enabling a wide range of perception tasks. How-ever, real-world point clouds often suffer from degradations such as incompleteness, noise, outliers, and irregular den-sity, caused by sensor limitations or occlusions. Recovering clean and detailed shapes from such degraded data is crucial for downstream applications. While existing learning-based methods achieve progress on individual tasks like comple-tion or denoising, they typically rely on global bottleneck features, which lose fine-grained geometry and remain sen-sitive to varying input quality. We propose a unified 3D restoration network that directly takes point clouds as input and adaptively reconstructs high-quality geometry under di-verse degradation scenarios. At the core of our approach is a Pseudo-Query module, implemented within a Transformer backbone, which reformulates geometric translation into two cooperative stages to enhance structural clarity, robustness, and local detail preservation. Extensive experiments on cu-rated benchmarks demonstrate that our approach surpasses state-of-the-art performance in general 3D restoration. It effectively handles complex combinations of completion, de-formation, and denoising degradations. With this work, we provide a novel unified, point-only backbone for robust 3D restoration, enabling more versatile 3D perception. 
+
+## 1. Introduction 
+
+Point clouds as a very compact and efficient 3D representa-tion have been widely used in many computer vision appli-cations. With the increasing data collected by 3D sensors, we are witnessing a surge of interest in 3D perception tasks [38 , 39 , 57 , 58 , 72 ]. However, we are also facing many chal-lenges caused by the inevitable data quality issues, such as sparse, incomplete shapes with noise and outliers caused by sensor limitation and self- or inter-occlusion. There-fore, recovering clean and detailed 3D shapes from degraded point clouds is of great importance for various downstream tasks. Since input point clouds are typically corrupted by multiple types of degradation simultaneously, such as miss-Deformation        
+
+> Incompleteness
+> Outliers
+> Perturbation
+> Noisy Observation
+> Global Feature Seeds/Anchors
+> ENC
+> Queries
+> Pseudo
+> Queries
+> Refined
+> Queries
+> DEC ENC DEC
+> ENC DEC PROJ
+> Global Feature
+> ENC DEC
+> Fragile Restoration (a) Restoration by Bottleneck Feature
+> (b) Restoration by Seed -/Query -based Generation
+> (c) Restoration by Pseudo -Query and Dual Transformer Decoding
+> Noisy Observation Robust Restoration
+> PQDT
+> Spherical Init.
+
+Figure 1. Comparison of point cloud restoration paradigms. (a) Bottleneck feature–based methods directly decode the shape from a global latent code. (b) Seed-/query-based methods generate anchors or queries from the global feature for coarse-to-fine decoding. (c) Our PQDT introduces geometry-aware pseudo-queries as auxiliary entities and dual transformer decoding, achieving more faithful restorations with superior geometric fidelity. 
+
+ing or distorted points, local or global noise, and varying point densities, we focus on general 3D restoration where multiple fundamental 3D tasks, including completion, defor-mation, and denoising, are combined. Such 3D restoration capability is crucial for reliable perception in real-world sce-narios, including autonomous driving, robotic manipulation, augmented and virtual reality (AR/VR) reconstruction, or reverse engineering, where 3D observations are commonly degraded by sparsity, noise, or occlusion artifacts. Recent advances in deep learning have introduced nu-merous methods for point cloud completion. Most of these adopt an encoder-decoder framework that extracts a global feature from partial inputs and then reconstructs the com-plete shape [ 20 , 54 , 60 , 69 ], thereby addressing the permuta-tion invariance of point sets. However, this paradigm often sacrifices fine-grained geometric details due to global fea-ture pooling, as shown in Fig. 1(a). To alleviate this issue, 1
+
+> arXiv:2605.25127v1 [cs.CV] 24 May 2026
+
+several approaches [ 4 , 67 ] utilize coarse-level point-wise features to produce intermediate proxies or anchors, which help preserve local geometric details and lead to improved reconstruction quality, as shown in Fig. 1(b). Despite these advances, such methods remain sensitive to partial point clouds that may contain noise, outliers, or locally or globally distorted geometry, and thus have varying levels of reliabil-ity. Since the employed reconstructions are decoded directly from bottleneck features or seed points derived from the input, their performance can degrade significantly under imperfect observations. In real-world scenarios, where cap-tured point clouds rarely align cleanly with the ground-truth geometry [24], a more robust and adaptive model is needed to handle diverse input qualities. To this end, we propose a novel transformer-based back-bone with auxiliary intermediate entities, termed pseudo-queries, designed to recover high-quality shapes under di-verse input degradations. We decompose the transformer into two complementary and functionally distinct stages: (i) an observation-guided stage, which generates pseudo-queries by broadly attending to encoded inputs, stabi-lizing coarse geometry from distorted observations; (ii) a prior-guided stage, which refines these queries under stronger influence of learned shape priors, selectively balancing prior knowledge with input evidence to en-force geometric consistency and structural plausibility. In both stages, our geometric-embedding (GE) transformer encoders capture local and global contextual information, forming the basis for adaptive query generation that dynami-cally selects representative tokens from the input points and the learned pseudo-queries. The transformer decoder with our GE enhancement then transforms these learned repre-sentations into decoded point proxies, which summarize the underlying surface and are subsequently refined through a coarse-to-fine expansion, progressively restoring local struc-tures and yielding consistent, detailed reconstructions. In summary, our main contributions are threefold: • We propose a novel pseudo-query dual transformer (PQDT) framework, which effectively unifies completion, denoising, and deformation within a single model. • We craft a powerful 3D backbone built upon GE self-attention and dynamic query selection, which jointly en-able adaptive feature learning that balances input consis-tency and learned geometric priors. • We construct and present three new datasets covering di-verse degradation types, and facilitate standardized evalua-tion of general 3D point cloud restoration. Extensive experiments on both existing datasets and our new benchmarks demonstrate that our method achieves state-of-the-art performance across multiple tasks and degradation scenarios, significantly surpassing prior approaches in ro-bustness and reconstruction quality. By enabling accurate recovery of detailed geometry from degraded inputs, it en-hances the robustness and applicability of 3D vision sys-tems across diverse domains. Code and data are available at 
+
+https://github.com/ins-uni-bonn/PQDT .
+
+## 2. Related Work 
+
+Much of the research into 3D shape restoration focuses on completion tasks. These tasks commonly arise in real-world scenarios. Some early attempts based on handcrafted fea-tures [ 2 , 17 , 34 , 42 ] or template matching [ 22 , 29 , 36 , 44 ]require a large amount of prior knowledge and are not robust enough to handle new and complex shapes. Deep learn-ing based methods have shown great potential in 3D ge-ometric processing. The traditional voxel-based methods [5, 14 , 43 , 61 , 64 ] adopting 3D convolutional networks have the limitation of high computational cost and low resolution. Recent works focus on point cloud-based shape completion, which is more efficient and scalable due to the sparsity of point clouds as 3D representations. 
+
+Point Cloud Based 3D Shape Completion. The pioneer-ing point-based feature learning networks PointNet and PointNet++ [ 38 , 39 ], laid the foundation for deep learn-ing on point clouds. The first learning-based framework for point cloud completion is the point completion network (PCN) [ 69 ], which reconstructs complete shapes from partial inputs through an encoder-decoder architecture that lever-ages global features. To better recover the fine details of the geometry, works like [ 19 , 20 , 46 , 51 , 54 ] formulate a hierarchical decoder structure and produce the multi-scale generation progressively. Methods like SnowflakeNet [ 60 ]and SeedFormer [ 75 ] utilize the vector self-attention [ 72 ] to capture the contextual information and preserve the local de-tails in the upsampling process. Anchorformer [ 4] leverages pattern-aware discriminative anchors to replace the global feature projection as sparse points prediction. By adopting the strength of transformers in sequence-to-sequence model-ing, PoinTr [ 67 ] first converts the completion task to a set-to-set translation problem, followed by various transformer-based successors [ 8, 28 , 68 ]. Moreover, beyond single par-tial point cloud as limited input information, approaches like [7 , 11 , 16 , 56 , 63 , 71 , 77 ] explore the single- or multi-view images to fuse the 2D-3D features for better shape under-standing. Also as multi-modal exploration, works such as [ 21 , 74 ] propose text-guided 3D networks to achieve shape completion with high-level semantic constraints and com-pensate the missing parts with reasonable structures. 
+
+Multi-task Point Cloud Restoration. In real-world scenar-ios, the acquired point clouds are usually incomplete and noisy simultaneously. The common strategy is to handle the single tasks separately with dedicated networks. Beside the shape completion networks mentioned above, point cloud denoising methods with non-learning-based [ 10 , 18 , 70 , 73 ]and learning-based [ 6 , 32 , 33 , 37 , 41 ] manners have been 2(a)  (b)     
+
+> (c) (d)
+> GEE
+> Transition
+> Down 𝒫 𝑠𝑟𝑐
+> 𝑓
+> ℱ𝑠𝑟𝑐
+> 𝑐
+> 𝒫 𝑠𝑟𝑐
+> 𝑐 𝒫 𝑝𝑞
+> GED
+> 𝒫 𝑄 Morph
+> &
+> Upsample
+> ℱ𝑝𝑞 ′ℱ𝑝𝑞
+> ℱ𝑄
+> 𝒫 𝑝𝑟𝑒𝑑
+> 𝑐
+> 𝒫 𝑝𝑟𝑒𝑑
+> 𝑓
+> Dupli.
+
+Stage I : Observation -Guided Pseudo -Queries Generation 
+
+Stage II : Prior -Guided Queries Refinement  
+
+> ×N
+> ×N
+> DQS
+> Pseudo
+> Queries
+> 𝒫 𝑝𝑞′
+> 𝒫 𝑝𝑞
+> 𝑓 𝑔2
+> ℱ2
+> Queries
+> DQS
+> Padding
+> Padding
+> GED
+> GEE
+> ×N
+> 𝑓 𝑔1
+> ℱ1
+> ∆
+> Spherical
+> Init.
+> ×N
+> M𝑬 𝟏
+> M𝑬 𝟐
+> M𝑫 𝟏
+> M𝑫 𝟐
+> 𝓠
+> 𝓠 𝒑𝒔
+> 𝒱 ℋ
+> 𝒬 𝑠𝑝ℎ
+> 𝑆 2
+> 𝑆 1
+> Source
+> Queries
+> 𝓠 𝒔𝒓𝒄
+
+Figure 2. Overview of PQDT . Given an incomplete and noisy input point cloud, local features are extracted via a transition-down module and translated by a dual transformer. Stage I generates pseudo-queries Qps through an encoding–decoding process, providing observation-guided query initialization. Stage II further refines Qps , producing consolidated queries Q to predicted proxies H that are upsampled to generate fine-level points. Blocks with identical colors indicate the same feature/entity reused across modules. (a) Input partial point cloud Pfsrc ; (b) Coordinates of pseudo-queries Ppq , gray points are downsampled from input, orange points are newly predicted seeds; (c) Coarse-level prediction obtained by morphing (blue arrows) query coordinates PQ guided by H; (d) Fine-level prediction with high geometric consistency. 
+
+widely studied. 3D shape deformation is another impor-tant task in 3D geometric processing, which aims to mod-ify the source geometry to fit the target shape. Works like [ 12 , 47 , 48 , 50 ] propose mesh deformation networks with 2D/3D guidance, which directly predict the vertex offsets so that the topology of the source mesh is preserved. Given an incomplete shape, without remeshing the source shape, the details in the missing regions cannot be well recovered. AdaPoinTr [ 68 ] proposes a noise resistant point cloud com-pletion network to encounter the difficulty of incompletion and noise simultaneously. An auxiliary denoising task is de-signed to enhance robustness in the decoder stage. SuperPC [7] presents a diffusion-based [ 15 , 31 ] generative framework with 2D/3D inputs as conditions of the denoising process, which can handle the completion, upsampling, denoising and colorization tasks in a unified manner. Our approach provides a unified framework focusing on the 3D point cloud restoration tasks, which covers most common degradation scenarios in real-world applications. 
+
+## 3. Method 
+
+To effectively capture the geometric structure of defective input point clouds, we propose a transformer-based archi-tecture that employs auxiliary pseudo-queries as a noise-resistant backbone. Overall, the proposed framework adap-tively balances input fidelity and learned priors, enabling the network to handle incomplete, noisy, or unevenly distributed point clouds. Next, we give an overview of our Pseudo-Query Dual Transformer (PQDT) framework in Fig. 2, fol-lowed by the description of each submodule. Given an incomplete and noisy input point cloud Pfsrc ,we first extract the local feature Fcsrc with a light-weighted transition-down module, and let the coarse level point-wise feature be translated via several novel geometric-embedding encoder (GEE) blocks. With spherical points serving as the static query initialization, we employ our geometric-embedding decoder (GED) blocks to build up a DETR-like decoder [ 3]. Intermediate entities, serving as an observation guidance, are generated after the first decoding stage and further filtered by a dynamic query selection (DQS) module to obtain Ppq and Fpq , which we call pseudo-queries. In-stead of being used directly for decoding (hence the term pseudo-queries), these entities will be further refined through a second encoding stage. After another DQS step, the consol-idated queries are passed to the decoder. The query coordi-nates are morphed and upsampled to the fine level prediction base on the decoded point-wise features. 
+
+3.1. Transformer with Auxiliary Pseudo-Query 
+
+As the overall structure in Fig. 2 shows, with a two-step encoding scheme we aim to enhance robustness in se-quence translation: the auxiliary pseudo-queries act as noise-resilient anchors, while the DQS mechanism ensures that only the most representative features are retained throughout the query generation. Inspired by point transformer designs [ 67 , 68 ], we adopt a sequence-to-sequence generation paradigm based on coarse-level point features, referred to as point proxies in [ 67 ]. With the given set of coarse level point proxies as source queries 
+
+Qsrc = {P csrc , Fcsrc }, the generation of queries can be for-mulated as a two-step process: 
+
+Qps = S1(MD1 (Qsph , ME1 (Qsrc )) , Pcsrc ), (1) 
+
+V, Q = S2(ME2 (Qps ), Pfsrc ). (2) 3Here, ME1 , ME2 , and MD1 denote GEE and GED, and S1
+
+and S2 are DQS modules that filter non-representative point proxies and queries. The auxiliary pseudo-queries Qps are first decoded from the outputs of ME1 and the static spheri-cal point queries Qsph in a DETR-like manner. The resulting seed proxies are then combined with Fcsrc as candidates for S1. To obtain consolidated point features and queries, the pseudo queries Qps are further processed by the second en-coder ME2 and refined through S2, using randomly sampled input points Pfsrc as augmentation. The final queries Q are then aggregated using the max-pooled features fg1 and fg2
+
+from the outputs F1 and F2 of the two encoders, together with the selected query points PQ. This resampling and balancing strategy allows the model to adapt to different lev-els of input reliability: when input information is sparse or highly corrupted, the network relies more heavily on shape priors from the pseudo-queries; conversely, when the input is relatively clean or locally consistent, more input points are preserved as queries to retain geometric details. Finally, the predicted points proxies H are generated by a GED MD2
+
+from the selected queries Q and the refined features V:
+
+H = MD2 (Q, V). (3) 
+
+3.2. Adaptive Query Generation 
+
+Multi-Scale Feature Extraction. To achieve better feature abstraction from the input point cloud, we adopt the Edge-Conv head from DGCNN [ 52 ] hierarchically and append light-weighted transformer encoder blocks to refine the fea-tures in each level of the transition down process. For level 
+
+l ∈ { 0, 1, 2}, given the input points P↓ 
+
+> l
+
+= {Pi}Nl 
+
+> i=1
+
+with 
+
+Pi ∈ R3 and the corresponding features F↓ 
+
+> l
+
+= {Fi}Nl 
+
+> i=1
+
+with 
+
+Fi ∈ RCl , the downsampled points P↓ 
+
+> l+1
+
+and features F↓
+
+> l+1
+
+in level l + 1 can be obtained by: 
+
+P↓ 
+
+> l+1
+
+= FPS (P↓ 
+
+> l
+
+, M l), F↓ 
+
+> l+1
+
+= E(EC (F↓ 
+
+> l
+
+, P↓
+
+> l+1
+
+)) , (4) where FPS is the farthest point sampling operation [ 39 ] to downsample the points to Ml points, E denotes the trans-former encoder blocks, and EC represents the EdgeConv operation indexed by the downsampled points. The outputs from the last level form the coarse level point coordinates 
+
+Pcsrc and features Fcsrc as shown in Fig. 2. 
+
+Geo-Embedding Self-Attention. The downsampled points and their associated features are then processed by a series of transformer blocks to capture global geometric structures and enable geometric transformation. We note that a positional encoding is crucial for the transformer to learn the spatial relationships among 3D points. Prior works [ 4, 28 , 67 , 72 ,75 ] employ either absolute or relative encodings based on point coordinates or distance differences. We propose a more comprehensive sparse geometric-embedding (SGE) strategy to encode transformation-invariant spatial relationships. Given coarse-level points 𝒳 𝑖𝑛 𝒫 𝑖𝑛       
+
+> kNN
+> DE AE
+> Group
+> 𝐾 𝑟
+> 𝑉 𝑟 𝐾 𝑓 𝑉 𝑓
+> 𝑄
+> MatMul MatMul
+> Group
+> Add&Scale
+> Softmax
+> MatMul MatMul
+> Add
+> Pooling
+> Sub
+> Residual
+> 𝒳 𝑜𝑢𝑡
+> 𝐼 𝐼
+> Geometric
+> Attention Head
+> Feature
+> Attention Head
+
+Figure 3. Geometric-embedding self-attention block. Geometric attention head uses distance embedding (DE) and angular embed-ding (AE) from input point coordinates and regrouped as attention keys Kr and values Vr . For example, Pin , Xin of the first self-attention block in ME1 correspond to Pcsrc and Fcsrc , respectively. 
+
+Pin = {Pi}Mi=1 , the dense geometric structure embedding [40, 66] is defined as 
+
+ri,j = rDi,j WD + max 
+
+> x
+
+rAi,j,x WA , (5) where rDi,j ∈ RCe encodes pair-wise distances and rAi,j,x ∈
+
+RCe encodes triplet-wise angles with x as the index of a third neighbor of Pi, where Ce is the internal dimension of the geometric embedding. WD , WA ∈ RCe×Ce are the corresponding projection matrices. Directly using this dense embedding in self-attention is computationally expensive due to all pair- and triplet-wise interactions. To improve efficiency, we adopt a sparse formulation by limiting the relations to the k-nearest neighbors for each point: 
+
+Rs = {ri,j | j ∈ N k(i), i = 1 , . . . , M } , (6) where Nk(i) denotes the set of indices of the k-nearest neighbors of point Pi. Again, ri,j follows the definition from Eq. (5). This sparse representation not only retains the essential geometric relationships but also significantly reduces the size of the embedding from R ∈ RM ×M ×Ce to 
+
+Rs ∈ RM ×k×Ce , where k ≪ M .The corresponding attention score of the attention head with SGE can be formulated as: 
+
+head = softmax 
+
+ Q(Kf + Kr )⊤
+
+√dh
+
+
+
+(Vf + Vr ), (7) where Q is derived from the input features Xin feeding into ME1,2 , MD1,2 in Fig. 2. As shown in Fig. 3, the projected keys and values Kf , V f are regrouped via kNN indices, and combined with geometric embeddings Kr = RsWKr and 4extra geometric cue [ 66 ] Vr = RsWVr , all in RM ×k×dh .Attention scores from two heads are added together and aggregated with residual input feature refined with an Edge-Conv layer as final output Xout .
+
+Dynamic Query Selection. Since the decoder output H in Eq. (3) depends on the query embeddings Q and pseudo-queries Qps in Eq. (2), the quality of these sets is critical to reconstruction performance. We introduce two Dynamic Query Selection (DQS) modules, S1 and S2, to adaptively filter out redundant or noisy candidate points. Because we mix a portion of input points as padding queries to preserve geometric fidelity, the DQS modules also balance the ratio of predicted and input points. Unlike the learnable Gumbel-Top-k subset sampling [ 25 ,62 ], we adopt a simple, non-learnable Perturb-and-Top-k
+
+strategy, which yields better stability and performance. As shown in Fig. 4, given the candidate features Xcand aggre-gated from the padded inputs, we compute standardized scores Zcand = ( MLP (Xcand ) − μ)/σ , perturb them with Gumbel noise gi = − log( − log( Uniform (0 , 1))) , and ob-tain: 
+
+si = zi + βg i, i = 1 , . . . , N,  (8) where the noise scale β is gradually annealed from 1.0 to 0
+
+through training. We select the indices of the top-k scores: 
+
+I = Top -k({si}Ni=1 ). (9) Compared to deterministic Top-k selection, which may overfit by repeatedly choosing the same high-logit points, the Gumbel perturbation introduces controlled stochasticity that encourages exploration. Using a straight-through estimator [ 1], gradients propagate through the selected feature paths while stochastic sampling allows different candidates to be explored across iterations. This acts as a biased but low vari-ance estimator and data-dependent regularizer, improving robustness and generalization. Further details of the gradient approximation is provided in the supplementary material. 
+
+3.3. Coarse-to-Fine Expansion 
+
+The output of the second transformer decoder are the high-dimensional point proxies H = {Hi}Mi=1 with Hi ∈ RCH
+
+containing the contextual shape information. To unwrap the detailed geometry from these proxies in a higher resolution, we feed the point proxies H as the input feature H↑ 
+
+> 0
+
+to the hierarchical upsample transformer layers [ 75 ] and utilize the query coordinates PQ as seed and first level coordinates P↑ 
+
+> 0
+
+.For each level l ∈ { 0, 1, 2} of the transition up process, we have: 
+
+P↑
+
+> l+1
+
+, H↑ 
+
+> l+1
+
+= UpTrans (PQ, P↑ 
+
+> l
+
+, H↑ 
+
+> l
+
+). (10) We avoid folding-based upsampling methods [ 65 , 67 , 69 ]and MLP-based projections [ 53 , 68 ], which generate patches Gathering                        
+
+> 𝒫 𝑖𝑛 𝒳 𝑖𝑛 𝒫 𝑝𝑎𝑑 𝒳 𝑝𝑎𝑑
+> MLP&ST
+> Top -K
+> 𝐺
+> Pooling
+> 𝐼
+> 𝒳 𝑜𝑢𝑡 𝒫 𝑜𝑢𝑡 𝒳 𝑟𝑒𝑠
+> 𝑁 +𝑀 ×𝐶
+> MLP
+> 𝑁 +𝑀 ×3𝑁 +𝑀 ×𝐶
+> 𝐾 ×𝐶 𝐾 ×3𝐾 ×𝐶
+> 𝐾 ×1
+> Skipping
+> Features Select
+> Points
+> Select
+> Aggregated
+> Features Select
+> Features +
+> Zero Padding
+> Points + Raw
+> Points Padding
+> 𝑆
+> 𝒳 𝑐𝑎𝑛𝑑
+> 𝑍 𝑐𝑎𝑛𝑑
+
+Figure 4. Dynamic Query Selection (DQS) module. Given the input coordinates Pin and features Xin , we expand the points with padding points Ppad and zero-padded features Xpad to a fixed size. A Gumbel top-k sampling strategy is then applied, using aggregated scores to select the most representative points as output queries. 
+
+independently and ignore local geometric relationships. In contrast, coarse-to-fine upsampling [ 60 , 75 ] with geometric context refinement in each level provides a more fine-grained and stable manner to recover the detailed geometry. 
+
+3.4. Network Optimization 
+
+Since our model generates point clouds in a coarse-to-fine manner, each prediction level P↑ 
+
+> i
+
+is supervised by the ground-truth point cloud G using the L1 Chamfer Distance (CD ℓ1)[9]. To ensure balanced supervision, G is downsampled via FPS to match the number of points in P↑ 
+
+> i
+
+, preventing over-penalization of the backward CD term when P↑ 
+
+> i
+
+is sparser. This strategy stabilizes training at coarse stages by avoiding penalties for unrecoverable fine details. The multi-level reconstruction loss Lrec is defined as: 
+
+Lrec =
+
+> L
+
+X
+
+> i=1
+
+CD ℓ1(P↑ 
+
+> i
+
+, FPS (G, |P ↑ 
+
+> i
+
+|)) . (11) The intermediate pseudo-query points Ppq are also con-strained by the ground truth G with a separate loss Lpq :
+
+Lpq = CD ℓ1(Ppq , FPS (G, |P pq |)) . (12) The overall loss function is the sum of the above two losses: 
+
+L = Lrec + Lpq . (13) 
+
+## 4. Experiments 
+
+First, we evaluate our proposed PQDT framework on the point cloud completion benchmark ShapeNet-55/34 [ 59 , 67 ]. Furthermore, we introduce new datasets called ShapeNet-Deform and ShapeNetCar-Occ to validate the robustness of our model under different types of noise, distortion or dif-ference input quality. To show the local geometry restoration 5Table 1. Results of our method and state-of-the-art methods on ShapeNet-55/34. We report the results of all 55 categories, 34 seen categories and 21 unseen categories in three difficulty degrees. We use CD-S, CD-M and CD-H to represent the CD ℓ2 (multiplied by 1000) results under the Simple, Moderate and Hard settings. We also provide average results among different settings under the CD ℓ2 and F-Score@1% metric.                                                                                                                                                                                         
+
+> Method
+> All 55 categories 34 seen categories 21 unseen categories
+> CD-S CD-M CD-H CD ℓ2(↓)F1 ( ↑)CD-S CD-M CD-H CD ℓ2(↓)F1 ( ↑)CD-S CD-M CD-H CD ℓ2(↓)F1 ( ↑)FoldingNet[65] 2.67 2.66 4.05 3.12 0.082 1.86 1.81 3.38 2.35 0.139 2.76 2.74 5.36 3.62 0.095 PCN[69] 1.94 1.96 4.08 2.66 0.133 1.87 1.81 2.97 2.22 0.154 3.17 3.08 5.29 3.85 0.101 GRNet[61] 1.35 1.71 2.85 1.97 0.238 1.26 1.39 2.57 1.74 0.251 1.85 2.25 4.87 2.99 0.216 PoinTr[67] 0.58 0.88 1.79 1.09 0.464 0.76 1.05 1.88 1.23 0.421 1.04 1.67 3.44 2.05 0.384 SnowflakeNet [60] 0.70 1.06 1.96 1.24 0.398 0.60 0.86 1.50 0.99 0.422 0.88 1.46 2.92 1.75 0.388 SeedFormer[75] 0.50 0.77 1.49 0.92 0.472 0.48 0.70 1.30 0.83 0.452 0.61 1.07 2.35 1.34 0.402 AdaPoinTr [68] 0.49 0.69 1.24 0.81 0.503 0.48 0.63 1.07 0.73 0.469 0.61 0.96 2.11 1.23 0.416 ProxyFormer [28] 0.49 0.75 1.55 0.93 0.483 0.44 0.67 1.33 0.81 0.466 0.60 1.13 2.54 1.42 0.415 T-CorresNet [8] 0.50 0.68 1.23 0.80 0.485 0.48 0.63 1.09 0.73 0.462 0.58 0.91 1.97 1.15 0.409 AnchorFormer[4] 0.41 0.61 1.26 0.76 0.558 0.41 0.57 1.12 0.70 0.564 0.52 0.90 2.16 1.19 0.535
+> PQDT 0.34 0.55 1.13 0.68 0.570 0.33 0.50 0.99 0.60 0.576 0.40 0.75 1.81 0.99 0.548
+
+ability of our model, we also perform experiments on the patchified freeform surface ( PFS ) dataset. We present the results of our model compared with state-of-the-art methods, and ablation studies further validate the effectiveness of the proposed modules. 
+
+4.1. Datasets and Benchmarks 
+
+Completion-only Benchmarks. For point cloud restoration, we adopt the widely used ShapeNet-55/34 dataset, instead of PCN [ 69 ], since it offers more diverse object categories and more challenging incomplete shapes. We follow the standard experimental setup from prior works [ 4, 67 , 75 ], evaluating three levels of incompleteness. 
+
+Restoration Benchmarks. To evaluate robustness under geometric distortions, we introduce the ShapeNet-Deform dataset by applying Gabor noise [ 26 ] to ShapeNet shapes, producing smooth and anisotropic deformations. Unlike Gaussian noise, Gabor noise generates more natural geomet-ric variations via convolution with Gabor kernels. We vary kernel parameters (frequency, scale, and Gaussian width) to create three deformation levels. To assess robustness to oc-clusion and sensor noise, we construct ShapeNetCar-Occ, a dataset of car models with synthetic occluders (e.g., pedestri-ans, signs) and LiDAR-style raycasting [ 27 , 76 ]. Each of the 3,419 car instances is rendered from 32 random viewpoints under three noise and occlusion settings, with additional Gaussian noise applied for realism. Fig. 5 shows examples. 
+
+PFS Dataset. Freeform surfaces are widely used in CAD and computer graphics to represent complex geometries. A common application is surface restoration from 3D scans as part of the reverse engineering process. In practice, this often involves repairing locally damaged regions or refin-ing reference geometries (e.g., planar or curved surfaces) with user-guided local details. Unlike typical shape comple-tion or deformation tasks, this type of restoration requires ShapeNet -55/34  ShapeNet -Occ ShapeNet -Deform  PFS 
+
+> Input GT
+
+Figure 5. Visualization of datasets used for evaluation. 
+
+a combination of completion and deformation while pre-serving global consistency, since only specific local areas are intended to be modified. To support research in this challenging setting, we construct the Patchified Freeform Surface (PFS) dataset, derived from Body-in-White compo-nents in the automotive industry. The PFS dataset contains 880 freeform surface patches, split into 800 for training and 80 for testing. Each sample includes the geometry before and after restoration, along with a guidance surface, as illus-trated in Fig. 5. Further dataset statistics and experimental details are provided in the supplementary material. 
+
+Evaluation Metrics. We follow previous works [ 61 , 69 , 75 ]for the point cloud completion task to evaluate our extended benchmarks with corresponding datasets. We adopt the CD ℓ2
+
+and the F-Score [45] as evaluation metrics. 
+
+4.2. Evaluation Results 
+
+We compare PQDT with several 3D-only state-of-the-art methods [ 4, 8, 28 , 60 , 61 , 65 , 67 – 69 , 75 ]. We report both quantitative and qualitative results on the introduced datasets. For ShapeNet-55/34, we adopt results reported in the litera-ture, while all baselines are re-implemented for our newly introduced datasets to ensure fair comparison. ProxyFormer [ 28 ] and T-CorresNet [ 8 ] are excluded from the experiments 6Input      
+
+> (a)
+> (b)
+> (c)
+> (d)
+> PCN SeedFormer AdaPoinTr AnchorFormer PQDT Ground Truth
+> ShapeNetCar -Occ
+> ShapeNet -Deform
+
+Figure 6. Qualitative evaluation on ShapeNet-Deform and ShapeNetCar-Occ. Red boxes indicate occluding objects. Table 2. Results of our method and state-of-the-art methods on ShapeNet-Deform, ShapeNetCar-Occ and PFS dataset. We report the CD ℓ2 (multiplied by 1000) under three difficulty setups of ShapeNet-Deform, and the average CD ℓ2 and F-Score@1% of all three datasets. Additional F-Score@0.5% are reported for PFS dataset.                                                                                     
+
+> Method
+> ShapeNet-Deform ShapeNetCar-Occ PFS dataset
+> CD-S CD-M CD-H CD ℓ2(↓)F1 ( ↑)CD ℓ2(↓)F1 ( ↑)CD ℓ2(↓)F1 ( ↑)F0.5 ( ↑)PCN [69] 1.81 2.10 3.08 2.33 0.162 1.42 0.125 1.60 0.233 0.040 PoinTr [67] 0.85 1.81 2.10 1.59 0.204 1.07 0.191 0.92 0.376 0.071 SnowflakeNet [60] 0.96 1.26 2.15 1.46 0.229 0.94 0.220 1.04 0.656 0.222 SeedFormer [75] 0.82 1.16 2.21 1.40 0.235 0.97 0.231 0.88 0.619 0.183 AdaPoinTr [68] 0.67 0.89 1.53 1.03 0.288 0.85 0.251 0.69 0.603 0.187 AnchorFormer [4] 0.75 0.98 1.68 1.14 0.270 0.93 0.225 1.17 0.406 0.082
+> PQDT 0.63 0.85 1.54 1.01 0.290 0.82 0.261 0.16 0.834 0.311
+
+on the latter three datasets, as their official implementations are not fully available. Note that we omit the recent diffusion-based methods SuperPC [ 7] and PCDreamer [ 53 ], since these require additional 2D image inputs alongside point clouds. 
+
+Results on ShapeNet-55/34. As summarized in Table 1, PQDT achieves new state-of-the-art results across all evalua-tion metrics on ShapeNet-55. We report the average CD ℓ2
+
+and F1-Scores over all categories, as well as CD-S, CD-M, and CD-H metrics corresponding to three levels of in-completeness. Across all settings, PQDT consistently out-performs the previous best method, AnchorFormer, with a notable improvement of 0.13 in the hard cases (CD-H). Over-all, PQDT attains an average CD ℓ2 of 0.68 and F1-Score of 0.57 across all difficulty levels, demonstrating superior com-pletion accuracy and surface consistency. The table further shows the adaptability of PQDT on ShapeNet-34. The model consistently performs best on both seen and unseen cate-gories with noticeable advantages in CD and F-Score. The results confirm PQDT’s robust generalization and its ability to preserve fine-grained structure across diverse object types. 
+
+Results on ShapeNet-Deform. Recovering 3D shapes from distorted and incomplete partial inputs remains a highly challenging task. To assess the robustness of our method under such conditions, we evaluate PQDT on the ShapeNet-Deform dataset. As shown in Tab. 2, PQDT achieves con-sistently superior performance across nearly all difficulty levels, surpassing strong baselines such as SeedFormer, Ada-PoinTr and AnchorFormer. In particular, PQDT attains the lowest CD ℓ2 of 1.01 and highest F1-Score of 0.29, demon-strating its high reconstruction accuracy and robustness to deformation. These results clearly showcase PQDT’s abil-ity to capture complex geometric variations and generate uniformly distributed, high-fidelity point clouds, reflecting strong generalization to challenging non-rigid scenarios. 
+
+Results on ShapeNetCar-Occ. The ShapeNetCar-Occ dataset presents severe occlusion scenarios closer to real-world conditions, including inter-object occlusion from sur-rounding objects and self-occlusion caused by the object’s own geometry. Our model achieves the best average CD ℓ2
+
+of 0.82 and F1-Score of 0.261. This indicates that PQDT 7Input  Ground 
+
+> Truth
+> Output
+> PQDT
+> P2S
+> PQDT
+> Output
+> AdaPointr
+> P2S
+> AdaPoinTr
+> 0%
+> 2%
+
+Figure 7. Qualitative evaluation on PFS. The color represent the Point-to-Surface distance (P2S) between generated point clouds and ground truth mesh, the maximum (red) is clamped with 2% of the radius of the object’s bounding sphere. 
+
+can effectively infer missing geometry and remains robust against local occlusion noise and global Gaussian noise. These results further validate the effectiveness of our query selection strategy, which leverages object-relevant informa-tion to reconstruct complete and coherent 3D shapes under challenging occlusion conditions. 
+
+Results on PFS. The PFS dataset is more representative of real-world industrial applications, emphasizing challenges in handling geometric deformations of freeform surfaces while maintaining input consistency. As shown in Tab. 2, PQDT achieves the best overall performance, surpassing all compet-ing methods by a large margin. Specifically, PQDT reduces CD ℓ2 by 76.8% compared to the second-best method, while improving F1- and F0.5-Scores by 27.1% and 40.1%, respec-tively. From Fig. 7 we can also see the qualitative results of our model compared with best-performed baseline Ada-Pointr. Our model shows the superior capability in producing consistent, deformation-aware, and high-fidelity point cloud reconstructions, demonstrating its potential for real-world industrial deployment. 
+
+4.3. Model Analysis and Ablation Study 
+
+Model Design. To evaluate the effectiveness of our model design, we conduct an ablation study summarized in Tab. 3. Starting from a vanilla Transformer for point clouds as the baseline (Model A), we progressively integrate our proposed components. Model B introduces advanced query genera-tion, including both the auxiliary pseudo-query and dynamic query selection modules. This design yields an improve-ment in CD by 0.17 and a notable F1-Score gain of 0.012, demonstrating the effectiveness of our dual-stage transformer structure. Model C further replaces the standard linear pro-jection from global features with a query-based DETR-like decoder for seed proxy prediction, leading to consistent im-provements in CD and confirming the stability of decoding seed coordinates from spherical priors. Finally, our com-plete model PQDT incorporates the geometric-embedding (GE) in place of raw coordinate-based positional encoding, achieving the best overall performance. These results verify that each proposed component contributes meaningfully to the final effectiveness of PQDT. Detailed analyses for each 
+
+Table 3. Ablation study on ShapeNetCar-Occ. We report the results with different model designs including query generation (Query), seed prediction (Seed) and positional encoding (PE).                             
+
+> model Query Seed PE CD ℓ2(↓)F1 ( ↑)A✓Linear Proj. ✓0.857 0.243 BPseudo Linear Proj. ✓0.840 0.255 CPseuso Query Dec. ✓0.827 0.258 PQDT Pseudo Query Dec. GE 0.818 0.261 Query Attention Map
+> AnchorFormer PQDT Stage I PQDT Stage II
+
+Figure 8. Attention maps from selected queries (red dot) visu-alized on key points (bottom row). Stage I attention maps show coarse pseudo-query exploration over the encoded latent structure. Stage II maps demonstrate localized, coherent attention aligned with the underlying surface, indicating effective query refinement. The color reflects the attention score after the Softmax operation in the last block of the decoder. 
+
+design aspect are provided in the supplementary material. 
+
+Attention Visualization. To gain deeper insight into the behavior of our model relative to typical transformer-based architectures, we compare the query attention distributions with those of AnchorFormer, as shown in Fig. 8. Each red point denotes a selected query, and the color intensity on the key points indicates the corresponding attention weights. As a representative state-of-the-art transformer baseline, An-chorFormer exhibits diffuse and weakly localized attention, suggesting less discriminative geometric reasoning. In con-trast, PQDT Stage I produces pseudo-queries that roughly capture global shape context, while PQDT Stage II refines these queries into spatially coherent, part-aware representa-tions. The attention in Stage II is sharply concentrated on geometrically relevant regions, demonstrating that the pro-gressive query refinement mechanism effectively enhances local feature aggregation and geometric understanding. 
+
+## 5. Conclusion 
+
+We introduced a transformer-based framework for general point cloud restoration with a dual-stage pseudo-query de-sign. Our point-only backbone effectively balances input observations and learned shape priors, achieving state-of-the-art performance across mixed restoration tasks involv-ing completion, deformation, and denoising. The proposed model also generalizes well to newly introduced challenging scenarios, showing strong potential as a unified backbone for broader 3D perception tasks. 8PQDT: Pseudo-Query Dual Transformer for Robust Point Cloud Restoration 
+
+# Supplementary Material 
+
+In this supplementary material, we provide additional content to complement the main paper. Sec. A presents the full implementation details of PQDT, including training se-tups, network components. Sec. B gives the definition of the evaluation metrics. Sec. C describes the datasets used in our experiments and the pre-processing strategies applied. Sec. E reports extended ablation studies that analyze the contribu-tion of each module in our design. Sec. F provides additional quantitative evaluation results across multiple benchmarks. Finally, Sec. G includes more qualitative visualizations to further illustrate the effectiveness of our approach. 
+
+## A. Implementation Details 
+
+Training Setups. We implement PQDT using PyTorch [ 35 ]and train the network with the Adam optimizer [ 23 ]. The initial learning rate is set to 0.0001. We adopt a cosine an-nealing learning rate scheduler [ 30 ] with a minimum learning rate of 0.00001, along with a linear warm-up from 0.00001 to 0.0001 over the first 10 epochs. For the ShapeNet-55/34 and ShapeNet-Deform datasets, we train the model for 300 epochs with a batch size of 32. For smaller-scale datasets, ShapeNetCar-Occ and PFS, the batch sizes are set to 16 and 8, respectively, and the models are trained for 200 epochs. For all ShapeNet-family datasets, the network takes 2,048 points as input and predicts 8,192 points as output. On the PFS dataset, we instead sample 8,192 points from the geom-etry as inputs and predict 8,192 points as output. We train the model with a single Nvidia A100 80GB GPU, and all the models are tested with the batch size of 1 and same random seed. 
+
+Feature Extraction. We employ a modified DGCNN [ 52 ]to extract features from the input point cloud. The network expands feature dimensionality while progressively down-sampling points, following the architecture: Linear (Cin = 3 , C out = 8) → EC (Cin = 8 , C out =64 , K = 16 , M = 512) → E (C = 64 , H = 1 , L = 2) →
+
+EC (Cin = 64 , C out = 256 , K = 16 , M = 128) → E (C =256 , H = 4 , L = 2) ,where Cin , C out denote input and output feature channels; EC is an EdgeConv block with K nearest neighbors and farthest point sampling size M ; and E is a lightweight transformer encoder with feature dimension C, number of heads H, and number of layers L. The resulting coarse level features are: 
+
+Fcsrc ∈ R128 ×256 , Pcsrc ∈ R128 ×3.
+
+Transformer. As illustrated in Fig. 2, the dual transformer module, comprising geometric-embedding transformer en-coders and decoders (GEE/GED), denoted ME1,2 and MD1,2 ,processes the coarse features and coordinates as follows: 
+
+First-Stage Encoding : ME1 (C = 384 , H = 6 , L =4) → F 1 → MaxPool → fg1 .
+
+First-Stage Decoding : Agg (FPS (Psph (R = 0 .8) , M =384) , f g1 ) → MLP (Cin = 3 + 1024 , C out = 384) →
+
+MD1 (C = 384 , H = 6 , L = 4 , V = F1) → F pq ′ →
+
+MLP (Cin = 384 , C out = 3) → Ppq ′ . S1(Nin =384 , N pad = 128 , N out = 384 , Xin = Fpq ′ , Pin =
+
+Ppq ′ ) → F pq , Ppq .
+
+Second-Stage Encoding : ME2 (C = 384 , H = 6 , L =4) → F 2 → MaxPool → fg2 . S2(Nin = 384 , N pad =256 , N out = 512 , Xin = F2, Pin = Ppq ) → V , PQ.
+
+Second-Stage Decoding : Agg (PQ, f g1 , f g2 ) →
+
+MLP (C∈ = 3 + 1024 + 1024 , C out = 384) → Q → 
+
+MD2 (C = 384 , H = 6 , L = 8 , V = V) → MaxPool →
+
+fgq .
+
+Output Aggregation : Agg (PQ, Q, f gq ) → MLP (Cin =3 + 384 + 1024 , C out = 384) → H .Here, Agg denotes feature alignment and concatenation. S1,2 denote dynamic query selection modules with input size Nin , padding size Npad , and output size Nout . Psph 
+
+is a point set sampled from a sphere of radius R. Fea-tures preceding max pooling are projected to 1024 chan-nels. The final coarse prediction outputs are: Fcpred = H ∈ 
+
+R512 ×384 , Pcpred = PQ ∈ R512 ×3.
+
+Geometric-Embedding. We follow the calculation of dis-tance and angular embedding from [ 40 ] to form our sparse geometric-embedding (SGE): 
+
+Pair-wise Distance Embedding : By applying the si-nusoidal encoding [ 49 ] to the Euclidean distance ρi,j =
+
+∥Pi − Pj ∥2 between points Pi and Pj , the distance embed-ding is defined as: 
+
+
+
+rDi,j, 2k = sin 
+
+ ρi,j /σ d
+
+10000 2k/C e
+
+
+
+,rDi,j, 2k+1 = cos 
+
+ ρi,j /σ d
+
+10000 2k/C e
+
+
+
+,
+
+(14) where σd = 0 .2 is the temperature which is used to tune the sensitivity on distance variation and we use same value as in the original work. Ce is the channel size of embedding. 
+
+Triplet-wise Angular Embedding : The angular embedding for a point Pi is computed using its k nearest neighbors 
+
+Ki. For each neighbor Px ∈ K i, we evaluate the angle 
+
+αxi,j = ∠(∆ x,i , ∆j,i ), where ∆i,j = Pi − Pj . Applying a sinusoidal positional encoding to αxi,j , we obtain the angular 1embedding: 
+
+
+
+rAi,j,x, 2l = sin 
+
+ αxi,j /σ a
+
+10000 2l/C e
+
+
+
+,rAi,j,x, 2l+1 = cos 
+
+ αxi,j /σ a
+
+10000 2l/C e
+
+
+
+,
+
+(15) where σα = 15 is the temperature which control the sensitiv-ity on angular variations. Then we assemble these two types of embeddings can compute SGE using Eqs. (5) and (6). 
+
+Spherical Initialization. We adopt a DETR-like decoder [ 3] initialized with a set of learnable spherical queries (see Fig. 8). Specifically, we empirically sample 384 queries on the surface of a fixed sphere with radius 0.8, while all input point clouds are normalized to lie within the unit sphere. This design bounds the displacement between the initial queries and the target geometry, enabling the network to deform the spherical points toward missing regions via cross-attention. Extremely large missing regions may complicate global scale estimation and introduce potential bias, but such cases are uncommon in standard benchmarks. Some queries may not correspond to meaningful regions of the final geometry; however, the attention mechanism naturally suppresses such queries during decoding. The resulting redundancy increases flexibility in modeling diverse geometric structures without introducing noticeable computational overhead. Overall, the spherical initialization provides a stable geometric prior that facilitates robust and consistent shape completion. 
+
+Gradient approximation for Dynamic Query Selection. In Sec. 3, the query selection step involves Gumbel-perturbed Top-k sampling followed by hard indexing, which makes the operation non-differentiable. Ideally, training would minimize the expected reconstruction loss over the stochastic selection process: 
+
+L(θ) = ES∼pθ (S)
+
+ℓ fθ (X, S ) , (16) where X denotes the point features, S denotes the selected candidate set, pθ (S) is the selection distribution induced by the scoring network, fθ denotes the downstream decod-ing function, and ℓ is the reconstruction loss. In principle, unbiased gradients of this objective require score-function estimators (e.g., REINFORCE [ 55 ]), which propagate gradi-ents through the sampling probabilities but typically exhibit high variance and unstable optimization. Instead, we adopt a straight-through estimator that ignores gradients through the sampling distribution and backpropagates only through the selected feature paths [ 1]. While this yields a biased gradient estimator, it significantly reduces variance and leads to stable training in practice. The injected Gumbel noise promotes stochastic exploration so that different candidates can be se-lected across iterations, partially compensating for the biased gradient approximation. As the noise scale is annealed dur-ing training, the selection gradually becomes deterministic while retaining the benefits of early-stage exploration. 
+
+Upsampling. The coarse predictions Fcpred and Pcpred are fed into a hierarchical upsampling transformer [ 75 ] to pro-gressively refine the point cloud and recover fine-grained geometric details. We employ three upsampling stages, each implemented as UpTrans (Cin,out = 384 , C d = 64 , K =16 , U ), where the upsampling rates are U ∈ { 1, 4, 4}. Here, 
+
+Cin denotes both the input and output feature dimensions, 
+
+Cd is the latent feature dimension of the upsampling trans-former, and K is the number of nearest neighbors used in the subtraction-based attention mechanism. Starting from 512 coarse points, the hierarchical upsampling produces the final prediction Pfpred ∈ R8192 ×3.
+
+## B. Metrics Details 
+
+Chamfer Distance. We use the average Chamfer Distance introduces by [ 9] to measures the discrepancy between the predicted point cloud P and the ground truth G at the point set level. For each prediction, the Chamfer Distance (CD) is calculated as: 
+
+CD (P, G) = 1
+
+|P| 
+
+X
+
+> p∈P
+
+min  
+
+> g∈G
+
+∥p − g∥ + 1
+
+|G| 
+
+X
+
+> g∈G
+
+min  
+
+> p∈P
+
+∥g − p∥.
+
+(17) We use the L1-norm of the CD (CD ℓ1) in the loss function and L2-norm (CD ℓ2) as evaluation metric. 
+
+F-Score. Following the experiment setups of previous works, we also use the F-Score [ 45 ] as an extra metric for the evalu-ation, which is define as: 
+
+F-Score( d) = 2 P (d) R(d)
+
+P (d) + R(d) , (18) where P (d) and R(d) denote the precision and recall with the threshold of distance d, respectively. 
+
+P (d) = 1
+
+|P| 
+
+X
+
+> p∈P
+
+
+
+min  
+
+> g∈G
+
+∥p − g∥ < d 
+
+
+
+, (19) 
+
+R(d) = 1
+
+|G| 
+
+X
+
+> g∈G
+
+
+
+min  
+
+> p∈P
+
+∥g − p∥ < d 
+
+
+
+. (20) We set d = 0 .01 for evaluation across all datasets, and additionally use d = 0 .005 for the PFS dataset to better capture small discrepancies between the prediction and the ground truth. 
+
+## C. Dataset Details 
+
+ShapeNet-55/34. The ShapeNet-55 dataset contains 55 ob-ject categories with 41,952 training samples and 10,518 testing samples. ShapeNet-34 is designed to evaluate model 2generalization on unseen categories, consisting of 46,765 training samples from 34 categories. The test set includes 3,400 shapes from 34 seen categories and 2,305 shapes from 21 unseen categories. Following [ 4 , 67 , 75 ], we generate three levels of incompleteness (simple, moderate, and hard) by randomly preserving 75%, 50%, and 25% of the original points, respectively. We also evaluate the five most frequent categories (Table, Chair, Airplane, Car, and Sofa) and the five least frequent categories (Birdhouse, Bag, Remote, Key-board, and Rocket), in addition to the average over all 55 categories at each incompleteness level. 
+
+ShapeNet-Deform. To enrich geometric diversity and im-prove robustness to non-rigid variations, we apply a 3D Gabor noise [ 26 ] deformation to all objects of ShapeNet-55 and keep the same partial points generation method from the ground truth. Gabor noise produces smooth, directionally-coherent perturbations and is widely used to synthesize natu-ral stochastic patterns. For an input point cloud X ∈ RN ×3,the deformation is generated by aggregating multiple ran-domly sampled 3D Gabor kernels. 
+
+Gabor Kernel : A single 3D Gabor kernel is defined over a point x ∈ R3 as: 
+
+g(x) = exp 
+
+
+
+− 12
+
+ d⊤x
+
+> σ
+
+2
+
+× cos  2πf d⊤x + ϕ , (21) where d ∈ R3 is a unit direction vector, f is the kernel fre-quency, σ is the Gaussian bandwidth, and ϕ is the phase shift. Given a batched point cloud X ∈ RB×N ×3, we compute a batch-wise projection 
+
+s = d⊤X ∈ RB×N , (22) and evaluate the Gaussian and sinusoidal components as implemented in our batched kernel: 
+
+g(X) = exp  − 12 (s/σ )2 ⊙ cos(2 πf s + ϕ) . (23) 
+
+3D Noise Aggregation : For each of the three axes, we sample K random kernels and average them: 
+
+N(X):,:,a = 1
+
+K
+
+> K
+
+X
+
+> k=1
+
+g(X − ok; dk, f, σ, ϕ k) , (24) where ok is a random spatial offset. This yields a full 3D noise field N ∈ RB×N ×3.
+
+Final Deformation : The noisy point cloud is obtained via: 
+
+˜X = X + α N(X), (25) where α controls the deformation magnitude. To enhance geometric variability, all Gabor noise param-eters are randomly sampled from specified ranges during training. For evaluation, we instead fix the parameters to the                                      
+
+> Table 4. Gabor noise parameters of ShapeNet-Deform
+> Param Training Evaluation
+> αU(0 .2,0.6) 0.4
+> K{8,9, . . . , 24 }16
+> fU(1 .0,3.0) 2.0
+> σU(0 .4,0.6) 0.5
+> ϕU(0 ,2π)Seed (0 ,2π)
+> dkU(unit sphere )Seed (unit sphere )
+> okU(−5,5) 3Seed (−5,5) 3
+> Table 5. Parameters of ShapeNet-Occ under 3 difficulty levels
+> Param Simple Moderate Hard
+> β1.1 1.2 1.3
+> σnoise 0.003 0.004 0.005
+> nocc 10 20 30
+
+midpoint of their ranges and use a fixed random seed to gen-erate deterministic noise. Our setups are given in Tab. 4. The dataset is available via https://github.com/ins-uni-bonn/PQDT .
+
+ShapeNetCar-Occ. To simulate realistic real-world occlu-sions around vehicles, we construct the ShapeNetCar-Occ dataset by placing random occluding objects (e.g., traffic signs, pedestrians) around each ShapeNet car category and rendering partial observations via raycasting. Given a car mesh M and an occluder mesh O, we first sample a virtual LiDAR viewpoint. For each model instance, we compute the ray from the LiDAR origin toward the car center, determine the first intersection with M, and place the occluder near this intersection point. The occluder is randomly rotated around the vertical axis and slightly shifted along the view-ing direction to ensure it lies between the sensor and the car while remaining grounded. A second raycasting pass uniformly samples nrays viewing directions on the sphere (Fibonacci lattice). Only rays whose directions face the car are used. Intersections with the combined scene S = M∪O 
+
+produce the observed point set, while a separate raycasting pass on the clean mesh M identifies which points originate from occluders. Samples with insufficient occlusion points are resampled. Points outside a rescaled car bounding box are removed, and the final point cloud is subsampled to N
+
+points using FPS and perturbed with Gaussian noise. Since online raycasting–based data generation is com-putationally expensive, we generate the ShapeNetCar-Occ dataset offline using the three difficulty levels defined in Tab. 5. Here, β denotes the bounding-box rescaling factor: larger values relax spatial filtering and allow more distant points to be preserved. The Gaussian noise level σnoise controls the magnitude of sensor-like perturbations. The threshold 
+
+nocc specifies the minimum number of occlusion points required for a valid sample, thereby regulating occlusion 3BiW  Part  with  Construction  Features   
+
+> Local Feature Reference
+
++ Guidance Figure 9. Illustration of PFS usage in an industrial application. The BiW part image (top) is sourced from [13]. 
+
+severity. For each difficulty level, 32 partial point clouds are generated per model from random viewpoints. These settings jointly produce progressively more challenging scenarios and enable controlled evaluation of robustness under partial observations. The dataset is available via 
+
+https://github.com/ins-uni-bonn/PQDT .
+
+PFS. We use the patchified freeform surface (PFS) data from Body-in-White (BiW) components in the automotive industry as an additional target domain for our restoration backbone. As illustrated in Fig. 9, the dataset is constructed by taking the reference geometry and the guidance geometry (bottom left) as inputs, while the geometry containing local construction features (e.g., embossments for reinforcement, mounting, welding, etc.) serves as the ground truth. The guidance geometry is manually annotated as a simplified cue indicating where local features should be generated. Using CAD software, we capture part snapshots both with and without these local features. The dataset consists of 800 training samples and 80 evaluation samples. Compared with the previously used datasets, this task ex-hibits different characteristics: the completion requirement is smaller, while deformation plays a more significant role. Consistency and fine-detail reconstruction become key chal-lenges for this dataset. In practical applications, e.g., reverse engineering, one might start with an incomplete 3D scan and use the guidance geometry to refine the coarse surface. Sim-ilarly, this setup enables adding, editing, or inpainting local features on an early-stage CAD model through sketch-based guidance. Due to the confidential nature of the data and its inclusion of sensitive product-related information, this dataset cannot                                         
+
+> Table 6. Complexity Analysis
+> Method Params FLOPs CD ℓ2-55 CD ℓ2-34 FoldingNet [65] 2.3M 27.6G 3.12 3.62 PCN [69] 5.0M 15.3G 2.66 3.85 GRNet [61] 73.2M 40.4G 1.97 2.99 PoinTr [67] 33.0M 8.9G 1.09 2.05 SeedFormer [75] 3.2M 10.3G 0.92 1.34 AdaPoinTr [68] 32.5M 18.1G 0.81 1.23 ProxyFormer [28] 12.2M 9.9G 0.93 1.42 AnchorFormer [4] 30.5M 8.1G 0.76 1.19 PQDT 64.2M 60.3G 0.68 0.99
+
+be made publicly available. 
+
+## D. Complexity Analysis 
+
+Benefiting from the dual-stage transformer architecture, our model naturally carries a larger parameter count and higher theoretical computation cost (FLOPs) than most existing approaches. However, this increased capacity directly trans-lates into significantly stronger geometric reasoning and superior completion quality. As shown in Tab. 6, PQDT achieves the best reconstruction accuracy on ShapeNet-55 by a clear margin, outperforming all prior baselines across both benchmarks and our newly introduced datasets. Despite its enhanced capability, the model size and computational cost remain well within a practical and efficient range, offering an excellent balance between complexity and the substantial performance gains delivered. 
+
+## E. Additional Ablation Study 
+
+To evaluate the effectiveness of our model design, we con-duct a comprehensive ablation study, as summarized in Tab. 7, focusing on the submodules introduced in Sec. 3. We use a vanilla Transformer for point clouds as the base-line (Model A) and analyze performance differences across three key aspects: query generation, seed prediction, and positional encoding. In each experiment, we modify only the component of interest while keeping all other settings consistent with the best-performing configuration. 
+
+Query Generation. Starting from the single-stage variant (Model B), we first incorporate the pseudo-query mecha-nism (Model C) to examine the impact of introducing the second stage in the transformer. Importantly, this transition does not involve adding extra transformer layers; instead, it restructures the query formulation within the existing archi-tecture. As shown in Tab. 7, the parameter count increases only marginally from 55.0M to 57.8M, indicating that the performance gains are not simply due to increased model capacity. Despite this minimal overhead, the addition of pseudo-queries leads to consistent improvements in both CD and F1-Score, clearly demonstrating the effectiveness of our dual-stage design. This suggests that the performance boost 4Table 7. Ablation study on ShapeNetCar-Occ. We report the evalua-tion results and model sizes with different model designs including single query generation (Query), auxiliary pseudo-query generation (Pseudo-Query), Dynamic Query Selection (DQS), linear seed pro-jection (Linear Proj.), query-based decoder with partial points and spherical points as initialization (P/S-Q Dec.), coordinates encod-ing (CE), kNN feature grouping ( kNN), and geometric-embedding (GE).                                                                         
+
+> Category Model Setups CD ℓ2(↓)F1 ( ↑)Baseline AQuery + Linear Proj. + SA 0.857 0.243 Query Generation Query Pseudo-Query DQS CD ℓ2(↓)F1 ( ↑)B✓0.838 0.256 C✓✓0.827 0.260 PQDT ✓✓✓0.818 0.261 Seed Prediction Linear Proj. P-Q Dec. S-Q Dec. CD ℓ2(↓)F1 ( ↑)D✓0.851 0.235 E✓0.841 0.260 PQDT ✓0.818 0.261 Positional Encoding CE kNN GE CD ℓ2(↓)F1 ( ↑)F✓0.850 0.248 G✓✓0.865 0.251 PQDT ✓✓0.818 0.261 Model ABCDEFGPQDT Params 44.9M 55.0M 57.8M 58.6M 64.2M 63.1M 63.1M 64.2M
+
+stems from better feature refinement and query representa-tion rather than scaling the model size. Further introducing the dynamic query selection (DQS) module (PQDT) yields additional gains, achieving a CD of 0.82 and an F1-Score of 0.261. 
+
+Seed Prediction. We compare the commonly used linear projection from global features (Model D) with our query-based DETR-style decoding scheme, which achieves a sig-nificant improvement, particularly in F1-Score. Using partial input initialization (Model E) performs slightly worse than the spherical initialization adopted in our final model, sug-gesting that the latter provides a more stable prior for query generation. 
+
+Positional Encoding. Model F encodes spatial information using only the point coordinates, while Model G incorpo-rates local context through kNN-based neighborhood aggre-gation. The latter slightly decreases CD performance (by 0.02), likely due to overfitting. In contrast, our geometric-embedding achieves the best overall results, highlighting the advantage of our geometry-aware positional design. We also investigate the component level ablation study for the DQS and query-based seed generation on PFS in Tabs. 8 and 9. 
+
+Gumbel Noise Perturbation. We vary the scaling factor of the Gumbel noise added to the query scores in the DQS module to study its effect on performance. A larger noise scale introduces more randomness in query selection, which 0 50 100 150 200 0.01 0.02 0.03 0.04 Epoch CD 
+
+> P-Q Dec. S-Q Dec.
+
+Figure 10. Training loss under different initializations of query-based seed generation on PFS. 
+
+can strengthen the regularization effect; however, if the noise becomes too large, performance degrades. Conversely, using a very small scale (i.e., effectively no noise) also harms performance. In our setup, we use a noise scale of 1.0. 
+
+Table 8. Ablation study on Gumbel-Top-k of dynamic query selec-tion module on ShapeNetCar-Occ.            
+
+> Method CD ℓ2(↓)F1 ( ↑)w/o noise 0.833 0.253 noise scale = 0.5 0.825 0.256 noise scale = 1.0 0.818 0.261 noise scale = 2.0 0.834 0.247
+
+Initialization of Seed Generation. Beyond the compari-son with Model E in Tab. 7 on ShapeNetCar-Occ, we also investigate how different initializations of the query-based decoder influence seed generation in the first stage of the transformer. We evaluate partial-initialized and spherical-initialized queries (P/S-Q Dec.) on the PFS dataset. Because the input and ground-truth shapes in PFS share a substan-tial amount of common geometry, using the partial input as queries should theoretically yield better performance. As shown in Tab. 9, both variants achieve similar CD scores, but P-Q Dec. attains a higher F-Score, and Fig. 10 further shows that it converges faster. In all experiments across the datasets mentioned in the paper, we adopt spherical initialization to demonstrate the generality of our model. However, it is also possible to tune the query initialization, such as using partial input, to better suit specific tasks or datasets. 
+
+## F. Additional Evaluation Results 
+
+In Tab. 10, we report results for the five most frequent cat-egories (Table, Chair, Airplane, Car, and Sofa) and the five least frequent categories (Birdhouse, Bag, Remote, Key-board, and Rocket), along with the average CD ℓ2 and F1-Score. These metrics are compared against the baselines 5Table 9. Ablation study on query-based seed generation with partial points and spherical points as initialization (P/S-Q Dec.) on PFS.           
+
+> Method CD ℓ2(↓)F1 ( ↑)F0.5 ( ↑)P-Q Dec. 0.17 0.847 0.327 S-Q Dec. 0.16 0.834 0.311
+
+under three levels of incompleteness. In Tab. 11, we further provide categorical results for all 55 categories on ShapeNet-55 and ShapeNet-Deform. In Tab. 12, we present results on the 22 unseen categories from ShapeNet-34. Finally, in Tab. 13, we report detailed comparisons with baselines across the three difficulty levels of ShapeNetCar-Occ. 
+
+## G. Qualitative Samples 
+
+We provide additional qualitative results for PQDT on ShapeNet-Deform in Fig. 11, ShapeNetCar-Occ in Fig. 12, and PFS in Fig. 13. 
+
+## References 
+
+[1] Yoshua Bengio, Nicholas L ´eonard, and Aaron Courville. Es-timating or propagating gradients through stochastic neurons for conditional computation. arXiv preprint arXiv:1308.3432 ,2013. 5, 2 [2] Matthew Berger, Andrea Tagliasacchi, Lee Seversky, Pierre Alliez, Joshua Levine, Andrei Sharf, and Cl ´audio Silva. State of the art in surface reconstruction from point clouds. Euro-graphics 2014-State of the Art Reports , 2014. 2 [3] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transformers. In ECCV , pages 213–229, 2020. 3, 2 [4] Zhikai Chen, Fuchen Long, Zhaofan Qiu, Ting Yao, Wen-gang Zhou, Jiebo Luo, and Tao Mei. Anchorformer: Point cloud completion from discriminative nodes. In CVPR , pages 13581–13590, 2023. 2, 4, 6, 7, 3, 9 [5] Angela Dai, Charles Ruizhongtai Qi, and Matthias Nießner. Shape completion using 3d-encoder-predictor cnns and shape synthesis. In CVPR , pages 5868–5877, 2017. 2 [6] Dasith de Silva Edirimuni, Xuequan Lu, Zhiwen Shao, Gang Li, Antonio Robles-Kelly, and Ying He. Iterativepfn: True iterative point cloud filtering. In CVPR , pages 13530–13539, 2023. 2 [7] Yi Du, Zhipeng Zhao, Shaoshu Su, Sharath Golluri, Haoze Zheng, Runmao Yao, and Chen Wang. Superpc: a single diffusion model for point cloud completion, upsampling, de-noising, and colorization. In CVPR , pages 16953–16964, 2025. 2, 3, 7 [8] Fan Duan, Jiahao Yu, and Li Chen. T-corresnet: template guided 3d point cloud completion with correspondence pool-ing query generation strategy. In ECCV , pages 90–106, 2024. 2, 6, 7 [9] Haoqiang Fan, Hao Su, and Leonidas J Guibas. A point set generation network for 3d object reconstruction from a single image. In CVPR , pages 605–613, 2017. 5, 2 [10] Shachar Fleishman, Daniel Cohen-Or, and Cl ´audio T Silva. Robust moving least-squares fitting with sharp features. ACM TOG , 24(3):544–552, 2005. 2 [11] Bingchen Gong, Yinyu Nie, Yiqun Lin, Xiaoguang Han, and Yizhou Yu. Me-pcn: Point completion conditioned on mask emptiness. In ICCV , pages 12488–12497, 2021. 2 [12] Thibault Groueix, Matthew Fisher, Vladimir G Kim, Bryan C Russell, and Mathieu Aubry. 3d-coded: 3d correspondences by deep deformation. In ECCV , pages 230–246, 2018. 3 [13] SKH Group. Body in white (biw). https : / / www.skhgroup.co.in/our-products/body-in-white-biw . Accessed: Nov. 2025. 4 [14] Xiaoguang Han, Zhen Li, Haibin Huang, Evangelos Kaloger-akis, and Yizhou Yu. High-resolution shape completion using deep neural networks for global structure and local geometry inference. In ICCV , pages 85–93, 2017. 2 [15] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising dif-fusion probabilistic models. In NeurIPS , pages 6840–6851, 2020. 3 [16] Tao Hu, Zhizhong Han, Abhinav Shrivastava, and Matthias Zwicker. Render4completion: Synthesizing multi-view depth maps for 3d shape completion. In ICCVW , 2019. 2 [17] Wei Hu, Zeqing Fu, and Zongming Guo. Local frequency interpretation and non-local self-similarity on graph for point cloud inpainting. IEEE TIP , 28(8):4087–4100, 2019. 2 [18] Wei Hu, Xiang Gao, Gene Cheung, and Zongming Guo. Fea-ture graph learning for 3d point cloud denoising. IEEE TSP ,68:2841–2856, 2020. 2 [19] Tianxin Huang, Hao Zou, Jinhao Cui, Xuemeng Yang, Meng-meng Wang, Xiangrui Zhao, Jiangning Zhang, Yi Yuan, Yifan Xu, and Yong Liu. Rfnet: Recurrent forward network for dense point cloud completion. In ICCV , pages 12508–12517, 2021. 2 [20] Zitian Huang, Yikuan Yu, Jiawen Xu, Feng Ni, and Xinyi Le. Pf-net: Point fractal network for 3d point cloud completion. In CVPR , pages 7662–7670, 2020. 1, 2 [21] Yoni Kasten, Ohad Rahamim, and Gal Chechik. Point cloud completion with pretrained text-to-image diffusion models. In NeurIPS , pages 12171–12191, 2023. 2 [22] Vladimir G Kim, Wilmot Li, Niloy J Mitra, Siddhartha Chaud-huri, Stephen DiVerdi, and Thomas Funkhouser. Learning part-based templates from large collections of 3d shapes. 
+
+ACM TOG , 32(4):1–12, 2013. 2 [23] Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. In ICLR , 2015. 1 [24] Lingdong Kong, Youquan Liu, Xin Li, Runnan Chen, Wenwei Zhang, Jiawei Ren, Liang Pan, Kai Chen, and Ziwei Liu. Robo3d: Towards robust and reliable 3d perception against corruptions. In ICCV , pages 19994–20006, 2023. 2 [25] Wouter Kool, Herke Van Hoof, and Max Welling. Stochastic beams and where to find them: The gumbel-top-k trick for sampling sequences without replacement. In ICML , pages 3499–3508, 2019. 5 [26] Ares Lagae, Sylvain Lefebvre, George Drettakis, and Philip Dutr ´e. Procedural noise using sparse gabor convolution. ACM SIGGRAPH , 28(3):54–64, 2009. 6, 3 
+
+6Table 10. Results of our method and state-of-the-art methods on ShapeNet-55. We report the detailed results for each method on 10 categories and the overall results on 55 categories for three difficulty degrees. We use CD-S, CD-M and CD-H to represent the CD results under the Simple, Moderate and Hard settings. We also provide results under the F-Score@1% metric.                                                                                                                                                                                            
+
+> Method Tab. Cha. Pla. Car Sof. Bir. Bag Rem. Key. Roc. CD-S CD-M CD-H CD ℓ2(↓)F1 ( ↑)FoldingNet [65] 2.53 2.81 1.43 1.98 2.48 4.71 2.79 1.44 1.24 1.48 2.67 2.66 4.05 3.12 0.082 PCN [69] 2.13 2.29 1.02 1.85 2.06 4.50 2.86 1.32 0.89 1.32 1.94 1.96 4.08 2.66 0.133 GRNet [61] 1.63 1.88 1.02 1.62 1.72 2.97 2.06 1.09 0.89 1.03 1.35 1.71 2.85 1.97 0.238 PoinTr [67] 0.81 0.95 0.44 0.91 0.79 1.86 0.93 0.53 0.38 0.57 0.58 0.88 1.79 1.09 0.464 SnowflakeNet [60] 0.98 1.12 0.54 0.98 1.02 1.93 1.08 0.57 0.48 0.61 0.70 1.06 1.96 1.24 0.398 SeedFormer [75] 0.72 0.81 0.40 0.89 0.71 1.51 0.79 0.46 0.36 0.50 0.50 0.77 1.49 0.92 0.472 AdaPoinTr [68] 0.62 0.69 0.33 0.81 0.63 1.33 0.68 0.38 0.33 0.34 0.49 0.69 1.24 0.81 0.503 ProxyFormer [28] 0.70 0.83 0.34 0.78 0.69 1.57 0.79 0.36 0.34 0.46 0.49 0.75 1.55 0.93 0.483 T-CorresNet [8] 0.60 0.68 0.32 --1.17 0.60 -0.27 -0.50 0.68 1.23 0.80 0.485 AnchorFormer [4] 0.58 0.67 0.33 0.69 0.58 1.35 0.64 0.36 0.27 0.42 0.41 0.61 1.26 0.76 0.558
+> PQDT 0.52 0.60 0.32 0.65 0.51 1.13 0.60 0.31 0.24 0.41 0.34 0.55 1.13 0.68 0.570 Input PCN SeedFormer AdaPoinTr AnchorFormer PQDT Ground Truth
+
+Figure 11. Qualitative evaluation on ShapeNet-Deform [27] M. Levoy. Display of surfaces from volume data. IEEE Computer Graphics and Applications , 8(3):29–37, 1988. 6 [28] Shanshan Li, Pan Gao, Xiaoyang Tan, and Mingqiang Wei. Proxyformer: Proxy alignment assisted point cloud comple-tion with missing part sensitive transformer. In CVPR , pages 9466–9475, 2023. 2, 4, 6, 7 [29] Yangyan Li, Angela Dai, Leonidas Guibas, and Matthias Nießner. Database-assisted object retrieval for real-time 3d reconstruction. In CGF , pages 435–446, 2015. 2 [30] Ilya Loshchilov and Frank Hutter. SGDR: stochastic gradient descent with warm restarts. In ICLR , 2017. 1 [31] Shitong Luo and Wei Hu. Diffusion probabilistic models for 3d point cloud generation. In CVPR , pages 2837–2845, 2021. 3[32] Aihua Mao, Zihui Du, Yu-Hui Wen, Jun Xuan, and Yong-Jin Liu. Pd-flow: A point cloud denoising framework with normalizing flows. In ECCV , pages 398–415, 2022. 2 [33] Aihua Mao, Biao Yan, Zijing Ma, and Ying He. Denoising point clouds in latent space via graph convolution and in-vertible neural network. In CVPR , pages 5768–5777, 2024. 2[34] Niloy Mitra, Mark Pauly, Michael Wand, and Duygu Ceylan. Symmetry in 3d geometry: Extraction and applications. CGF ,32(6), 2013. 2 [35] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, et al. Pytorch: An imperative style, high-performance deep learning library. In 
+
+NeurIPS , 2019. 1 [36] Mark Pauly, Niloy J Mitra, Joachim Giesen, Markus H Gross, 
+
+7Table 11. Categorical results of our method on ShapeNet-55 and ShapeNet-Deform. We report the detailed results under CD ℓ2 and F-Score@1% metric for Simple, Moderate and Hard settings. 
+
+Category 
+
+ShapeNet-55 ShapeNet-Deform 
+
+Simple Moderate Hard Simple Moderate Hard CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑)airplane 0.18 0.765 0.26 0.743 0.51 0.627 0.36 0.519 0.45 0.498 0.70 0.433 trash bin 0.49 0.472 0.77 0.461 1.48 0.413 0.83 0.159 1.09 0.151 2.13 0.126 bag 0.32 0.590 0.52 0.576 0.95 0.492 0.63 0.270 0.82 0.252 1.30 0.210 basket 0.46 0.503 0.56 0.491 1.10 0.434 0.76 0.193 0.87 0.180 1.68 0.146 bathtub 0.37 0.549 0.58 0.533 1.07 0.467 0.69 0.237 0.89 0.219 1.48 0.177 bed 0.42 0.544 0.65 0.532 1.35 0.466 0.78 0.226 1.01 0.207 1.79 0.174 bench 0.22 0.651 0.32 0.653 0.65 0.587 0.42 0.399 0.50 0.372 0.86 0.324 birdhouse 0.55 0.517 0.94 0.500 1.90 0.433 0.98 0.177 1.37 0.164 2.60 0.141 bookshelf 0.40 0.519 0.62 0.509 1.22 0.447 0.71 0.222 0.92 0.210 1.59 0.181 bottle 0.22 0.650 0.47 0.615 0.98 0.507 0.47 0.365 0.75 0.331 1.41 0.246 bowl 0.39 0.502 0.46 0.493 0.85 0.433 0.63 0.195 0.73 0.179 1.18 0.151 bus 0.28 0.588 0.40 0.584 0.58 0.533 0.54 0.321 0.64 0.299 0.85 0.245 cabinet 0.38 0.499 0.47 0.495 0.80 0.454 0.64 0.209 0.73 0.199 1.05 0.175 camera 0.56 0.523 1.26 0.504 2.63 0.430 1.09 0.171 1.76 0.164 3.39 0.140 can 0.38 0.515 0.69 0.501 1.48 0.439 0.65 0.248 1.00 0.235 2.30 0.195 cap 0.33 0.572 0.32 0.554 0.67 0.460 0.47 0.281 0.59 0.252 1.00 0.210 car 0.42 0.489 0.62 0.475 0.93 0.424 0.89 0.142 1.01 0.137 1.28 0.123 cellphone 0.21 0.626 0.26 0.620 0.37 0.556 0.36 0.431 0.41 0.416 0.56 0.339 chair 0.28 0.610 0.47 0.591 1.06 0.492 0.57 0.291 0.78 0.263 1.41 0.226 clock 0.37 0.559 0.56 0.547 1.05 0.484 0.64 0.280 0.79 0.267 1.34 0.227 keyboard 0.18 0.650 0.24 0.657 0.31 0.596 0.36 0.445 0.42 0.408 0.60 0.374 dishwasher 0.38 0.503 0.47 0.500 1.03 0.450 0.63 0.223 0.75 0.205 1.39 0.180 display 0.27 0.583 0.43 0.579 0.84 0.518 0.51 0.317 0.65 0.295 1.11 0.260 earphone 0.45 0.600 0.77 0.560 2.00 0.445 0.95 0.225 1.17 0.216 3.06 0.186 faucet 0.38 0.734 0.82 0.658 1.94 0.483 0.71 0.391 1.14 0.353 2.52 0.276 file cabinet 0.42 0.502 0.54 0.498 1.14 0.448 0.71 0.209 0.86 0.201 1.54 0.176 guitar 0.09 0.929 0.14 0.880 0.25 0.794 0.19 0.793 0.25 0.775 0.37 0.715 helmet 0.59 0.501 1.17 0.480 2.92 0.410 1.13 0.141 1.70 0.128 3.38 0.107 jar 0.44 0.537 0.79 0.512 1.79 0.433 0.81 0.211 1.20 0.193 2.51 0.156 knife 0.10 0.926 0.21 0.832 0.36 0.700 0.24 0.766 0.33 0.724 0.51 0.644 lamp 0.31 0.767 0.81 0.700 2.06 0.554 0.64 0.443 1.17 0.406 2.88 0.339 laptop 0.21 0.601 0.24 0.599 0.39 0.534 0.37 0.371 0.41 0.349 0.57 0.304 loudspeaker 0.46 0.519 0.74 0.509 1.42 0.451 0.82 0.217 1.09 0.201 1.82 0.171 mailbox 0.19 0.758 0.47 0.703 1.72 0.548 0.45 0.463 0.82 0.404 2.28 0.334 microphone 0.39 0.790 0.93 0.707 2.32 0.546 0.65 0.482 1.24 0.423 3.58 0.331 microwaves 0.42 0.503 0.54 0.500 1.21 0.455 0.71 0.208 0.90 0.183 1.54 0.165 motorbike 0.45 0.535 0.72 0.513 1.16 0.418 0.97 0.178 1.14 0.176 1.46 0.158 mug 0.54 0.473 0.74 0.462 1.53 0.413 0.85 0.165 1.08 0.155 2.08 0.127 piano 0.44 0.543 0.59 0.540 1.19 0.484 0.73 0.249 0.91 0.230 1.45 0.190 pillow 0.35 0.573 0.50 0.543 0.97 0.448 0.72 0.206 0.87 0.183 1.38 0.143 pistol 0.26 0.701 0.42 0.657 0.70 0.528 0.53 0.394 0.66 0.380 0.93 0.339 flowerpot 0.59 0.522 0.91 0.501 1.74 0.427 1.06 0.179 1.33 0.167 2.28 0.141 printer 0.42 0.533 0.75 0.522 1.61 0.455 0.84 0.200 1.19 0.187 2.21 0.161 remote 0.19 0.666 0.31 0.651 0.44 0.564 0.39 0.452 0.50 0.437 0.69 0.336 rifle 0.19 0.855 0.31 0.787 0.54 0.669 0.37 0.639 0.51 0.610 0.75 0.548 rocket 0.14 0.862 0.37 0.789 0.72 0.687 0.35 0.611 0.61 0.556 1.00 0.474 skateboard 0.16 0.737 0.28 0.714 0.46 0.625 0.33 0.504 0.41 0.479 0.56 0.409 sofa 0.34 0.544 0.45 0.539 0.75 0.489 0.66 0.236 0.74 0.218 1.09 0.182 stove 0.41 0.544 0.63 0.531 1.18 0.465 0.73 0.234 0.97 0.217 1.55 0.191 table 0.29 0.604 0.41 0.601 0.86 0.542 0.49 0.356 0.61 0.336 1.11 0.286 telephone 0.21 0.625 0.26 0.623 0.39 0.562 0.36 0.436 0.42 0.425 0.57 0.352 tower 0.31 0.663 0.58 0.617 1.22 0.491 0.62 0.364 0.92 0.331 1.87 0.258 train 0.31 0.617 0.46 0.607 0.76 0.533 0.61 0.317 0.76 0.303 1.10 0.253 watercraft 0.24 0.717 0.42 0.678 0.72 0.566 0.55 0.376 0.72 0.345 1.08 0.283 washer 0.44 0.494 0.62 0.487 1.70 0.440 0.79 0.197 1.00 0.179 1.88 0.158 mean 0.34 0.608 0.55 0.586 1.13 0.505 0.63 0.319 0.85 0.298 1.54 0.253 
+
+8Input  PCN  SeedFormer  AdaPoinTr  AnchorFormer  PQDT  Ground Truth Figure 12. Qualitative evaluation on ShapeNetCar-Occ. Red boxes indicate occluding objects. Table 12. Categorical results of our method on 22 unseen objects of ShapeNet-34. We report the detailed results under CD ℓ2 and F-Score@1% metric for Simple, Moderate and Hard settings. 
+
+Category 
+
+ShapeNet-34 
+
+Simple Moderate Hard CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑) CD ℓ2 (↓) F1 ( ↑)bag 0.37 0.579 0.61 0.568 1.12 0.485 basket 0.41 0.516 0.60 0.505 1.50 0.438 birdhouse 0.54 0.545 0.91 0.527 1.90 0.452 bowl 0.42 0.499 0.53 0.488 1.11 0.426 camera 0.62 0.528 1.30 0.507 2.98 0.432 can 0.38 0.508 0.61 0.496 1.23 0.436 cap 0.33 0.569 0.94 0.532 3.66 0.426 keyboard 0.22 0.631 0.27 0.634 0.38 0.576 dishwasher 0.42 0.495 0.55 0.491 1.13 0.443 earphone 0.56 0.604 1.48 0.555 4.83 0.437 helmet 0.69 0.494 1.76 0.471 4.21 0.402 mailbox 0.32 0.721 0.67 0.670 1.64 0.531 microphone 0.53 0.803 1.16 0.723 3.04 0.551 microwaves 0.44 0.495 0.58 0.492 1.23 0.447 pillow 0.32 0.581 0.49 0.552 1.08 0.455 printer 0.47 0.522 0.83 0.512 1.91 0.449 remote 0.19 0.670 0.30 0.660 0.42 0.583 rocket 0.20 0.854 0.41 0.779 0.83 0.652 skateboard 0.21 0.724 0.49 0.683 0.84 0.535 tower 0.34 0.655 0.66 0.612 1.47 0.488 washer 0.43 0.497 0.61 0.491 1.54 0.443 mean 0.40 0.595 0.75 0.569 1.81 0.480 
+
+and Leonidas J Guibas. Example-based 3d scan completion. In SGP , page 32, 2005. 2 [37] Francesca Pistilli, Giulia Fracastoro, Diego Valsesia, and Enrico Magli. Learning graph-convolutional representations Table 13. Results of our method and state-of-the-art methods on ShapeNetCar-Occ. We report the detailed results for each method on Car category for three difficulty degrees. We use CD-S, CD-M and CD-H to represent the CD results under the Simple, Moderate and Hard settings. We also provide results under the F-Score@1% metric. 
+
+Method CD-S CD-M CD-H CD ℓ2 (↓) F1 ( ↑)PCN [69] 1.41 1.41 1.43 1.42 0.125 PoinTr [67] 1.06 1.07 1.07 1.07 0.191 SnowflakeNet [60] 0.93 0.94 0.96 0.94 0.22 SeedFormer [75] 0.95 0.97 0.99 0.97 0.231 AdaPoinTr [68] 0.84 0.84 0.86 0.85 0.251 
+
+AnchorFormer [4] 0.92 0.93 0.95 0.93 0.225 
+
+PQDT 0.81 0.82 0.82 0.82 0.261 
+
+for point cloud denoising. In ECCV , pages 103–118, 2020. 2 [38] Charles R Qi, Hao Su, Kaichun Mo, and Leonidas J Guibas. Pointnet: Deep learning on point sets for 3d classification and segmentation. In CVPR , pages 652–660, 2017. 1, 2 [39] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J Guibas. Pointnet++: Deep hierarchical feature learning on point sets in a metric space. In NeurIPS , 2017. 1, 2, 4 [40] Zheng Qin, Hao Yu, Changjian Wang, Yulan Guo, Yuxing Peng, Slobodan Ilic, Dewen Hu, and Kai Xu. Geotransformer: Fast and robust point cloud registration with geometric trans-former. IEEE TPAMI , 45(8):9806–9821, 2023. 4, 1 [41] Marie-Julie Rakotosaona, Vittorio La Barbera, Paul Guerrero, Niloy J Mitra, and Maks Ovsjanikov. Pointcleannet: Learning to denoise and remove outliers from dense point clouds. In 
+
+CGF , pages 185–203, 2020. 2 [42] Kripasindhu Sarkar, Kiran Varanasi, and Didier Stricker. 
+
+9(a)  (b)  (c)  (d) 
+
+> Input
+> Output
+> AdaPoinTr
+> P2S
+> AdaPoinTr
+> Output
+> AnchorFormer
+> P2S
+> AnchorFormer
+> Output
+> PQDT
+> P2S
+> PQDT
+> Ground
+> Truth
+> Output
+> SnowflakeNet
+> P2S
+> SnowflakeNet
+> Output
+> SeedFormer
+> P2S
+> SeedFormer
+> 0%
+> 2%
+
+Figure 13. Qualitative evaluation on PFS. Colors indicate the point-to-surface (P2S) distance between the generated point clouds and the ground-truth mesh, with the maximum value (red) clamped to 2% of the radius of the object’s bounding sphere. Examples (a)–(d) show BiW patches containing local construction features such as reinforcement or mounting regions, comparing our method against baseline approaches. Learning quadrangulated patches for 3d shape parameteri-zation and completion. In 3DV , pages 383–392, 2017. 2 [43] David Stutz and Andreas Geiger. Learning 3d shape comple-tion from laser scan data with weak supervision. In CVPR ,pages 1955–1964, 2018. 2 [44] Minhyuk Sung, Vladimir G Kim, Roland Angst, and Leonidas Guibas. Data-driven structural priors for shape completion. 
+
+ACM TOG , 34(6):1–11, 2015. 2 [45] Maxim Tatarchenko, Stephan R Richter, Ren ´e Ranftl, Zhuwen Li, Vladlen Koltun, and Thomas Brox. What do single-view 3d reconstruction networks learn? In CVPR , pages 3405– 3414, 2019. 6, 2 [46] Lyne P. Tchapmi, Vineet Kosaraju, Hamid Rezatofighi, Ian Reid, and Silvio Savarese. Topnet: Structural point cloud decoder. In CVPR , pages 383–392, 2019. 2 [47] Mikaela Angelina Uy, Jingwei Huang, Minhyuk Sung, Tolga Birdal, and Leonidas Guibas. Deformation-aware 3d model embedding and retrieval. In ECCV , pages 397–413, 2020. 3 [48] Mikaela Angelina Uy, Vladimir G Kim, Minhyuk Sung, Noam Aigerman, Siddhartha Chaudhuri, and Leonidas J Guibas. Joint learning of 3d shape retrieval and deforma-tion. In CVPR , pages 11713–11722, 2021. 3 [49] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-reit, Llion Jones, Aidan N Gomez, Ł ukasz Kaiser, and Illia Polosukhin. Attention is all you need. In NeurIPS , page 6000–6010, 2017. 1 [50] Weiyue Wang, Duygu Ceylan, Radomir Mech, and Ulrich Neumann. 3dn: 3d deformation network. In CVPR , pages 1038–1046, 2019. 3 [51] Xiaogang Wang, Marcelo H Ang Jr, and Gim Hee Lee. Cas-caded refinement network for point cloud completion. In 
+
+CVPR , pages 790–799, 2020. 2 [52] Yue Wang, Yongbin Sun, Ziwei Liu, Sanjay E Sarma, Michael M Bronstein, and Justin M Solomon. Dynamic graph cnn for learning on point clouds. ACM TOG , 38(5): 1–12, 2019. 4, 1 [53] Guangshun Wei, Yuan Feng, Long Ma, Chen Wang, Yuanfeng Zhou, and Changjian Li. Pcdreamer: Point cloud completion through multi-view diffusion priors. In CVPR , pages 27243– 27253, 2025. 5, 7 [54] Xin Wen, Tianyang Li, Zhizhong Han, and Yu-Shen Liu. Point cloud completion by skip-attention network with hi-erarchical folding. In CVPR , pages 1939–1948, 2020. 1, 2[55] Ronald J Williams. Simple statistical gradient-following al-gorithms for connectionist reinforcement learning. Machine learning , 8(3):229–256, 1992. 2 [56] Lintai Wu, Qijian Zhang, Junhui Hou, and Yong Xu. Lever-aging single-view images for unsupervised 3d point cloud completion. IEEE TMM , 27:940–953, 2023. 2 [57] Xiaoyang Wu, Yixing Lao, Li Jiang, Xihui Liu, and Heng-shuang Zhao. Point transformer v2: Grouped vector attention and partition-based pooling. In NeurIPS , 2022. 1 [58] Xiaoyang Wu, Li Jiang, Peng-Shuai Wang, Zhijian Liu, Xihui Liu, Yu Qiao, Wanli Ouyang, Tong He, and Hengshuang Zhao. Point transformer v3: Simpler, faster, stronger. In 
+
+CVPR , 2024. 1 
+
+10 [59] Zhirong Wu, Shuran Song, Aditya Khosla, Fisher Yu, Lin-guang Zhang, Xiaoou Tang, and Jianxiong Xiao. 3d shapenets: A deep representation for volumetric shapes. In CVPR , pages 1912–1920, 2015. 5 [60] Peng Xiang, Xin Wen, Yu-Shen Liu, Yan-Pei Cao, Pengfei Wan, Wen Zheng, and Zhizhong Han. Snowflakenet: Point cloud completion by snowflake point deconvolution with skip-transformer. In ICCV , pages 5499–5509, 2021. 1, 2, 5, 6, 7, 9[61] Haozhe Xie, Hongxun Yao, Shangchen Zhou, Jiageng Mao, Shengping Zhang, and Wenxiu Sun. Grnet: Gridding residual network for dense point cloud completion. In ECCV , pages 365–381, 2020. 2, 6, 4, 7 [62] Sang Michael Xie and Stefano Ermon. Reparameterizable subset sampling via continuous relaxations. In IJCAI , page 3919–3925, 2019. 5 [63] Hang Xu, Chen Long, Wenxiao Zhang, Yuan Liu, Zhen Cao, Zhen Dong, and Bisheng Yang. Explicitly guided information interaction network for cross-modal point cloud completion. In ECCV , pages 414–432, 2024. 2 [64] Bo Yang, Hongkai Wen, Sen Wang, Ronald Clark, Andrew Markham, and Niki Trigoni. 3d object reconstruction from a single depth view with adversarial learning. In ICCVW , pages 679–688, 2017. 2 [65] Yaoqing Yang, Chen Feng, Yiru Shen, and Dong Tian. Fold-ingnet: Point cloud auto-encoder via deep grid deformation. In CVPR , pages 206–215, 2018. 5, 6, 4, 7 [66] Hao Yu, Zheng Qin, Ji Hou, Mahdi Saleh, Dongsheng Li, Benjamin Busam, and Slobodan Ilic. Rotation-invariant trans-former for point cloud matching. In CVPR , pages 5384–5393, 2023. 4, 5 [67] Xumin Yu, Yongming Rao, Ziyi Wang, Zuyan Liu, Jiwen Lu, and Jie Zhou. Pointr: Diverse point cloud completion with geometry-aware transformers. In CVPR , pages 12498–12507, 2021. 2, 3, 4, 5, 6, 7, 9 [68] Xumin Yu, Yongming Rao, Ziyi Wang, Jiwen Lu, and Jie Zhou. Adapointr: Diverse point cloud completion with adap-tive geometry-aware transformers. IEEE TPAMI , 45(12): 14114–14130, 2023. 2, 3, 5, 6, 7, 4, 9 [69] Wentao Yuan, Tejas Khot, David Held, Christoph Mertz, and Martial Hebert. Pcn: Point completion network. In 3DV ,pages 728–737, 2018. 1, 2, 5, 6, 7, 4, 9 [70] Feng Zhang, Chao Zhang, Huamin Yang, and Lin Zhao. Point cloud denoising with principal component analysis and a novel bilateral filter. Traitement du signal , 36:393–398, 2019. 2[71] Xuancheng Zhang, Yutong Feng, Siqi Li, Changqing Zou, Hai Wan, Xibin Zhao, Yandong Guo, and Yue Gao. View-guided point cloud completion. In CVPR , pages 15890–15899, 2021. 2[72] Hengshuang Zhao, Li Jiang, Jiaya Jia, Philip HS Torr, and Vladlen Koltun. Point transformer. In ICCV , pages 16259– 16268, 2021. 1, 2, 4 [73] Yinglong Zheng, Guiqing Li, Xuemiao Xu, Shihao Wu, and Yongwei Nie. Rolling normal filtering for point clouds. 
+
+CAGD , 62(C):16–28, 2018. 2 [74] Feng Zhou, Qi Zhang, Ju Dai, Lei Li, Qing Fan, and Junliang Xing. Position-aware guided point cloud completion with clip model. In AAAI , pages 10734–10742, 2025. 2 [75] Haoran Zhou, Yun Cao, Wenqing Chu, Junwei Zhu, Tong Lu, Ying Tai, and Chengjie Wang. Seedformer: Patch seeds based point cloud completion with upsample transformer. In ECCV ,pages 416–432, 2022. 2, 4, 5, 6, 7, 3, 9 [76] Qian-Yi Zhou, Jaesik Park, and Vladlen Koltun. Open3d: A modern library for 3d data processing. arXiv preprint arXiv:1801.09847 , 2018. 6 [77] Zhe Zhu, Honghua Chen, Xing He, Weiming Wang, Jing Qin, and Mingqiang Wei. Svdformer: Complementing point cloud via self-view augmentation and self-structure dual-generator. In ICCV , pages 14508–14518, 2023. 2 
+
+11

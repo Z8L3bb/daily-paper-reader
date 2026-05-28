@@ -1,0 +1,467 @@
+Title: 2605.24777v1.pdf
+
+URL Source: https://arxiv.org/pdf/2605.24777v1
+
+Published Time: Tue, 26 May 2026 00:58:18 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+1
+
+# MR-LiDAR: A Multi-Resolution Roadside LiDAR Benchmark for Perception Diagnostics and Deployment Guidance 
+
+Shunlai Cui, Peng Cao, Yuan Zhu, Yongjiang He, Jiacheng Yin, Xiao Huo, Gang Cao, and Xiaobo Liu 
+
+Abstract —LiDAR model selection is a critical issue in roadside sensing systems, as it directly determines both perception capability and deployment cost. However, the lack of empirical benchmarks for comparing perception performance across different LiDAR configurations has greatly constrained scientific sensor selection and deployment planning. To address this gap, we present MR-LiDAR, a controlled multi-resolution LiDAR benchmark for roadside perception diagnostics. Using 16-, 32-, 80-, and 128-beam LiDARs in identical roadside scenarios, we collect point clouds and ground-truth annotations for diverse traffic participants, including vehicles and vulnerable road users (VRUs), across varying distances. This controlled design isolates intrinsic LiDAR specifications, particularly beam count and beam distribution, as the key variables for precise performance diagnostics. Based on MR-LiDAR, we conduct systematic empirical analyses to examine how beam count, beam distribution, target distance, object category, and vehicle occlusion affect LiDAR perception performance. The results reveal that all of these factors have substantial impacts. In particular, contrary to the common assumption that higher beam counts always yield better perception, we show that an 80-beam LiDAR with optimized beam distribution can match or even outperform a 128-beam LiDAR with uniform beam distribution. In addition, we provide apractical reference guide for LiDAR selection, including target point-count statistics and detection performance comparisons based on two widely used detection algorithms. This work offers a diagnostic benchmark and practical guidance for determining cost-effective LiDAR configurations in roadside perception applications. 
+
+Index Terms —LiDAR benchmark, perception diagnostics, sensor selection, beam distribution, vulnerable road users. 
+
+I. I NTRODUCTION 
+
+ITH the rapid deployment of Vehicle-to-Everything (V2X) infrastructure, roadside perception has become a critical component of cooperative autonomous driving [1]. As an advanced sensing technology, LiDAR has been increasingly adopted in traffic perception applications. By providing a global field of view, roadside LiDARs significantly extend the perception horizon beyond that of on-board LiDARs [2]. In practice, the large-scale 
+
+This work was supported by the National Natural Science Foundation of China under Grant No. 52572362 and the Fundamental Research Funds for the Central Universities No. 2682026CX060. ( Corresponding author: Peng Cao. )
+
+Shunlai Cui is with the School of Transportation and Logistics, Southwest Jiaotong University, Chengdu, 610031, China, and also with the Department of Electrical and Computer Engineering, Old Dominion University, Norfolk, VA, 23529, USA (e-mail: scui001@odu.edu). 
+
+Peng Cao, Xiao Huo, Gang Cao, and Xiaobo Liu are with the School of Transportation and Logistics, Southwest Jiaotong University, and also Intelligent Comprehensive Transportation Key Laboratory of Sichuan Province, Chengdu, 610031, China (e-mail:  caopeng@swjtu.edu.cn ;
+
+2232418237@my.swjtu.edu.cn ; cgandccy@my.swjtu.edu.cn ;
+
+xiaobo.liu@swjtu.cn ). 
+
+deployment of LiDARs involves a cost-performance trade-off in sensor selection. Since LiDAR detects objects by forming point clouds through laser scanning of object surfaces, its detection performance varies across LiDAR types, object categories, and target distances, as shown in Fig. 1. However, due to the lack of empirical benchmarks across different LiDAR configurations under diverse scenarios, engineers often use expensive high-beam LiDARs to ensure safety, or otherwise select sensors based on subjective experience. As a result, LiDARs may be selected inappropriately, leading to unnecessary deployment costs. Consequently, it is necessary to establish a real-world benchmark dataset for LiDAR selection in roadside perception applications. 
+
+Figure 1: Geometric Collapse and Degradation in Roadside Perception. 
+
+Yuan Zhu is with Dept. of Transportation Engineering, Transportation Institute, Inner Mongolia University, and also with the Inner Mongolia Engineering Research Center of Urban Transportation Data Science and Applications, Inner Mongolia University, Hohhot, 010020, China (e-mail: 
+
+zhuyuan@imu.edu.cn ). 
+
+Yongjiang He is with the School of Transportation and Logistics, Southwest Jiaotong University, Chengdu, 610031, China, and also with the Tangshan Institute, Southwest Jiaotong University, Tangshan, 063000, China (e-mail: yongjianghe@my.swjtu.edu.cn). 
+
+Jiacheng Yin is with the School of Automobile and Transportation, Xihua University, Chengdu, 610039, China (e-mail:  yinjiacheng@xhu.edu.cn ). 
+
+MR-LiDAR Benchmark is available at  https://github.com/ShunlaiC/MR-
+
+LiDAR-Benchmark .
+
+# W2
+
+Existing roadside LiDAR datasets, such as DAIR-V2X [3], Rope3D [4], and TUMTraf [5], are primarily designed for the development and evaluation of perception algorithms and are typically collected using a single LiDAR specification. This prevents LiDAR configuration from being treated as an independent experimental variable, thereby making it difficult to fairly compare the perception performance of different LiDAR types under identical conditions. As a result, these datasets provide limited support for principled LiDAR selection in real-world deployments. 
+
+To bridge this gap, we present the MR-LiDAR, a multi-resolution roadside LiDAR benchmark designed for perception diagnostics. Distinguished by a full-spectrum LiDAR hierarchy, MR-LiDAR includes four representative sensors (16-, 32-, 80-, and 128-beam) that span the spectrum from cost-sensitive to performance-oriented configurations. Furthermore, unlike existing datasets that primarily focus on motorized vehicles, MR-LiDAR explicitly accounts for the heterogeneity of traffic participants. It incorporates diverse object classes, including passenger cars, SUVs, and VRUs such as e-bikes and bicycles. This design enables systematic investigation of perception boundaries across heterogeneous traffic objects and different LiDAR tiers. 
+
+The main contributions of this work are summarized as follows: 
+
+1) We propose MR-LiDAR, a controlled benchmark dataset for LiDAR perception diagnostics, featuring LiDARs ranging from 16 to 128 beams and diverse object classes including vehicles and VRUs. It bridges a gap by enabling direct comparison of the perception limits of low-beam and high-beam LiDARs in identical roadside scenarios. 
+
+2) We conduct a series of empirical analyses to investigate how beam count, beam distribution, target distance, object category, and vehicle occlusion affect LiDAR perception performance. The results show that all of these factors play significant roles. Specifically, an 80-beam LiDAR with an optimized beam distribution can match or even outperform a 128-beam LiDAR with a uniform beam distribution. 
+
+3) We establish a practical reference guide for LiDAR selection in engineering applications, including a series of figures on target point counts and a comprehensive table of perception performance produced by two widely used detection algorithms under different LiDAR types, object categories, and target distances. 
+
+II. RELATED WORK 
+
+A. Roadside Perception Development & Benchmark Gaps 
+
+While foundational datasets like KITTI [6], nuScenes [7], and Waymo Open Dataset [8] have driven on-board perception, they are inherently constrained by occlusion-caused fragmentation and near-field bias [9] [10]. In this context, roadside-based perception mitigates data fragmentation by providing a fixed, global viewpoint, enabling continuous trajectory capturing [11]. Simulation-based roadside datasets like V2X-Sim [12] support collaborative perception research but suffer from the persistent sim-to-real domain gap [13]. Shifting to real-world data, large-scale benchmarks such as DAIR-V2X [3] and TUMTraf [5] have set new standards for environmental diversity and annotation volume. However, the rigid LiDAR configurations in these datasets make it impossible to conduct cross-tier LiDAR comparisons [14], thereby creating a blind spot in empirical guidance for selecting cost-effective LiDAR. 
+
+The absence of LiDAR diversity prevents systematic evaluation of how perception performance scales across sensor tiers. Consequently, the field lacks a benchmark to quantify performance degradation from low-beam to high-beam LiDARs, providing little empirical basis for minimal-sufficiency sensor selection. MR-LiDAR addresses this gap by introducing a full-spectrum LiDAR hierarchy, with beam count and distribution explicitly isolated as diagnostic variables. 
+
+B. LiDAR Perception Diagnostics 
+
+Existing perception datasets primarily serve algorithm evaluation, aiming to optimize detection performance on fixed LiDAR inputs [15]. In contrast, hardware diagnostics that evaluates how intrinsic LiDAR specifications dictate physical perception boundaries remains under-explored. Existing works such as LIBRE [14] have established a benchmark for comparative analysis on multi-brand LiDAR performance, encompassing range accuracy and point density. However, they primarily deploy LiDARs on ego-vehicle platforms to evaluate performance degradation against static, artificial targets (e.g., dummies or reflective boards). Complementing this, MR-LiDAR provides a finer-grained, roadside perspective. We isolate beam count and distribution as primary control variables, benchmarking LiDARs against dynamic traffic targets (e.g., vehicles and VRUs) rather than static reflective boards. By shifting the research focus to capturing the geometric details of dynamic traffic targets, MR-LiDAR establishes a rigorous diagnostic baseline for determining cost-effective roadside LiDAR infrastructure. 
+
+TABLE I
+
+COMPARISON OF MR-L IDAR WITH REPRESENTATIVE L IDAR D ATASETS                                                            
+
+> Dataset Year Viewpoint LiDAR Config Dynamic Targets Hardware Hierarchy Primary Focus
+> KITTI [6] 2012 Ego-Vehicle 1×64-beam Yes No On-board Algorithm Benchmarking
+> nuScenes [7] 2019 Ego-Vehicle 1×32-beam Yes No On-board Multimodal Fusion
+> LIBRE [14] 2020 Ego-Vehicle 10 Types No (Static) Yes Static Hardware Comparison
+> DAIR-V2X-I [3] 2022 Roadside 1×300-beam Yes No Cooperative Perception
+> TUMTraf [5] 2023 Roadside 1×64-beam Yes No Roadside Algorithm Benchmarking
+> Int2Sec [16] 2024 Roadside 2×80-beam Yes No Roadside Digital Twin
+> MR -LiDAR (Ours) 2026 Roadside 16/32/80/128 Yes Yes Dynamic Hardware Diagnostics
+
+3
+
+III. T HE MR-L IDAR BENCHMARK : D ESIGN AND STATISTICS 
+
+A. Experimental Design & Data Collection 
+
+To systematically investigate how different factors affect the perception capability of roadside LiDAR, we design acontrolled data collection experiment. By maintaining consistent environmental conditions while varying target variables, this setup enables the isolation of individual factors and allows for fair comparison of their impact on perception performance under identical conditions. Specifically, we consider LiDAR specification, object class, illumination condition, and occlusion. 
+
+To minimize the influence of road slope, curvature, and other potential environmental interference, we selected a 200-meter straight road segment on the campus of Southwest Jiaotong University for the experiments, as shown in Fig. 2. We employed four distinct LiDARs to establish the MR-LiDAR benchmark. As detailed in Table II, these sensors span from entry-level models (RS-LiDAR-16 and RS-Helios-1615) to high-end models (RS-Ruby-80V and RS-Ruby-Plus). To ensure identical viewing geometry, each LiDAR was mounted sequentially on the same standardized 1.5-meter bracket. 
+
+The perception objects include passenger car, SUV, e-bike, and bicycle. To ensure balanced coverage of both motorized vehicles and VRUs, we conducted repeated data acquisition trials for each object type under controlled conditions. During each trial, the target traversed a continuous trajectory from the western end (<-80m) of the road segment to the eastern end (>80m) at a controlled speed of 10 km/h. This low-speed setting yields a high frame density per meter, enabling fine-grained recording of the target’s geometric evolution throughout the entire traversal process. This is important because two-wheeled objects present greater perception challenges due to their smaller reflective surfaces. By capturing point clouds from these diverse object classes, the dataset provides a rigorous benchmark for fine-grained classification and small-object detection under sparse geometric observations. 
+
+In addition, the data collection experiments were conducted under different illumination conditions, including sunny daylight (28,256 Lux) and low-light nighttime (81 Lux), as well as under both occluded and non-occluded conditions. 
+
+For the occluded condition, we designed a dynamic occlusion scenario where the target vehicle travels behind a stationary obstacle vehicle located at x = 1.25 m, y = 5 m in the LiDAR coordinate system. This setup creates a full occlusion process, during which the target transitions from non-occluded to partially or fully occluded, and then reappears. Moreover, a Mavic 3 Pro drone was utilized to record aerial video following the collection configuration described in [17]. This bird’s eye view (BEV) footage provides ground-truth reference and facilitates precise annotation even when the target is completely invisible to the LiDAR. 
+
+TABLE II 
+
+DETAILED SPECIFICATIONS OF THE L IDAR H ARDWARE                       
+
+> LiDARs RS -
+> LiDAR-16
+> RS-Helios-1615
+> RS -Ruby -
+> 80V
+> RS -Ruby -
+> Plus
+> Number of
+> Beams 16 32 80 128
+> Beam Distribution
+> Horizontal FOV 360° 360° 360° 360°
+> Horizontal
+> Resolution 0.1°-0.4° 0.2°-0.4° 0.1°-0.4° 0.1°-0.4°
+> Vertical FOV ±15° -16°~+15° -25°~+0.2° -25°~+15°
+> Vertical
+> Resolution 2° 1° Up to 0.1° Up to 0.1°
+
+Figure 2: Controlled Experimental Setup and LiDAR Configuration. 
+
+B. Data Preprocessing and Labeling 
+
+To ensure the quality and reliability of the benchmark, we employed a model-assisted and human-refined annotation pipeline. Utilizing the SUSTechPOINTS [18] platform, we generated high-precision 3D bounding boxes as ground truth. 
+
+Initially, objects are detected using a pre-trained deep learning model within the annotation platform. This step generates preliminary 3D bounding boxes that provide coarse initialization for the target poses. 
+
+Unlike purely visual estimation, we strictly standardize bounding box dimensions based on the official manufacturer specifications of the test vehicles. This critical step eliminates the variance of human estimation and model prediction errors. Subsequently, annotators perform fine-grained adjustments to the center coordinates and yaw angle to precisely align the standardized box with the point cloud boundaries. 
+
+Finally, to annotate the target vehicle in occlusion scenarios, we integrated drone-captured aerial video as a visual reference. The aerial video allows annotators to verify the vehicle trajectory and refine the bounding box. Through this procedure, we extract accurate bounding box annotations together with their associated point clouds. 
+
+C. Data Structure 
+
+To facilitate the use of the collected dataset, we adopt a target-centric organization, in which each data sequence 4
+
+captures the complete trajectory of a single target. As illustrated in Fig. 3, the dataset is hierarchically structured according to 
+
+Illumination Condition, LiDAR Type, Object Class, and Sequence Index . This design allows researchers to isolate specific variables (e.g., comparing 16-beam and 128-beam sensors) under highly consistent target trajectories. 
+
+Each sequence contains four components: (1) the full-scene LiDAR point cloud (.pcd); (2) 3D bounding box annotations (.json); (3) pre-cropped target point clouds (vehicle_pcd), which isolate the object geometry to simplify density analysis without manual cropping; and (4) the corresponding drone-captured aerial video. 
+
+Figure 3: Data structure of the MR-LiDAR benchmark. 
+
+D. General Statistics 
+
+The MR-LiDAR benchmark contains 10,497 data frames, each annotated with a high-precision 3D bounding box. The dataset is organized into 32 controlled experimental sequences, each lasting approximately 60 seconds. Each sequence captures the complete approach-and-departure trajectory of a target. 
+
+Figure 4: Statistical Distribution of MR-LiDAR Benchmark. 
+
+Fig. 4(a) shows the distribution of data frames across different traffic participants. Passenger cars (52.0%) and SUVs (22.8%) constitute the motorized vehicle category, while VRUs, including e-bikes and bicycles, collectively account for 25.2% of the data. In addition, the dataset contains 5,454 vehicle frames, among which 2,612 involve occluded vehicles (denoted as Car-Occ), capturing the dynamic interactions between moving targets and stationary obstacles. 
+
+Fig. 4(b) shows the distribution of data frames between daytime and nighttime conditions. While daytime sequences constitute the majority (64.3%), a substantial portion of the dataset was collected at night (35.7%). The relatively smaller proportion of nighttime data is mainly due to practical constraints in experiments, including lower traffic availability and more limited data collection conditions at night. 
+
+Fig. 4(c) shows the distribution of valid data frames across different LiDARs. The high-beam LiDARs (80- and 128-beam) contribute 3,964 and 3,770 frames, respectively. In contrast, the lower-beam LiDARs (16- and 32-beam) yield comparatively fewer valid samples, with 1,145 and 1,618 frames, respectively. This disparity directly reflects the physical perception boundaries analyzed in Section IV-B. In particular, low-beam LiDARs are unable to preserve sufficient geometric detail at long ranges for reliable annotation. 
+
+Fig. 4(d) illustrates the distribution of data frames across different distance intervals for different LiDAR types. High-beam LiDARs (80- and 128-beam) maintain relatively consistent coverage across all distance ranges, whereas low-beam LiDARs (16- and 32-beam) exhibit a sharp decline in valid annotations beyond 20 m. 
+
+IV. L IDAR D IAGNOSTICS : POINT CLOUD A CQUISITION PERFORMANCE 
+
+A. Distance-Dependent Geometric Degradation 
+
+1) Comparison of LiDAR Types 
+
+Fig. 5(a) plots the number of LiDAR points on the passenger car at different distances for various LiDARs. In general, the object point count decays markedly with distance, which is consistent with the theoretical LiDAR performance model [19]. To quantify this effect, we define the effective perception range (EPR) as the maximum distance at which at least 40 points are retained on a target, an empirical threshold for reliable human and model-assisted recognition [5]. 
+
+Under this criterion, the 16-beam LiDAR is limited to an EPR of only about 20 m, whereas the 128-beam LiDAR extends beyond 80 m. This is because the 16- and 32-beam LiDARs suffer rapid geometric collapse with increasing distance, causing targets to degenerate into ambiguous point clusters with insufficient geometric detail, as shown in Fig. 5(c). 
+
+In contrast, the 80- and 128-beam LiDARs remain robust against increasing distance, maintaining usable geometric representations across the full measured range. Interestingly, the 80-beam LiDAR achieves performance nearly identical to that of the 128-beam LiDAR, and even yields a higher absolute point count on vehicle targets in the 40–60 m interval. This counterintuitive result can be attributed to the non-uniform beam distribution of the 80-beam LiDAR (Table II). By densely 5
+
+distributing beams within the downward angular range (-25° to 0°), the 80-beam LiDAR better matches the spatial distribution of road targets and thus improves sensing efficiency. Consequently, despite having 48 fewer beams than the 128-beam LiDAR, it preserves comparable geometric detail on objects. This result demonstrates that beam distribution design is as critical as beam count itself, consistent with the joint optimization findings in [20]. 
+
+Figure 5: Quantitative Evaluation of LiDAR Perception Performance across Distances and Object Classes. 
+
+2) Comparison of Object Classes 
+
+Fig. 5(b) shows the number of LiDAR points on different object classes at varying distances for the 128-beam LiDAR. For all object classes, point counts decrease with increasing distance, indicating that geometric degradation is governed not only by LiDAR type but also by target geometry. 
+
+Within the motorized vehicle category, SUVs consistently yield more LiDAR points than passenger cars, especially at medium and long ranges. This advantage is attributed to the larger exposed surface area and higher vertical profile of SUVs. 
+
+A more pronounced discrepancy appears between motorized vehicles and VRUs. Compared with cars and SUVs, bicycles and e-bikes generate substantially fewer LiDAR points across the entire measured range. Owing to their slender geometry and limited reflective surfaces, these two-wheeled targets suffer much more severe point cloud sparsity, making them inherently more difficult to represent reliably. Notably, the bike and e-bike curves are nearly overlapped, suggesting that their LiDAR sampling characteristics are highly similar. Quantitatively, the point count of a bicycle at approximately 20 m is only comparable to that of a passenger car or SUV at a much longer distance around 40 m, highlighting the intrinsic challenge of perceiving small road users in roadside sensing. 
+
+B. Fine-Grained Occlusion Quantification 
+
+Besides distance-induced degradation, occlusion represents another critical physical constraint that causes geometric information loss in point clouds. As illustrated in Fig. 6(a), the only difference between the non-occluded and occluded scenarios is whether an obstacle vehicle is present between the target vehicle and the LiDAR. Here, data from the non-occluded scenario are used as the baseline. Existing LiDAR datasets, however, lack a quantitative measure for characterizing occlusion effects. To address this gap, MR-LiDAR introduces a point-based occlusion metric, termed the Occlusion Ratio (𝑂𝑂 𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 ). Specifically, 𝑂𝑂 𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 is defined as the percentage of LiDAR points lost due to occlusion: 
+
+𝑂𝑂 𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 = max �0, 1 − 𝑁𝑁 𝑟𝑟 𝑜𝑜𝑜𝑜 𝑁𝑁 𝑟𝑟𝑟𝑟𝑟𝑟 �
+
+where 𝑁𝑁 𝑟𝑟 𝑜𝑜𝑜𝑜 denotes the measured point count in the occlusion scenario, and 𝑁𝑁 𝑟𝑟𝑟𝑟𝑟𝑟 denotes the point count retrieved from the non-occluded reference at the identical coordinate. 
+
+This metric quantifies geometric degradation rather than mere visual incompleteness. As depicted in Fig. 6(b), the distance-dependent point counts are plotted to illustrate the dynamic point loss caused by occlusion. The occluded target exhibits severe geometric collapse within the physical occlusion zone (approximately -30 m to -10 m), and the red shaded area indicates the corresponding 𝑂𝑂 𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 .
+
+Based on this point-level quantification, Fig. 6(c) reveals a heavy-tail characteristic in the dataset, with heavily occluded cases ( 𝑂𝑂 𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟𝑟 >70%) accounting for 53.1% of the partially occluded subset. Under such severe geometric information loss, targets often degrade into extremely sparse point cloud fragments. Rather than simply recording static blind-spot regions, this continuous distribution captures the full dynamic interaction process, from full visibility to severe occlusion and subsequent reappearance. It therefore provides a critical benchmark for evaluating perception robustness and trajectory consistency under occlusion. 6
+
+Figure 6: Fine-grained quantification and statistical distribution of the point-level Occlusion Ratio. 
+
+V. L IDAR D IAGNOSTICS : A LGORITHMIC PERCEPTION PERFORMANCE 
+
+Complementary to the physical data diagnostics in Section IV, this section evaluates LiDAR perception boundaries from the algorithmic perspective. 
+
+A. Experimental Setup 
+
+1) Baselines: To ensure that the observed performance differences primarily reflect the intrinsic geometric quality of the LiDAR data rather than biases introduced by a specific detection algorithm, we adopt two popular 3D object detection models: the anchor-free CenterPoint [15] and the classic anchor-based SECOND [21]. 
+
+2) Training: We implemented a sensor-specific training strategy, whereby separate models were trained for each LiDAR using the corresponding subsets from the MR-LiDAR training split. By eliminating domain gaps caused by sensor modalities, this approach can ensure that performance differences are solely attributable to the hardware specifications. Both detection models were implemented within the OpenPCDet framework and trained for 30 epochs. This training duration was empirically chosen to balance convergence and overfitting, given the dataset scale (10k frames) and the single-target annotation setting. We used the Adam OneCycle optimizer with a maximum learning rate of 0.003 and a weight decay of 0.01. Standard data augmentations were applied, including random flipping, global rotation, scaling, and ground-truth sampling to balance class distribution. 
+
+3) Evaluation: Because our experiments are not designed for object detection in real traffic scenes, standard mAP is not a suitable evaluation metric. Instead, we adopt a target-specific strategy using three complementary indicators. 
+
+• Recall measures the capability of discovering the target. We employ a distance-based Recall to isolate physical detection performance of the LiDAR, which consistent with trajectory reconstruction tasks [22]. It is defined as the percentage of annotated targets that are successfully detected: 
+
+𝑅𝑅𝑅𝑅𝑅𝑅𝑅𝑅𝑅𝑅𝑅𝑅 = 𝑁𝑁 𝑇𝑇𝑇𝑇 𝑁𝑁 𝐺𝐺 𝑇𝑇 
+
+× 100% 
+
+where 𝑁𝑁 𝑇𝑇𝑇𝑇 denotes the number of detected targets. A detection is a True Positive if the Euclidean distance between the predicted center  𝑅𝑅 𝑝𝑝 𝑟𝑟𝑟𝑟 𝑝𝑝 and ground truth center  𝑅𝑅 𝑔𝑔 𝑟𝑟  satisfies 
+
+�𝑅𝑅 𝑝𝑝 𝑟𝑟𝑟𝑟 𝑝𝑝 − 𝑅𝑅 𝑔𝑔 𝑟𝑟  � 2 < 𝜏𝜏 𝑝𝑝𝑟𝑟 𝑑𝑑 𝑟𝑟  with 𝜏𝜏 𝑝𝑝𝑟𝑟 𝑑𝑑 𝑟𝑟  = 2.0 𝑚𝑚 , 𝑁𝑁 𝐺𝐺 𝑇𝑇  denotes the number of annotated targets. 
+
+• Average IoU measures the geometric fidelity of the predicted bounding boxes: 
+
+𝐴𝐴𝐴𝐴𝐴𝐴𝐴𝐴𝐴𝐴𝐴𝐴 = 1
+
+𝑁𝑁 𝑇𝑇𝑇𝑇 � 𝐴𝐴𝐴𝐴𝐴𝐴 𝑟𝑟  
+
+> 𝑁𝑁 𝑇𝑇𝑇𝑇
+> 𝑟𝑟 =1
+
+• Average Translation Error (ATE) evaluates localization precision. It is computed as the mean Euclidean distance between predicted and ground-truth centers over all matched true positive: 
+
+𝐴𝐴𝐴𝐴𝐴𝐴 = 1
+
+𝑁𝑁 𝑇𝑇𝑇𝑇 �� 𝑅𝑅 𝑝𝑝 𝑟𝑟𝑟𝑟 𝑝𝑝 𝑘𝑘 − 𝑅𝑅 𝑔𝑔 𝑟𝑟  
+
+> 𝑘𝑘
+
+� 2𝑁𝑁 𝑇𝑇𝑇𝑇 𝑘𝑘=1 
+
+B. Algorithmic Collapse and Range Robustness 
+
+Table III presents the detection results obtained with two detection models, evaluated by three metrics across different LiDAR types, object classes, and distance ranges. This table can provide practical guidance for LiDAR selection. 
+
+1) Perception Performance of Different LiDARs: The results reveal a significant correlation between beam counts and perception performance. Overall, LiDARs with more beams generally exhibit stronger object detection capability. In particular, the 16-beam LiDAR exhibits degraded localization accuracy even at very close ranges, with an ATE of 0.226m/0.310 m. More importantly, its performance deteriorates sharply beyond 20 m: the Recall for cars drops to 17.27%/4.55% in the 20–40 m range, while the localization error increases to 0.767 m/0.724 m. 7
+
+TABLE III 
+
+Q UANTITATIVE L IDAR D IAGNOSTICS BENCHMARK RESULTS 
+
+Center Point / 
+
+SECOND  Range  0-20m  20-40m  40-60m  60-80m 
+
+LiDAR Model  Object Class  Recall  IoU  ATE  Recall  IoU  ATE  Recall  IoU  ATE  Recall  IoU  ATE 
+
+128-Beam 
+
+Car  90.32 /90.11  84.66 /86.72  0.114 /0.099  89.54 /91.21  85.28 /85.47  0.113 /0.122  99.80 /100 .00  83.24 /81.1 0 0.118 /0.148  98.91 /96.51  77.09 /77.07  0.151 /0.177 
+
+SUV  100.00 /100.00  87.39 /91.33  0.069 /0.062  100.00 /100.00  88.66 /89.70  0.073 /0.076  100.00 /100.00  88.03 /85.93  0.071 /0.108  99.53 /99.53  82.57 /83.74  0.113 /0.118 
+
+E-bike  100.00 /100.00  83.52 /84.99  0.056 /0.07 0 100.00 /99.26  83.25 /78.63  0.055 /0.124  100.00 /100.00  81.47 /79.18  0.076 /0.101  86.44 /83.90  73.60 /72.69  0.137 /0.147 
+
+Bicycle  100.00 /100.00  73.01 /80.71  0.077 /0.105  100.00 /100.00  79.02 /82.37  0.088 /0.088  100.00 /100.00  80.55 /78.93  0.091 /0.106  100.00 /100.00  79.90 /76.72  0.103 /0.122 
+
+80-Beam 
+
+Car  88.25 /92.87  86.12 /84.44  0.098 /0.166  89.76 /94.88  81.18 /82.38  0.180 /0.222  93.13 /98.28  76.78 /78.61  0.240 /0.251  89.54 /89.34  71.25 /74.35  0.251 /0.222 
+
+SUV  100.00 /100.00  85.98 /90.51  0.067 /0.068  99.53 /100.00  86.42 /88.89  0.087 /0.084  100.00 /100.00  84.88 /87.05  0.094 /0.095  100.00 /100.00  79.67 /82.14  0.131 /0.129 
+
+E-bike  98.06 /100.00  84.94 /78.65  0.055 /0.099  98.03 /100.00  83.97 /80.66  0.060 /0.092  100.00 /100.00  81.33 /79.73  0.066 /0.098  100.00 /100.00  76.27 /78.26  0.120 /0.11 0
+
+Bicycle  94.96 /100.00  82.88 /70.83  0.063 /0.165  98.33 /100.00  78.20 /74.71  0.102 /0.125  100.00 /100.00  77.08 /75.66  0.092 /0.119  100.00 /98.84  76.14 /76.64  0.115 /0.121 
+
+32-Beam 
+
+Car  87.35 /88.78  83.33 /80.02  0.120 /0.164  79.08 /82.77  69.45 /69.06  0.293 /0.279  66.67 /83.33  40.81 /43.3  0.983 /0.838  - - -
+
+SUV  100.00 /100 .00  87.21 /72.81  0.076 /0.256  100.00 /98.16  82.06 /80.79  0.124 /0.152  - - - - - -
+
+E-bike  99.31 /100.00  78.27 /74.29  0.085 /0.123  100.00 /100.00  73.55 /72.97  0.133 /0.15 0 - - - - - -
+
+Bicycle  99.21 /96.06  73.74 /67.24  0.114 /0.145  100.00 /100.00  72.58 /71.03  0.153 /0.161  - - - - - -
+
+16-Beam 
+
+Car  89.39 /84.73  71.02 /67.81  0.226 /0.31 0 17.27 /4.55  42.40 /38.18  0.767 /0.724  - - -
+
+SUV  99.58 /99.58  70. 95 /73.92  0.169 /0.201  86.67 /96.67  54.69 /64.46  0.418 /0.341  - - - - - -
+
+E-bike  99.12 /95.58  69. 69 /55.49  0.096 /0.313  - - - - - - - - -
+
+Bicycle  99.02 /82.35  61.46 /24.49  0.165 /0.757  - - - - - - - - -
+
+Note: To demonstrate cross-algorithm generalizability, quantitative metrics in Table III are presented in the format of CenterPoint / SECOND. 
+
+Such nearly meter-level errors make the sensor insufficient for reliable trajectory prediction. The 32-beam LiDAR also exhibits clear performance degradation at mid-range distances; for example, the Car IoU decreases to 69.45%/69.06% in the 20–40 m interval. By contrast, the 80- and 128-beam LiDARs are able to precisely detect all object classes across the full tested distance range (0–80 m). These results confirm that beam count is a fundamental determinant of safety-critical perception capability. 
+
+2) Perception Performance for Different Object Classes: 
+
+The results reveal clear object-class-dependent differences in LiDAR perception performance. Overall, SUVs are the most easily perceived targets, consistently achieving the highest Recall and IoU across sensors and distance ranges, owing to their larger size and richer geometric structure. Cars exhibit slightly weaker robustness, especially under low-resolution LiDARs at mid-to-long distances, where point sparsity leads to noticeable degradation in both overlap quality and localization accuracy. For instance, under the 32-beam LiDAR, the Car IoU drops from 83.33%/80.02% at 0 –20 m to 69.45%/69.06% at 20 –40 m, and further to 40.81%/43.3% at 40 –60 m, with the ATE increasing sharply to 0.983 m/0.838 m. 
+
+By contrast, VRUs, including e-bikes and bicycles, are generally more challenging to perceive than motor vehicles, particularly in terms of geometric completeness and localization stability. Although high-resolution LiDARs can still maintain high Recall for these classes, their IoU is often lower than that of SUVs and sometimes lower than that of cars, indicating that small and slender objects are more vulnerable to point cloud sparsity. For example, with the 128-beam LiDAR at 0 –20 m, bicycles achieve an IoU of only 73.01%/80.71%, compared with 87.39%/91.33% for SUVs. These findings indicate that, beyond beam count, object geometry is another critical factor governing perception performance, with large and bulky objects being substantially easier to detect and localize than small and thin traffic participants. 
+
+3) The impact of beam distribution: A key finding of this benchmark is that beam distribution can be as important as beam count. Although the 80-beam LiDAR has 37.5% fewer beams than the 128-beam LiDAR, it achieves comparable and sometimes superior performance due to its non-uniform beam distribution. By concentrating beams in the effective perception zone, this design improves hardware utilization efficiency. This advantage is particularly evident in the 60-80 m interval, where the 80-beam LiDAR achieves higher Recall for e-bikes, outperforming the 128-beam LiDAR, while also obtaining lower ATE values (0.120m/0.110m versus 0.137m/0.147m). Combined with the geometric analysis in Section IV, these results confirm that the superior performance of the 80-beam LiDAR arises from higher intrinsic information gain rather than from detector-specific effects. This finding highlights the importance of beam distribution design in LiDAR selection for roadside perception. 
+
+VI. CONCLUSION 
+
+This paper presented MR-LiDAR, a controlled benchmark for hardware-level perception diagnostics in roadside environments. By isolating LiDAR configuration and object class as controlled variables, the benchmark quantitatively characterized the intrinsic perception boundaries of different LiDAR tiers under comparable roadside conditions. The results reveal three main findings: (1) beam count is a fundamental determinant of perception capability, as 16- and 32-beam LiDARs suffer severe degradation in detection robustness and localization accuracy beyond 20 m; (2) perception performance is strongly object-dependent, with larger targets such as SUVs being consistently easier to detect and localize, while smaller and more slender VRUs, including bicycles and e-bikes, are substantially more vulnerable to point sparsity and geometric 8
+
+degradation; and (3) beam distribution is a critical design factor beyond beam count alone, as the 80-beam LiDAR, despite having fewer beams than the 128-beam LiDAR, achieves comparable or even superior perception performance in the mid-to-far range due to its more effective non-uniform beam allocation. These findings challenge the common assumption that simply increasing beam count always improves roadside perception, and instead demonstrate that optimized beam distribution topology can provide a more efficient hardware design strategy than uniform beam stacking. Overall, MR-LiDAR provides a practical diagnostic baseline for understanding the physical perception limits of roadside LiDARs and offers empirical guidance for determining the minimal sufficient hardware configuration for real-world roadside deployment. Future work will extend the benchmark to more complex urban topologies, intersection scenarios, and adverse weather conditions. 
+
+REFERENCES 
+
+[1] C. Creß, Z. Bing, and A. C. Knoll, “Intelligent Transportation Systems Using Roadside Infrastructure: A Literature Survey,” IEEE Trans. Intell. Transp. Syst. , vol. 25, no. 7, pp. 6309–6327, Jul. 2024, doi: 10.1109/TITS.2023.3343434. 
+
+[2] C. Lin, Y. Wang, B. Gong, H. Liu, and H. Liu, “Roadside LiDAR Deployment Optimization for Vehicle-to-Infrastructure Cooperative Perception in Urban Occlusion Environments,” IEEE Trans. Instrum. Meas. , vol. 74, pp. 1–14, 2025, doi: 10.1109/TIM.2025.3558231. 
+
+[3] H. Yu et al. , “DAIR-V2X: A Large-Scale Dataset for Vehicle-Infrastructure Cooperative 3D Object Detection,” in 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , New Orleans, LA, USA: IEEE, Jun. 2022, pp. 21329–21338. doi: 10.1109/CVPR52688.2022.02067. 
+
+[4] X. Ye et al. , “Rope3D: The Roadside Perception Dataset for Autonomous Driving and Monocular 3D Object Detection Task,” in 
+
+2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , New Orleans, LA, USA: IEEE, Jun. 2022, pp. 21309–21318. doi: 10.1109/CVPR52688.2022.02065. 
+
+[5] W. Zimmer, C. Creß, H. T. Nguyen, and A. C. Knoll, “TUMTraf Intersection Dataset: All You Need for Urban 3D Camera-LiDAR Roadside Perception,” in 2023 IEEE 26th International Conference on Intelligent Transportation Systems (ITSC) , Bilbao, Spain: IEEE, Sep. 2023, pp. 1030–1037. doi: 10.1109/ITSC57777.2023.10422289. 
+
+[6] A. Geiger, P. Lenz, C. Stiller, and R. Urtasun, “Vision meets robotics: The KITTI dataset,” Int. J. Robot. Res. , vol. 32, no. 11, pp. 1231–1237, Sep. 2013, doi: 10.1177/0278364913491297. 
+
+[7] H. Caesar et al. , “nuScenes: A Multimodal Dataset for Autonomous Driving,” in 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , Seattle, WA, USA: IEEE, Jun. 2020, pp. 11618–11628. doi: 10.1109/CVPR42600.2020.01164. 
+
+[8] P. Sun et al. , “Scalability in Perception for Autonomous Driving: Waymo Open Dataset,” in 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , Seattle, WA, USA: IEEE, Jun. 2020, pp. 2443–2451. doi: 10.1109/CVPR42600.2020.00252. 
+
+[9] A. Chen, P. J. Jin, and T. T. Zhang, “LiDAR Vehicle Trajectory Reconstruction with Arterial Shockwave Detection and Space–Time Analysis,” Transp. Res. Rec. , vol. 2680, no. 1, pp. 497–518, 2026. 
+
+[10] X. Zhou, C. Wang, Q. Xie, and T. Qiu, “V2I-Coop: Accurate Object Detection for Connected Automated Vehicles at Accident Black Spots With V2I Cross-Modality Cooperation,” IEEE Trans. Mob. Comput. ,vol. 24, no. 3, pp. 2043–2055, Mar. 2025, doi: 10.1109/TMC.2024.3486758. 
+
+[11] J. Zhang et al. , “Roadside lidar-based scene understanding toward intelligent traffic perception: A comprehensive review,” ISPRS J. Photogramm. Remote Sens. , vol. 233, pp. 69–88, 2026, doi: 10.1016/j.isprsjprs.2026.01.012. 
+
+[12] Y. Li et al. , “V2X-Sim: Multi-Agent Collaborative Perception Dataset and Benchmark for Autonomous Driving,” IEEE Robot. Autom. Lett. ,vol. 7, no. 4, pp. 10914–10921, Oct. 2022, doi: 10.1109/LRA.2022.3192802. 
+
+[13] S. Manivasagam et al. , “Lidarsim: Realistic lidar simulation by leveraging the real world,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2020, pp. 11167–11176. 
+
+[14] A. Carballo et al. , “LIBRE: The Multiple 3D LiDAR Dataset,” Jun. 24, 2020, arXiv : arXiv:2003.06129. doi: 10.48550/arXiv.2003.06129. 
+
+[15] T. Yin, X. Zhou, and P. Krahenbuhl, “Center-based 3D Object Detection and Tracking,” in 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , Nashville, TN, USA: IEEE, Jun. 2021, pp. 11779–11788. doi: 10.1109/CVPR46437.2021.01161. 
+
+[16] M. Tang et al. , “A Multi-Scene Roadside Lidar Benchmark towards Digital Twins of Road Intersections,” ISPRS Ann. Photogramm. Remote Sens. Spat. Inf. Sci. , vol. X-4–2024, pp. 341–348, Oct. 2024, doi: 10.5194/isprs-annals-X-4-2024-341-2024. 
+
+[17] Q. Pu, Y. Zhu, J. Wang, H. Yang, K. Xie, and S. Cui, “Drone Data Analytics for Measuring Traffic Metrics at Intersections in High-Density Areas,” Transp. Res. Rec. , p. 03611981241311566, 2025. 
+
+[18] E. Li, S. Wang, C. Li, D. Li, X. Wu, and Q. Hao, “Sustech points: A portable 3d point cloud interactive annotation platform system,” in 
+
+2020 IEEE Intelligent Vehicles Symposium (IV) , IEEE, 2020, pp. 1108– 1115. 
+
+[19] S. Cui, P. Cao, Y. Wang, D. Suo, and X. Liu, “Analytical Models for Assessing LiDAR Perception Performance for Vehicles with and without Occlusion,” IEEE Trans. Veh. Technol. , pp. 1–16, 2025, doi: 10.1109/TVT.2025.3617472. 
+
+[20] Y. He, P. Cao, D. Suo, and X. Liu, “A Joint Optimization of Beam Distribution and Deployment for Roadside LiDAR Systems to Maximize Vehicle Perception,” IEEE Trans. Intell. Veh. , vol. 10, no. 2, pp. 1300–1314, Feb. 2025, doi: 10.1109/TIV.2024.3426524. 
+
+[21] Y. Yan, Y. Mao, and B. Li, “SECOND: Sparsely Embedded Convolutional Detection,” Sensors , vol. 18, no. 10, Oct. 2018, doi: 10.3390/s18103337. 
+
+[22] T. Zhu, W. Li, and Y. Feng, “Integrated optimization for vehicle trajectory reconstruction under cooperative perception environment,” 
+
+Transp. Res. Part C Emerg. Technol. , vol. 184, p. 105522, Mar. 2026, doi: 10.1016/j.trc.2026.105522. 
+
+Shunlai Cui received his B.S. degree 
+
+from Inner Mongolia University, Hohhot, 
+
+China, in 2022, and his M.S. degree from 
+
+Southwest Jiaotong University, Chengdu, 
+
+China, in 2025. He is currently pursuing 
+
+his Ph.D. degree at Old Dominion 
+
+University, Norfolk, VA, USA. His 
+
+research interests include LiDAR sensor 
+
+perception and V2X safety assessment. 
+
+Peng Cao earned his B.S. degree in 
+
+Industrial Engineering from the 
+
+University of Electronic Science and 
+
+Technology of China, Chengdu, China in 
+
+2009, followed by an M.S. in 
+
+Management Science and Engineering 
+
+from Tsinghua University, Beijing, China 
+
+in 2011, and a Ph.D. in Civil Engineering 
+
+from Nagoya University, Nagoya, Japan 
+
+in 2014. He is now an Associate Professor at the School of 
+
+Transportation and Logistics, Southwest Jiaotong University, 
+
+Chengdu, China. His research focuses on Traffic Data 
+
+Collection and Traffic Flow Optimization in the context of 
+
+Connected Autonomous Vehicles. 9
+
+Yuan Zhu is currently a professor of 
+
+Transportation Institute, Inner Mongolia 
+
+University (IMU). He received his B.S. 
+
+degree in software engineering from Jilin 
+
+University in 2009, M.S. degrees in 
+
+Computer Science and Transportation 
+
+Planning and Engineering in 2011 and 
+
+2013 from Polytechnic Institute of NYU, 
+
+and Ph.D. degree in Transportation 
+
+Planning and Engineering and from New 
+
+York University in 2018. He was enrolled in "Grassland Talent" 
+
+Program by Inner Mongolia Autonomous Region. His research 
+
+interests include emergency evacuation, multi-scopic 
+
+simulations and traffic data analytics. 
+
+Yongjiang He received the B.S. and M.S. degrees in transportation engineering from Shandong University of Science and Technology, Qingdao, China, in 2018 and 2021, respectively, and the Ph.D. degree in transportation engineering from Southwest Jiaotong University, Chengdu, China, in December 2025. He is currently an Assistant Professor with the Tangshan Research Institute, Southwest Jiaotong University, Tangshan, China. His research focuses on intelligent transportation systems (ITS), particularly roadside sensing technologies, sensor deployment optimization, and perception performance modeling in vehicle–infrastructure cooperative environments. His work aims to develop efficient and reliable sensing and deployment strategies to enhance traffic safety, perception robustness, and large-scale intelligent transportation infrastructure implementation. 
+
+Jiacheng Yin received the Ph.D. degree from Southwest Jiaotong University, in 2024. He is currently a Lecturer with the School of Automobile and Transportation, Xihua University. His research interests include traffic flow modeling and analysis in complex environments, low-altitude traffic situation awareness, and representation. 
+
+Xiao Huo earned his B.S. degree in Transportation from Chongqing Jiaotong University, Chongqing, China, in 2024. He is currently pursuing his M.S. degree at Southwest Jiaotong University, Chengdu, China. His research interests include LiDAR placement optimization and V2X perception. 
+
+Gang Cao earned his B.S. degree in 
+
+Logistics Engineering from Southwest 
+
+Jiaotong University, Chengdu, China, in 
+
+2025. He is currently pursuing his M.S. 
+
+degree in Transportation Engineering at 
+
+Southwest Jiaotong University, Chengdu, 
+
+China. His research interests include 
+
+artificial intelligence, object detection, 
+
+and object tracking. 
+
+Xiaobo Liu earned his Ph.D. degree from the New Jersey Institute of Technology, Newark, New Jersey, in 2004. He is currently a professor with the School of Transportation and Logistics, Southwest Jiaotong University, Chengdu, China. His research focuses on the direction of transportation system analysis under connected vehicle/autonomous vehicle environment, and intelligent logistics analysis. He received the George Krambles Transportation Scholarship, 2003; Most Outstanding Student Paper Award by the Institute of Transportation Engineers Metropolitan Section of New York and New Jersey, 2004; and Stella Dafermos Best Paper Award by the Transportation Research Board Transportation Network Modeling Committee, 2018.

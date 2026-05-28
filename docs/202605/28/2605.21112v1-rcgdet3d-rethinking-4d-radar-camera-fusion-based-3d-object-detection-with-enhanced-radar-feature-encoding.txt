@@ -1,0 +1,457 @@
+Title: RCGDet3D: Rethinking 4D Radar-Camera Fusion-based 3D Object Detection with Enhanced Radar Feature Encoding
+
+URL Source: https://arxiv.org/pdf/2605.21112v1
+
+Published Time: Thu, 21 May 2026 01:06:41 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+> 1
+
+# RCGDet3D: Rethinking 4D Radar-Camera Fusion-based 3D Object Detection with Enhanced Radar Feature Encoding 
+
+Weiyi Xiong, and Bing Zhu 
+
+Abstract —4D automotive radar is indispensable for au-tonomous driving due to its low cost and robustness, yet its point cloud sparsity challenges 3D object detection. Existing 4D radar-camera fusion methods focus on complex fusion strategies, trading inference speed for marginal gains. This trade-off hinders real-time deployment due to heavy computation on dense feature maps. In contrast, feature extraction from sparse radar points is less time-consuming but remains under-explored. This work uncovers that simply enhancing radar feature extraction can achieve comparable or even higher performance than elabo-rate fusion modules, while maintaining real-time performance. Based on this finding, we propose RCGDet3D, which centers on radar feature encoding and simplifies multi-modal fusion. Its encoder inherits from the efficient Gaussian Splatting-based Point Gaussian Encoder (PGE) in RadarGaussianDet3D with two key improvements. First, the Ray-centric PGE (R-PGE) predicts Gaussian attributes in ray-aligned coordinate systems before unifying them to Bird’s-Eye View (BEV) space, significantly improving geometric consistency and reducing learning difficulty by decoupling the coordinate transformation from representation learning. Second, a Semantic Injection (SI) module incorporates visual cues from images, producing more geometrically accurate and semantically enriched radar features. Experiments on View-of-Delft (VoD) and TJ4DRadSet show that RCGDet3D outper-forms state-of-the-art methods in both accuracy and speed, setting a new benchmark for real-time deployment. 
+
+Index Terms —4D imaging radar, 3D Gaussian Splatting, 3D object detection, multi-modal fusion, autonomous driving. 
+
+I. I NTRODUCTION 
+
+As an affordable alternative to LiDAR, 4D radar has drawn researchers’ wide attention in the field of autonomous driving. Although 4D radar and LiDAR data are both typically in the form of 3D point clouds, there are differences between them, among which point density is the most obvious. For example, in the View-of-Delft (VoD) dataset [1], the average number of 4D radar points in the camera field of view (FoV) in a scan is about 210, while for LiDAR it is 24,000. Nevertheless, most 4D radar-based models follow LiDAR-based ones to adopt the voxel/pillar encoder to extract the radar voxel/BEV features, resulting in sparse feature maps. Despite various of modifications are made, such as separating the positional, intensity and velocity features [2], replacing the pillar feature net into the attention mechanism [3], or additionally estimating the point density [4], they do not change the essence of voxelization. Recently, RadarGaussianDet3D [5] proposes a Gaussian Splatting-based radar feature encoder called Point Gaussian 
+
+> Weiyi Xiong and Bing Zhu are with the School of Automation Science and Electrical Engineering, Beihang University, Beijing, P.R. China (e-mail: weiyixiong@buaa.edu.cn; zhubing@buaa.edu.cn). Corresponding Author: Bing Zhu.
+
+Encoder (PGE), where each radar point is expanded into a Gaussian ellipsoid (i.e., Gaussian primitive) with corre-sponding scales and orientations, and Bird’s-Eye View (BEV) rasterization is performed to obtain the radar BEV feature map. As the Gaussian Splatting technique is famous for its high rendering quality and speed, the PGE can run even faster than the pillar encoder, generating denser and more accurate BEV features. In addition, the quantization error in the pillarization/voxelization process can be reduced in PGE, as a point can contribute to multiple neighboring grids. However, the predicted Gaussian primitives are directly splatted onto the BEV plane, i.e., they are expected to be rep-resented in the perception coordinate (ego coordinate), making learning difficult as the model need to implicitly estimate the direction of rays and the pose of sensor when predicting Gaus-sian attributes. Some camera-based BEV perception methods have also noticed the similar phenomenon. For example, Gaus-sianBeV [6] proposes to predict the Gaussian rotation relative to the optical ray, and by multiplying with the rotation quater-nion from ray to the camera optical axis, it is transformed to camera coordinate system. Nevertheless, the issue is not fully addressed since its predicted positional offset is still in camera coordinate. In addition, it cannot adapt to the case when BEV augmentation is applied, because operations such as horizontal flipping cannot be represented into a quaternion. In this work, the predicted Gaussian primitives are completely represented in their respective ray-aligned coordinate systems, and are transformed into the ego coordinate according to point locations and the radar pose before BEV rasterization. By applying this modification, the predicted Gaussian primitives are called ray-centric Gaussian primitives, and the PGE evolves into Ray-centric PGE (R-PGE). While the ray-centric Gaussian representation significantly improves geometric fidelity, radar point clouds alone still lack semantic cues, which are crucial for accurately predicting object boundaries and attributes. A straightforward solution is to incorporate visual information from cameras for compen-sation. However, most works focus on enhancing the image view transformation with radar features [7] or design complex fusion strategy [8], [9]. While showing some improvements, these methods often introduce considerable latency due to the process of large dense feature maps, making them less practical for real-time applications. Moreover, the performance gain is constrained by the quality of extracted radar features. We find that replacing the commonly applied pillar encoder to R-PGE can bring a significant performance gain in 4D radar-camera fusion models, while maintaining similar inference speed. This result indicates that the performance bottleneck of 4D radar-
+
+> arXiv:2605.21112v1 [cs.CV] 20 May 2026 2
+
+camera fusion-based 3D object detection methods mainly lies in the radar feature extraction module, which is overlooked by most researchers. Based on the above discovery, we further propose a Seman-tic Injection (SI) sub-module, leveraging rich semantic infor-mation provided by the RGB images to assist the prediction of ray-centric Gaussian primitives when the camera modality is available. The introducing of image features not only enriches the Gaussian features, but also increases the accuracy of the physical attributes like scales and rotations. This simple enhancement further improves the detection performance with only minimal latency. In this work, we introduce RCGDet3D by adding an image branch like LXL [7] to RadarGaussianDet3D [5], and applying the aforementioned enhancements to the radar branch. In summary, our contributions are fourfold:  
+
+> •
+
+This work uncovers that the bottleneck of current 4D radar-camera fusion-based 3D object detectors is not the image view transformation or fusion strategy, but the under-explored radar feature representation.  
+
+> •
+
+Based on PGE in RadarGaussianDet3D, we propose Ray-centric Point Gaussian Encoder (R-PGE), to predict each Gaussian primitive in the corresponding ray-aligned coor-dinate system. This makes the model focus on predicting the Gaussian attributes without implicitly estimating the radar pose and ray direction, improving geometric con-sistency.  
+
+> •
+
+A Semantic Injection (SI) sub-module is optionally intro-duced in R-PGE to fuse visual features with radar features before predicting Gaussian primitives. It enriches seman-tic information and improves the accuracy of estimated Gaussian attributes.  
+
+> •
+
+Experiments on View-of-Delft [1] and TJ4DRadSet [10] show that the proposed RCGDet3D significantly outper-forms the state-of-the-art detectors in both accuracy and inference speed, setting a new benchmark for practical deployment. The rest of the paper is organized as follows. Section II discusses related work on 4D radar-based and 4D radar-camera fusion-based 3D object detection methods, as well as the application of 3D Gaussian Splatting on autonomous driving. Section III introduces the proposed model, and Section IV exhibits and analyzes the experimental results. In the end, Section V summarizes this work. II. R ELATED WORK 
+
+A. 4D Radar Point Cloud-based 3D Object Detection 
+
+Most 4D radar point cloud-based 3D object detectors follow LiDAR-based ones to apply a pillar-based encoder for its efficiency [1]. However, due to the sparsity and noisiness of radar points, targeted enhancements are needed to extract informative features. Earliest work propose to modify certain components of the pillar encoder. RCFusion [2] separates the process of position, intensity and velocity information by applying three individual MLPs. RPFA-Net [3] replaces the PointNet [11] with Pillar Feature Attention module to extract pillar features. Some work cascade additional modules or processes. For instance, RadarPillars [12] conduct self-attention for non-empty pillars after pillarization, while SD4R [13] densify the foreground radar points with virtual points before pillarization. More researches add extra branches to enrich the radar BEV features. Parallel to the pillar encoder, RCBEVDet [14] pro-poses to scatter a point feature to multiple BEV grids according to the radar cross section (RCS) value, while SMURF [4] predicts point density via Kernal Density Estimation (KDE). The current state-of-the-art model, MAFF-Net [15] introduces an auxiliary clustering-based branch to address the noise and outliers in the radar modality. Despite these effective modifications, the pillar-based en-coder is inherently suboptimal for 4D radar points, due to the existence of quantization error and feature sparsity. To mitigate these issues, RadarGaussianDet3D [5] proposes Point Gaussian Encoder (PGE), where each point is expanded to a Gaussian primitive, and BEV Gaussian Splatting is adopted to obtain dense feature map. By fully replacing the pillar-based encoder, this Gaussian-based encoder not only improves the detection accuracy, but also runs faster, showing great potential for practical deployment. 
+
+B. 4D Radar-Camera Fusion-based 3D Object Detection 
+
+As the radar point cloud is geometrically inaccurate and semantically insufficient, relying only the 4D radar modality is inadequate for achieving high-quality detection. Consequently, many researchers conduct multi-modal fusion to leverage the rich semantic from camera images for supplement. Existing efforts in this area can be broadly categorized into three main directions: radar feature extraction [2], [14], image view transformation [7], and multi-modal feature fusion [8], [9], [16], [17]. Early work focus more on the first two directions. The first type rarely relies on image features, and has already been discussed in Section II-A. A representa-tive work of the second type is LXL [7], which adopts a depth-based sampling strategy to transform image perspective features to BEV. The view transformation process is also assisted by radar 3D occupancy predicted from the radar BEV feature map. Recently, researches have shifted towards designing effective fusion modules. For example, MSSF [8] adopts a multi-stage sampling scheme to perform voxel-level fusion, while SGDet3D [9] proposes a Dual-branch Fusion and an Object-oriented Attention module to achieve cross-modal deep interaction. Although these elaborate image view transformation and multi-modal fusion schemes improves detection accuracy, they suffer from two main limitations. First, the processing of large dense feature maps or quantities of voxels requires a con-siderable computational overhead, hindering the models’ real-time capability and limiting their deployment. For example, even on a powerful RTX 4090 GPU, the current state-of-the-art detector SIFormer [17] and the most efficient one RaGS [16] only runs 6.9 and 10.5 FPS respectively, on the VoD [1] dataset. This leaves a significant gap for real-time deployment on resource-constrained embedded platforms commonly used in autonomous vehicles. Moreover, the effectiveness of these 3Radar Point  
+
+> Cloud
+> RGB Image
+> Radar Point
+> Features
+> Image
+> Backbone
+> & Neck
+> Multi-Scale
+> Image Features
+> Image Feature
+> Map
+> Radar BEV
+> Features
+> Radar BEV
+> Features
+> Image BEV
+> Features
+> Resolution
+> Alignment
+> View
+> Transformation
+> Point Feature
+> Extraction
+> Defomable
+> Attention
+> BEV
+> Backbone
+> & Neck
+> Fusion
+> Gaussian
+> Parameter
+> Prediction
+> BEV Gaussian
+> Splatting
+> Detection Head
+> Fused BEV
+> Features
+> 3D Bounding Boxes
+> Ego-Centric
+> Gaussian
+> Primitives
+> Transform
+> To Ego
+> Coordinate
+> Transform
+> To Radar
+> Coordinate
+> Point Coordinates Rradar2ray
+> Maug
+> From BEV Augmentation
+> Ray-Centric
+> Gaussian
+> Primitives
+> C
+
+Camera Branch 
+
+Radar Branch         
+
+> X×Y
+> X×Y
+> X×Y
+> H0×W0
+> Concat
+> Semantic
+> Injection
+> Ray-Centric Point
+> Gaussian Encoder
+> (R-PGE)
+
+Fig. 1. The overall architecture of RCGDet3D. Unlike existing methods that pursue sophisticated fusion strategies at the cost of speed, RCGDet3D demonstrates that enhancing radar feature extraction is the key to both high accuracy and high efficiency. The Ray-centric Point Gaussian Encoder (R-PGE) predicts ray-centric Gaussian primitives from radar points, and employs Gaussian Splatting to generate radar BEV feature map. In addition, a Semantic Injection (SI) sub-module incorporates visual cues from the camera modality, yielding more precise Gaussian attributes and enriched point features. For efficiency, a simplified image branch from LXL [7], as well as a light-weighted concatenation-based fusion is adopted. 
+
+proposed strategies heavily relies on the quality of extracted radar features; when radar features are insufficient or noisy, the performance improvements become marginal. These ob-servations suggest that revisiting the relatively fast yet under-explored radar feature extraction approaches is a promising direction for improving both accuracy and efficiency in 4D radar-camera fusion. 
+
+C. Gaussian Splatting in Autonomous Driving Perception 
+
+Gaussian Splatting [18] has attracted widespread attention in the field of vision-based novel view synthesis (NVS) and 3D reconstruction, owing to its sparse yet expressive scene representation and high-quality real-time rendering. Recently, scholars have begun to explore its potential for camera-based perception tasks. Since perception models require strong generalization capa-bility, a feed-forward prediction paradigm is needed, instead of per-scene optimization in NVS. In these work, the Gaussian parameters can be either predicted from extracted features in one shot, or iteratively refined from queries. Single-shot pre-diction approaches typically generate each Gaussian primitive from a pixel of the 2D feature map [6], [19], or from a voxel in the voxel space after feature lifting [20]. Iterative refinement methods, on the other hand, initialize a set of learnable queries and update them through deformable attention with image features, producing final Gaussian primitives [21], [22]. In Gaussian Splatting-based NVS models, the Gaussian attributes include 3D mean, 3D scales, rotation, opacity and color [18]. However, from NVS to perception tasks, the goal shifts from appearance reconstruction to higher-level scene understanding. As a result, feature vectors [6] or semantic logits [21] instead of the color attribute are estimated. In addi-tion, certain attributes can also be omitted for simplification or to facilitate training. For example, GSRender [20] does not predict Gaussian rotation, while GaussianLSS [19] aligns one of the principal axes of each Gaussian ellipsoid with the corresponding pixel ray, and estimates the scale only along that axis. Finally, the Gaussian primitives are rasterized into BEV feature map or 3D semantic occupancy. Despite the growing interest, the vast majority of related researches focus on camera inputs and dense prediction tasks like BEV segmentation and 3D occupancy prediction. Among the very few 4D radar-based 3D object detection methods, RaGS [16] adopts the query-based Gaussian generation strat-egy, where queries are initialized with the assistance of radar points. On the other hand, RadarGaussianDet3D [5] transforms each radar point to a Gaussian primitive, and obtains the radar BEV feature map via feature rendering. III. P ROPOSED METHOD 
+
+A. Overview 
+
+Fig. 1 illustrates the overall framework of the proposed RCGDet3D. The input radar point cloud and image are sent to modality-specific branches to extract corresponding BEV feature map, and the detection head predicts the 3D bounding boxes from the fused BEV features. The radar branch is based on RadarGaussianDet3D [5] for its effectiveness and low latency. It is composed of a Point Gaussian Encoder (PGE) and the BEV backbone & neck. The PGE predicts a Gaussian primitive for each radar point according to the extracted point features, and subsequently adopts BEV Gaussian Splatting to obtain the radar BEV feature map. However, as discussed in Section I, the original PGE predicts ego-centric Gaussian primitives, raising difficulty for model learning. In our RCGDet3D, we propose Ray-centric PGE (R-PGE), where ray-centric Gaussian primitives are predicted instead of ego-centric ones to facilitate training. The Gaussian primitives are represented in their respective ray-aligned coordinate systems rather than the unified ego coordinate. Before splatted onto the BEV plane, the predicted 4Radar Point           
+
+> Ray-Aligned
+> Coordinate System
+> Radar Coordinate
+> System
+> Ego Coordinate
+> System
+> Gaussian Primitive Ray Position Offset Predict Ray-Centric
+> Gaussian Primitive
+> Transform to Radar
+> Coordinate
+> Transform to Ego
+> Coordinate
+> x
+> yO(z)
+> yr
+> Or(zr)
+> xr
+> yrOr(zr)
+> O
+> xr
+> yego O(z,zego )
+> xego
+> y
+> x
+> Fig. 2. The coordinate transformation of ray-centric Gaussian Primitives (top-down view).
+
+Gaussian primitives are transformed into radar coordinate according to the azimuth and elevation of radar points, and subsequently transformed into the ego coordinate with the BEV augmentation matrix, as shown in Fig. 2. In addition, to fully leverage the camera modality, a Semantic Injection (SI) sub-module is introduced to provide semantic cues from image features for Gaussian attribute prediction. It not only enriches the Gaussian features, but also enables more accurate prediction of Gaussian poses and shapes. The image branch follows LXL [7] to adopt the sampling-based view transformation module. To save computation and reduce latency, the multi-level image features {F(i) 
+
+> I
+
+∈
+
+RCi× H02i × W02i }L−1 
+
+> i=0
+
+from backbone & neck are processed by an interpolation-based resolution alignment module to obtain a single feature map, eliminating the need for multi-scale sampling: 
+
+F(i) 
+
+> I,up
+
+= Upsample H0×W0 (F(i) 
+
+> I
+
+), i = 1 , · · · , L − 1,
+
+FI = Conv 1×1(Concat (F(0)  
+
+> I
+
+, {F(i)
+
+> I,up
+
+}L−1 
+
+> i=1
+
+)) , (1) where Upsample H×W (·) is the bilinear interpolation operation with the target shape of H0 × W0, and FI ∈ RC×H0×W0 is the output single-scale image feature map. For the fusion module, concatenation-based fusion is adopted for simplification. The detection head is the same as CenterPoint [23], and the Box Gaussian Loss in RadarGaus-sianDet3D [5] is added for bounding box attribute regression. 
+
+B. Ray-Centric Gaussian Primitives 
+
+Inspired by GaussianBeV [6] that predicts allocentric Gaus-sian rotation quaternions from image pixels, we predict ray-centric Gaussian primitives from radar points. Each Gaussian primitive is represented in a coordinate system related to the ray from radar origin to a radar point, namely ray-aligned coordinate system. 
+
+Ray-Aligned Coordinate System . As illustrated in Fig. 3(a), given a radar point P in radar coordinate system Oxyz ,we define ray-aligned coordinate system Or xr yr zr , where  
+
+> •
+
+Or coincides with the point P ; 
+
+> •
+
+xr is along the ray direction −−→
+
+OP ; 
+
+> •
+
+yr is parallel to plane xOy and perpendicular to xr ,pointing left;  
+
+> •
+
+zr is perpendicular to xr and yr , pointing upwards. In other words, if the Cartesian coordinate of a radar point is 
+
+pradar = ( x, y, z )⊤, the direction vectors of axes xr , y r , z r in radar coordinate system ( xr , yr , zr ) can be calculated by 
+
+xr = pradar = ( x, y, z )⊤,
+
+yr = z × xr = ( −y, x, 0) ⊤,
+
+zr = xr × yr = ( −xz, −yz, x 2 + y2)⊤,
+
+(2) where z = (0 , 0, 1) ⊤ denotes the direction vector of z-axis. This definition is consistent with the range-azimuth-elevation measurement (r, θ, φ ) of radar, where r =px2 + y2 + z2, θ = arctan yx , φ = arcsin zr , as the direction of xr , y r , z r and d r, r dθ, r dϕ are the same, as illustrated in Fig. 3(b). 
+
+Ray-Centric Gaussian Primitives . For each radar point, the predicted Gaussian attributes, i.e., 3D mean offset ∆μ ∈ R3,3D scale s ∈ R3, and rotation quaternion q ∈ R4, are rep-resented in the ray-aligned coordinate system. The covariance matrix can be calculated as 
+
+Σray = RSS ⊤R⊤, (3) where S = diag (s), and R is the corresponding rotation matrix of quaternion q.To perform BEV rasterization, the ray-centric Gaussian primitives need to be transformed into the ego coordinate. As other attributes like opacity o and feature f g are irrelevant to coordinate system, only positional offsets and covariance matrices are discussed in the following. 
+
+Transform Gaussian Primitives to Radar Coordinate System . The rotation matrix from radar coordinate system to the ray-aligned coordinate system can be obtained: 
+
+Rradar2ray =
+
+   
+
+> xr
+> ∥xr∥2
+> yr
+> ∥yr∥2
+> zr
+> ∥zr∥2
+
+ =
+
+
+
+> xryrzr
+
+− yρxρ 0
+
+− xz rρ − yz rρ ρr
+
+ , (4) where ρ = px2 + y2. It can also be derived by calculating  
+
+> [∂r,r∂θ,r∂ϕ ]
+> ∂[x,y,z ]
+
+.The covariance matrix and positional offset in radar coordi-nate can be calculated by 
+
+Σradar = R−1
+
+> radar2ray
+
+Σray R−⊤ 
+
+> radar2ray
+
+,
+
+∆μradar = R−1
+
+> radar2ray
+
+∆μ. (5) 
+
+Transform Gaussian Primitives to Ego Coordinate Sys-tem . In datasets like VoD [1] and TJ4DRadSet [10] that only have one front-facing radar, the ego coordinate system is usually defined coincide with the radar coordinate system (Fig. 4(a)). However, to facilitate training, BEV augmentation operations like rotation, scaling and horizontal flipping are usually conducted, making the radar coordinate system deviate from ego coordinate system, as shown in Fig. 4(b). As a result, transformation to ego coordinate is needed for Gaussian primitives before splatting to BEV. Giving the transformation matrix Maug introduced by BEV augmentation, where pradar =5y               
+
+> z
+> xO
+> xr
+> Or(P)
+> yr
+> zrz
+> xO
+> xr
+> Or
+> yr
+> θ
+> dθ
+> rdθdr
+> r
+> y
+> z
+> xO
+> xr
+> Or
+> zr
+> φ
+> dφr
+> rdφ
+> dry
+> (a) (b)
+> Fig. 3. (a) The illustration of ray-aligned coordinate system Orxryrzr. (b) When the range/azimuth/elevation of the radar point increases by a small value, the point will move along the xr/yr/zraxis. See Fig. 2 for the legend.
+
+Maug pego , the covariance matrix and positional offset in ego coordinate can be calculated by 
+
+Σego = M−1
+
+> aug
+
+Σradar M−⊤ 
+
+> aug
+
+= ( Rradar2ray Maug )−1Σray (Rradar2ray Maug )−⊤ ,
+
+∆μego = M−1
+
+> aug
+
+∆μradar = ( Rradar2ray Maug )−1∆μ.
+
+(6) Finally, a Gaussian primitive in the ego coordinate can be expressed as g = ( pego + ∆ μego , Σego , o, f g ).Fig. 4(c)-(f) compares ego-centric and ray-centric Gaussian primitives. Assuming that all points in the figure have the same feature vector, the predicted Gaussian attributes are identical in their represented coordinate system. As a result, ego-centric Gaussian primitives in Fig. 4 (c) and (d) have the same position offset and orientation regardless of ray direction and radar pose, while ray-centric ones in Fig. 4 (e) and (f) can align well with the object boundaries. 
+
+C. Semantic Injection (SI) 
+
+While the proposed R-PGE improves the geometric consis-tency of Gaussian primitives by predicting ray-centric Gaus-sian primitives, radar point clouds alone still lack semantic information, which is crucial for accurately predicting object boundaries and attributes. To mitigate this limitation and fully leverage the camera modality, we introduce the SI sub-module by incorporating visual features into the Gaussian attribute prediction process. Specifically, the SI sub-module is formulated as 
+
+fI = DeformAttn (fP , FI , P(p)) ,f = Concat (fP , f I ), (7) where fP and p are the feature and 3D coordinates of the radar point, and fI is the sampled image feature. P(·) denotes the projection on the image plane, while DeformAttn (q, F, pref )
+
+is the deformable attention with query q, value F and reference point pref . Note that this sub-module only introduces negligible latency, as the number of radar points is small. The updated point feature f is sent to an MLP to obtain attributes of ray-centric Gaussian primitives. Unlike conven-tional fusion strategies that merely mix features from different modalities, SI actively leverages semantics to refine both the appearance (i.e., features f g ) and the geometry (e.g., scales s
+
+and rotations q) of Gaussian primitives, yielding BEV feature maps that better align with the underlying scene structure. xego                    
+
+> O(z,zego )yego
+> x
+> y
+> Before BEV Augmentation
+> xego
+> yego
+> y
+> x
+> After BEV Augmentation
+> xego
+> yego
+> y
+> x
+> Predict Ray-Centric
+> Gaussian Primitives
+> xego
+> yego
+> y
+> xP1
+> Predict Ego-Centric
+> Gaussian Primitives
+> P2
+> yego
+> x
+> y
+> xego
+> yego
+> x
+> y
+> P2
+> Horizontal Flip
+> & BEV Rotation
+> O(z,zego )
+> O(z,zego )O(z,zego )
+> O(z,zego )O(z,zego )
+> P1
+> P1
+> xego
+> P1
+> BEV Augmentation
+> (a) (b)
+> (c) (d)
+> (e) (f)
+> P1
+> P1
+> P2
+> P2
+> Fig. 4. The comparison of ego-centric Gaussian primitives and ray-centric Gaussian primitives (top-down view). Position offsets are omitted. See Fig. 2 for the legend.
+
+IV. E XPERIMENTS 
+
+A. Implementation Details 
+
+Datasets and Evaluation Metrics. In our experiment, the proposed model is evaluated on two publicly available multi-modal datasets: View-of-Delft [1] (VoD) and TJ4DRadSet [10]. Both datasets are collected with a 4D radar, a camera, and a LiDAR in driving scenes, containing temporally synchronized and spatially aligned data, as well as 3D bounding boxes of interested objects. The detection task on TJ4DRadSet is inherently more challenging than on VoD, as it encompasses a larger perception area, a broader set of object classes, and a wider variety of driving conditions. The official dataset splits and evaluation metrics are adopted in all experiments for fair comparison. Specifically, on the VoD dataset, the 3D Average Precisions (APs) over the entire anno-tated area (EAA) and the region of interest (ROI) are reported, where ROI is a small region in front of the ego vehicle. For the TJ4DRadSet, 3D AP and BEV AP are calculated. 
+
+Training Details . Following [5], the training and bench-marking of the proposed model are both on a single NVIDIA Tesla V100 GPU. Multiple data augmentation are conducted during training, including BEV scaling, rotation and horizontal flipping, where calibration matrices are modified accordingly by calculating and multiplying Maug . The other training set-tings, e.g., the optimizer, learning rate, batch size, etc., are consistent with [5]. 6
+
+TABLE I RESULTS ON VOD V A L SET 
+
+Models Modality EAA AP (%) ROI AP (%) FPS (Hz) Car Ped. Cyc. mAP Car Ped. Cyc. mAP V100 3090 4090 PointPillars (CVPR’19) [24] R 38.8 34.4 66.9 46.7 71.9 45.1 88.4 67.8 78.4 178.4 187.0 SMURF (T-IV’23) [4] R 42.3 39.1 71.5 51.0 71.7 50.5 86.9 69.7 30.0 - -LGDD (IROS’25) [25] R 46.9 41.6 72.0 53.5 78.6 51.1 86.9 72.2 - 25.1 -SCKD † (AAAI’25) [26] R 41.9 43.5 70.8 52.1 77.5 51.1 86.9 71.8 - - 39.3 MAFF-Net (RAL’25) [15] R 42.3 46.8 74.7 54.6 72.3 57.8 87.4 72.5 - - 28.7 RadarGaussianDet3D (R-AL’26) [5] R 40.7 42.4 73.0 52.0 71.2 51.7 89.0 70.6 83.2 - -RadarGaussianDet3D+ ( Ours ) R 39.9 45.9 75.0 53.6 71.0 52.3 89.0 70.8 77.5 - -RCFusion (T-IM’23) [2] R+C 41.7 39.0 68.3 49.7 71.9 47.5 88.3 69.2 - 9.0 -LXL (T-IV’24) [7] R+C 42.3 49.5 77.1 56.3 72.2 58.3 88.3 72.9 6.1 - -LXLv2 (R-AL’25) [27] R+C 47.8 49.3 77.2 58.1 - - - - 6.5 - -SGDet3D †‡ (R-AL’25) [9] R+C 53.2 50.0 76.1 59.8 81.1 60.9 90.2 77.4 - - 9.2 HyDRa (ICRA’25) [28] R+C 52.8 56.6 73.3 60.9 80.7 62.9 87.4 77.0 - - -RaGS †‡ (ArXiv’25) [16] R+C 58.2 50.8 76.6 61.9 88.2 61.7 95.1 81.6 - - 10.5 MSSF-PP (T-ITS’25) [8] R+C 61.0 51.3 77.7 63.3 90.6 60.4 88.4 79.8 - 13.9 -CVFusion (ICCV’25) [29] R+C 60.9 57.9 77.5 65.4 89.9 68.8 88.6 82.4 - 5.4 -SIFormer ‡ (T-MM’26) [17] R+C 53.8 50.7 76.1 60.2 81.2 60.5 90.2 77.3 - - 6.9 SIFormer †‡ (T-MM’26) [17] R+C 61.5 51.4 77.1 63.3 90.7 68.6 89.9 83.1 - - 6.9 RCGDet3D ( Ours ) R+C 56.5 61.1 79.3 65.6 87.5 66.6 96.1 83.4 19.9 - - 
+
+> 1
+
+In the column of Modality, R denotes radar, and C represents camera.  
+
+> 2
+
+For clearer comparison, GPUs used for FPS measurement are specified, including Tesla V100, RTX 3090 and RTX 4090.  
+
+> 3
+
+Models marked with † leverage LiDAR data during training (e.g., via distillation or depth supervision), while those marked with ‡ are trained with pseudo labels generated by Detectron2 [30]. 
+
+B. Comparison with State-of-the-Arts 
+
+Results on VoD. Table I exhibits the results on the VoD dataset. It can be seen that the proposed RCGDet3D ranks first among 4D radar-camera fusion-based detectors in both EAA and ROI mAPs on VoD, even if some of the competi-tors leverage LiDAR data or pseudo labels during training. Moreover, RCGDet3D runs at 20 frames per second (FPS) on V100, while previous state-of-the-art methods barely reach 10 FPS even on the more powerful RTX 4090 hardware. This significant speed advantage stems from our design choice to avoid the common computational bottleneck, i.e., multi-level image view transformation and sophisticated multi-modal fusion. By focusing on improving the radar encoder via R-PGE and avoiding heavy view transformation, we achieve both superior accuracy and real-time inference. 
+
+Results on TJ4DRadSet. As shown in Table II, the results on TJ4DRadSet are in consistent with those on VoD, demon-strating the generalizability of our proposed RCGDet3D. Specifically, by only enhancing radar feature extraction, RCGDet3D outperforms the previous state-of-the-art models, whose high performance relies on their elaborate image view transformation and fusion modules. This comparison suggests that the quality of radar features plays a more critical role in radar-camera fusion. Fig. 5 visualizes the detection results of RCGDet3D. 
+
+Comparisons of Radar Single Modality-based Detectors. 
+
+Beyond multi-modal fusion, we also evaluate our radar-only variant RadarGaussianDet3D+, which is the enhanced version of RadarGaussianDet3D [5] by replacing PGE with the pro-posed R-PGE (without SI). It achieves detection accuracy on a par with state-of-the-art 4D radar-only detectors on both datasets, while maintaining high efficiency. The performance 
+
+Fig. 5. Visualization results of RCGDet3D on VoD [1] (left) and TJ4DRadSet [10] (right). Gray point, red triangle, orange rectangle and blue rectangle represent radar point, ego vehicle, ground-truth bounding box and predicted bounding box, respectively. 
+
+gain demonstrates the effectiveness of R-PGE, setting a strong foundation for multi-modal fusion. 
+
+C. Ablation Study 
+
+Ablations on Components. To further validate the effec-tiveness of the proposed enhancements, ablation studies on 7                                                                                                                                                                                                                                                            
+
+> TABLE II RESULTS ON TJ4DR AD SET T E S T SET
+> Models Modality 3D AP (%) BEV AP (%) FPS (Hz) Car Ped. Cyc. Tru. mAP Car Ped. Cyc. Tru. mAP PointPillars (CVPR’19) [24] R21.26 28.33 52.47 11.18 28.31 38.34 32.26 56.11 18.19 36.23 42.9 SMURF (T-IV’23) [4] R28.47 26.22 54.61 22.64 32.99 43.13 29.19 58.81 32.80 40.98 23.1 LGDD (IROS’25) [25] R30.10 27.93 54.22 23.84 34.02 45.18 30.25 59.13 33.54 42.02 -MAFF-Net (R-AL’25) [15] R27.31 33.13 54.35 26.71 35.38 39.05 35.25 56.35 35.73 41.59 17.9 ⋄
+> RadarGaussianDet3D (R-AL’26) [5] R26.69 28.18 65.84 19.63 35.08 41.66 30.28 69.62 26.35 41.98 43.5
+> RadarGaussianDet3D+ ( Ours )R24.76 33.78 65.80 22.50 36.71 39.15 34.02 68.68 30.45 43.07 43.1 RCFusion (T-IM’23) [2] R+C 29.72 27.17 54.93 23.56 33.85 40.89 30.95 58.30 28.92 39.76 4.7 ∗
+> LXL (T-IV’24) [7] R+C ----36.32 ----41.20 -LXLv2 (R-AL’25) [27] R+C ----37.32 ----42.35 -CVFusion (ICCV’25) [29] R+C 51.54 29.49 49.41 29.55 40.00 58.07 31.65 51.29 35.29 44.07 5.7 ∗
+> MSSF-PP (T-ITS’25) [8] R+C 52.04 35.11 55.72 24.14 41.75 64.31 38.39 60.08 30.86 48.41 -SGDet3D †‡ (R-AL’25) [9] R+C 59.43 26.57 51.30 30.00 41.82 66.38 29.18 53.72 39.36 47.16 -RaGS †‡ (ArXiv’25) [16] R+C ----41.95 ----51.04 -SIFormer ‡(T-MM’26) [17] R+C 61.12 27.18 46.11 38.22 43.15 68.30 31.47 46.46 45.64 47.96 -SIFormer †‡ (T-MM’26) [17] R+C 65.68 29.77 54.47 36.12 46.51 71.59 36.06 55.15 43.31 50.42 -RCGDet3D ( Ours )R+C 56.96 36.29 70.51 26.88 47.66 69.33 38.81 73.30 34.88 54.08 11.6
+> 1In the column of Modality, R denotes radar, and C represents camera.
+> 2For clearer comparison, GPUs used for FPS measurement are specified, including Tesla V100 (default), RTX 3090 ( ∗) and RTX 4090 ( ⋄).
+> 3Models marked with †leverage LiDAR data for depth supervision, while those marked with ‡are trained with pseudo labels generated by Detectron2 [30]. TABLE III ABLATION STUDIES OF COMPONENTS ON VODV A L SET
+> Gaussian Coordinates Offsets SI mAP (%) Ego Ray BS DA EAA ROI (a) !61.7 79.8 (b) !62.5 80.7 (c) !!64.9 81.1 (d) !!!65.1 81.3 (e) !!!65.6 83.4
+
+VoD [1] are conducted by progressively adding or replac-ing modules in the baseline detector. First, by changing the predicted Gaussian attributes from ego-centric to ray-centric, i.e., substituting PGE with R-PGE, the EAA mAP improves by 0.8%. It validates that explicitly accounting for radar ray directions reduces the burden on the model to learn geometry from scratch, resulting in more effective feature extraction. Subsequently, although RadarGaussianDet3D [5] demonstrates the unnecessity of predicting positional offsets in PGE on TJ4DRadSet, we find that in R-PGE, they are of great help on VoD, bringing a performance gain of 2.4% EAA mAP. This is possibly because the radar point clouds in VoD are the accumulation of multiple frames, where previous point clouds are transformed to align with the the current scan according to ego motion, neglecting the movement of dynamic objects. The predicted offsets can serve as motion compensation, moving the radar points to the correct position. On the other hand, as shown in Fig. 4(d), ego-centric Gaussian primitives have inaccurate orientations, adding positional offsets may increase this inaccuracy. Finally, the SI sub-module further enhances the detection accuracy even if only bilinear sampling (BS) is adopted, demonstrating the importance of semantic cues during radar feature extraction. By applying the more powerful deformable attention (DA), the EAA mAP reaches 65.6%. 
+
+BEV Feature Map Visualization. Fig. 6 visualizes the out-put BEV feature maps from PGE, R-PGE and R-PGE with SI. The visualizations are conducted on TJ4DRadSet [10], where our improvements yield more visually discernible differences on this dataset with denser radar point clouds. In the red box, the foreground region around a car is highlighted. It can be seen that due to the inaccurate Gaussian rotations in PGE, the detector predicts wrong orientation for the car. However, after replacing PGE with R-PGE, the Gaussian primitives are placed more reasonable, resulting in precise estimation for the car’s yaw angle. The phenomenon demonstrates that predicting ray-centric Gaussian primitives can facilitate learning Gaussian poses. Moreover, when receiving semantic information via the SI sub-module, the background region becomes less activated, reducing the possibility of false positive detection. V. C ONCLUSION 
+
+In this work, we uncover that the quality of radar feature extraction is the primary bottleneck in 4D radar-camera fusion-based 3D object detection, which has been largely overlooked by the community. Motivated by this finding, RCGDet3D is proposed, which shifts the focus from sophisticated fusion to improved radar feature encoding, resulting in accurate and fast detection. Its radar encoder is built upon the Radar-GaussianDet3D [5] framework with two key improvements. First, ray-centric Gaussian primitives instead of ego-centric ones are predicted, simplifying learning by eliminating the need to estimate the radar pose and ray direction, while also improving the geometric consistency. Second, a Semantic Injection sub-module is introduced, where semantic cues from image features is integrated into the Gaussian attribute predic-tion process, resulting in more enriched radar feature maps. 8
+
+Fig. 6. Visualization of BEV feature maps (left) from PGE (top), R-PGE (middle) and R-PGE with SI (bottom) on TJ4DRadSet [10] test set. The right column displays the radar points and detection results in BEV. 
+
+Extensive experiments demonstrate that RCGDet3D and its radar-only variant both achieve state-of-the-art performance. Notably, by avoiding heavy computation on dense feature maps in image view transformation and multi-modal fusion, RCGDet3D is able to run significantly faster than previous methods, showcasing the potential of real-time deployment. By refocusing attention on the foundational role of radar feature quality, this work offers a new perspective for future research in multi-modal perception. Future research will focus on temporal modeling with the assistance of velocity informa-tion within the radar modality. REFERENCES [1] A. Palffy, E. Pool, S. Baratam, J. F. Kooij, and D. M. Gavrila, “Multi-class road user detection with 3+ 1D radar in the View-of-Delft dataset,” 
+
+IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 4961–4968, 2022. [2] L. Zheng, S. Li, B. Tan, L. Yang, S. Chen, L. Huang, J. Bai, X. Zhu, and Z. Ma, “RCFusion: Fusing 4-D radar and camera with bird’s-eye view features for 3-D object detection,” IEEE Transactions on Instrumentation and Measurement , vol. 72, pp. 1–14, 2023. [3] B. Xu, X. Zhang, L. Wang, X. Hu, Z. Li, S. Pan, J. Li, and Y. Deng, “RPFA-Net: A 4D radar pillar feature attention network for 3D object detection,” in 2021 IEEE International Intelligent Transportation Sys-tems Conference (ITSC) . IEEE, 2021, pp. 3061–3066. [4] J. Liu, Q. Zhao, W. Xiong, T. Huang, Q.-L. Han, and B. Zhu, “SMURF: Spatial multi-representation fusion for 3D object detection with 4D imaging radar,” IEEE Transactions on Intelligent Vehicles , vol. 9, no. 1, pp. 799–812, 2024. [5] W. Xiong, B. Zhu, and Z. Zheng, “Radargaussiandet3d: Gaussian representation-based real-time 3d object detection with 4d automotive radars,” IEEE Robotics and Automation Letters , vol. 11, no. 5, pp. 5709– 5716, 2026. [6] F. Chabot, N. Granger, and G. Lapouge, “GaussianBeV: 3D gaussian representation meets perception models for BeV segmentation,” in 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) . IEEE, 2025, pp. 2250–2259. [7] W. Xiong, J. Liu, T. Huang, Q.-L. Han, Y. Xia, and B. Zhu, “LXL: LiDAR excluded lean 3D object detection with 4D imaging radar and camera fusion,” IEEE Transactions on Intelligent Vehicles , vol. 9, no. 1, pp. 79–92, 2024. [8] H. Liu, J. Liu, G. Jiang, and X. Jin, “Mssf: A 4d radar and camera fusion framework with multi-stage sampling for 3d object detection in autonomous driving,” IEEE Transactions on Intelligent Transportation Systems , vol. 26, no. 6, pp. 8641–8656, 2025. [9] X. Bai, Z. Yu, L. Zheng, X. Zhang, Z. Zhou, X. Zhang, F. Wang, J. Bai, and H.-L. Shen, “Sgdet3d: Semantics and geometry fusion for 3d object detection using 4d radar and camera,” IEEE Robotics and Automation Letters , vol. 10, no. 1, pp. 828–835, 2024. [10] L. Zheng, Z. Ma, X. Zhu, B. Tan, S. Li, K. Long, W. Sun, S. Chen, L. Zhang, M. Wan et al. , “TJ4DRadSet: A 4D radar dataset for autonomous driving,” in 2022 IEEE 25th International Conference on Intelligent Transportation Systems (ITSC) . IEEE, 2022, pp. 493–498. [11] C. R. Qi, H. Su, K. Mo, and L. J. Guibas, “PointNet: Deep learning on point sets for 3D classification and segmentation,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 2017, pp. 652–660. [12] A. Musiat, L. Reichardt, M. Schulze, and O. Wasenm¨ uller, “RadarPillars: Efficient Object Detection From 4D Radar Point Clouds,” in 2024 IEEE 27th International Conference on Intelligent Transportation Systems (ITSC) . IEEE, 2024, pp. 1656–1663. [13] X. Bai, J. Cheng, S. Wang, Y. Luo, L. Zheng, X. Zhang, S.-Y. Cao, and H.-L. Shen, “Sd4r: Sparse-to-dense learning for 3d object detection with 4d radar,” in 2025 IEEE 28th International Conference on Intelligent Transportation Systems (ITSC) . IEEE, 2025, pp. 4362–4368. [14] Z. Lin, Z. Liu, Z. Xia, X. Wang, Y. Wang, S. Qi, Y. Dong, N. Dong, L. Zhang, and C. Zhu, “RCBEVDet: Radar-camera fusion in bird’s eye view for 3D object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 14 928–14 937. [15] X. Bi, C. Weng, P. Tong, B. Fan, and A. Eichberge, “Maff-net: Enhancing 3d object detection with 4d radar via multi-assist feature fusion,” IEEE Robotics and Automation Letters , vol. 10, no. 5, pp. 4284–4291, 2025. [16] X. Bai, C. Zhou, L. Zheng, S.-Y. Cao, J. Liu, X. Zhang, Z. Zhang, and H.-l. Shen, “RaGS: Unleashing 3D Gaussian Splatting from 4D Radar and Monocular Cues for 3D Object Detection,” arXiv preprint arXiv:2507.19856 , 2025. [17] X. Bai, L. Zheng, S.-Y. Cao, X. Zhang, Z. Wu, B. Yu, F. Wang, J. Bai, and H.-L. Shen, “Boosting instance awareness via cross-view correlation with 4d radar and camera for 3d object detection,” arXiv preprint arXiv:2602.20632 , 2026. [18] B. Kerbl, G. Kopanas, T. Leimk¨ uhler, and G. Drettakis, “3D Gaussian splatting for real-time radiance field rendering,” ACM Trans. Graph. ,vol. 42, no. 4, pp. 139–1, 2023. [19] S.-W. Lu, Y.-H. Tsai, and Y.-T. Chen, “Toward real-world bev perception: Depth uncertainty estimation via gaussian splatting,” in Proceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition ,2025, pp. 17 124–17 133. [20] Q. Sun, C. Shu, S. Zhou, R. Cheng, Y. Wei, Z. Yu, D. Yang, S. Han, and Y. Chun, “Gsrender: Deduplicated occupancy prediction via weakly supervised 3d gaussian splatting,” arXiv preprint arXiv:2412.14579 ,2024. [21] Y. Huang, W. Zheng, Y. Zhang, J. Zhou, and J. Lu, “GaussianFormer: Scene as gaussians for vision-based 3D semantic occupancy prediction,” in European Conference on Computer Vision . Springer, 2024, pp. 376– 393. [22] Y. Shi, Y. Zhu, S. Han, J. Jeong, A. Ansari, H. Cai, and F. Porikli, “Odg: Occupancy prediction using dual gaussians,” arXiv preprint arXiv:2506.09417 , 2025. [23] T. Yin, X. Zhou, and P. Krahenbuhl, “Center-based 3D object detection and tracking,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2021, pp. 11 784–11 793. [24] A. H. Lang, S. Vora, H. Caesar, L. Zhou, J. Yang, and O. Beijbom, “PointPillars: Fast encoders for object detection from point clouds,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019, pp. 12 697–12 705. [25] X. Bai, Q. Yang, Z. Zhou, F. Zhang, Z. Wu, S.-Y. Cao, L. Zheng, B. Yu, F. Wang, J. Bai et al. , “Lgdd: Local-global synergistic dual-branch 3d object detection using 4d radar,” in 2025 IEEE/RSJ International 9
+
+Conference on Intelligent Robots and Systems (IROS) . IEEE, 2025, pp. 13 318–13 325. [26] R. Xu, Z. Xiang, C. Zhang, H. Zhong, X. Zhao, R. Dang, P. Xu, T. Pu, and E. Liu, “SCKD: Semi-supervised cross-modality knowledge distillation for 4D radar object detection,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 9, 2025, pp. 8933– 8941. [27] W. Xiong, Z. Zou, Q. Zhao, F. He, and B. Zhu, “LXLv2: Enhanced LiDAR excluded lean 3D object detection with fusion of 4D radar and camera,” IEEE Robotics and Automation Letters , 2025. [28] P. Wolters, J. Gilg, T. Teepe, F. Herzog, A. Laouichi, M. Hofmann, and G. Rigoll, “Unleashing hydra: Hybrid fusion, depth consistency and radar for unified 3d perception,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 7467–7474. [29] H. Zhong, Z. Xiang, R. Xu, J. Fu, P. Xu, S. Wang, Z. Yang, T. Pu, and E. Liu, “Cvfusion: Cross-view fusion of 4d radar and camera for 3d object detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2025, pp. 28 188–28 197. [30] Y. Wu, A. Kirillov, F. Massa, W.-Y. Lo, and R. Girshick, “Detectron2,” https://github.com/facebookresearch/detectron2, 2019.

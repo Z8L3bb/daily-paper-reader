@@ -1,0 +1,309 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-28T22:00:33.608237+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 4,
+    "deep_cap": 7,
+    "deep_selected": 4,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2605.24753v1",
+      "source": "arxiv",
+      "title": "Ghosts in the Point Clouds: De-glaring LiDAR in the Transient Domain",
+      "abstract": "Modern LiDARs are rapidly transitioning from bulky, mechanically scanned systems to ultra-compact, low-cost, solid-state arrays. This miniaturization-while enabling scalability, affordability, and camera-like data structures-introduces a new and severe failure mode: internal-multipath glare. When light from a bright or retroreflective surface reflects and scatters within the LiDAR, light that should reach a single pixel spreads across the pixel array. The resulting artifacts create phantom objects, obscure real ones, and produce safety-critical \"ghosts in the point clouds.\" This paper introduces a physically grounded sensing model and algorithmic techniques for addressing this effect. We show that internal glare can be represented as a linear, scene-independent operator-the Transient Glare Spread Function (TGSF)-acting on the transient measurements. Building on this model, we develop a training-free approach that operates on low-level LiDAR detections (or echoes) prior to point-cloud formation, leveraging knowledge of the glare spread function to reason about the likelihood of each detection arising from glare. The resulting approach is compatible with existing LiDAR signal-processing pipelines, and deployable on unmodified commercial sensors. Using experiments with real single-photon LiDAR hardware, we demonstrate substantial suppression of severe glare artifacts while preserving true scene structure.",
+      "authors": [
+        "Avery Gump",
+        "Connor Henley",
+        "Sungjin Cheong",
+        "Akarsh Prabhakara",
+        "Mohit Gupta"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-23T22:05:03+00:00",
+      "link": "https://arxiv.org/pdf/2605.24753v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LiDAR point cloud de-glaring for artifact removal",
+      "llm_evidence_cn": "用于去除伪影的LiDAR点云去眩光",
+      "llm_evidence": "用于去除伪影的LiDAR点云去眩光",
+      "canonical_evidence": "用于去除伪影的LiDAR点云去眩光",
+      "llm_tldr_en": "Proposes a physically grounded model and algorithms to remove internal glare artifacts from solid-state LiDAR point clouds, enhancing data quality for perception tasks.",
+      "llm_tldr_cn": "本文针对固态激光雷达内部眩光导致的点云伪影问题，提出一种基于物理模型和算法的去眩光方法，有效消除‘点云中的幽灵’伪影，提升点云数据质量，为后续3D感知提供更干净的数据基础。",
+      "llm_tldr": "本文针对固态激光雷达内部眩光导致的点云伪影问题，提出一种基于物理模型和算法的去眩光方法，有效消除‘点云中的幽灵’伪影，提升点云数据质量，为后续3D感知提供更干净的数据基础。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.25293v1",
+      "source": "arxiv",
+      "title": "Neuromorphic LiDAR-based Bird's Eye View Object Detection using Energy-efficient Spiking Neural Networks",
+      "abstract": "Autonomous driving perception demands accurate and efficient processing of three-dimensional sensor data under strict power constraints. Traditional convolutional neural networks achieve strong detection accuracy but are computationally intensive, limiting their suitability for deployment on resource-constrained neuromorphic platforms. Spiking neural networks offer a compelling alternative through event-driven sparse computation, yet their application to complex real-world perception tasks such as three-dimensional object detection remains limited. In this work, we propose an end-to-end spiking encoder-decoder network for object detection in bird's eye view representations of LiDAR point clouds, trained using surrogate gradient backpropagation. We train two variants: a membrane potential variant that reads continuous neuron state at the output stage for maximum accuracy, achieving $92.05$/$87.04$/$86.51$ AP at $\\mathrm{IoU}\\!=\\!0.5$ (Easy/Moderate/Hard), and, a fully binary spiking variant that operates exclusively on spike trains at every layer for direct neuromorphic deployment. We evaluate four input spike encoding strategies and demonstrate that allowing the network to learn spike representations directly from data outperforms hand-crafted Poisson, latency, and z-axis encoding schemes on the KITTI benchmark, where sequential frames are unavailable and the BEV input is presented repeatedly across timesteps as a proxy for temporal streaming. A block-wise energy analysis demonstrates a $3.33\\times$ reduction in synaptic operation energy over an equivalent CNN under conservative loop-based operation. Together, these results demonstrate the viability of spiking neural networks for accurate and energy-efficient neuromorphic perception in autonomous driving.",
+      "authors": [
+        "Sambit Mohapatra",
+        "Senthil Yogamani",
+        "Heinrich Gotzig",
+        "Patrick Mader"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-05-24T23:13:34+00:00",
+      "link": "https://arxiv.org/pdf/2605.25293v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "uses LiDAR point clouds for 3D object detection in BEV with energy-efficient spiking neural networks",
+      "llm_evidence_cn": "使用LiDAR点云进行鸟瞰视图下的3D目标检测，采用节能脉冲神经网络",
+      "llm_evidence": "使用LiDAR点云进行鸟瞰视图下的3D目标检测，采用节能脉冲神经网络",
+      "canonical_evidence": "使用LiDAR点云进行鸟瞰视图下的3D目标检测，采用节能脉冲神经网络",
+      "llm_tldr_en": "Proposes an end-to-end spiking encoder-decoder network for object detection in bird's eye view representations of LiDAR point clouds, achieving energy-efficient 3D detection for autonomous driving.",
+      "llm_tldr_cn": "针对自动驾驶感知中传统CNN计算密集的问题，面向资源受限的神经形态平台，提出一种端到端的脉冲编码器-解码器网络，利用代理梯度训练，在LiDAR点云的鸟瞰视图表示上进行三维目标检测。该方法以事件驱动的稀疏计算实现高能效推理，为低功耗场景下的LiDAR 3D检测提供了新思路。",
+      "llm_tldr": "针对自动驾驶感知中传统CNN计算密集的问题，面向资源受限的神经形态平台，提出一种端到端的脉冲编码器-解码器网络，利用代理梯度训练，在LiDAR点云的鸟瞰视图表示上进行三维目标检测。该方法以事件驱动的稀疏计算实现高能效推理，为低功耗场景下的LiDAR 3D检测提供了新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22997v1",
+      "source": "arxiv",
+      "title": "Scene Reconstruction as Mapping Priors for 3D Detection",
+      "abstract": "In autonomous driving, mapping is critical for motion planning but remains an under-utilized resource for perception tasks such as 3D object detection. Maps can provide robust structural priors of the static environment, helping resolve ambiguities and correct for sensor data sparsity or noise, especially for distant objects or under adverse weather conditions. However, conventional High-Definition (HD) maps are resource-intensive to obtain and maintain, which presents a challenge for efficient, large-scale deployment. In this paper, we propose a scalable solution to systematically leverage mapping to improve 3D detection by overcoming two primary challenges. First, we introduce a pipeline to automatically build dense mapping priors from aggregated sensor data, eliminating the need for human labeling. Second, we design a novel Mapping Priors Augmented 3D Detection (MPA3D) framework to effectively integrate mapping priors with different sensor modalities. Extensive experiments on the Waymo Open Dataset demonstrate that our approach achieves new state-of-the-art results, proving the effectiveness of scalable reconstructed scene priors for enhancing 3D detection.",
+      "authors": [
+        "Yang Fu",
+        "Yuliang Zou",
+        "Hao Xiang",
+        "Xin Huang",
+        "Yijing Bai",
+        "Chen Song",
+        "Weijing Shi",
+        "Govind Thattai",
+        "Dragomir Anguelov",
+        "Mingxing Tan",
+        "Yingwei Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-21T19:52:22+00:00",
+      "link": "https://arxiv.org/pdf/2605.22997v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Uses scene reconstruction as mapping priors for 3D object detection in autonomous driving",
+      "llm_evidence_cn": "利用场景重建作为映射先验，提升自动驾驶3D物体检测",
+      "llm_evidence": "利用场景重建作为映射先验，提升自动驾驶3D物体检测",
+      "canonical_evidence": "利用场景重建作为映射先验，提升自动驾驶3D物体检测",
+      "llm_tldr_en": "Proposes to leverage scene reconstruction to build dense mapping priors from aggregated sensor data, which serve as robust structural priors to improve 3D object detection in autonomous driving, especially for distant objects and adverse conditions.",
+      "llm_tldr_cn": "为了解决自动驾驶中3D物体检测在稀疏或噪声传感器数据、远距离及恶劣天气下的性能瓶颈，本文提出利用场景重建技术从聚合的传感器数据中自动构建稠密映射先验，并将其与检测流程结合。该方法通过消除对高成本HD地图的依赖，系统性地提升了检测鲁棒性。实验表明，该映射先验有效纠正了检测模糊性，为大规模部署提供了可扩展方案。",
+      "llm_tldr": "为了解决自动驾驶中3D物体检测在稀疏或噪声传感器数据、远距离及恶劣天气下的性能瓶颈，本文提出利用场景重建技术从聚合的传感器数据中自动构建稠密映射先验，并将其与检测流程结合。该方法通过消除对高成本HD地图的依赖，系统性地提升了检测鲁棒性。实验表明，该映射先验有效纠正了检测模糊性，为大规模部署提供了可扩展方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.24777v1",
+      "source": "arxiv",
+      "title": "MR-LiDAR: A Multi-Resolution Roadside LiDAR Benchmark for Perception Diagnostics and Deployment Guidance",
+      "abstract": "LiDAR model selection is a critical issue in roadside sensing systems, as it directly determines both perception capability and deployment cost. However, the lack of empirical benchmarks for comparing perception performance across different LiDAR configurations has greatly constrained scientific sensor selection and deployment planning. To address this gap, we present MR-LiDAR, a controlled multi-resolution LiDAR benchmark for roadside perception diagnostics. Using 16-, 32-, 80-, and 128-beam LiDARs in identical roadside scenarios, we collect point clouds and ground-truth annotations for diverse traffic participants, including vehicles and vulnerable road users (VRUs), across varying distances. This controlled design isolates intrinsic LiDAR specifications, particularly beam count and beam distribution, as the key variables for precise performance diagnostics. Based on MR-LiDAR, we conduct systematic empirical analyses to examine how beam count, beam distribution, target distance, object category, and vehicle occlusion affect LiDAR perception performance. The results reveal that all of these factors have substantial impacts. In particular, contrary to the common assumption that higher beam counts always yield better perception, we show that an 80-beam LiDAR with optimized beam distribution can match or even outperform a 128-beam LiDAR with uniform beam distribution. In addition, we provide a practical reference guide for LiDAR selection, including target point-count statistics and detection performance comparisons based on two widely used detection algorithms. This work offers a diagnostic benchmark and practical guidance for determining cost-effective LiDAR configurations in roadside perception applications.",
+      "authors": [
+        "Shunlai Cui",
+        "Peng Cao",
+        "Yuan Zhu",
+        "Yongjiang He",
+        "Jiacheng Yin",
+        "Xiao Huo",
+        "Gang Cao",
+        "Xiaobo Liu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-05-23T23:38:02+00:00",
+      "link": "https://arxiv.org/pdf/2605.24777v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmark for roadside LiDAR perception using multi-resolution sensors",
+      "llm_evidence_cn": "使用多分辨率激光雷达的路侧感知基准",
+      "llm_evidence": "使用多分辨率激光雷达的路侧感知基准",
+      "canonical_evidence": "使用多分辨率激光雷达的路侧感知基准",
+      "llm_tldr_en": "Introduces MR-LiDAR, a multi-resolution LiDAR benchmark for roadside perception diagnostics, collecting point clouds and annotations across 16-128 beam LiDARs to guide sensor selection and deployment for improved 3D perception.",
+      "llm_tldr_cn": "提出MR-LiDAR多分辨率路侧激光雷达基准，在不同光束（16/32/80/128线）下采集点云与标注数据，诊断感知性能并指导传感器选型和部署，以提升交通参与者检测能力，为路侧感知系统提供关键评估工具。",
+      "llm_tldr": "提出MR-LiDAR多分辨率路侧激光雷达基准，在不同光束（16/32/80/128线）下采集点云与标注数据，诊断感知性能并指导传感器选型和部署，以提升交通参与者检测能力，为路侧感知系统提供关键评估工具。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.21112v1",
+      "source": "arxiv",
+      "title": "RCGDet3D: Rethinking 4D Radar-Camera Fusion-based 3D Object Detection with Enhanced Radar Feature Encoding",
+      "abstract": "4D automotive radar is indispensable for autonomous driving due to its low cost and robustness, yet its point cloud sparsity challenges 3D object detection. Existing 4D radar-camera fusion methods focus on complex fusion strategies, trading inference speed for marginal gains. This trade-off hinders real-time deployment due to heavy computation on dense feature maps. In contrast, feature extraction from sparse radar points is less time-consuming but remains under-explored. This work uncovers that simply enhancing radar feature extraction can achieve comparable or even higher performance than elaborate fusion modules, while maintaining real-time performance. Based on this finding, we propose RCGDet3D, which centers on radar feature encoding and simplifies multi-modal fusion. Its encoder inherits from the efficient Gaussian Splatting-based Point Gaussian Encoder (PGE) in RadarGaussianDet3D with two key improvements. First, the Ray-centric PGE (R-PGE) predicts Gaussian attributes in ray-aligned coordinate systems before unifying them to Bird's-Eye View (BEV) space, significantly improving geometric consistency and reducing learning difficulty by decoupling the coordinate transformation from representation learning. Second, a Semantic Injection (SI) module incorporates visual cues from images, producing more geometrically accurate and semantically enriched radar features. Experiments on View-of-Delft (VoD) and TJ4DRadSet show that RCGDet3D outperforms state-of-the-art methods in both accuracy and speed, setting a new benchmark for real-time deployment.",
+      "authors": [
+        "Weiyi Xiong",
+        "Bing Zhu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-20T12:45:01+00:00",
+      "link": "https://arxiv.org/pdf/2605.21112v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Enhances radar feature extraction for radar-camera fusion 3D object detection, addressing sparsity and real-time performance",
+      "llm_evidence_cn": "增强雷达特征提取，实现雷达-摄像头融合的3D物体检测",
+      "llm_evidence": "增强雷达特征提取，实现雷达-摄像头融合的3D物体检测",
+      "canonical_evidence": "增强雷达特征提取，实现雷达-摄像头融合的3D物体检测",
+      "llm_tldr_en": "Finds that enhancing radar feature extraction can match or outperform complex fusion modules for 4D radar-camera 3D object detection, maintaining real-time speed. Proposes RCGDet3D to leverage sparse radar points effectively.",
+      "llm_tldr_cn": "针对4D雷达点云稀疏给3D物体检测带来的挑战，本文发现简单增强雷达特征提取即可达到甚至超越复杂融合模块的性能，同时保持实时性。据此提出RCGDet3D，专注于从稀疏雷达点中高效提取特征。该方法在不牺牲速度的前提下实现了高精度的多模态融合检测，为自动驾驶感知提供了更实用的实时方案。",
+      "llm_tldr": "针对4D雷达点云稀疏给3D物体检测带来的挑战，本文发现简单增强雷达特征提取即可达到甚至超越复杂融合模块的性能，同时保持实时性。据此提出RCGDet3D，专注于从稀疏雷达点中高效提取特征。该方法在不牺牲速度的前提下实现了高精度的多模态融合检测，为自动驾驶感知提供了更实用的实时方案。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "integrating multiple sensor modalities for robust detection",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.25127v1",
+      "source": "arxiv",
+      "title": "PQDT: Pseudo-Query Dual Transformer for Robust Point Cloud Restoration",
+      "abstract": "Point clouds are a fundamental 3D representation in computer vision, enabling a wide range of perception tasks. However, real-world point clouds often suffer from degradations such as incompleteness, noise, outliers, and irregular density, caused by sensor limitations or occlusions. Recovering clean and detailed shapes from such degraded data is crucial for downstream applications. While existing learning-based methods achieve progress on individual tasks like completion or denoising, they typically rely on global bottleneck features, which lose fine-grained geometry and remain sensitive to varying input quality. We propose a unified 3D restoration network that directly takes point clouds as input and adaptively reconstructs high-quality geometry under diverse degradation scenarios. At the core of our approach is a Pseudo-Query module, implemented within a Transformer backbone, which reformulates geometric translation into two cooperative stages to enhance structural clarity, robustness, and local detail preservation. Extensive experiments on curated benchmarks demonstrate that our approach surpasses state-of-the-art performance in general 3D restoration. It effectively handles complex combinations of completion, deformation, and denoising degradations. With this work, we provide a novel unified, point-only backbone for robust 3D restoration, enabling more versatile 3D perception.",
+      "authors": [
+        "Haoqing Wu",
+        "Alexa Nawotki",
+        "Jochen Garcke"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-05-24T15:15:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.25127v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "point cloud restoration network handles noise and sparsity, improving robustness for downstream 3D perception",
+      "llm_evidence_cn": "点云恢复网络处理噪声和稀疏性，提升下游3D感知鲁棒性",
+      "llm_evidence": "点云恢复网络处理噪声和稀疏性，提升下游3D感知鲁棒性",
+      "canonical_evidence": "点云恢复网络处理噪声和稀疏性，提升下游3D感知鲁棒性",
+      "llm_tldr_en": "Proposes a unified 3D point cloud restoration network using pseudo-query dual transformers to recover clean geometry from incomplete, noisy, and sparse point clouds, enhancing robustness for subsequent tasks.",
+      "llm_tldr_cn": "针对真实点云中常见的残缺、噪声和不规则密度等问题，提出一种统一的三维点云恢复网络PQDT，采用伪查询双变压器直接处理点云，自适应重建高质量几何。实验表明其能有效处理多种退化类型，提升下游任务对稀疏噪声点云的鲁棒性，为基于LiDAR的3D感知提供了可靠的数据预处理手段。",
+      "llm_tldr": "针对真实点云中常见的残缺、噪声和不规则密度等问题，提出一种统一的三维点云恢复网络PQDT，采用伪查询双变压器直接处理点云，自适应重建高质量几何。实验表明其能有效处理多种退化类型，提升下游任务对稀疏噪声点云的鲁棒性，为基于LiDAR的3D感知提供了可靠的数据预处理手段。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "multi modal fusion and robustness against sparse and noisy point clouds",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.22868v1",
+      "source": "arxiv",
+      "title": "FusionSense: Tri-Stage Near-Sensor Learning for Runtime-Adaptive Multimodal Edge Intelligence",
+      "abstract": "Autonomous systems and smart-industry deployments increasingly split computation across near-sensor, edge, and cloud resources, where tight energy, latency, and reliability budgets demand run-time adaptivity. In practice, deciding what to compute and transmit at each point is pivotal; yet as multimodal sensor suites (cameras, LiDAR/depth, etc.) proliferate at the edge, most prior approaches either (i) fuse modalities on powerful servers or (ii) apply uni-modal near-sensor filters that ignore cross-modal dependencies, leading to redundant transmissions or missed events. We present FusionSense, a fusion-aware intelligent sensing framework for energy-constrained autonomous edge systems. Lightweight near-sensor classifiers are trained via a three-step procedure: (i) a server-side fusion model learns the downstream task, (ii) filter-out-safe (FoS) labels quantify each modality's necessity relative to the fused decision, and (iii) an edge-side fusion model is compacted by injecting near-sensor predictions as auxiliary signals. The result is a run-time decision layer that jointly reduces compute and communication while scaling linearly with sensor count. On a dual-modality (RGB+Depth/LiDAR) setup with SynDrone, FusionSense sustains task quality at substantially higher data-reduction rates than uni-modal filters and delivers large end-to-end gains: up to 33x lower energy at 1% FoI prevalence, 11x at 10%, a 92.3% reduction in quality loss at a fixed 30% data reduction, and roughly 1.5x higher energy savings than the best prior filtering baseline.",
+      "authors": [
+        "Sanggeon Yun",
+        "Ryozo Masukawa",
+        "Minhyoung Na",
+        "Hyunwoo Oh",
+        "Yoshiki Yamaguchi",
+        "Wenjun Huang",
+        "SungHeon Jeong",
+        "Mohsen Imani"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-19T21:59:32+00:00",
+      "link": "https://arxiv.org/pdf/2605.22868v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "multimodal fusion framework for edge systems with LiDAR/depth",
+      "llm_evidence_cn": "用于边缘系统的多模态融合框架，涉及LiDAR/深度",
+      "llm_evidence": "用于边缘系统的多模态融合框架，涉及LiDAR/深度",
+      "canonical_evidence": "用于边缘系统的多模态融合框架，涉及LiDAR/深度",
+      "llm_tldr_en": "FusionSense proposes a tri-stage near-sensor learning framework that adaptively fuses camera, LiDAR/depth modalities on resource-constrained edge devices, balancing accuracy and energy.",
+      "llm_tldr_cn": "FusionSense提出一种三阶段近传感器学习框架，在资源受限的边缘设备上自适应融合相机、LiDAR/深度等多模态数据，实现运行时精度与能耗平衡，为自主系统提供轻量级多模态感知方案。",
+      "llm_tldr": "FusionSense提出一种三阶段近传感器学习框架，在资源受限的边缘设备上自适应融合相机、LiDAR/深度等多模态数据，实现运行时精度与能耗平衡，为自主系统提供轻量级多模态感知方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
