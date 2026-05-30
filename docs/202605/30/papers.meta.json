@@ -1,0 +1,24 @@
+{
+  "label": "2026-05-30",
+  "date": "2026-05-30",
+  "generated_at": "2026-05-30T20:03:46",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202605/30/2605.24098v1-d2-v2x-depth-driven-cooperative-v2x-reasoning-for-autonomous-driving",
+      "section": "quick",
+      "title_en": "D2-V2X: Depth-Driven Cooperative V2X Reasoning for Autonomous Driving",
+      "authors": "Kevin Richard, Alphin Varghese, Colin Pham, David Oh, Srijan Das",
+      "date": "2026-05-22",
+      "pdf": "https://arxiv.org/pdf/2605.24098v1",
+      "score": "6.0",
+      "evidence": "将3D LiDAR特征与VLM潜在空间对齐进行协同感知",
+      "tldr": "单车视觉语言模型受传感器遮挡限制，而车路协同系统虽可缓解此问题，现有基准仍缺乏对协同推理的评测。为此，本文提出空间感知的D2-V2X基准，融合多模态传感器数据，并通过将3D LiDAR特征对齐到VLM潜空间、强制生成自然语言思维链后再输出结构化答案，实现深度驱动的协同推理。实验表明，模型在识别遮挡危险上召回率达24.4%（零样本几乎为0），可见物体空间估计误差降低77%，决策F1分数达53.5。该工作为协同场景下的空间推理建立了新基线，并揭示了3D到2D投影是当前VLM架构的根本瓶颈。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "Single-vehicle Vision-Language Models (VLMs) are fundamentally constrained by sensor occlusions. While Vehicle-to-Everything (V2X) systems mitigate this, current benchmarks lack the cooperative reasoning required for resolving ambiguities in complex environments. We introduce D2-V2X, a spatially-aware Question-Rationale-Answer (QRA) benchmark featuring 8,500 triplets derived from multimodal vehicle and infrastructure sensors. We additionally establish a baseline that aligns 3D LiDAR features with the VLM's latent space. By enforcing natural language Chain-of-Thought rationales prior to structured JSON outputs, our model is forced to explicitly articulate spatial relations. Our experiments demonstrate that grounding VLMs in cooperative LiDAR achieves 24.4% recall in identifying occluded hazards compared to near-zero in zero-shot models and reduces spatial estimation error for visible objects by 77% compared to the zero-shot baseline. While the model achieves a functional decision-making F1-score of 53.5, we identify 3D-to-2D projection as a fundamental bottleneck in current VLM architectures, establishing a new baseline for future innovation. Data, code, and trained models available at https://github.com/KevinRichard1/D2-V2X",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
