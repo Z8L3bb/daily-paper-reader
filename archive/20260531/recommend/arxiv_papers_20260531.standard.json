@@ -1,0 +1,64 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-31T20:47:03.600060+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2605.30060v1",
+      "source": "arxiv",
+      "title": "Towards Consistent Video Geometry Estimation",
+      "abstract": "This work presents ViGeo, a feed-forward foundation model for recovering spatially dense and temporally consistent geometry from video sequences. Built upon a plain transformer architecture without task-specific architectural modifications, ViGeo supports streaming, full-sequence, and long-video inference within a unified model. The key design is dynamic chunking attention, which exposes the model to both bidirectional and causal temporal contexts during training and allows it to adapt its attention pattern at test time without retraining. To improve supervision quality, we further introduce a completion-based data refinement framework. This framework trains a video depth completion teacher that conditions on sparse and noisy annotations and exploits video/multi-view context to produce dense, temporally coherent, and geometrically reliable training targets. Beyond depth and point maps, ViGeo also predicts surface normals within the same framework. Trained solely on public datasets, ViGeo achieves state-of-the-art performance across online, offline, and long-video depth estimation, surface normal estimation, and video point map estimation.",
+      "authors": [
+        "Zhu Yu",
+        "Jingnan Gao",
+        "Runmin Zhang",
+        "Lingteng Qiu",
+        "Zhengyi Zhao",
+        "Rui Peng",
+        "Yichao Yan",
+        "Kejie Qiu",
+        "Siyu Zhu",
+        "Si-Yuan Cao",
+        "Hui-Liang Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-28T15:11:17+00:00",
+      "link": "https://arxiv.org/pdf/2605.30060v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Trains a video depth completion teacher using sparse and noisy annotations for dense geometry estimation, applicable to depth completion from sparse LiDAR",
+      "llm_evidence_cn": "训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全",
+      "llm_evidence": "训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全",
+      "canonical_evidence": "训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全",
+      "llm_tldr_en": "Proposes ViGeo, a plain transformer model for temporally consistent video geometry estimation, and a depth completion teacher that refines sparse noisy depth annotations using video context, enabling high-quality dense geometry recovery.",
+      "llm_tldr_cn": "现有视频几何估计方法难以同时保持空间稠密性和时间一致性。本文提出ViGeo,基于简洁的Transformer架构,通过动态分块注意力统一支持流式、全序列和长视频推理。同时引入基于视频上下文补全的教师模型,利用稀疏噪声标注生成高质量稠密深度,为下游任务提供可靠几何信息。该方法为稀疏深度补全任务提供了新的技术路径。",
+      "llm_tldr": "现有视频几何估计方法难以同时保持空间稠密性和时间一致性。本文提出ViGeo,基于简洁的Transformer架构,通过动态分块注意力统一支持流式、全序列和长视频推理。同时引入基于视频上下文补全的教师模型,利用稀疏噪声标注生成高质量稠密深度,为下游任务提供可靠几何信息。该方法为稀疏深度补全任务提供了新的技术路径。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

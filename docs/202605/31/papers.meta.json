@@ -1,0 +1,24 @@
+{
+  "label": "2026-05-31",
+  "date": "2026-05-31",
+  "generated_at": "2026-05-31T20:49:32",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202605/31/2605.30060v1-towards-consistent-video-geometry-estimation",
+      "section": "quick",
+      "title_en": "Towards Consistent Video Geometry Estimation",
+      "authors": "Zhu Yu, Jingnan Gao, Runmin Zhang, Lingteng Qiu, Zhengyi Zhao, Rui Peng, Yichao Yan, Kejie Qiu, Siyu Zhu, Si-Yuan Cao, Hui-Liang Shen",
+      "date": "2026-05-28",
+      "pdf": "https://arxiv.org/pdf/2605.30060v1",
+      "score": "6.0",
+      "evidence": "训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全",
+      "tldr": "由于视频几何估计缺乏时空一致性，现有方法难以兼顾在线与离线推理。本文提出ViGeo基础模型，基于无任务特定改动的Transformer架构与动态分块注意力，可在训练后自适应调整注意力模式，统一支持流式、全序列及长视频推理。同时，引入补全式数据精炼框架，利用视频上下文生成稠密且时序一致的训练目标，提升监督质量。结合深度、表面法线与点图预测，ViGeo在多个任务上均取得最先进性能，为视频几何估计建立了实用的统一前馈基线。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "This work presents ViGeo, a feed-forward foundation model for recovering spatially dense and temporally consistent geometry from video sequences. Built upon a plain transformer architecture without task-specific architectural modifications, ViGeo supports streaming, full-sequence, and long-video inference within a unified model. The key design is dynamic chunking attention, which exposes the model to both bidirectional and causal temporal contexts during training and allows it to adapt its attention pattern at test time without retraining. To improve supervision quality, we further introduce a completion-based data refinement framework. This framework trains a video depth completion teacher that conditions on sparse and noisy annotations and exploits video/multi-view context to produce dense, temporally coherent, and geometrically reliable training targets. Beyond depth and point maps, ViGeo also predicts surface normals within the same framework. Trained solely on public datasets, ViGeo achieves state-of-the-art performance across online, offline, and long-video depth estimation, surface normal estimation, and video point map estimation.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

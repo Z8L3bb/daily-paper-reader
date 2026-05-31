@@ -6,26 +6,26 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-30
-- 运行时间：2026-05-30 20:03:35 UTC
+- 最新运行日期：2026-05-31
+- 运行时间：2026-05-31 20:49:19 UTC
 - 运行状态：成功
 - 本次总论文数：1
 - 精读区：0
 - 速读区：1
 
 ### 今日简报（AI）
-今日速读一篇自动驾驶协同感知新作，聚焦深度信息如何驱动车路协同推理。  
-核心思路是让深度指引多车多传感器融合，有效提升3D检测的稳定性与精度。  
-对车路协同感兴趣的读者，可以从“用深度做先验”这个切入点感受感知盲区互补的潜力。
-- 详情：[/202605/30/README](/202605/30/README)
+今日速读了一篇关于提升视频几何估计一致性的工作，评分尚可。
+该方向试图让单帧估计的几何信息在时间轴上更连贯，解决闪烁与跳变问题。
+若你对视频3D重建或特效合成感兴趣，可重点关注此类一致性优化思路。
+- 详情：[/202605/31/README](/202605/31/README)
 
 ### 精读区论文标签
 - 本次无精读推荐。
 
 ### 速读区论文标签
-1. [D2-V2X: Depth-Driven Cooperative V2X Reasoning for Autonomous Driving](/202605/30/2605.24098v1-d2-v2x-depth-driven-cooperative-v2x-reasoning-for-autonomous-driving)  
-   标签：评分：6.0/10、query:stage-d-det
-   evidence：将3D LiDAR特征与VLM潜在空间对齐进行协同感知
+1. [Towards Consistent Video Geometry Estimation](/202605/31/2605.30060v1-towards-consistent-video-geometry-estimation)  
+   标签：评分：6.0/10、query:lidar-d-det
+   evidence：训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全
 
 
 <div class="dpr-home-promo-card">
