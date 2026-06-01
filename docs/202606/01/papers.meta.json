@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-01",
+  "date": "2026-06-01",
+  "generated_at": "2026-06-01T23:03:45",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/01/2605.30983v1-can-bev-perception-gracefully-degrade-under-sensor-failures",
+      "section": "deep",
+      "title_en": "Can BEV Perception Gracefully Degrade under Sensor Failures?",
+      "authors": "Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, Zhiqiang Zuo",
+      "date": "2026-05-29",
+      "pdf": "https://arxiv.org/pdf/2605.30983v1",
+      "score": "8.0",
+      "evidence": "提出在传感器故障下实现优雅降级的多模态BEV感知方法，增强鲁棒性",
+      "tldr": "当前多模态BEV感知系统在传感器故障下性能脆弱，融合机制静态易导致灾难性退化。Grace-BEV提出主动模态可靠性评估，通过TrustGate路由器评估可信度并使用FailSafe融合模块动态校准特征，结合三阶段训练与模态丢弃策略。在nuScenes-C/R上，LiDAR完全失效时基线精度归零，Grace-BEV恢复至34.7% mAP，清洁数据上提升1.4%，实现鲁棒与高效的强权衡。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "Despite the remarkable success of multi-modal bird's-eye view (BEV) perception in autonomous driving, current systems exhibit a critical vulnerability: existing fusion mechanisms are highly brittle to sensor corruptions, often causing catastrophic performance degradation. This vulnerability largely stems from the fact that standard fusion frameworks typically integrate multi-modal representations in a static manner, leading to a precipitous performance collapse under missing or corrupted modalities. In contrast, we show that graceful degradation is achievable through active modality reliability assessment. To this end, we present Grace-BEV, a lightweight and plug-and-play framework that enforces active reliability awareness during multi-modal fusion. Instead of relying on computationally expensive cross-modal interactions, Grace-BEV leverages the aligned BEV space to explicitly assess modality trustworthiness via a TrustGate Router and dynamically recalibrate feature integration using the FailSafe Fusion Block. Furthermore, we devise a Three-Phase Training strategy with Modality Dropout to prevent modality dominance and encourage balanced cross-modal learning under unreliable inputs. Extensive experiments on nuScenes-R and nuScenes-C show that Grace-BEV maintains robust performance across diverse corruption settings. Notably, under catastrophic LiDAR failures where standard baselines collapse to 0.0% mean Average Precision (mAP), Grace-BEV restores performance to as high as 34.7% mAP. Moreover, it improves clean accuracy by up to 1.4%, achieving a strong trade-off between robustness and efficiency.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/01/2605.31177v1-vanilla-vit-for-automotive-point-cloud-semantic-segmentation",
+      "section": "quick",
+      "title_en": "Vanilla ViT for Automotive Point Cloud Semantic Segmentation",
+      "authors": "Gilles Puy, Nermin Samet, Alexandre Boulch, Spyros Gidaris, Tuan-Hung VU, Renaud Marlet",
+      "date": "2026-05-29",
+      "pdf": "https://arxiv.org/pdf/2605.31177v1",
+      "score": "7.0",
+      "evidence": "使用普通ViT的全局注意力机制聚合汽车激光雷达点云特征",
+      "tldr": "点云语义分割领域长期由U-Net与卷积/局部注意力主导，普通ViT较少应用于车载激光雷达场景。VaViT通过设计高效tokenizer、轻量化解码分割头和定制数据增强，使非层次化ViT在该任务上充分发挥潜力。在nuScenes、SemanticKITTI和Waymo数据集上，VaViT性能匹配或超越现有最先进方法，且架构更简洁。这一工作证明了普通ViT结合针对性设计即可胜任大规模点云分割，为多模态统一骨干提供新可能。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Plain Transformers have become the de-facto architecture for processing text, audio, image, and video, offering a unified backbone for multimodal learning. However, state-of-the-art architectures for point cloud semantic segmentation remain dominated by U-Nets architectures where convolutions are interleaved with local or windowed attentions. In this work, we show how to effectively leverage vanilla, non-hierarchical ViTs for segmentation of large-scale automotive lidar scenes. We bridge the performance gap thanks to a carefully designed tokenizer, a lightweight decoder segmentation head, and tailored data augmentations. Our approach, VaViT for Vanilla ViT, matches or exceeds the performance of state-of-the-art methods while maintaining the simplicity of ViT architecture. We provide extensive evaluations on nuScenes, SemanticKITTI, and Waymo Open Dataset to validate the efficiency of our method. Code and models are available at https://github.com/valeoai/VaViT.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

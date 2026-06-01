@@ -6,26 +6,28 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-31
-- 运行时间：2026-05-31 20:49:19 UTC
+- 最新运行日期：2026-06-01
+- 运行时间：2026-06-01 23:03:29 UTC
 - 运行状态：成功
-- 本次总论文数：1
-- 精读区：0
+- 本次总论文数：2
+- 精读区：1
 - 速读区：1
 
 ### 今日简报（AI）
-今日速读了一篇关于提升视频几何估计一致性的工作，评分尚可。
-该方向试图让单帧估计的几何信息在时间轴上更连贯，解决闪烁与跳变问题。
-若你对视频3D重建或特效合成感兴趣，可重点关注此类一致性优化思路。
-- 详情：[/202605/31/README](/202605/31/README)
+今日研读两篇自动驾驶感知论文，关注多传感器鲁棒性与基础模型应用。  
+值得留意的是，BEV感知能优雅应对传感器故障，而基础ViT模型在点云分割中展现竞争力。  
+建议从业者关注感知系统在非理想条件下的健壮性设计，可尝试复现这两类轻量级方案。
+- 详情：[/202606/01/README](/202606/01/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Can BEV Perception Gracefully Degrade under Sensor Failures?](/202606/01/2605.30983v1-can-bev-perception-gracefully-degrade-under-sensor-failures)  
+   标签：评分：8.0/10、query:stage-d-det
+   evidence：提出在传感器故障下实现优雅降级的多模态BEV感知方法，增强鲁棒性
 
 ### 速读区论文标签
-1. [Towards Consistent Video Geometry Estimation](/202605/31/2605.30060v1-towards-consistent-video-geometry-estimation)  
-   标签：评分：6.0/10、query:lidar-d-det
-   evidence：训练视频深度补全教师模型,利用稀疏和噪声标注实现稠密几何估计,可迁移至稀疏LiDAR深度补全
+1. [Vanilla ViT for Automotive Point Cloud Semantic Segmentation](/202606/01/2605.31177v1-vanilla-vit-for-automotive-point-cloud-semantic-segmentation)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：使用普通ViT的全局注意力机制聚合汽车激光雷达点云特征
 
 
 <div class="dpr-home-promo-card">

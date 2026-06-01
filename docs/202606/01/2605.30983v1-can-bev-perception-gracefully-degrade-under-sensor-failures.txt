@@ -1,0 +1,471 @@
+Title: Can BEV Perception Gracefully Degrade under Sensor Failures?
+
+URL Source: https://arxiv.org/pdf/2605.30983v1
+
+Published Time: Mon, 01 Jun 2026 00:49:41 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Can BEV Perception Gracefully Degrade under Sensor Failures? 
+
+# Haifa Zhang 
+
+Tianjin Key Laboratory of Intelligent Unmanned Swarm Technology and System, School of Electrical and Information Engineering, Tianjin University Tianjin, China zhanghaifa@tju.edu.cn 
+
+# Yijing Wang 
+
+Tianjin Key Laboratory of Intelligent Unmanned Swarm Technology and System, School of Electrical and Information Engineering, Tianjin University Tianjin, China yjwang@tju.edu.cn 
+
+# Haoyu Wang ∗
+
+Tianjin Key Laboratory of Intelligent Unmanned Swarm Technology and System, School of Electrical and Information Engineering, Tianjin University Tianjin, China Key Laboratory of System Control and Information Processing, Ministry of Education of China Shanghai, China why2014@tju.edu.cn 
+
+# Zheng Li 
+
+Tianjin Key Laboratory of Intelligent Unmanned Swarm Technology and System, School of Electrical and Information Engineering, Tianjin University Tianjin, China zhengl@tju.edu.cn 
+
+# Zhiqiang Zuo 
+
+Tianjin Key Laboratory of Intelligent Unmanned Swarm Technology and System, School of Electrical and Information Engineering, Tianjin University Tianjin, China zqzuo@tju.edu.cn 
+
+## Abstract 
+
+Despite the remarkable success of multi-modal bird’s-eye view (BEV) perception in autonomous driving, current systems exhibit a critical vulnerability: existing fusion mechanisms are highly brit-tle to sensor corruptions, often causing catastrophic performance degradation. This vulnerability largely stems from the fact that standard fusion frameworks typically integrate multi-modal repre-sentations in a static manner, leading to a precipitous performance collapse under missing or corrupted modalities. In contrast, we show that graceful degradation is achievable through active modal-ity reliability assessment. To this end, we present Grace-BEV, a light-weight and plug-and-play framework that enforces active reliability awareness during multi-modal fusion. Instead of relying on compu-tationally expensive cross-modal interactions, Grace-BEV leverages the aligned BEV space to explicitly assess modality trustworthiness via a TrustGate Router and dynamically recalibrate feature inte-gration using the FailSafe Fusion Block. Furthermore, we devise a Three-Phase Training strategy with Modality Dropout to prevent modality dominance and encourage balanced cross-modal learning under unreliable inputs. Extensive experiments on nuScenes-R and nuScenes-C show that Grace-BEV maintains robust performance across diverse corruption settings. Notably, under catastrophic Li-DAR failures where standard baselines collapse to 0.0% mean Aver-age Precision (mAP), Grace-BEV restores performance to as high as 34.7% mAP. Moreover, it improves clean accuracy by up to 1.4%, achieving a strong trade-off between robustness and efficiency. 
+
+## CCS Concepts 
+
+• Computing methodologies → Scene understanding .
+
+> ∗Corresponding author.
+
+## Keywords 
+
+Multi-modal Robustness, Autonomous Driving, 3D Object Detec-tion, Bird’s-Eye View 
+
+## 1 Introduction 
+
+In recent years, bird’s-eye view (BEV) perception [ 4 , 19 , 24 , 30 ] has emerged as a fundamental representation for autonomous driving, providing a unified interface for 3D object detection and motion planning [ 13 , 42 ]. Driven by the complementary strengths of cam-eras and LiDAR, multi-modal fusion has become the dominant paradigm for high-precision BEV perception [ 7, 39 , 44 ]. Current state-of-the-art (SOTA) frameworks achieve remarkable perfor-mance by aligning heterogeneous sensor streams and integrating dense semantic cues from cameras with precise geometric informa-tion from LiDAR into an aligned BEV space [23, 38, 48, 54]. However, this strong performance relies on an ideal assumption: that all modalities remain reliable at all times [ 1, 6]. In real-world deployments, sensor streams are often incomplete or corrupted, which poses a fundamental challenge to multi-modal fusion. Cru-cially, current systems lack the inherent resilience to handle such corruptions. Existing frameworks typically integrate cross-modal representations in a static and tightly coupled manner, making them highly brittle to missing or unreliable modalities [ 12 , 31 , 43 ]. As illustrated in Fig. 1, when the primary geometric modality (e.g., LiDAR) is severely degraded, existing models [ 24 , 30 , 47 ] fail to degrade gracefully and instead suffer an abrupt collapse in perfor-mance, often dropping to near-zero accuracy [ 2, 50 ]. We attribute this brittleness to a form of modality dominance, referred to in this work as modality laziness, where the model over-relies on the 
+
+> 1
+> arXiv:2605.30983v1 [cs.CV] 29 May 2026 Zhang et al., Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo
+
+geometry-rich modality during fusion and fails to preserve a viable fallback behavior when that modality becomes unreliable. To address this challenge, we present Grace-BEV, a lightweight and plug-and-play framework for reliability-aware multi-modal fusion in BEV perception. Rather than relying on static early fusion, we formulate robustness under modality corruption as a dynamic routing problem. Specifically, Grace-BEV operates in the aligned BEV space, where a TrustGate Router explicitly estimates the trust-worthiness of the LiDAR stream by assessing its geometric integrity. Based on this real-time reliability assessment, the proposed FailSafe Fusion Block (FFB) dynamically recalibrates cross-modal feature integration, suppressing corrupted signals before they propagate to downstream prediction heads. Furthermore, we devise a Three-Phase Training strategy with Modality Dropout (MD) [ 40 , 48 ] to prevent modality dominance and encourage balanced cross-modal learning under unreliable inputs. Our main contributions are sum-marized as follows: 
+
+• We identify graceful degradation under missing or cor-rupted modalities as a core challenge for multi-modal BEV perception, and reformulate robust perception as a problem of active modality reliability assessment rather than static feature fusion. 
+
+• We propose Grace-BEV , a lightweight and plug-and-play framework for reliability-aware multi-modal fusion. The framework introduces a TrustGate Router to explicitly esti-mate modality trustworthiness and an FFB to dynamically recalibrate feature integration under unreliable inputs. 
+
+• We further devise a Three-Phase Training strategy with MD to mitigate modality dominance and promote balanced cross-modal learning. Extensive experiments on nuScenes-R and nuScenes-C show that Grace-BEV restores perfor-mance from 0.0% to 34.7% mAP under catastrophic LiDAR failures, while also improving clean accuracy by up to 1.4%, achieving a strong trade-off between robustness and effi-ciency. 
+
+## 2 Related Work 2.1 Multi-modal 3D Object Detection 
+
+Existing multi-modal 3D detectors for autonomous driving mainly follow two paradigms for constructing BEV representations from heterogeneous data. 
+
+Geometry-based alignment approaches , such as Lift, Splat, Shoot (LSS) [ 33 ] and BEVFusion [ 21 , 22 , 24 , 30 , 47 ], explicitly lift image features into 3D space via depth estimation and project them into a unified BEV grid. By leveraging explicit spatial priors to align dense image semantics with sparse point clouds, these methods achieve strong performance and high efficiency under normal con-ditions. However, their fusion strategies are typically static (e.g., feature concatenation), which can be sensitive to corrupted geo-metric signals, leading to notable performance degradation under modality failures. 
+
+Query- and transformer-based methods , including TransFu-sion, CMT, and DeepInteraction, model cross-modal interactions through attention mechanisms or learned queries [ 2, 8, 23 , 28 , 41 , 45 ,48 , 50 , 51 ]. While highly expressive and effective, these approaches often introduce additional computational overhead, and robust-ness is generally learned implicitly within high-dimensional latent spaces [57]. In contrast, our work is motivated by the observation that LSS-based architectures already align multi-modal features explicitly in an aligned BEV space, enabling reliability to be addressed directly at the feature level without resorting to heavy interaction modules. 
+
+## 2.2 Robustness in Multi-modal Perception 
+
+Robust multi-modal perception is critical for autonomous driving, where sensor failures and degradations are unavoidable [ 10 , 14 ,53 ]. Existing approaches generally address robustness from two perspectives: training strategies and architectural designs. 
+
+Training Strategies. A common practice is MD [ 40 ], which ran-domly removes one modality during training to discourage over-reliance on a dominant modality. While effective as a regularization technique, MD alone is insufficient to ensure robustness. When combined with static fusion structures, the resulting distribution mismatch can significantly degrade detection performance and may even cause unstable optimization or convergence failure [ 5, 31 , 48 ]. 
+
+Architectural Designs. Beyond training-time regularization, sev-eral works redesign fusion architectures to better handle partial or corrupted observations. Query- or attention-based fusion methods iteratively aggregate multi-modal features [ 48 , 50 , 51 ], while others employ knowledge distillation to transfer geometric priors from LiDAR to camera branches [ 9]. Although effective, these methods often introduce additional architectural complexity [15, 35]. In contrast, our approach focuses on lightweight, reliability-aware fusion for LSS-based BEV pipelines by explicitly estimating modality reliability and dynamically recalibrating feature integra-tion. 
+
+## 2.3 Dynamic Routing and Conditional Computation 
+
+Dynamic routing and conditional computation have been explored in prior work to adapt model behavior based on input characteris-tics, most notably in Mixture-of-Experts (MoE) frameworks [ 34 , 36 ]. While conventional MoE designs primarily target capacity scaling or computational efficiency [ 11 ], their reliance on heavyweight ex-perts and complex routing policies limits applicability in real-time perception [ 5, 31 ]. In contrast, our work adopts the principle of con-ditional computation for a different purpose: reliability-aware mod-ulation of modality interaction in the aligned BEV space, achieved with minimal architectural overhead. 
+
+## 3 Problem Analysis 
+
+While multi-modal BEV detectors generally outperform single-modal baselines, their reliability under modality failure remains a critical yet overlooked vulnerability [ 17 , 18 , 20 , 27 ]. As evidenced by our empirical stress tests in Fig. 1, standard fusion models exhibit a “cliff-like” performance drop. Specifically, as shown in Fig. 1a, when LiDAR field of view (FOV) is reduced to 0◦ (simulating a complete sensor blackout), the mean Average Precision (mAP) of baseline methods (dashed lines) collapses to near-zero, indicating a failure to utilize the remaining valid camera signals. Similarly,  
+
+> 2Can BEV Perception Gracefully Degrade under Sensor Failures?
+> (a) Robustness to LiDAR Failure. (b) Robustness to Camera Failure.
+
+Figure 1: Dual-Modality Robustness Analysis. We evaluate Grace-BEV (solid lines) against baselines (dashed lines) on both BEVFusion-MIT (blue) and BEVFusion-AD (orange). (a) When LiDAR fails, baselines suffer a catastrophic collapse to 0 mAP, whereas our method degrades gracefully to the vision-only lower bound. (b) When cameras fail, the performance drop is less severe due to the dominant LiDAR branch. However, our method consistently maintains a higher mAP (+2.2% ∼ +2.4%) across all degradation levels compared to baselines. 
+
+Fig. 1b demonstrates that baselines degrade rapidly even when cameras are lost. Current attempts to mitigate this fragility often resort to heavy MoE [ 5, 31 ] or complex query-based interactions [ 2, 12 , 25 , 50 ]. However, these approaches not only introduce prohibitive compu-tational overhead but also treat robustness as a generic “black-box” learning task, overlooking the specific geometric structure of the problem. Notably, such complexity may be unnecessary for LSS-based architectures [ 33 ], where semantic features from different modalities are already explicitly projected and unified into a com-mon BEV coordinate system. In this unified space, multi-modal features are spatially aligned by design. Consequently, achieving robustness does not require searching for valid signals in a high-dimensional latent space; rather, it can be realized efficiently by directly operating on the aligned BEV features. This insight motivates the design of Grace-BEV, which replaces heavy “implicit learning” with “explicit structural awareness.” In-stead of stacking heavy decoders, we propose to leverage the uni-fied BEV space to: 1) explicitly assess the integrity of geometric modality via a lightweight router; and 2) dynamically recalibrate 
+
+the pre-aligned features via efficient gating. This ensures graceful degradation with minimal architectural modifications, preserving the efficiency inherent to LSS pipelines. 
+
+## 4 Methodology 4.1 Overview of Grace-BEV Framework 
+
+To mitigate the catastrophic degradation inherent in tightly-coupled multi-modal detectors, we propose Grace-BEV , a reliability-aware framework designed to reduce the rigid reliance on potentially cor-rupted geometric modalities . As illustrated in Fig. 2, the architecture follows a lightweight MoE paradigm, orchestrating two distinct pathways via an active routing mechanism [31, 36]. 
+
+Dual-Expert Architecture. Given multi-view images 𝑋 𝑖𝑚𝑔 and LiDAR point clouds 𝑋 𝑙𝑖𝑑𝑎𝑟 , the system extracts initial features using modality-specific backbones [ 16 , 29 , 49 , 55 ]. To ensure robustness, we construct two parallel experts: 
+
+• Expert A (LiDAR-Guided): Utilizing the Voxel Encoder outputs 𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 , this expert leverages precise geometric pri-ors to project 2D image features into the BEV space [ 24 , 30 ]. While highly accurate, it is structurally vulnerable to LiDAR corruption. 
+
+• Expert B (Vision-Only): This expert operates indepen-dently of LiDAR inputs, employing a pure vision view trans-form to construct BEV representations [ 21 , 23 ]. It acts as a robust semantic safeguard, ensuring system functionality when geometric signals are compromised. 
+
+Dynamic Routing and Fusion. Instead of static concatenation, Grace-BEV employs a TrustGate Router to evaluate the integrity of the LiDAR stream based on its feature representation 𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 . The router outputs a trust score 𝛼 ∈ [ 0, 1]. Specifically, 𝛼 is a sample-adaptive scalar used to softly interpolate the BEV features from the two experts. Subsequently, the FFB integrates the routed features. Unlike standard fusion layers that suffer from distribution shifts un-der zero-filling, the FFB utilizes an element-wise gating mechanism to actively suppress noise from the corrupted modality. Notably, Grace-BEV is plug-and-play and brings minimal computational overhead, making it highly practical for deployment. 
+
+## 4.2 TrustGate Router: Active Geometric Integrity Check 
+
+The core premise of Grace-BEV is that blind trust in geometric pri-ors leads to system collapse when sensors degrade. To address this, we present the TrustGate Router, a lightweight module designed to quantify the geometric integrity of the LiDAR stream in real-time. 
+
+> 3Zhang et al., Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo
+
+Image 
+
+Backbone 
+
+LiDAR 
+
+Backbone 
+
+＆Voxel 
+
+Encoder 
+
+TrustGate Router 
+
+AvgPool 
+
+&
+
+MaxPool 
+
+MLP Sigmoid 
+
+Expert B: 
+
+Pure Vision 
+
+View Transform 
+
+Expert A: 
+
+LiDAR -Guided 
+
+View Transform 
+
+> Detection Head
+
+FailSafe 
+
+Fusion 
+
+Concat 
+
+Element 
+
+Sigmoid 
+
+Reduce 
+
+Conv 
+
+LiDAR Point Cloud 
+
+Multi -view Images 2D
+
+> img
+
+Fvoxel 
+
+> pts
+
+FBEV 
+
+> img
+
+FBEV 
+
+> fused
+
+F 
+
+0,1 
+
+
+
+Expert B 
+
+> BEV
+
+FExpert A 
+
+> BEV
+
+F
+
+Figure 2: Overview of the Grace-BEV Framework. The system consists of two parallel experts: a LiDAR-Guided Expert (Expert A) for precision and a Pure Vision Expert (Expert B) for robustness. A TrustGate Router actively evaluates the geometric integrity from the Voxel Encoder to generate a trust score 𝛼 . Features are then integrated via the FFB, which employs element-wise Sigmoid gating to prevent feature distribution collapse under modality failures. Mechanism. As shown in Fig. 2, the router operates on the LiDAR BEV feature map 𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 ∈ R𝐶 𝑝𝑡𝑠 ×𝐻 ×𝑊 , where 𝐶 𝑝𝑡𝑠 denotes the channel dimension of the LiDAR backbone. Instead of employing heavy attention mechanisms, we leverage global statistical proper-ties to detect sensor anomalies. More specifically, we employ dual adaptive pooling to aggregate element-wise statistics into a global descriptor 𝑠 𝑠𝑡𝑎𝑡 ∈ R2𝐶 :
+
+𝑠 𝑠𝑡𝑎𝑡 = Concat 
+
+
+
+P𝑎𝑣𝑔 (𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 ), P𝑚𝑎𝑥 (𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 )
+
+
+
+, (1) where P𝑎𝑣𝑔 and P𝑚𝑎𝑥 denote global adaptive average and max pool-ing, respectively. Such a treatment captures both the background signal intensity and salient geometric features. Subsequently, we employ a lightweight MLP with a bottleneck structure to map the statistics to a trust score: 
+
+𝛼 = 𝜎 (𝑊 2 · 𝛿 (𝑊 1 · 𝑠 𝑠𝑡𝑎𝑡 )) . (2) Here, 𝑊 1 ∈ R64 ×2𝐶 compresses the arbitrary input dimensions to a compact hidden space (fixed at 64 channels), 𝛿 denotes the ReLU activation, and 𝑊 2 ∈ R1×64 maps the hidden features to a scalar. The final output 𝛼 is reshaped to R𝐵 ×1×1×1 for seamless broadcasting. 
+
+Routing Logic. The generated trust score 𝛼 ∈ [ 0, 1] serves as a sample-adaptive coefficient. We utilize 𝛼 to softly interpolate the BEV features from the two experts via element-wise broadcasting: 
+
+𝐹 𝐵𝐸𝑉 𝑖𝑚𝑔 = 𝛼 ⊙ 𝐹 𝐵𝐸𝑉  
+
+> Expert A
+
++ ( 1 − 𝛼 ) ⊙ 𝐹 𝐵𝐸𝑉 
+
+> Expert B
+
+, (3) where 𝐹 𝐵𝐸𝑉  
+
+> Expert A
+
+and 𝐹 𝐵𝐸𝑉  
+
+> Expert B
+
+denote the projected BEV feature repre-sentations generated by Expert A and Expert B, respectively. Under normal conditions ( 𝛼 → 1), the system prioritizes the precise geo-metric features from Expert A. Conversely, when LiDAR signals are corrupted ( 𝛼 → 0), the router automatically suppresses the noisy geometric branch and upweights the semantic features from Expert B, effectively reducing the structural reliance on the compromised modality. 
+
+## 4.3 FailSafe Fusion Block 
+
+Standard fusion approaches typically adopt a “concatenate-and-convolve” strategy. While effective under ideal conditions, this hard fusion creates a vulnerability: if the LiDAR backbone output 𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 
+
+becomes zero-filled due to sensor failure, the concatenated tensor undergoes a severe distribution shift, confusing subsequent layers. To handle this, we propose the FFB, which introduces a learnable gating mechanism to dynamically recalibrate feature importance before integration. 
+
+Architecture. As illustrated in Fig. 2, the fusion block receives two inputs: the raw LiDAR BEV features 𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 (from the LiDAR backbone) and the robust synthesized image BEV features 𝐹 𝐵𝐸𝑉 𝑖𝑚𝑔 ∈
+
+R𝐶 𝑖𝑚𝑔 ×𝐻 ×𝑊 (the output of Eq. 3). We first concatenate them to form a unified representation: 
+
+𝐹 𝑐𝑎𝑡 = Concat (𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 , 𝐹 𝐵𝐸𝑉 𝑖𝑚𝑔 ) ∈ R(𝐶 𝑝𝑡𝑠 +𝐶 𝑖𝑚𝑔 ) × 𝐻 ×𝑊 . (4) Instead of fusing them directly, we employ a Gate Generator to predict an element-wise re-weighting map 𝑊 𝑔𝑎𝑡𝑒 from this joint context: 
+
+𝑊 𝑔𝑎𝑡𝑒 = 𝜎  F𝑒𝑥𝑐𝑖𝑡𝑒 (F 𝑠𝑞𝑢𝑒𝑒𝑧𝑒 (𝐹 𝑐𝑎𝑡 ))  . (5) Here, the generator follows a lightweight bottleneck design (reduc-tion ratio 𝑟 = 4). Specifically, F𝑒𝑥𝑐𝑖𝑡𝑒 utilizes a dilated convolution (3×3, 𝑑 = 2) to enlarge the receptive field, leveraging spatial context to verify signal reliability. 
+
+Gated Integration. The learned gate 𝑊 𝑔𝑎𝑡𝑒 acts as a soft mask to filter out noise or corrupted channels in the concatenated tensor: 
+
+𝐹 𝐵𝐸𝑉 𝑓 𝑢𝑠𝑒𝑑 = F𝑎𝑙𝑖𝑔𝑛 
+
+ 𝐹 𝑐𝑎𝑡 ⊙ 𝑊 𝑔𝑎𝑡𝑒 
+
+ , (6) where ⊙ denotes element-wise multiplication. If the LiDAR stream 
+
+𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 is corrupted (i.e., zero-filled), the Gate Generator—trained to recognize such sparsity patterns—will suppress the correspond-ing channels in 𝑊 𝑔𝑎𝑡𝑒 , allowing the robust features from 𝐹 𝐵𝐸𝑉 𝑖𝑚𝑔 to 
+
+> 4Can BEV Perception Gracefully Degrade under Sensor Failures?
+
+Table 1: Quantitative Comparison of Robustness against Modality Failures. RD: Robustness Density, calculated as (mAP L-Drop +
+
+mAP C-Drop )/ Params . MRE: Marginal Robustness Efficiency, defined as the total robustness gain per unit of extra parameters: 
+
+Δ(mAP L-Drop +mAP C-Drop )/ ΔParams . We compare our method against Zero-shot baselines and state-of-the-art robust approaches. NDS: NuScenes Detection Score. The symbol † denotes results cited directly from the original paper. 
+
+Method Param (M) Robustness Efficiency Clean LiDAR failures Camera failures Beam Reduction LiDAR Drop Limited FOV Object Failure View Drop 
+
+4 beams all [-60, 60] rate = 0.5 6 drops 
+
+RD MRE mAP NDS mAP NDS mAP NDS mAP NDS mAP NDS mAP NDS 
+
+I. Zero-shot Baselines 
+
+DETR3D [45] 15.6 - - 34.3 42.8 - - - - - - - - 0.0 0.0 CenterPoint [52] 6.0 - - 56.3 63.4 19.7 28.9 0.0 0.0 13.2 24.3 23.4 30.1 - -TransFusion [2] 36.9 - - 66.8 70.2 40.8 52.7 0.1 0.0 20.1 39.2 33.7 46.6 61.1 66.4 BEVFusion-MIT [30] 40.8 - - 66.9 69.7 41.2 52.4 0.0 0.0 20.2 37.6 34.3 47.8 56.2 61.5 BEVFusion-AD [24] 90.2 - - 68.1 70.1 43.4 53.9 0.0 0.0 21.1 39.7 35.2 49.4 57.3 62.1 DeepInteraction [50] 57.9 - - 68.8 71.3 46.5 54.9 0.0 0.0 21.4 39.9 41.7 53.2 59.9 64.0 GraphBEV [37] 41.4 - - 68.9 71.3 46.1 53.4 0.0 0.0 20.9 40.6 40.6 50.5 59.2 64.2 UniTR [41] 12.2 - - 70.2 72.1 46.8 56.5 0.1 0.8 21.7 41.1 39.3 55.1 62.4 66.1 SparseFusion [47] 43.8 - - 70.9 72.9 48.1 59.6 0.0 0.0 23.8 44.1 41.1 59.2 57.8 65.9 
+
+II. Existing Robust Approaches 
+
+– Transformer & Query-based 
+
+CMT [48] 86.6 1.1 - 69.7 72.3 52.4 60.1 37.8 42.4 41.7 52.6 64.8 69.2 61.0 67.2 MoME [31] 86.6+2.5 1.1 1.3 70.3 72.1 53.4 61.6 40.6 46.1 48.6 53.3 65.8 69.4 61.4 67.7 MEFormer [5] 86.6+0.3 1.2 14.3 70.5 72.7 54.3 62.1 41.0 47.3 49.9 55.2 67.1 71.8 62.1 68.3 
+
+– LSS-based 
+
+BEVFusion-MIT (MD) [30] 40.8 1.4 - 56.1 62.2 18.1 31.3 12.1 14.4 11.8 15.2 22.5 26.6 44.1 50.1 UniBEV [43] 40.8+31.9 1.2 1.1 63.2 66.9 45.3 52.7 33.5 40.2 38.9 48.1 57.2 64.3 57.1 63.2 MetaBEV † [12] - - - 68.0 71.5 - 57.7 39.0 42.6 - 47.0 - 67.6 63.6 69.2 
+
+III. Ours (Plugin for LSS-based Architectures) 
+
+GraphBEV [37] 41.4 1.4 - 68.9 71.3 46.1 53.4 0.0 0.0 20.9 40.6 40.6 50.5 59.2 64.2 GraphBEV + Ours 41.4+1.2 2.3 32.7 69.3 71.8 49.2 56.3 34.2 41.7 42.8 53.1 55.2 63.6 64.2 69.1 
+
+improvements - - - ↑ 0.4 ↑ 0.5 ↑ 3.1 ↑ 2.9 ↑ 34.2 ↑ 41.7 ↑ 21.9 ↑ 12.5 ↑ 14.6 ↑ 13.1 ↑ 5.0 ↑ 4.9 
+
+BEVFusion-AD [24] 90.2 0.6 - 68.1 70.1 43.4 53.9 0.0 0.0 21.1 39.7 35.2 49.4 57.3 62.1 BEVFusion-AD + Ours 90.2+1.2 1.1 35.9 69.2 70.8 49.0 57.3 34.7 41.5 42.1 51.9 60.9 65.6 65.7 69.6 
+
+improvements - - - ↑ 1.1 ↑ 0.7 ↑ 5.6 ↑ 3.4 ↑ 34.7 ↑ 41.5 ↑ 21.0 ↑ 12.2 ↑ 25.7 ↑ 16.2 ↑ 8.4 ↑ 7.5 
+
+BEVFusion-MIT [30] 40.8 1.4 - 66.9 69.7 41.2 52.4 0.0 0.0 20.2 37.6 34.3 47.8 56.2 61.5 BEVFusion-MIT + Ours 40.8+1.2 2.3 33.5 68.3 71.2 46.9 58.4 32.8 39.9 41.1 50.2 59.9 65.3 63.6 68.8 
+
+improvements - - - ↑ 1.4 ↑ 1.5 ↑ 5.7 ↑ 6.0 ↑ 32.8 ↑ 39.9 ↑ 20.9 ↑ 12.6 ↑ 25.6 ↑ 17.5 ↑ 7.4 ↑ 7.3 
+
+dominate. Finally, F𝑎𝑙𝑖𝑔𝑛 projects the gated features to the target dimension required by the detection head. By initializing the final bias of the Gate Generator to 0 (yielding 𝑊 𝑔𝑎𝑡𝑒 ≈ 0.5), we ensure an unbiased starting point for stable training. 
+
+## 4.4 Three-Phase Robust Training Strategy 
+
+Training a robust MoE framework is non-trivial due to the “modality dominance” phenomenon [ 32 , 46 , 48 ], where the model tends to over-rely on the dominant modality (LiDAR) while ignoring the weaker one (Camera). To address this, we design a Three-Phase Training pipeline, as illustrated in Fig. 3. 
+
+Phase 1: Pure Vision Pre-training. Empirical observations indi-cate that initializing the system with a weak vision expert severely limits the lower bound of robustness. Therefore, in the first phase, we treat the model as a pure camera-based detector. We discard the LiDAR branch and initialize Expert B using a pre-trained camera-only model (specifically utilizing its LSS-based view transformer and backbone) [ 24 , 30 ]. This strategy leverages established semantic representations and avoids the instability of training from scratch, providing a strong fallback foundation independent of geometric priors. 
+
+Phase 2: Router & Fusion Warm-up. In this phase, we freeze the pre-trained Image Backbone and Expert B to prevent feature forgetting (indicated by snowflakes in Fig. 3). We then introduce the pre-trained LiDAR branch (Expert A) and train the TrustGate Router and the FFB. Crucially, we employ an MD strategy to simulate diverse modality availability states. During each training iteration, the feature inputs to the experts and router are sampled from a mixed distribution: 
+
+( ˜𝐹 𝑝𝑡𝑠 , ˜𝐹 𝑖𝑚𝑔 ) =
+
+
+
+(𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 , 𝐹 2𝐷 𝑖𝑚𝑔 ), 𝑝 = 0.50 
+
+(0, 𝐹 2𝐷 𝑖𝑚𝑔 ), 𝑝 = 0.25 
+
+(𝐹 𝑣𝑜𝑥𝑒𝑙 𝑝𝑡𝑠 , 0), 𝑝 = 0.25 
+
+, (7) where ˜𝐹 𝑝𝑡𝑠 and ˜𝐹 𝑖𝑚𝑔 denote the stochastic feature inputs fed into the subsequent modules [ 48 ]. This balanced dropout strategy serves a dual purpose. The LiDAR Failure case explicitly supervises the Router to output a low trust score ( 𝛼 → 0), forcing the system to rely on Expert B. Conversely, the Camera Failure case forces the fusion module to utilize geometric cues from Expert A, preventing the system from ignoring the newly arrived LiDAR branch in favor of the strong pre-trained vision expert. 
+
+> 5Zhang et al., Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo Images
+> Point Cloud 2D
+> img F
+> Phase 1: Pure Vision Training
+> Original
+> Fusion Layer voxel
+> pts F
+> Detection Head
+> Drop BEV
+> img F
+> Expert B
+> Phase 2: Router & Fusion Training
+> Image
+> Backbone
+> LiDAR
+> Process
+> Expert B
+> Expert A
+> Detection Head
+> 25%
+> Drop
+> 25%
+> Drop
+> TrustGate
+> FailSafe Fusion
+> Phase 3: End -to -End Optimization
+> Image
+> Backbone
+> LiDAR
+> Process
+> Expert B
+> Expert A
+> Detection Head
+> 25%
+> Drop
+> 25%
+> Drop
+> TrustGate
+> FailSafe Fusion
+
+Figure 3: Three-Phase Training Strategy. Phase 1: Pure vision pre-training to establish a strong semantic fallback (Expert B). Phase 2: Router and Fusion warm-up with MD ( 𝑝 = 0.25 ) while freezing the vision branch. Phase 3: End-to-end fine-tuning to align the feature spaces of both experts. Phase 3: End-to-End Fine-tuning. Finally, we unfreeze all compo-nents and perform end-to-end optimization with a reduced learning rate. This phase aligns the feature spaces of both experts and fine-tunes the router’s decision boundary for hard cases, ensuring global optimality for the entire framework. 
+
+## 5 Experiments 5.1 Implementation Details 
+
+Dataset and Metrics. For evaluation, we report the standard mAP and NuScenes Detection Score (NDS) [ 3 ]. To rigorously assess robustness, we conduct experiments on two challenging dataset variants: nuScenes-R [ 53 ] for sensor impairment simulation and nuScenes-C [ 10 ] for extreme weather conditions. Specifically, on nuScenes-R [ 53 ], we evaluate three categories of corruption: (1) 
+
+LiDAR Failure , including complete sensor blackout (LiDAR Drop), partial view loss (Limited FOV), and beam reduction; (2) Camera Failure , simulating image blackout (View Drop); and (3) Object Fail-ure , simulating reflection noise. Meanwhile, nuScenes-C [ 10 ] is used to verify generalization under physics-based weather corruptions, including fog, rain, and snow. 
+
+Architecture and Baselines. We select three SOTA frameworks as our primary baselines [ 24 , 30 , 37 ]. We re-implement and train all baseline methods in a unified experimental setting, except MetaBEV [ 12 ], for which we report results from the original paper due to the lack of public code. We integrate our TrustGate Router and FFB into these frameworks by replacing their original fusion layers, while keeping all other components unchanged. 
+
+Training Settings. All models are trained on 4 × NVIDIA A100 GPUs. We adopt the proposed Three-Phase Training strategy to ensure stable convergence. In Phase 1 , the vision expert is initialized from a pre-trained camera-only checkpoint and warmed up for 1 epoch with a learning rate of 1 × 10 −4. In Phase 2 , we freeze both backbones and exclusively train the router and fusion modules for 3 epochs with a learning rate of 1 × 10 −5. During this phase, we apply the MD strategy ( 𝑝 𝑏𝑜𝑡ℎ = 0.5, 𝑝 𝐿 -𝑑𝑟𝑜𝑝 = 0.25 , 𝑝 𝐶 -𝑑𝑟𝑜𝑝 = 0.25 )to force the router to learn failure-aware policies. Finally, in Phase 3, we unfreeze all components and fine-tune the entire network end-to-end for another 3 epochs with a minimized learning rate of 
+
+1 × 10 −7 [26, 56]. 
+
+## 5.2 Main Results 
+
+A comprehensive quantitative comparison is presented in Table 1. Grace-BEV achieves the best trade-off between robustness and efficiency. Robustness against Modality Failures. The most significant breakthrough is observed in the catastrophic LiDAR Drop scenario. While standard LSS-based detectors suffer a total collapse to 0.0% mAP, confirming the severe impact of modality dominance, Grace-BEV successfully recovers performance to 34.7% mAP . Beyond binary failures, our method also demonstrates univer-sal resilience. In partial corruptions and camera-denied scenarios, Grace-BEV yields consistent gains of +3.1% ∼ +25.7% mAP across all baselines, proving its ability to handle diverse noise distributions. 
+
+Efficiency and Clean Performance. Crucially, this robustness does not compromise standard capabilities. On the clean valida-tion set, Grace-BEV improves the mAP of all baselines by +0.4% 
+
+∼ +1.4%. Furthermore, compared to heavy Transformer-based ap-proaches like CMT (MRE 1.1), our method functions as a lightweight plugin with a significantly higher Marginal Robustness Efficiency (MRE 35.9), delivering maximum robustness gains with minimal parameter overhead. Importantly, this minimal parameter addition introduces only negligible inference overhead. For example, on BEVFusion-MIT, the latency increases marginally from 40.76 ms to 40.81 ms on a single NVIDIA A100 GPU with 1 worker and batch size 1, thereby preserving the real-time processing capability of the original baseline. 
+
+> 6Can BEV Perception Gracefully Degrade under Sensor Failures?
+
+Table 2: Comparison under extreme weather conditions on nuScenes-R and nuScenes-C [10, 53].                                                                                  
+
+> Method Modality Fog Snow Sunlight Rainy Night DETR3D C31.7 5.9 39.2 28.4 15.7 CenterPoint L43.7 55.9 57.4 55.2 36.2 TransFusion LC 54.7 62.1 56.6 63.7 40.1 DeepInteraction LC 55.2 62.0 65.1 69.9 43.9 CMT LC 66.6 62.3 63.3 69.1 43.0 UniTR LC 55.7 63.7 63.6 64.1 38.5 BEVFusion-MIT LC 54.7 52.8 64.1 68.1 41.9 +Ours LC 55.0 54.1 65.7 69.9 42.5 BEVFusion-AD LC 55.3 53.9 64.8 68.4 43.7 +Ours LC 55.5 55.2 65.6 70.7 44.1 GraphBEV LC 54.8 53.1 64.0 70.0 44.9 +Ours LC 55.8 53.8 64.6 70.2 45.2
+
+Table 3: Component-wise Ablation Analysis. We verify the effectiveness of the TrustGate Router (TG) and FFB. Note: To ensure a fair comparison, all models (including the Baseline) are trained using the MD strategy. The Baseline data corre-sponds to “BEVFusion-MIT (MD)” in Table 1.                                            
+
+> Row Components Clean L-Drop C-Drop TG FFB mAP NDS mAP NDS mAP NDS 1--56.1 62.2 12.1 14.4 44.1 50.1 2✓-67.2 69.9 28.5 35.2 56.0 61.3 3-✓67.5 70.3 15.5 20.2 57.8 63.2 4✓✓68.3 71.2 32.8 39.9 58.4 65.1
+
+## 5.3 Robustness against Extreme Weather Conditions 
+
+To verify the generalization capability of Grace-BEV beyond dis-crete sensor failures, we evaluate it on nuScenes-R and nuScenes-C [ 10 , 53 ]. Unlike simulated sensor drops, extreme weather intro-duces complex, continuous noise distributions that test the adapt-ability of the fusion module. As shown in Table 2, Grace-BEV consistently improves perfor-mance across all conditions, effectively acting as a universal sta-bilizer against environmental domain shifts. Specifically, under LiDAR-degrading scenarios such as Rainy, our method achieves a substantial gain of +2.3% mAP (68.4% → 70.7% ) on BEVFusion-AD, proving its ability to mitigate signal attenuation. Similarly, in camera-compromising conditions such as Sunlight (strong glare), Grace-BEV boosts BEVFusion-MIT [ 24 ] by +1.6% mAP, demonstrat-ing that the FFB effectively suppresses photometric noise. These results confirm that our active reliability awareness generalizes well to corruptions not explicitly seen during training. 
+
+## 5.4 Ablation Studies 
+
+In this section, we perform a comprehensive ablation analysis on the nuScenes validation set to verify the contribution of each pro-posed component and justify our design choices. The baseline is the standard BEVFusion-MIT model. 
+
+Impact of Key Components. We further examine the contribu-tions of the TrustGate Router and the FFB under the default MD 
+
+Table 4: Ablation of Fusion Mechanisms. Comparing our FFB against other standard fusion strategies.                          
+
+> Fusion Strategy Clean L-Drop (Failure) mAP NDS mAP NDS Concat (Baseline) 66.9 69.7 0.0 0.0 Addition 65.5 68.2 12.5 20.1 SE-Block (Channel Attn) 67.3 70.1 5.2 8.5 CBAM (Spatial+Channel) 67.6 70.4 8.9 12.3
+> FFB (Ours) 68.3 71.2 32.8 39.9
+
+Table 5: Ablation of TrustGate Statistics. Evaluating different pooling strategies for the trust score regression.             
+
+> Router Input Dim mAP (Clean) mAP (L-Drop) Global AvgPool Only 𝐶 68.0 25.4 Global MaxPool Only 𝐶 68.1 29.8
+> Concat (Avg + Max) 2𝐶 68.3 32.8
+
+training setting, with results summarized in Table 3. Even when equipped with MD, the standard baseline remains fragile: although dropout is intended to improve robustness, the baseline achieves only 12.1% mAP under L-Drop and suffers a severe degradation in Clean performance, dropping from 66.9% to 56.1%, indicating that naive dropout training alone cannot effectively prevent modality imbalance. Introducing the TrustGate Router substantially improves robustness under L-Drop, raising mAP to 28.5% while preserving competitive Clean performance at 67.2% mAP. This result suggests that the router can explicitly regulate feature flow based on modal-ity reliability, enabling the model to better benefit from dropout training without sacrificing normal-condition accuracy. Replacing standard concatenation with the FFB further enhances robustness under C-Drop, yielding a gain of 13.7% over the baseline, while also refining Clean performance. When combined together, the Trust-Gate Router and FFB produce the best overall trade-off between ro-bustness and accuracy, achieving the strongest performance across all evaluated settings, including 68.3% mAP on Clean and 32.8% mAP under L-Drop. 
+
+Effectiveness of FailSafe Fusion. To demonstrate the superi-ority of our element-wise gating design, we compare FFB with other popular fusion mechanisms in Table 4. Simple operations like 
+
+Addition fail to handle the feature scale mismatch between modal-ities. Attention-based methods like SE-Block (Channel Attention) and CBAM show limited robustness improvements (5.2% and 8.9% mAP on L-Drop) because they apply global or semi-global pooling, which cannot spatially isolate corrupted regions in the BEV map. In contrast, our FFB achieves 32.8% mAP, proving that pixel-wise (voxel-wise) re-weighting is essential for handling precise spatial corruptions in LiDAR-camera fusion. 
+
+Router Architecture Design. We investigate the input statistics used for the TrustGate Router in Table 5. Using only Average Pool-ing tends to smooth out local high-confidence features, while Max Pooling captures prominent features but may be sensitive to out-liers. Concatenating both statistics allows the MLP to learn a more 
+
+> 7Zhang et al., Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo GT BEVFusion -MIT Ours
+
+LiDAR Drop All Camera Drop All Limited FOV 
+
+Figure 4: Qualitative Comparison under Sensor Corruptions. Visual comparison between Ground Truth (Top), BEVFusion-MIT (Middle), and our Grace-BEV (Bottom) under clean and modality-corrupted scenarios. Table 6: Ablation on Modality Dropout Probabilities. We fix the probability of full-modality training at 𝑝 𝑏𝑜𝑡ℎ = 0.5 and vary the ratio of single-modality training. The default setting (0.25 /0.25 ) achieves the best trade-off.                                              
+
+> Dropout Config Clean L-Drop C-Drop
+> 𝑝 𝐿 -𝑑𝑟𝑜𝑝 𝑝 𝐶 -𝑑𝑟𝑜𝑝 mAP NDS mAP NDS mAP NDS 0.00 0.50 67.8 70.5 5.2 10.5 59.1 65.8
+> 0.10 0.40 68.0 70.9 22.1 30.4 58.8 65.4
+> 0.25 0.25 68.3 71.2 32.8 39.9 58.4 65.1 0.40 0.10 68.1 71.0 31.5 39.1 45.2 55.3 0.50 0.00 67.5 70.1 32.0 39.5 30.1 42.5
+
+comprehensive representation of feature integrity, resulting in the highest robustness score. 
+
+Sensitivity to Dropout Probabilities. Finally, we analyze the impact of the MD distribution in Table 6. We fix the full-modality training probability 𝑝 𝑏𝑜𝑡ℎ = 0.5 and vary the allocation of failure simulation. An imbalanced distribution leads to biased robustness. For instance, setting 𝑝 𝐿 -𝑑𝑟𝑜𝑝 = 0 (never training on pure vision) results in a failure to generalize to LiDAR blackouts (5.2% mAP). Our balanced strategy (0.25/0.25) provides a favorable trade-off between clean accuracy and dual-modality robustness. 
+
+## 5.5 Qualitative Analysis 
+
+Qualitative Results. Fig. 4 presents qualitative results comparing our proposed Grace-BEV with the baseline BEVFusion-MIT across various sensor failure scenarios. While the baseline is significantly impacted by modality failures, leading to severe missed detections, Grace-BEV achieves consistently robust detection by effectively routing to the reliable modality, demonstrating the advantages of our active reliability awareness. 
+
+## 6 Conclusion 
+
+In this work, we revisit a fundamental yet underexplored ques-tion in multi-modal BEV perception: whether high-performance detectors can degrade gracefully under missing or corrupted modal-ities. Through systematic analysis, we show that existing fusion frameworks suffer from catastrophic collapse due to their modal-ity dominance and static cross-modal integration. To address this limitation, we propose Grace-BEV, a lightweight and plug-and-play framework that introduces active reliability awareness into LSS-based architectures. By explicitly assessing modality trustwor-thiness via the TrustGate Router and dynamically recalibrating feature interaction through the FFB, Grace-BEV enables robust and predictable degradation without resorting to heavy redundant decoders. Extensive experiments on nuScenes-R and nuScenes-C demonstrate that our approach consistently restores vision-only functionality under severe LiDAR failures while improving clean performance with minimal overhead. We believe this work high-lights the importance of active modality reliability assessment for reliable multi-modal perception and provides a practical foundation for future robustness-oriented BEV systems. 
+
+## Acknowledgments 
+
+This work was supported in part by the National Natural Science Foundation of China under Grants 62403348 and 62403350; in part by the Postdoctoral Fellowship Program of CPSF under Grants GZC20241208 and 2024M762357; in part by the Foundation of Key Laboratory of System Control and Information Processing, Ministry of Education, P.R. China, under Grant Scip20240116; and in part by 
+
+> 8
+
+Can BEV Perception Gracefully Degrade under Sensor Failures? 
+
+the Emerging Frontiers Cultivation Program of Tianjin University Interdisciplinary Center. 
+
+## References 
+
+[1] Claudine Badue, Rânik Guidolini, Raphael Vivacqua Carneiro, Pedro Azevedo, Vinicius B. Cardoso, Avelino Forechi, Luan Jesus, Rodrigo Berriel, Thiago M. Paixão, Filipe Mutz, Lucas de Paula Veronese, Thiago Oliveira-Santos, and Al-berto F. De Souza. 2021. Self-driving cars: A survey. Expert Systems with Appli-cations 165 (2021), 113816. [2] Xuyang Bai, Zeyu Hu, Xinge Zhu, Qingqiu Huang, Yilun Chen, Hongbo Fu, and Chiew-Lan Tai. 2022. Transfusion: Robust lidar-camera fusion for 3d object detection with transformers. In CVPR . 1090–1099. [3] Holger Caesar, Varun Bankiti, Alex H Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. 2020. Nuscenes: A multimodal dataset for autonomous driving. In CVPR . 11621–11631. [4] Qi Cai, Yingwei Pan, Ting Yao, Chong-Wah Ngo, and Tao Mei. 2023. ObjectFusion: Multi-modal 3D Object Detection with Object-Centric Fusion. In ICCV . 18067– 18076. [5] Juhan Cha, Minseok Joo, Jihwan Park, Sanghyeok Lee, Injae Kim, and Hyunwoo J Kim. 2024. Robust Multimodal 3D Object Detection via Modality-Agnostic De-coding and Proximity-based Modality Ensemble. arXiv preprint arXiv:2407.19156 
+
+(2024). [6] Li Chen, Penghao Wu, Kashyap Chitta, Bernhard Jaeger, Andreas Geiger, and Hongyang Li. 2024. End-to-End Autonomous Driving: Challenges and Frontiers. 
+
+IEEE TPAMI 46, 12 (2024), 10164–10183. [7] Xiaozhi Chen, Huimin Ma, Ji Wan, Bo Li, and Tian Xia. 2017. Multi-view 3d object detection network for autonomous driving. In CVPR .[8] Yilun Chen, Zhiding Yu, Yukang Chen, Shiyi Lan, Animashree Anandkumar, Jiaya Jia, and Jose Alvarez. 2023. FocalFormer3D: Focusing on Hard Instance for 3D Object Detection. In ICCV . 8360–8371. [9] Zhiyu Chong, Xinzhu Ma, Hong Zhang, Yuxin Yue, Haojie Li, Zhihui Wang, and Wanli Ouyang. 2022. Monodistill: Learning spatial features for monocular 3d object detection. arXiv preprint arXiv:2201.10830 (2022). [10] Yinpeng Dong, Caixin Kang, Jinlai Zhang, Zijian Zhu, Yikai Wang, Xiao Yang, Hang Su, Xingxing Wei, and Jun Zhu. 2023. Benchmarking robustness of 3d object detection to common corruptions. In IEEE TPAMI . 1022–1032. [11] William Fedus, Barret Zoph, and Noam Shazeer. 2022. Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity. Journal of Machine Learning Research 23, 120 (2022), 1–39. [12] Chongjian Ge, Junsong Chen, Enze Xie, Zhongdao Wang, Lanqing Hong, Huchuan Lu, Zhenguo Li, and Ping Luo. 2023. Metabev: Solving sensor failures for 3d detection and map segmentation. In ICCV . 8721–8731. [13] Yihan Hu, Jiazhi Yang, Li Chen, Keyu Li, Chonghao Sima, Xizhou Zhu, Siqi Chai, Senyao Du, Tianwei Lin, Wenhai Wang, Lewei Lu, Xiaosong Jia, Qiang Liu, Jifeng Dai, Yu Qiao, and Hongyang Li. 2023. Planning-oriented Autonomous Driving. In CVPR . 17853–17862. [14] Lingdong Kong, Youquan Liu, Xin Li, Runnan Chen, Wenwei Zhang, Jiawei Ren, Liang Pan, Kai Chen, and Ziwei Liu. 2023. Robo3d: Towards robust and reliable 3d perception against corruptions. In Proceedings of the IEEE/CVF International Conference on Computer Vision . 19994–20006. [15] Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell. 2017. Simple and scalable predictive uncertainty estimation using deep ensembles. NeurIPS 
+
+30 (2017). [16] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. 2019. Pointpillars: Fast encoders for object detection from point clouds. In CVPR . 12697–12705. [17] Xin Li, Tao Ma, Yuenan Hou, Botian Shi, Yuchen Yang, Youquan Liu, Xingjiao Wu, Qin Chen, Yikang Li, Yu Qiao, et al . 2023. Logonet: Towards accurate 3d object detection with local-to-global cross-modal fusion. In CVPR . 17524–17534. [18] Yinhao Li, Han Bao, Zheng Ge, Jinrong Yang, Jianjian Sun, and Zeming Li. 2023. Bevstereo: Enhancing depth estimation in multi-view 3d object detection with temporal stereo. In Proceedings of the AAAI Conference on Artificial Intelligence ,Vol. 37. 1486–1494. [19] Yanwei Li, Yilun Chen, Xiaojuan Qi, Zeming Li, Jian Sun, and Jiaya Jia. 2022. Unifying voxel-based representation with transformer for 3d object detection. In 
+
+NeurIPS . 18442–18455. [20] Yingyan Li, Lue Fan, Yang Liu, Zehao Huang, Yuntao Chen, Naiyan Wang, and Zhaoxiang Zhang. 2024. Fully sparse fusion for 3d object detection. IEEE TPAMI 
+
+46, 11 (2024), 7217–7231. [21] Yinhao Li, Zheng Ge, Guanyi Yu, Jinrong Yang, Zengran Wang, Yukang Shi, Jianjian Sun, and Zeming Li. 2023. Bevdepth: Acquisition of reliable depth for multi-view 3d object detection. In AAAI . 1477–1485. [22] Yingwei Li, Adams Wei Yu, Tianjian Meng, Ben Caine, Jiquan Ngiam, Daiyi Peng, Junyang Shen, Yifeng Lu, Denny Zhou, Quoc V Le, et al . 2022. Deepfusion: Lidar-camera deep fusion for multi-modal 3d object detection. In CVPR . 17182–17191. [23] Zhiqi Li, Wenhai Wang, Hongyang Li, Enze Xie, Chonghao Sima, Tong Lu, Qiao Yu, and Jifeng Dai. 2025. BEVFormer: Learning Bird’s-Eye-View Representation From LiDAR-Camera via Spatiotemporal Transformers. IEEE TPAMI 47, 3 (2025), 2020–2036. [24] Tingting Liang, Hongwei Xie, Kaicheng Yu, Zhongyu Xia, Zhiwei Lin, Yongtao Wang, Tao Tang, Bing Wang, and Zhi Tang. 2022. Bevfusion: A simple and robust lidar-camera fusion framework. In NeurIPS . 10421–10434. [25] Hezheng Lin, Xing Cheng, Xiangyu Wu, and Dong Shen. 2022. Cat: Cross attention in vision transformer. In ICME . 1–6. [26] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. 2017. Focal Loss for Dense Object Detection. In ICCV . 2999–3007. [27] Xuewu Lin, Tianwei Lin, Zixiang Pei, Lichao Huang, and Zhizhong Su. 2022. Sparse4d: Multi-view 3d object detection with sparse spatial-temporal fusion. 
+
+arXiv preprint arXiv:2211.10581 (2022). [28] Yingfei Liu, Tiancai Wang, Xiangyu Zhang, and Jian Sun. 2022. Petr: Position embedding transformation for multi-view 3d object detection. In ECCV . 531–548. [29] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. 2021. Swin transformer: Hierarchical vision transformer using shifted windows. In ICCV . 10012–10022. [30] Zhijian Liu, Haotian Tang, Alexander Amini, Xingyu Yang, Huizi Mao, Daniela Rus, and Song Han. 2023. BEVFusion: Multi-Task Multi-Sensor Fusion with Unified Bird’s-Eye View Representation. In ICRA . 2774–2781. [31] Konyul Park, Yecheol Kim, Daehun Kim, and Jun Won Choi. 2025. Resilient Sensor Fusion under Adverse Sensor Failures via Multi-Modal Expert Fusion. In 
+
+CVPR . 6720–6729. [32] Xiaokang Peng, Yake Wei, Andong Deng, Dong Wang, and Di Hu. 2022. Balanced multimodal learning via on-the-fly gradient modulation. In CVPR . 8238–8247. [33] Jonah Philion and Sanja Fidler. 2020. Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unprojecting to 3d. In ECCV . 194–210. [34] Carlos Riquelme, Joan Puigcerver, Basil Mustafa, Maxim Neumann, Rodolphe Jenatton, André Susano Pinto, Daniel Keysers, and Neil Houlsby. 2021. Scaling vision with sparse mixture of experts. NeurIPS 34 (2021), 8583–8595. [35] Murat Sensoy, Lance Kaplan, and Melih Kandemir. 2018. Evidential deep learning to quantify classification uncertainty. NeurIPS 31 (2018). [36] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. 2017. Outrageously large neural networks: The sparsely-gated mixture-of-experts layer. arXiv preprint arXiv:1701.06538 (2017). [37] Ziying Song, Lei Yang, Shaoqing Xu, Lin Liu, Dongyang Xu, Caiyan Jia, Feiyang Jia, and Li Wang. 2024. Graphbev: Towards robust bev feature alignment for multi-modal 3d object detection. In ECCV . 347–366. [38] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In NeurIPS . 5998–6008. [39] Sourabh Vora, Alex H Lang, Bassam Helou, and Oscar Beijbom. 2020. Pointpaint-ing: Sequential fusion for 3d object detection. In CVPR . 4604–4612. [40] Chunwei Wang, Chao Ma, Ming Zhu, and Xiaokang Yang. 2021. Pointaugmenting: Cross-modal augmentation for 3d object detection. In CVPR .[41] Haiyang Wang, Hao Tang, Shaoshuai Shi, Aoxue Li, Zhenguo Li, Bernt Schiele, and Liwei Wang. 2023. Unitr: A unified and efficient multi-modal transformer for bird’s-eye-view representation. In ICCV . 6792–6802. [42] Haoyu Wang, Zhiqiang Zuo, Yijing Wang, Hongjiu Yang, and Chuan Hu. 2023. Longitudinal Velocity Regulation of UGVs: A Composite Control Approach for Acceleration and Deceleration. IEEE Transactions on Intelligent Transportation Systems 24, 10 (2023), 11096–11106. [43] Shiming Wang, Holger Caesar, Liangliang Nan, and Julian FP Kooij. 2024. Unibev: Multi-modal 3d object detection with uniform bev encoders for robustness against missing sensor modalities. In 2024 IEEE Intelligent Vehicles Symposium .2776–2783. [44] Wenjie Wang, Yehao Lu, Guangcong Zheng, Shuigen Zhan, Xiaoqing Ye, Zichang Tan, Jingdong Wang, Gaoang Wang, and Xi Li. 2024. BEVSpread: Spread Voxel Pooling for Bird’s-Eye-View Representation in Vision-Based Roadside 3D Object Detection. In CVPR . 14718–14727. [45] Yue Wang, Vitor Campagnolo Guizilini, Tianyuan Zhang, Yilun Wang, Hang Zhao, and Justin Solomon. 2022. Detr3d: 3d object detection from multi-view images via 3d-to-2d queries. In Conference on robot learning . 180–191. [46] Nan Wu, Stanislaw Jastrzebski, Kyunghyun Cho, and Krzysztof J Geras. 2022. Characterizing and overcoming the greedy nature of learning in multi-modal deep neural networks. In ICML . 24043–24055. [47] Yichen Xie, Chenfeng Xu, Marie-Julie Rakotosaona, Patrick Rim, Federico Tombari, Kurt Keutzer, Masayoshi Tomizuka, and Wei Zhan. 2023. SparseFu-sion: Fusing Multi-Modal Sparse Representations for Multi-Sensor 3D Object Detection. In ICCV . 17545–17556. [48] Junjie Yan, Yingfei Liu, Jianjian Sun, Fan Jia, Shuailin Li, Tiancai Wang, and Xiangyu Zhang. 2023. Cross Modal Transformer: Towards Fast and Robust 3D Object Detection. In ICCV . 18222–18232. [49] Yan Yan, Yuxing Mao, and Bo Li. 2018. Second: Sparsely embedded convolutional detection. Sensors 18, 10 (2018), 3337. 9Zhang et al., Haifa Zhang, Yijing Wang, Haoyu Wang, Zheng Li, and Zhiqiang Zuo 
+
+[50] Zeyu Yang, Jiaqi Chen, Zhenwei Miao, Wei Li, Xiatian Zhu, and Li Zhang. 2022. Deepinteraction: 3d object detection via modality interaction. In NeurIPS .[51] Zeyu Yang, Nan Song, Wei Li, Xiatian Zhu, Li Zhang, and Philip H.S. Torr. 2025. DeepInteraction++: Multi-Modality Interaction for Autonomous Driving. IEEE TPAMI 47, 8 (2025), 6749–6763. [52] Tianwei Yin, Xingyi Zhou, and Philipp Krahenbuhl. 2021. Center-based 3d object detection and tracking. In CVPR .[53] Kaicheng Yu, Tang Tao, Hongwei Xie, Zhiwei Lin, Tingting Liang, Bing Wang, Peng Chen, Dayang Hao, Yongtao Wang, and Xiaodan Liang. 2023. Benchmarking the robustness of lidar-camera fusion for 3d object detection. In CVPRW . 3188– 3198. [54] Yun Zhao, Zhan Gong, Peiru Zheng, Hong Zhu, and Shaohua Wu. 2024. Sim-pleBEV: Improved LiDAR-Camera Fusion Architecture for 3D Object Detection. 
+
+arXiv preprint arXiv:2411.05292 (2024). [55] Yin Zhou and Oncel Tuzel. 2018. Voxelnet: End-to-end learning for point cloud based 3d object detection. In CVPR . 4490–4499. [56] Benjin Zhu, Zhengkai Jiang, Xiangxin Zhou, Zeming Li, and Gang Yu. 2019. Class-balanced grouping and sampling for point cloud 3d object detection. arXiv preprint arXiv:1908.09492 (2019). [57] Zhuofan Zong, Dongzhi Jiang, Guanglu Song, Zeyue Xue, Jingyong Su, Hong-sheng Li, and Yu Liu. 2023. Temporal Enhanced Training of Multi-view 3D Object Detector via Historical Object Prediction. In ICCV . 3758–3767. 10
