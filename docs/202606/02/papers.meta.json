@@ -1,0 +1,69 @@
+{
+  "label": "2026-06-02",
+  "date": "2026-06-02",
+  "generated_at": "2026-06-02T23:12:09",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202606/02/2606.00688v1-shape-prior-based-point-cloud-completion-for-single-stage-fully-sparse-3d-object-detection",
+      "section": "deep",
+      "title_en": "Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection",
+      "authors": "Kaizheng Wang, Mingqian Ji, Jian Yang, Shanshan Zhang",
+      "date": "2026-05-30",
+      "pdf": "https://arxiv.org/pdf/2606.00688v1",
+      "score": "9.0",
+      "evidence": "为单阶段全稀疏3D检测器提出点云补全方法",
+      "tldr": "针对单阶段全稀疏3D检测器中点云稀疏和不完整导致性能受限的问题，本文提出基于形状先验的点云补全方法，通过实例选择模块识别前景物体并利用形状先验库生成密集合成点，在多项基准上显著提升检测精度，为解决稀疏点云下的3D检测提供了有效途径。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "Single-stage fully sparse 3D object detectors rely on point clouds data to detect objects in autonomous driving scenarios. However, the sparsity and incompleteness of point clouds significantly limit the performance of 3D object detection. To address this issue, this paper proposes a point clouds completion method specifically designed for single-stage fully sparse detectors. The entire shape-prior-based completion process consists of two consecutive steps. In the first step, we design a novel Instance Selection module, which is capable of identifying point clouds corresponding to foreground objects even when the baseline model does not generate proposals, while effectively ignoring the point clouds of background regions. In the second step, we introduce a novel Alignment-Based Point Completion module, which aligns the point clouds of foreground objects with prototypes in terms of both their centers and orientations. Subsequently, points are selected from the prototype to fill in the missing parts of the foreground object. We evaluated our method on two single-stage fully sparse detectors using the KITTI dataset. The experimental results demonstrate that the proposed method significantly improves the detection performance, confirming its effectiveness and generalizability.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/02/2606.01757v1-pillardetr-yolo-backbone-and-rt-detr-head-for-real-time-3d-object-detection",
+      "section": "deep",
+      "title_en": "PillarDETR: YOLO-Backbone and RT-DETR Head for Real-Time 3D Object Detection",
+      "authors": "Smit Kadvani, Shriya Gumber, Kriti Faujdar, Harsh Dave",
+      "date": "2026-06-01",
+      "pdf": "https://arxiv.org/pdf/2606.01757v1",
+      "score": "9.0",
+      "evidence": "PillarDETR处理LiDAR点云进行实时三维物体检测",
+      "tldr": "针对现有3D目标检测方法难以同时满足高精度与实时性的挑战，提出PillarDETR架构，采用柱体编码与YOLOv8主干提取丰富特征，并利用RT-DETR解码器直接预测3D框。在KITTI和nuScenes上实现精度与速度的良好平衡，消融实验证实其优于PointPillars基线，为实时3D感知提供了新方案。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Real-time 3D object detection is a critical component for the safe operation of autonomous driving systems and robotics. While LiDAR point clouds provide accurate spatial information, processing them efficiently remains a significant challenge. Traditional methods rely on complex 3D convolutions or anchor-based paradigms that struggle to balance detection accuracy with inference speed. In this paper, we propose PillarDETR, a novel end-to-end 3D object detection architecture that combines the efficiency of pillar-based LiDAR encoding with the representational power of modern 2D vision models. Specifically, PillarDETR replaces standard convolutional backbones with a Cross Stage Partial (CSP) network derived from YOLOv8, enabling richer feature extraction from pseudoimages. Furthermore, we discard conventional anchor-based or center-based detection heads in favor of a Real-Time Detection Transformer (RT-DETR) decoder. This hybrid design allows the network to capture global context and directly predict 3D bounding boxes without relying on non-maximum suppression (NMS). Extensive experiments on the KITTI and nuScenes benchmarks demonstrate that PillarDETR achieves a compelling trade-off between mean Average Precision (mAP) and inference latency. Our ablation studies confirm that integrating the YOLOv8 backbone and RT-DETR head yields substantial improvements over the PointPillars baseline, establishing PillarDETR as a highly effective solution for real-time 3D perception.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/02/2606.01277v1-deepipcv3-event-aware-multi-modal-sensor-fusion-for-sudden-pedestrian-crossing-avoidance",
+      "section": "quick",
+      "title_en": "DeepIPCv3: Event-Aware Multi-Modal Sensor Fusion for Sudden Pedestrian Crossing Avoidance",
+      "authors": "Oskar Natan, Andi Dharmawan, Aufaclav Zatu Kusuma Frisky, Jazi Eko Istiyanto, Jun Miura",
+      "date": "2026-05-31",
+      "pdf": "https://arxiv.org/pdf/2606.01277v1",
+      "score": "7.0",
+      "evidence": "通过Transformer跨模态注意力机制融合LiDAR点云与事件相机，实现动态避障。",
+      "tldr": "端到端自动驾驶中，帧式传感器在行人突然横穿时存在感知延迟和运动模糊，导致安全漏洞。DeepIPCv3通过融合LiDAR点云的空间几何与DVS的异步事件流，采用Transformer启发的跨模态注意力机制动态关联两种模态，并利用混合策略网络生成安全的局部路径和直接控制指令。在自定义多模态数据集上离线评估，涵盖正午和傍晚条件，结果表明该方法消除了曝光失败和运动模糊，实现了最低的轨迹和指令误差，确保任意光照下均可作出高反应性、数学有界的避让动作。代码将开源以支持进一步研究。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Current end-to-end autonomous driving systems predominantly rely on frame-based sensors, which suffer from inherent perception latency and motion blur during highly dynamic encounters, specifically sudden pedestrian crossings. To address this critical safety vulnerability, we propose DeepIPCv3, a novel multi-modal autonomous navigation framework that synergizes the dense 3D spatial geometry of LiDAR point clouds with the microsecond-level asynchronous event streams of a Dynamic Vision Sensor (DVS). We introduce a Transformer-inspired cross-modal attention mechanism to dynamically correlate these distinct modalities, allowing the network to instantaneously prioritize high-speed dynamic updates without sacrificing structural scene awareness. The fused latent representations are then mapped to safe local waypoints and executable control commands via a hybrid policy network that blends heuristic trajectory tracking with direct neural predictions. Due to the severe physical risks associated with live testing of these sudden crossing scenarios, the framework is rigorously evaluated offline using a custom multi-modal dataset collected across both well-illuminated noon and challenging evening conditions. Extensive comparative and ablation studies demonstrate that DeepIPCv3 achieves state-of-the-art predictive performance. By effectively eliminating exposure failures and motion blur, the proposed LiDAR and DVS fusion yields the lowest trajectory and control command errors, enabling highly reactive, mathematically bounded evasive maneuvers regardless of ambient illumination. To support future research, we will release the codes to our GitHub repo at https://github.com/oskarnatan/DeepIPCv3.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/02/2606.01549v1-forestmamba-sparse-mamba-with-geometry-guided-queries-for-3d-forest-point-cloud-segmentation",
+      "section": "quick",
+      "title_en": "ForestMamba: Sparse Mamba with Geometry-guided Queries for 3D Forest Point Cloud Segmentation",
+      "authors": "Trung Thanh Nguyen, Tuan-Anh Vu, Duc Viet Le, Yasutomo Kawanishi, Takahiro Komamizu, Ichiro Ide, Teja Kattenborn",
+      "date": "2026-06-01",
+      "pdf": "https://arxiv.org/pdf/2606.01549v1",
+      "score": "7.0",
+      "evidence": "提出稀疏Mamba配合几何引导查询用于LiDAR点云特征聚合，类似于稀疏数据上的注意力机制",
+      "tldr": "面向大规模、结构复杂的森林点云分割难题，现有Transformer方法因二次复杂度和缺乏森林先验而受限。ForestMamba引入垂直优先序列化稀疏编码、基于冠层高度模型和FPS的几何引导查询，以及线性时间Mamba解码器，实现结构感知的语义与实例分割。在七个森林区域上，ForestMamba分割精度全面超越基线，且推理速度提升3倍、GPU内存降低2.3倍，为高效精准的森林监测提供了新方案。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "AI-based semantic and instance segmentation of terrestrial and drone LiDAR point clouds is emerging as a transformative approach for converting the complex 3D structure of forests into actionable information for forest monitoring and biodiversity assessment. However, forest LiDAR scenes remain highly challenging due to their large data volumes, irregular sampling density, overlapping and complex canopy structure, and geographic variability. Existing methods based on sparse convolutions or Transformers achieve promising results, but suffer from two key limitations: Quadratic complexity of attention scales poorly to large forest scenes, and Generic context modeling does not exploit forest structural priors, limiting tree separation in complex regions. To address these challenges, we propose ForestMamba, a structure-aware method that incorporates forest-specific priors into feature encoding, query generation, and query refinement, while replacing quadratic attention with linear-time state-space modeling. First, we introduce a sparse encoder with vertical-priority slab serialization that organizes sparse voxels into vertically coherent sequences for efficient long-range context modeling. Second, we propose a geometry-guided query initialization strategy based on an on-the-fly multi-scale Canopy Height Model (CHM), where canopy maxima provide ecologically meaningful query seeds, supplemented by Farthest Point Sampling (FPS) to cover understory trees. Third, we design a Mamba-based query decoder that combines local kNN voxel aggregation with a spatial dual-path Mamba for query refinement with linear computational complexity. Extensive experiments across seven forest regions demonstrate that ForestMamba consistently outperforms existing baselines in both segmentation tasks, while achieving 3 times faster inference and 2.3 times lower GPU memory than Transformer-based methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

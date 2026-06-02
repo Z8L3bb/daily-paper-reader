@@ -1,0 +1,221 @@
+Title: Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2606.00688v1
+
+Published Time: Tue, 02 Jun 2026 00:46:56 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection 
+
+## Kaizheng Wang a,∗, Mingqian Ji a, Jian Yang a and Shanshan Zhang a,∗
+
+> a
+
+School of Computer Science and Engineering, Nanjing University of Science and Technology, Nanjing, China 
+
+A R T I C L E I N F O 
+
+Keywords :Fully Sparse 3D Object Detection Point Clouds Object Shape Completion 
+
+A B S T R A C T 
+
+Single-stage fully sparse 3D object detectors rely on point clouds data to detect objects in autonomous driving scenarios. However, the sparsity and incompleteness of point clouds significantly limit the performance of 3D object detection. To address this issue, this paper proposes a point clouds completion method specifically designed for single-stage fully sparse detectors. The entire shape-prior-based completion process consists of two consecutive steps. In the first step, we design a novel Instance Selection module, which is capable of identifying point clouds corresponding to foreground objects even when the baseline model does not generate proposals, while effectively ignoring the point clouds of background regions. In the second step, we introduce a novel Alignment-Based Point Completion module, which aligns the point clouds of foreground objects with prototypes in terms of both their centers and orientations. Subsequently, points are selected from the prototype to fill in the missing parts of the foreground object. We evaluated our method on two single-stage fully sparse detectors using the KITTI dataset. The experimental results demonstrate that the proposed method significantly improves the detection performance, confirming its effectiveness and generalizability. 
+
+## 1. Introduction 
+
+LiDAR-based 3D object detection plays a critical role in autonomous driving systems. In recent years, numerous studies have focused on improving the performance of 3D detection. Recently, several single-stage fully sparse 3D object detection methods [3, 2, 1, 4, 8, 6, 21] have been proposed, which extract features by designing diverse network architectures and adopting different data represen-tations (e.g., voxels and keypoints). These methods have demonstrated excellent detection performance, but have reached a bottleneck. The fundamental issue lies in the fact that existing research largely overlooks the impact of point clouds sparsity and incompleteness on detection performance. To address this problem, some studies [18, 17, 23, 10, 12] have conducted in-depth analyzes of the challenges posed by the sparsity and incompleteness of raw point clouds data and have attempted to optimize two-stage detectors through point cloud or voxel completion. For example, SSN [23] and SIENet [12] exploit the self-correlation properties of objects and employ self-supervised learning to recover missing point cloud information, thereby enhancing the de-tection network’s ability to recognize and localize objects. However, these methods require dense representations to be completed within the second-stage network, which is com-putationally expensive and time-consuming. BtcDet [18] and Sparse2Dense [17], on the other hand, predict shape occupancy information to complete the voxel in occluded regions, while OKGR [10] predicts key point offsets to gen-erate points that approximate actual points in occluded areas. 
+
+> ∗
+
+Corresponding authors  
+
+> wangkaizheng@njust.edu.cn
+
+(K. Wang); mingqianji@njust.edu.cn 
+
+(M.J. ); csjyang@njust.edu.cn (J. Yang); shanshan.zhang@njust.edu.cn (S. Zhang) 
+
+> ORCID
+
+(s): 0009-0004-1732-6688 (K. Wang) 
+
+Although these approaches focus on sparse representations, they still rely on two-stage detectors, which compromises computational efficiency. Furthermore, the aforementioned methods are primarily designed for two-stage 3D object detectors and cannot be directly applied to single-stage fully sparse 3D object detectors. To address the above issues, this paper proposes a shape-prior-based point cloud-level completion method, which is compatible with both voxel-based and point-based fully sparse detectors. Specifically, our approach consists of two core modules: Instance Selection and Alignment-Based Point Completion. In the Instance Selection stage, we design a point cloud classification module to distinguish points of different categories and propose a clustering module to group points within each category.In the Alignment-Based Point Completion stage, an alignment module is introduced to align the generated prototypes with the clustered in-stances. This is followed by a point completion module to complete the point clouds for each instance. We apply the proposed method to state-of-the-art fully sparse detectors and achieve significant performance im-provements. Fig. 1 compares the feature distributions be-tween the baseline methods and ours, clearly demonstrating that our approach enhances the features in occluded regions, thereby improving the detection of heavily occluded objects. The main contributions of this paper are summarized as follows: 
+
+• We propose a point cloud completion method tailored for single-stage fully sparse detectors. 
+
+• We use an Instance Selection module to obtain in-stance point clouds and an Alignment-Based Point Completion module to perform point cloud comple-tion, both of which are independent of proposal boxes. 
+
+Kaizheng Wang et al.: Preprint submitted to Elsevier Page 1 of 8   
+
+> arXiv:2606.00688v1 [cs.CV] 30 May 2026 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection
+> (a) Feature visualization of baseline (b) Feature visualization of ours
+> Figure 1: The feature visualizations of the baseline method and our method. (a) and (b) respectively show the feature visualizations of the baseline method and our method in BEV. The lighter the color, the higher the feature quality. The red boxed areas highlight regions with significant differences.
+
+• The proposed method is applied to two state-of-the-art fully sparse 3D object detectors: FSDV2 [2] and Vox-elNeXt [1], and evaluated on the KITTI [5] validation and test sets. The experimental results demonstrate significant performance improvements. 
+
+## 2. Related Works 
+
+Since this study employs LiDAR-based fully sparse de-tectors as the foundational detection framework and further designs a completion module on this basis, we review the research progress in two related areas: LiDAR-based 3D object detection and point cloud completion. 
+
+2.1. LiDAR-based 3D Object Detection 
+
+In recent years, LiDAR-based 3D object detection tech-niques have made remarkable progress. Early two-stage methods [14, 15, 22, 7, 20, 9] achieved outstanding perfor-mance in 3D object detection tasks. These methods typically generate Bird’s-Eye View (BEV) features of the scene using dense feature extraction networks, followed by two main strategies for detection: leveraging a Region Proposal Net-work (RPN) to produce candidate bounding boxes [14, 15, 22, 7, 9], and encoding and fusing features further to predict the final 3D bounding boxes [22, 20]. However, the main drawback of these two-stage ap-proaches lies in their high computational complexity and slow inference speed, making them unsuitable for real-time applications. To address these limitations, recent studies [3, 2, 1, 4, 8] have proposed single-stage fully sparse detection methods based on fully sparse feature extraction networks. These methods predict 3D bounding boxes directly on sparse 3D feature maps, significantly improving detection speed while maintaining accuracy comparable to that of two-stage approaches. This advancement has established fully sparse detectors as the mainstream solution for 3D object detection tasks.However, these methods fail to account for the im-pact of point cloud sparsity and incompleteness on detector performance, whereas our approach explicitly addresses this issue. 
+
+2.2. Point Cloud Completion 
+
+Point cloud completion aims to refine sparse and incom-plete point cloud data to improve the performance of 3D object detection. Existing methods can be categorized into two main types: dense representation completion methods [23, 12, 11] and sparse representation completion methods [19, 18, 17, 10]. Dense representation completion methods focus primar-ily on completing dense raw point clouds. For example, SSN [23] introduces a shape feature network to complete raw point clouds, SIENet [12] utilizes pre-trained models for point cloud completion, and ProxyFormer [11] proposes an innovative positional encoding method that converts truly missing regions into proxies and predicts these proxies to achieve point cloud completion. These methods significantly improve detection performance, but the completion process for large-scale scenes still incurs high computational costs and is time-consuming. Moreover, these methods cannot be directly applied to single-stage fully sparse detectors. Sparse representation completion methods focus on completing sparse point clouds or representations at the feature level. For instance, SPG [19] employs a supervised learning strategy to predict shape occupancy and thereby achieve voxel-level completion; BtcDet [18] introduces an auxiliary task in the detection framework to predict shape occupancy and complete voxel data; Sparse2Dense [17] utilizes knowledge distillation techniques to enhance voxel-level completeness; OKGR [10], based on the principle of central symmetry, generates points within candidate boxes and further predicts offsets to align the generated points closely with the real points in occluded areas. Although these    
+
+> Kaizheng Wang et al.: Preprint submitted to Elsevier Page 2 of 8 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection
+> Figure 2: The overview of Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection (SPPCC). Our approach mainly consists of two modules, namely Instance Selection and Alignment-Based Point Completion.In the BEV view,the red boxed highlight the predicted bounding boxes.
+
+methods effectively achieve sparse representation comple-tion by accurately predicting shape occupancy, they still rely on two-stage networks, are computationally expensive, and depend on proposal boxes, making them difficult to integrate with single-stage fully sparse detectors. In contrast, our method completes sparse representations directly within a single-stage fully sparse network. 
+
+## 3. Methodology 
+
+Based on the aforementioned motivations and related work, we propose a completion method tailored for fully sparse 3D object detectors to enhance detection perfor-mance. 
+
+3.1. Overview 
+
+As illustrated in Fig. 2, our method is applied to fully sparse detectors and consists of two primary modules: In-stance Selection and Alignment-Based Point Completion. The overall workflow can be summarized as follows: first, the point cloud is passed through a sparse backbone network [16] to extract features for each point. These features are then fed into the Instance Selection module to generate clustered instances. Next, each clustered instance is processed by the Alignment-Based Point Completion module to produce a completed point cloud. Details of the Instance Selection module are described in Sec. 3.2, while the Alignment-Based Point Completion module is detailed in Sec. 3.3. Additionally, the point features are input into the center voting network, where each point predicts its perceived ob-ject center. These predicted center points are mixed with the completed point cloud features at the feature level. Finally, the resulting features are fed into the detection head to obtain 3D bounding boxes and corresponding confidence scores. 
+
+3.2. Instance Selection 
+
+Inspired by recent point cloud completion methods [10, 18, 23] in two-stage detectors, the typical approach is to generate proposal boxes to locate objects and subsequently complete the points within these proposals. However, single-stage fully sparse methods and do not produce proposal boxes, making previous approaches inapplicable. To address this limitation, we adopt Instance Selection to identify ob-jects in the scene. As shown in Fig. 3, the Instance Selection module com-prises a classifier, a filter, and a clusterer. Inspired by the recent fully sparse 3D object detection algorithm FSDV2 [2], we utilize a MLP layer as a classifier to predict the category scores for each point.         
+
+> Figure 3: Instance Selection module. It consists of three components: a classifier, a filter, and a clusterer.
+
+The classifier takes the feature set of points 𝐹 𝑝𝑐 as input and outputs the corresponding class scores. After obtaining the class scores for all points, the filter removes background points based on a predefined threshold, leaving the class scores of foreground points. Subsequently, the points are grouped into different categories, and the classified points are fed into the clusterer to generate clustering instances (i.e., objects in the scene). 
+
+3.3. Alignment-Based Point Completion 
+
+The clustered instances obtained in the previous section do not fully capture the complete shapes of the target objects. Therefore, we design a point completion scheme. Before    
+
+> Kaizheng Wang et al.: Preprint submitted to Elsevier Page 3 of 8 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection
+> Figure 4: Alignment-Based Point Completion. It consists of two parts: Alignment and Completion. Alignment includes CenterNet and AngleNet.
+
+proceeding, it is essential to prepare a prototype point cloud that represents the complete shape of the target object. As shown in Fig. 4, the architecture of the Alignment-Based Point Completion module comprises two main steps: first, aligning the clustered instances with the prototype point cloud; second, filling the missing regions of the clustered instances with points selected from the prototype based on a completion coefficient ( 𝐶𝐶 ). 
+
+Alignment . The alignment process consists of two steps. In the first step, the network predicts the offset of each instance’s centroid to determine the instance center, and the instance is then translated to align its center with the prototype’s center. In the second step, the network predicts the yaw angle of the instance, and the instance is rotated to achieve full alignment with the prototype. Specifically, as illustrated in Fig. 4, the instance point cloud is first encoded into instance features using a voxel en-coder, which are then fed into the Centroid Offset Network. The Centroid Offset Network consists of two SparseConv blocks and a linear layer, where each SparseConv block includes a SparseConv3D, BatchNorm1D, and ReLU oper-ation, as illustrated in Fig. 5. The Centroid Offset Network predicts the centroid offset. Subsequently, the instance point cloud is translated to the origin to align its center with the prototype center based on the predicted offset. Subsequently, a 2D Occupancy Table ( 𝑂𝑇 ) is computed from the point cloud, where a 2D occupancy map is gen-erated based on the 𝑥 and 𝑦 coordinates of the point cloud. This occupancy map encodes the yaw angle information of the instance. The generated occupancy map is then fed into the Angle Network, which consists of four linear layers and one ReLU layer, to predict the yaw angle, as illustrated in Fig. 5. Finally, the instance point cloud is rotated to align with the prototype point cloud. 
+
+Completion . Inspired by prior point cloud completion methods [10, 18, 23] in two-stage detectors, points have previously been generated symmetrically around the cen-troid or axes of the proposal boxes. These generated points are constrained within the proposal box and participate in subsequent prediction of the box’s category and score. However, in fully sparse methods, no proposal boxes are generated, making it impossible to directly apply symmetry-based completion.         
+
+> (a) (b)
+> Figure 5: The architecture of networks in Alignment.(a): Centroid Offset Network. (b): Angle Net.
+
+Upon analysis, we observe that the essence of symmetry-based completion lies in the relationship between the number of original and generated points: the more original points, the more generated points; the fewer original points, the fewer generated points. Therefore, we design a completion coefficient ( 𝐶𝐶 ), calculated as follows: 
+
+𝐶𝐶 = 𝑁 𝐼 
+
+𝑁 𝑝 
+
+, (1) where 𝑁 𝐼 represents the number of points in the instance point cloud, while 𝑁 𝑝 denotes the number of points in the prototype point cloud. As illustrated in Fig. 4. The completion process is as follows: the aligned instance point cloud and prototype point cloud from the previous step are voxelized. By comparing the two, if the 𝑖 -th voxel of the instance point cloud contains no points while the corresponding 𝑖 -th voxel of the prototype point cloud contains points, points from the prototype’s 𝑖 -th voxel are selected and added to the 𝑖 -th voxel of the instance point cloud. The number of points added is determined by the following formula: 
+
+𝑛𝑢𝑚 = 𝑁 𝑖 × 𝐶𝐶, (2)   
+
+> Kaizheng Wang et al.: Preprint submitted to Elsevier Page 4 of 8 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection
+
+where 𝑁 𝑖 represents the number of points in prototype’s 𝑖 -th voxel of the current class. A comparison between the prototype point cloud and the completed object point cloud is shown in Fig. 6.  
+
+> (a)
+> (b)
+> (c)
+> Figure 6: (a) shows the prototype point cloud of the car; (b) shows the raw point cloud.(c) illustrates the object’s raw point cloud in white and the points generated by the completion module in green.
+
+As shown in Fig. 7, the detection bounding boxes after processing by the completion module align more closely with the ground truth (GT) boxes compared to the baseline without the completion module. 
+
+3.4. Generate Prototype Point Cloud 
+
+The generation of prototype point clouds for different categories in the KITTI dataset must adhere to a key require-ment: each category’s prototype should comprehensively ag-gregate the shape characteristics of that category within the dataset while consisting of high-quality points. Our method for generating the prototype point cloud for a specific cat-egory proceeds as follows. First, we collect all object point clouds belonging to the target category from the ground truth annotations. These individual point clouds undergo centroid alignment, heading angle rotation, and are translated to the origin, resulting in a consolidated point cloud that encap-sulates the complete shape information for the category. To ensure high quality, points with low reflectivity are filtered out from this consolidated cloud. Finally, for all categories, we perform farthest point sampling (FPS) within a defined volumetric range (a horizontal plane from -2 to 2 meters and           
+
+> (a) (b)
+> Figure 7: In the figure, the red bounding box represents the detection result, the green box denotes the ground truth (GT), and the white points depict the raw point cloud. As shown in (a), the detection box generated with the completion module enabled demonstrates closer alignment to the GT box compared to the baseline detection box without the module in (b).
+
+a vertical height from -1 to 3 meters). Specifically, we sample 2048 points for the vehicle category and 512 points each for bicycle and human categories, yielding the final prototype point clouds. 
+
+3.5. Loss Function 
+
+The detector with our method is trained using the loss of the baseline model ( 𝐿 𝑏𝑠 ), the loss from the Instance Selection module ( 𝐿 𝐼 ), and the loss from the Alignment-Based Point Completion module ( 𝐿 𝐶 ). The total loss is defined as follows: 
+
+𝐿 𝑡𝑜𝑡𝑎𝑙 = 𝐿 𝐼 + 𝐿 𝐶 + 𝐿 𝑏𝑠 , (3) where 𝐿 𝐼 represents the Focal Loss [13] for point classifica-tion, which minimizes the classification error of points. The loss 𝐿 𝐶 for the Alignment-Based Point Completion module is defined as: 
+
+𝐿 𝐶 = 𝛿𝐿 𝑐𝑒𝑛𝑡𝑒𝑟 + 𝐿 𝑎𝑛𝑔𝑙𝑒 , (4) where 𝐿 𝑐𝑒𝑛𝑡𝑒𝑟 denotes the 𝐿 1 loss of centroid offset, used to minimize the offset, and 𝐿 𝑎𝑛𝑔𝑙𝑒 denotes the 𝐿 1 loss of heading angle, used to minimize the error in the heading angle. The factor 𝛿 is set to 0.5. 
+
+## 4. Experiments 
+
+In this section, we first introduce the datasets and evalua-tion metrics, followed by a description of the implementation details for the experiments. Next, we present the experimen-tal results obtained on the aforementioned datasets and pro-vide a detailed analysis. Finally, we conduct ablation studies to investigate the contributions of individual components of our proposed method to the overall performance. 
+
+4.1. Datasets and Evaluation Metrics 
+
+Our method is evaluated on the KITTI [5] dataset using both the validation and test sets. The evaluation metric used   
+
+> Kaizheng Wang et al.: Preprint submitted to Elsevier Page 5 of 8
+
+Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection 
+
+Table 1 
+
+Comparisons on the KITTI validation set. Methods Car 3D AP R40 Ped. 3D AP R40 Cyc. 3D AP R40 Average Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard FSDV2 90.93 81.57 76.20 59.31 53.03 47.40 83.20 62.20 58.50 77.41 65.27 61.37 + SPPCC 91.05 81.85 77.00 61.65 55.62 50.36 85.96 64.71 60.56 79.55 67.39 63.64                                                 
+
+> Improvement +0.08 +0.28 +0.80 +2.34 +2.59 +2.94 +2.76 +2.51 +1.94 +2.14 +2.12 +2.27 VoxelNext 85.86 76.61 75.72 54.98 51.52 48.03 83.50 65.31 63.55 74.78 64.48 62.43 + SPPCC 86.95 77.12 75.72 55.77 52.95 49.66 85.11 67.26 63.74 75.90 65.78 63.05
+> Improvement +1.09 +0.51 -+0.79 +1.43 +1.63 +1.61 +1.95 +0.19 +1.12 +1.30 +0.62
+
+Table 2 
+
+Comparisons on the KITTI test set. Methods Car 3D AP R40 Ped. 3D AP R40 Cyc. 3D AP R40 Average Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard Easy Mod. Hard FSDV2 86.56 75.38 70.98 46.33 37.70 34.50 77.53 59.09 53.39 70.14 57.39 52.95 + SPPCC 86.53 75.89 70.64 47.21 38.47 35.15 79.14 60.74 55.00 70.96 58.37 53.60                                                 
+
+> Improvement -+0.51 -+0.88 +0.77 +0.65 +1.61 +1.65 +1.61 +0.82 +0.98 +0.65 VoxelNext 83.88 75.58 70.77 47.46 39.97 37.43 78.18 61.74 54.68 69.84 59.09 54.29 + SPPCC 82.45 75.86 71.26 49.50 41.71 39.14 81.28 62.78 55.78 71.08 60.12 55.39
+> Improvement -+0.28 +0.49 +2.04 +1.74 +1.71 +3.10 +1.04 +1.10 +1.24 +1.03 +0.86
+
+for KITTI is Average Precision (AP). Detailed information about the dataset and its splits can be found in the supple-mentary materials. 
+
+4.2. Implementation Details 
+
+We adopted the DBSCAN clustering algorithm as the clusterer in Instance Selection. In the experiments on the KITTI [5] dataset, the ADAM optimizer was used with an initial learning rate of 0.00001. The network was trained on a single NVIDIA 3090 GPU with a batch size of 12 for a total of 60 epochs. When combined with the completion module, the training time for both FSDV2 [2] and VoxelNext [1] was approximately 6 hours. The learning rate scheduling and proposal refinement strategies were consistent with those used in FSDV2. During training, we employed the same 3D object detection data augmentation strategies as the baseline methods. 
+
+4.3. Validation 
+
+As shown in Tab. 1 and Tab. 2, we report the comparative results on the KITTI [5] validation and test sets. We re-implemented FSDV2 [2] and VoxelNext [1] based on their open-source code and trained our method on top of these two detection frameworks. The results demonstrate that our method improves the performance of both baseline detectors across all categories and difficulty levels. On the validation set, for FSDV2 , our method achieves an improvement of +2.14%, +2.12%, and +1.27% in the 3D AP at 40 recall positions for the average class under easy, moderate, and hard difficulty levels, respectively. For VoxelNext , our method achieves improvements of +1.12%, +1.30%, and +0.62% in the 3D AP under the same con-ditions. Moreover, for pedestrian and cyclist categories, the FSDV2-based model achieves an AP improvement of +2.62% and +2.40%, respectively, at the average difficulty level, while the VoxelNext-based model achieves improve-ments of +1.28% and +1.25%, respectively. These results collectively indicate that our method significantly enhances the 3D detection performance of the baseline models on the KITTI dataset. On the test set, for FSDV2 , our method achieves improvements of +0.82%, +0.98%, and +0.65% in the 3D AP at 40 recall positions for the average class under easy, moderate, and hard difficulty levels, respectively. For VoxelNext, under the same conditions, our method improves the 3D AP by +1.24%, +1.03%, and +0.86%, respec-tively. Additionally, for pedestrian and cyclist categories, the FSDV2-based model achieves an AP improvement of +0.77% and +1.62%, respectively, at the average difficulty level, while the VoxelNext-based model achieves improve-ments of +1.83% and +1.75%, respectively. These results validate the effectiveness and generalization ability of our proposed method on the KITTI dataset. Furthermore, to validate the effectiveness of our method across broader scenarios, we constructed a subset named "waymo-tiny" comprising the first 500 samples from the Waymo validation set as the test set. On this subset, we evaluated both the FSDV2 baseline model trained on the KITTI dataset and the FSDV2 model enhanced with our completion module. As shown in Tab. 3, the enhanced model demonstrates improved detection performance for vehicles, pedestrians, and cyclists at both Level-1 and Level-2 diffi-culty metrics. 
+
+4.4. Ablation Studies 
+
+In the ablation study, we conducted experiments based on FSDV2 to evaluate the design of the Alignment-Based Point Completion Module. The experimental results are presented in Tab. 4 and 5. In Tab. 4, we performed ablation experiments on the alignment submodule to validate its design rationale. If the alignment step is not used during training and inference in the second stage, meaning the center and yaw angle of the instance point cloud are not aligned with the prototype point cloud and only the centroid of the instance point cloud is 
+
+Kaizheng Wang et al.: Preprint submitted to Elsevier Page 6 of 8 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection 
+
+Table 3 
+
+Comparisons on the waymo-tiny test set. Methods Difficulty Vehicle Pedestrian Cyclist Average mAP mAPH mAP mAPH mAP mAPH mAP mAPH FSDV2 LEVEL-1 68.8 68.3 73.8 68.7 69.7 68.6 70.8 68.5 + SPPCC 69.1 68.9 74.4 69.2 70.0 68.9 71.2 69.0 
+
+Improvement +0.3 +0.6 +0.6 +0.5 +0.3 +0.3 +0.4 +0.5 FSDV2 LEVEL-2 60.4 60.0 68.4 61.5 66.9 65.8 65.2 62.5 + SPPCC 60.7 60.4 68.8 61.7 67.5 66.2 65.7 62.8 
+
+Improvement +0.3 +0.4 +0.4 +0.2 +0.6 +0.4 +0.5 +0.3 
+
+Table 4 
+
+Ablation studies of Alignment-Based Point Completion. Methods Instance Selection Alignment-Based Point Completion Average Inference Alignment Completion Easy Mod. Hard Time (ms) FSDV2 - - - 77.41 65.27 61.37 67 
+
++ SPPCC ! - ! 78.68 66.41 62.38 103 + SPPCC ! ! ! 79.55 67.39 63.64 119 
+
+aligned with the prototype point cloud, the detection perfor-mance decreases, and the inference time increases. When the alignment step is incorporated during training and inference in the second stage, the best AP values (indicated in bold) are achieved across all three difficulty levels. Although the inference time increases compared to the former case, the increase remains within an acceptable range. 
+
+Table 5 
+
+Ablation studies of Completion Coefficient ( 𝐶𝐶 ). Methods 𝐶𝐶 Average Easy Mod. Hard FSDV2 - 77.41 65.27 61.37 + SPPCC 1 78.63 66.22 62.00 + SPPCC 1 − 𝑁 𝐼 ∕𝑁 𝑝 78.78 66.35 62.09 + SPPCC 𝑁 𝐼 ∕𝑁 𝑝 79.55 67.39 63.64 
+
+In Tab. 5, we conducted ablation experiments on the completion coefficient in the completion submodule to val-idate its design rationale. We set the completion coefficient to three different values for comparison: when the coefficient is set to 1, the performance improves slightly, with increases of 1.22%, 0.95%, and 0.63%, respectively. When the coeffi-cient is set to 1 − 𝑁 𝐼 ∕𝑁 𝑝 , the performance improves more significantly, with increases of 1.37%, 1.08%, and 0.72%, respectively. When the coefficient is set to 𝑁 𝐼 ∕𝑁 𝑝 , the best AP values (indicated in bold) are achieved across all three difficulty levels, with relative increases of 2.14%, 2.12%, and 2.27%. In summary, the design of the Alignment-Based Point Completion Module is reasonable, achieving a good balance between detection accuracy and inference speed. 
+
+## 5. Conclusion 
+
+In this paper, we propose a point cloud completion method based on Instance Selection and Alignment-Based Point Completion, specifically designed for fully sparse 3D object detection. Specifically, we design a Instance Selec-tion module to identify instances of all categories in the scene, and an Alignment-Based Point Completion module to complete the point cloud. Extensive experimental results demonstrate the effectiveness of our method. 
+
+## References 
+
+[1] Chen, Y., Liu, J., Zhang, X., Qi, X., Jia, J., 2023. Voxelnext: Fully sparse voxelnet for 3d object detection and tracking, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition, pp. 21674–21683. [2] Fan, L., Wang, F., Wang, N., Zhang, Z., 2024. Fsd v2: Improving fully sparse 3d object detection with virtual voxels. IEEE Transactions on Pattern Analysis and Machine Intelligence . [3] Fan, L., Wang, F., Wang, N., Zhang, Z.X., 2022. Fully sparse 3d object detection. Advances in Neural Information Processing Systems 35, 351–363. [4] Fan, L., Yang, Y., Wang, F., Wang, N., Zhang, Z., 2023. Super sparse 3d object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence 45, 12490–12505. [5] Geiger, A., Lenz, P., Urtasun, R., 2012. Are we ready for autonomous driving? the kitti vision benchmark suite, in: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pp. 3354– 3361. [6] Han, M., Wang, Y., Li, M., Chang, X., Yang, Y., Qiao, Y., 2024. Pro-gressive frame-proposal mining for weakly supervised video object detection. IEEE Transactions on Image Processing 33, 1560–1573. [7] He, C., Li, R., Li, S., Zhang, L., 2022. Voxel set transformer: A set-to-set approach to 3d object detection from point clouds, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 8417–8427. [8] He, C., Zeng, H., Huang, J., Hua, X.S., Zhang, L., 2020. Structure aware single-stage 3d object detection from point cloud, in: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 11873–11882. [9] Hu, J.S., Kuai, T., Waslander, S.L., 2022. Point density-aware voxels for lidar 3d object detection, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 8469– 8478. [10] Ji, M., Yang, J., Zhang, S., 2023. Okgr: Occluded keypoint generation and refinement for 3d object detection, in: Proceedings of the Chinese Conference on Pattern Recognition and Computer Vision, pp. 3–15. 
+
+Kaizheng Wang et al.: Preprint submitted to Elsevier Page 7 of 8 Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection 
+
+[11] Li, S., Gao, P., Tan, X., Wei, M., 2023. Proxyformer: Proxy alignment assisted point cloud completion with missing part sensitive trans-former, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 9466–9475. [12] Li, Z., Yao, Y., Quan, Z., Xie, J., Yang, W., 2022. Spatial informa-tion enhancement network for 3d object detection from point cloud. Pattern Recognition 128, 108684. [13] Ross, T.Y., Dollár, G., 2017. Focal loss for dense object detection, in: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pp. 2980–2988. [14] Shi, S., Guo, C., Jiang, L., Wang, Z., Shi, J., Wang, X., Li, H., 2020a. Pv-rcnn: Point-voxel feature set abstraction for 3d object detection, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 10529–10538. [15] Shi, S., Jiang, L., Deng, J., Wang, Z., Guo, C., Shi, J., Wang, X., Li, H., 2023. Pv-rcnn++: Point-voxel feature set abstraction with local vector representation for 3d object detection. International Journal of Computer Vision 131, 531–551. [16] Shi, S., Wang, Z., Shi, J., Wang, X., Li, H., 2020b. From points to parts: 3d object detection from point cloud with part-aware and part-aggregation network. IEEE Transactions on Pattern Analysis and Machine Intelligence 43, 2647–2664. [17] Wang, T., Hu, X., Liu, Z., Fu, C.W., 2022. Sparse2dense: Learning to densify 3d features for 3d object detection. Advances in Neural Information Processing Systems 35, 38533–38545. [18] Xu, Q., Zhong, Y., Neumann, U., 2022. Behind the curtain: Learning occluded shapes for 3d object detection, in: Proceedings of the AAAI Conference on Artificial Intelligence, pp. 2893–2901. [19] Xu, Q., Zhou, Y., Wang, W., Qi, C.R., Anguelov, D., 2021. Spg: Unsupervised domain adaptation for 3d object detection via semantic point generation, in: Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 15446–15456. [20] Xue, Y., Mao, J., Niu, M., Xu, H., Mi, M.B., Zhang, W., Wang, X., Wang, X., 2022. Point2seq: Detecting 3d objects as sequences, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 8521–8530. [21] Yan, C., Chang, X., Luo, M., Liu, H., Zhang, X., Zheng, Q., 2024. Semantics-guided contrastive network for zero-shot object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence 46, 1530–1544. [22] Yin, T., Zhou, X., Krahenbuhl, P., 2021. Center-based 3d object detection and tracking, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 11784–11793. [23] Zhu, X., Ma, Y., Wang, T., Xu, Y., Shi, J., Lin, D., 2020. Ssn: Shape signature networks for multi-class object detection from point clouds, in: Proceedings of the European Conference on Computer Vision, pp. 581–597. 
+
+Kaizheng Wang et al.: Preprint submitted to Elsevier Page 8 of 8

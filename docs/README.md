@@ -6,28 +6,34 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-01
-- 运行时间：2026-06-01 23:03:29 UTC
+- 最新运行日期：2026-06-02
+- 运行时间：2026-06-02 23:11:49 UTC
 - 运行状态：成功
-- 本次总论文数：2
-- 精读区：1
-- 速读区：1
+- 本次总论文数：4
+- 精读区：2
+- 速读区：2
 
 ### 今日简报（AI）
-今日研读两篇自动驾驶感知论文，关注多传感器鲁棒性与基础模型应用。  
-值得留意的是，BEV感知能优雅应对传感器故障，而基础ViT模型在点云分割中展现竞争力。  
-建议从业者关注感知系统在非理想条件下的健壮性设计，可尝试复现这两类轻量级方案。
-- 详情：[/202606/01/README](/202606/01/README)
+今日聚焦单阶段稀疏3D目标检测，精读两篇均分9.0的补全与实时检测新框架。
+最值得看的是：用形状先验补全点云可大幅提升稀疏检测精度，而PillarDETR将YOLO骨干与DETR头结合，在实时性上取得突破。
+下一步可关注这两条路线如何落地到自动驾驶的突发障碍物感知，速读中的多模态避障与森林分割也值得延伸。
+- 详情：[/202606/02/README](/202606/02/README)
 
 ### 精读区论文标签
-1. [Can BEV Perception Gracefully Degrade under Sensor Failures?](/202606/01/2605.30983v1-can-bev-perception-gracefully-degrade-under-sensor-failures)  
-   标签：评分：8.0/10、query:stage-d-det
-   evidence：提出在传感器故障下实现优雅降级的多模态BEV感知方法，增强鲁棒性
+1. [Shape-Prior-Based Point Cloud Completion for Single-Stage Fully Sparse 3D Object Detection](/202606/02/2606.00688v1-shape-prior-based-point-cloud-completion-for-single-stage-fully-sparse-3d-object-detection)  
+   标签：评分：9.0/10、query:stage-d-det
+   evidence：为单阶段全稀疏3D检测器提出点云补全方法
+2. [PillarDETR: YOLO-Backbone and RT-DETR Head for Real-Time 3D Object Detection](/202606/02/2606.01757v1-pillardetr-yolo-backbone-and-rt-detr-head-for-real-time-3d-object-detection)  
+   标签：评分：9.0/10、query:lidar-d-det
+   evidence：PillarDETR处理LiDAR点云进行实时三维物体检测
 
 ### 速读区论文标签
-1. [Vanilla ViT for Automotive Point Cloud Semantic Segmentation](/202606/01/2605.31177v1-vanilla-vit-for-automotive-point-cloud-semantic-segmentation)  
+1. [DeepIPCv3: Event-Aware Multi-Modal Sensor Fusion for Sudden Pedestrian Crossing Avoidance](/202606/02/2606.01277v1-deepipcv3-event-aware-multi-modal-sensor-fusion-for-sudden-pedestrian-crossing-avoidance)  
    标签：评分：7.0/10、query:lidar-d-det
-   evidence：使用普通ViT的全局注意力机制聚合汽车激光雷达点云特征
+   evidence：通过Transformer跨模态注意力机制融合LiDAR点云与事件相机，实现动态避障。
+2. [ForestMamba: Sparse Mamba with Geometry-guided Queries for 3D Forest Point Cloud Segmentation](/202606/02/2606.01549v1-forestmamba-sparse-mamba-with-geometry-guided-queries-for-3d-forest-point-cloud-segmentation)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：提出稀疏Mamba配合几何引导查询用于LiDAR点云特征聚合，类似于稀疏数据上的注意力机制
 
 
 <div class="dpr-home-promo-card">
