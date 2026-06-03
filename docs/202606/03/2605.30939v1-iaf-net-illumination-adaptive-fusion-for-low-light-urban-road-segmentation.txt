@@ -1,0 +1,290 @@
+Title: IAF-Net: Illumination-Adaptive Fusion for Low-Light Urban Road Segmentation
+
+URL Source: https://arxiv.org/pdf/2605.30939v1
+
+Published Time: Mon, 01 Jun 2026 00:46:16 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# IAF-Net: Illumination-Adaptive Fusion for Low-Light Urban Road Segmentation 
+
+Bingtao Wang, Daojie Peng, Fulong Ma, Jun Ma, Liang Zhang †
+
+Abstract — Semantic road segmentation is important for au-tonomous driving, but existing methods suffer severe perfor-mance degradation under low-light conditions. Many exist-ing multi-modal fusion methods do not explicitly adapt to illumination-dependent changes in modality reliability, which can propagate degraded RGB features into the fused repre-sentation at night. We propose IAF-Net (Illumination-Adaptive Fusion Network), an end-to-end framework with illumination-adaptive fusion for robust road segmentation across different lighting conditions. It dynamically adjusts fusion weights of RGB and geometric features via the core Illumination-Adaptive Fusion (IAF) module, and enhances low-light feature selection with a brightness-modulated attention decoder. We also con-struct two dedicated datasets: nuScenes Nighttime Road Seg-mentation (nuScenes-NRS) and CARLA Multi-Weather Road Segmentation (CARLA-MWRS). Experiments on nuScenes-NRS show state-of-the-art overall performance among the compared methods, while CARLA-MWRS further validates robustness across adverse weather conditions. Ablation studies on a 40% training subset further highlight the importance of the IAF module, which provides the largest individual gain of 0.70% in MaxF. 
+
+Index Terms — Low-light visual perception, sensor fusion, computer vision for transportation, deep learning for visual perception, multimodal semantic perception. 
+
+I. I NTRODUCTION 
+
+Robust perception under diverse illumination and weather conditions is a key requirement for autonomous driving systems. As a core component of the autonomous driv-ing perception system, semantic road segmentation aims to identify the drivable free space from the scene, providing essential information for path planning, obstacle avoidance, and vehicle control. Current research on road segmentation spans single-modal methods [1], [2], multi-modal fusion approaches [3], [4], [5], [6], and recent extensions to self-supervised label generation [7]. However, existing methods still suffer severe performance degradation under low-light and nighttime conditions. The key limitation is not the absence of nighttime perception studies, but the insuffi-cient modeling of illumination-dependent modality reliabil-ity in RGB-normal road segmentation, despite the well-documented difficulty of low-light visual perception [8]. This limitation is related to the broader challenge of adverse-condition perception, where nighttime illumination, rain, and fog change the data distribution of segmentation models [9].                     
+
+> †Corresponding author: 201299800013@sdu.edu.cn
+> Bingtao Wang and Liang Zhang are with The Shandong University, wangbt@mail.sdu.edu.cn, 201299800013@sdu.edu.cn Daojie Peng, Fulong Ma and Jun Ma are with The Hong Kong University of Science and Technology (Guangzhou) (e-mail: {fmaaf, dpeng108 }@connect.hkust-gz.edu.cn, jun.ma@ust.hk.)
+
+The main challenges of nighttime road segmentation stem from complex and dynamic illumination conditions. First, heterogeneous light sources, such as street lamps, vehicle headlights, building lights, and traffic signals, cause severe spatial variation of illumination. Second, low-light RGB images suffer from low brightness, reduced contrast, and sensor noise, which corrupt the texture and color features used by traditional segmentation methods [8], [10]. Third, many existing multi-modal fusion methods do not explicitly account for illumination-dependent modality reliability [11], [12], which may propagate degraded RGB noise into the fused features at night. To address these challenges, we propose IAF-Net, an illumination-adaptive multi-modal fusion network designed specifically for robust low-light urban road segmentation. The key insight of our work is to use global brightness as a scene-level estimate of RGB reliability rather than as a complete description of local illumination. Local degradation is further handled by low-light enhancement and nighttime-aware attention decoding. Specifically, our network first estimates the global brightness of the scene while enhancing the low-light RGB image. Based on this brightness signal, the network dynamically adjusts the fusion weights of RGB texture features and illumination-invariant geometric features extracted from depth maps. In this way, the network can automatically rely more on geometric features in extremely dark scenes where RGB features are unreliable, and leverage more texture information in well-lit scenes where RGB features are informative. Our main contributions are summarized as follows:  
+
+> •
+
+We propose IAF-Net, an end-to-end framework for low-light road segmentation that integrates illumination awareness into the perception pipeline and adapts to varying lighting conditions.  
+
+> •
+
+We design the Illumination-Adaptive Fusion (IAF) mod-ule, which leverages the global brightness signal to dynamically adjust the fusion weights of multi-modal features, effectively suppressing noise propagation from degraded RGB features in nighttime scenes.  
+
+> •
+
+We propose the Nighttime-aware Attention Decoder (NAA), which introduces a brightness-modulated atten-tion sharpening mechanism to enhance feature selection under low-light conditions, improving the discriminabil-ity of features in dark environments.  
+
+> •
+
+We construct two dedicated datasets for low-light road segmentation: nuScenes-NRS and CARLA-MWRS, covering real-world nighttime and synthetic multi-weather conditions. 
+
+> arXiv:2605.30939v1 [cs.CV] 29 May 2026
+
+Pre-processing & Feature Extraction              
+
+> Swin Block 1 (RGB) C=128 Swin Block 1 (Normal) C=128
+> IAF
+> Swin Block 2 (RGB) C=256 Swin Block 2 (Normal) C=256
+> IAF
+> Swin Block 3 (RGB) C=512 Swin Block 3 (Normal) C=512
+> IAF
+> Swin Block 4 (RGB) C=960 Swin Block 4 (Normal) C=960
+> IAF
+> C
+> NAA Block 2 C=256
+> C
+> NAA Block 3 C=128
+> NAA Block 4 C=64
+> C
+> RGB Input Depth Input
+
+Prediction Output  
+
+> Stage 1 1/4 Stage 2 1/8 Stage 3 1/16 Stage 4 1/32 NAA Block 1 C=512
+
+Dual-Stream Swin-B Encoder NAA Decoder  
+
+> Mask Output LLEM R-SNE
+
+Fig. 1: Overall architecture of the proposed IAF-Net. The network takes RGB images and depth maps as inputs, and processes them through four core modules: LLEM for low-light enhancement and brightness estimation, R-SNE for robust surface normal feature extraction, IAF for illumination-adaptive multi-scale feature fusion, and NAA for nighttime-aware attention decoding. An auxiliary EdgeHead is adopted to enhance boundary prediction.  
+
+> •
+
+Experiments on nuScenes-NRS show state-of-the-art overall performance among the compared methods, while CARLA-MWRS validates robustness across ad-verse weather conditions and ablation studies quantify the contribution of each module. II. R ELATED WORKS 
+
+In this section, we review the literature from three perspec-tives that are most relevant to this work: road segmentation for autonomous driving, low-light and nighttime road scene understanding, and multi-modal fusion for road parsing. 
+
+A. Semantic Segmentation for Autonomous Driving 
+
+Semantic segmentation has been extensively studied for autonomous driving. Representative CNN-based models, such as DeepLabv3+ [13] and PSPNet [14], established strong baselines for scene parsing, while more recent ar-chitectures, including SegFormer [15], PIDNet [16], and DDRNet [17], further improved the trade-off between ac-curacy and efficiency in driving scenes. These methods pro-vide effective segmentation backbones, but they are largely developed and evaluated under well-lit conditions. When illumination becomes poor, the reliability of RGB appearance cues decreases substantially, which limits the robustness of conventional road parsing pipelines. 
+
+B. Low-Light and Nighttime Scene Understanding 
+
+Low-light scene understanding has been studied from both image enhancement and direct nighttime perception perspec-tives. Classical enhancement methods, such as Retinex-based modeling [18], and learning-based approaches, including KinD [19], LLNet [20], and Zero-DCE [10], can improve image visibility in dark scenes. However, these methods are mainly optimized for restoration quality rather than segmentation-oriented feature reliability, and the enhanced appearance does not always translate into more stable road parsing. Beyond enhancement, recent studies have directly ad-dressed nighttime semantic segmentation. Wei et al. [21] improved nighttime parsing through illumination disentan-glement, while other methods explored thermal assistance, day-to-night adaptation, cross-domain distillation, and event-based sensing [22], [23]. Representative examples include DANNet [24], cross-domain correlation distillation [25], CMDA [26], and event-based road segmentation with asyn-chronous likelihood attention [27]. These studies confirm the difficulty of nighttime perception, but they either remain strongly coupled to appearance restoration or domain transfer in RGB space, or require additional sensing and adaptation pipelines. As a result, they do not directly address how the reliability of complementary modalities should be regulated as illumination changes. 
+
+C. Multi-Modal Fusion for Robust Perception 
+
+Multi-modal fusion has become an effective direction for robust perception because complementary modalities can compensate for the weakness of RGB observations under Fig. 2: Structure of the Lightweight Low-light Enhancement Module (LLEM). The module takes raw low-light RGB im-ages as input, estimates pixel-wise enhancement parameters via lightweight depth-wise separable convolutions, and out-puts the enhanced image together with the global brightness estimation for subsequent modules. adverse conditions. In general semantic segmentation, meth-ods such as CMX [11] and CAFuser [28] show that cross-modal interaction and condition-aware fusion can improve robustness in RGB-X perception. For road segmentation, geometric cues have drawn in-creasing attention because surface normals derived from depth provide structural information that is much less sensi-tive to illumination changes. Wang et al. [29] investigated RGB-D drivable-area learning with self-supervised label generation to reduce manual annotation for road and anomaly segmentation. Li et al. [12] proposed RoadFormer for RGB-normal road scene parsing, and Huang et al. further extended this line in RoadFormer+ [30] with more advanced hetero-geneous fusion. However, although existing fusion methods improve robustness by combining complementary modalities, they rarely treat illumination as an explicit control signal for regulating the relative reliability of RGB and geometric cues in road segmentation. Consequently, the fusion process is often insufficiently matched to the large reliability shift of RGB features between well-lit and low-light scenes. III. M ETHOD 
+
+In this section, we present the details of the proposed IAF-Net framework. We first introduce the overall architecture, then describe each main module and the associated optimiza-tion design. 
+
+Fig. 3: Pipeline of the Robust Surface Normal Estimation (R-SNE) module. The module preprocesses the raw depth map to remove outliers and noise, computes the surface normal, and generates a confidence-weighted normal map for robust multi-modal fusion. 
+
+A. Overall Architecture 
+
+The overall architecture of IAF-Net is illustrated in Fig. 1. The framework takes an RGB image I ∈ RH×W ×3 and depth-derived geometric input as the two modalities, and processes them through four main modules, followed by an auxiliary boundary branch and brightness-aware loss design, to produce the final road segmentation mask. First, the raw RGB image is fed into the Lightweight Low-light Enhancement Module (LLEM), which performs adaptive brightness enhancement and outputs the enhanced RGB image as well as a global brightness estimation b ∈
+
+[0 , 1] that indicates the overall illumination level of the scene. Meanwhile, the depth signal is converted into surface-normal cues by the Robust Surface Normal Estimation (R-SNE) pipeline, which extracts robust geometric features that are much less sensitive to illumination changes than RGB appearance cues. Next, the enhanced RGB image and the normal map are fed into a dual-branch Swin Transformer encoder [31], which extracts hierarchical multi-scale features {F rgb l }3
+
+> l=0
+
+and {F norm l }3 
+
+> l=0
+
+for the two modalities, respectively. These features correspond to resolutions of 1/4, 1/8, 1/16, and 1/32 of the original image size. In the actual training and evaluation pipeline, the normal maps can be pre-computed from depth for efficiency, while the R-SNE module defines the geometric extraction process used by the framework. Then, the Illumination-Adaptive Fusion (IAF) module takes the multi-scale features from the two modalities and the global brightness signal b as inputs. For each scale, the IAF module dynamically adjusts the fusion weights of RGB and normal features based on the brightness, generating the fused features {F (l)
+
+> out
+
+}3
+
+> l=0
+
+.After that, the fused features are fed into the Nighttime-aware Attention Decoder (NAA), which performs hierarchi-cal upsampling and feature integration. The NAA module leverages the brightness signal to modulate the attention mechanism, enhancing the feature selection ability under low-light conditions. Finally, the main segmentation head outputs the road segmentation prediction, while an auxiliary EdgeHead predicts the boundary of the road to further improve the localization accuracy. 
+
+B. Low-Light Enhancement and Brightness Estimation 
+
+In nighttime scenes, the raw RGB images are often severely degraded with low brightness and high noise, which hinders feature extraction. To address this, we propose the LLEM module to adaptively enhance low-light images, as shown in Fig. 2. Different from traditional enhancement methods that rely on hand-crafted parameters, LLEM uses a lightweight network with depth-wise separable convolutions to estimate pixel-wise enhancement curve parameters. By iteratively applying the learned enhancement curve, the mod-ule improves brightness and contrast while suppressing noise. Different from general low-light enhancement methods that mainly target visual quality [10], LLEM is used to produce both an enhanced image and an explicit brightness cue for downstream fusion and decoding. In addition to the enhanced image, LLEM also outputs a global brightness estimation b ∈ [0 , 1] , which measures the overall illumination level of the scene. In practice, b is computed from the enhanced RGB image by first averaging over the three channels and then applying global average pooling to obtain a scalar scene-level brightness estimate for each sample. This brightness signal is then used as a scene-level condition to guide the subsequent fusion, decoding, and loss weighting modules. 
+
+C. Robust Surface Normal Estimation 
+
+Surface normal is a geometric feature that describes the orientation of the object surface. Since it is computed from depth information, it is much less sensitive to illumination changes than RGB appearance cues, making it a useful complementary modality for nighttime perception. However, the depth maps captured in nighttime scenes often suffer from noise and missing values, which leads to unstable normal estimation. To address this, we propose the R-SNE module, which enhances the traditional Surface Normal Estimation (SNE) algorithm with depth preprocessing and confidence estima-tion. The pipeline of the R-SNE module is shown in Fig. 3. First, we perform outlier rejection on the raw depth map: for each pixel, we compute the local mean μij and standard deviation σij in a 5×5 neighborhood, and clean the depth value as shown in Eq. (1): 
+
+Dclean (i, j ) = 
+
+
+
+μij , if |D(i, j ) − μij |
+
+σij + ϵ > τ z ,D(i, j ), otherwise 
+
+, (1) 
+
+Fig. 4: Structure of the proposed Illumination-Adaptive Fu-sion (IAF) module. The module takes the brightness signal as input, and predicts dynamic fusion weights for RGB and normal features, which are used to fuse the multi-modal features in an illumination-aware manner. where τz = 3 .0 is the pre-defined threshold for Z-score outlier rejection, and ϵ is a small positive constant for numerical stability. Then, we apply bilateral filtering to smooth the depth map while preserving edges. After that, we compute the surface normal from the cleaned depth map. To further improve the reliability, we train a lightweight depth confidence network to predict a pixel-wise confidence map C ∈ [0 , 1] H×W , which indicates the reliability of the normal estimation at each pixel. The normal map is then weighted by the confidence map, so that less reliable normal features have lower contribution in the subsequent fusion stage. 
+
+D. Illumination-Adaptive Feature Fusion 
+
+The Illumination-Adaptive Fusion (IAF) module is the key component that links the estimated brightness cue to multi-modal feature integration. It addresses the limitation of illumination-agnostic fusion by dynamically adjusting the fusion weights according to the scene brightness. The structure of the IAF module is shown in Fig. 4. The IAF module consists of two main components: a brightness-to-weight MLP predictor and a dynamic feature fusion operation. Given the global brightness signal b, the MLP predictor maps this scalar signal into two dynamic fu-sion weights αrgb and αnorm , which satisfy αrgb +αnorm =1. These weights indicate the relative contribution of RGB and normal features to the fused representation. Specifically, for each scale l, given the RGB features F (l)
+
+> rgb
+
+and normal features F (l)
+
+> norm
+
+, we first enhance both modal-ities with modality-specific hierarchical attention modules (HAM), which reweight intra-modal responses before fusion. Fig. 5: Single-level architecture of the proposed Nighttime-aware Attention Decoder (NAA). The decoder adopts abrightness-modulated attention sharpening mechanism to en-hance feature selection under low-light conditions, where the attention map is adaptively sharpened according to the global illumination level. The brightness-conditioned weights are then applied to the attended features. A heterogeneous feature contrast descrip-tor (HFCD) is used to capture complementary cross-modal differences, and an affinity-weighted feature refiner (AWFR) further smooths the fused representation using feature affinity while preserving a residual shortcut from the original two modalities. The fusion stage is formulated as in Eq. (2): 
+
+F (l) 
+
+> out
+
+= AWFR 
+
+
+
+αrgb ˆF (l) 
+
+> rgb
+
++ αnorm ˆF (l)
+
+> norm
+
++ HFCD  αrgb ˆF (l)
+
+> rgb
+
+, α norm ˆF (l)
+
+> norm
+
+
+
++ γ
+
+
+
+F (l) 
+
+> rgb
+
++ F (l)
+
+> norm
+
+
+
+.
+
+(2) This design allows the fusion weights to change with the illumination condition. In extremely dark scenes where 
+
+b is small, the predictor tends to assign a larger αnorm 
+
+and a smaller αrgb , so that the fusion result relies more on geometric features and suppresses noise from degraded RGB observations. In better-lit scenes, the predictor can assign a larger αrgb to preserve texture information while still retaining normal cues as geometric support. This behavior is learned end-to-end from the training data. 
+
+E. Nighttime-Aware Attention Decoder 
+
+After obtaining the multi-scale fused features, we de-code them into the full-resolution segmentation mask. Stan-dard attention-gate mechanisms [32] adopt a fixed attention strength, which is not optimal for nighttime scenes where the noise is more severe and the effective information is sparser. To address this, we propose the Nighttime-aware Atten-tion Decoder (NAA), whose structure is shown in Fig. 5. It introduces a brightness-modulated attention sharpening mechanism. For each decoder layer, given the upsampled feature g and the skip-connection feature F (l)
+
+> out
+
+, we first compute the standard attention map ψ ∈ [0 , 1] as in a conventional attention gate. The sharpening factor and the modulated attention map are then defined in Eq. (3): 
+
+s = 1 .0 + (1 .0 − b) × 0.5,ψmod = ψs, (3) where s is the sharpening factor, which is a linear function of the brightness b. In dark scenes where b is small, s
+
+becomes larger, which sharpens the attention map, making the attention weights more focused on the relevant features and suppressing the background noise. In well-lit scenes, s
+
+is close to 1, so the attention map remains unchanged. This allows the decoder to adaptively adjust its feature selection strength according to the illumination condition. 
+
+F. Boundary Prediction and Loss Function 
+
+To further improve the boundary localization accuracy, which is crucial for path planning, we add an auxiliary EdgeHead branch to the decoder. The EdgeHead takes the shallowest decoder feature as input and predicts the probabil-ity of each pixel being a road boundary. This auxiliary branch helps the network pay more attention to boundary regions, which are often under-represented in the main segmentation loss. To keep the optimization objective consistent with the illumination-adaptive design, we further employ an Adaptive Loss Weighting (ALW) scheme. In addition to the main segmentation loss Lseg , ALW uses brightness-dependent positive scales ssta , sdia , and sedge to modulate a semantic transition-aware term Lsta , a depth inconsistency-aware term 
+
+Ldia , and the edge supervision term Ledge , respectively. Here, Lsta emphasizes semantic transitions near road bound-aries, Ldia penalizes inconsistencies between depth-derived geometry and segmentation predictions, and Ledge supervises the auxiliary boundary branch. The overall loss is defined in Eq. (4): 
+
+L = Lseg + λsta ssta Lsta 
+
++ λdia sdia Ldia + λedge sedge Ledge , (4) where Lseg is the cross-entropy loss for road segmentation, 
+
+Ledge is the boundary prediction loss, and λsta , λdia , and 
+
+λedge are the base coefficients of the auxiliary terms. The adaptive scales are predicted from the global brightness es-timate b through a lightweight positive mapping function, so that darker scenes can receive stronger auxiliary regulariza-tion when needed. In this way, the training objective follows the same illumination cue used in fusion and decoding. IV. E XPERIMENT 
+
+To evaluate the effectiveness of the proposed IAF-Net, we conduct extensive experiments on two datasets: nuScenes-NRS and CARLA-MWRS. 
+
+A. Datasets 1) nuScenes Nighttime Road Segmentation (nuScenes-NRS): nuScenes-NRS is a large-scale multi-modal au-tonomous driving dataset derived from nuScenes [33], which (1)     
+
+> (a) RGB Input (b) IAFNet (c) Ground Truth
+> F1=0.982
+> IoU=0.966
+> TP FP FN
+> (d) Error Map
+> (2)
+> F1=0.965
+> IoU=0.932
+> (3)
+> F1=0.945
+> IoU=0.895
+> (4)
+> F1=0.923
+> IoU=0.857
+> (5)
+> F1=0.885
+> IoU=0.794
+> 1
+
+Fig. 6: Qualitative segmentation results on nuScenes-NRS. From left to right: input RGB image, our prediction overlay, ground truth overlay, and error map. Green indicates true positives, red indicates false positives, and blue indicates false negatives. contains a large number of nighttime driving scenes. How-ever, the original dataset does not provide 2D pixel-level road segmentation annotations. In this work, the road seg-mentation ground truth is generated from the 3D lidar semantic annotations through an automatic projection-and-triangulation pipeline. The pipeline consists of four steps: (1) Filter the lidar points that belong to the drivable surface class. (2) Project the 3D road points into the image plane using the calibra-tion parameters. (3) Perform Delaunay triangulation on the projected points to fill the sparse points into a dense mask. (4) Filter out invalid connections using a maximum edge length threshold. This automatic annotation setting is related to recent annotation-free drivable-area and curb detection from LiDAR point cloud maps [34]. Using this pipeline, we automatically generate 3182 training images and 805 validation images with pixel-level road annotations, without any manual labeling effort. 
+
+2) CARLA Multi-Weather Road Segmentation (CARLA-MWRS): To evaluate the robustness of our method under extreme weather conditions, we construct CARLA-MWRS using the CARLA simulator [35]. We collect data from three different towns, covering highway, urban, and suburban road scenes. We generate data under four different weather conditions: sunny daytime, sunny nighttime, foggy nighttime, and heavy rain foggy nighttime. This allows us to test the model’s performance under various challenging conditions. In total, we collect 3600 images, with 2400 for training and 1200 for testing. 
+
+B. Experimental Setup 
+
+We implement our model using PyTorch. The dual-branch encoder is initialized from pre-trained Swin-T weights. Training uses the AdamW optimizer with an initial learning rate of 1 × 10 −4 and a weight decay of 0.01. For the main experiments, the batch size is 8. We use a ReduceLROn-Plateau scheduler driven by validation performance, gradient clipping with a maximum norm of 1.0, and early stopping after convergence. For efficiency, surface normal inputs are pre-computed from depth in the main training and evaluation pipeline. For evaluation, we use the standard metrics for road segmentation: MaxF score, IoU (Intersection over Union), Precision, and Recall. 
+
+C. Comparison with State-of-the-Art Methods 
+
+We compare our method with six representative road segmentation methods on the nuScenes-NRS validation set. The baseline methods include both RGB-only methods and multi-modal methods. The results are shown in Table I. The comparison results lead to three main observations: 1. Multi-modal methods outperform the RGB-only baselines on this benchmark. The best RGB-only method achieves a MaxF score of 93.46%, while the multi-modal methods all achieve over 95.5%, suggesting that geometric features provide useful complementary information for nighttime segmentation. 2. IAF-Net achieves the best performance among the compared methods. It improves over the strong baseline RoadFormer+ by 0.15% in MaxF and 0.28% in TABLE I: Performance comparison with representative methods on the nuScenes-NRS validation set. Best results are marked in bold.                                                 
+
+> Method Modality Params (M) MaxF (%) IoU (%) Precision (%) Recall (%) PIDNet-S [16] RGB 7.6 92.43 85.92 89.83 95.18 DAFormer [36] RGB 85.2 92.58 85.66 92.55 92.00 DDRNet-23 [17] RGB 20.3 93.23 87.26 92.51 93.96 SegFormer-B2 [15] RGB 27.3 93.46 87.63 92.89 94.04 SNE-RoadSegV2 [3] RGB+N 73.6 95.54 91.47 95.17 95.93 RoadFormer+ [30] RGB+N 131.3 95.96 92.23 96.24 95.68 IAF-Net (Ours) RGB+N 73.78 96.11 92.51 95.23 97.02
+
+TABLE II: Performance of IAF-Net under different weather conditions on CARLA-MWRS.             
+
+> Weather Condition MaxF (%) IoU (%) Sunny Daytime 96.74 93.69 Sunny Nighttime 97.18 94.52 Foggy Nighttime 94.19 88.92 Heavy Rain Foggy Nighttime 94.79 90.09 Overall 95.73 91.81
+
+IoU, and over SNE-RoadSegV2 by 0.57% in MaxF, indi-cating that illumination-adaptive fusion provides additional benefit beyond standard RGB-normal fusion. 3. Compared with RoadFormer+, our method uses substantially fewer parameters (73.78M vs 131.3M) while still achieving better segmentation performance, indicating a stronger accuracy-efficiency trade-off on this benchmark. The qualitative results in Fig. 6 further show that the proposed method preserves the main drivable region even in very dark scenes, with most residual errors concentrated near distant boundaries. 
+
+D. Robustness Evaluation on CARLA-MWRS 
+
+To evaluate the robustness of our method under different weather conditions, we test it on CARLA-MWRS. The results are shown in Table II. The CARLA results show that the proposed method re-mains stable across all evaluated weather conditions. Under the heavy-rain foggy nighttime condition, it still achieves a MaxF score of 94.79%. The performance on sunny nighttime is slightly higher than that on sunny daytime, which is likely related to the clearer contrast between road and non-road regions in this synthetic setting. 
+
+E. Ablation Study 
+
+To verify the effectiveness of each proposed module with manageable training cost, we conduct ablation studies on nuScenes-NRS using a 40% training subset with the full validation set. The results are shown in Table III. The ablation results show that all proposed modules contribute to the performance improvement under the 40% training-subset setting. The IAF module provides the largest individual gain, improving MaxF by 0.70%, while the NAA module provides the second-largest gain of 0.63%. The TABLE III: Ablation results on nuScenes-NRS using a 40% training subset and the full validation set.                         
+
+> Configuration MaxF (%) IoU (%) Gain Full IAF-Net (40%) 92.91 86.77 -w/o IAF 92.21 85.55 +0.70 w/o NAA 92.28 85.67 +0.63 w/o LLEM 92.55 86.13 +0.36 w/o ALW 92.66 86.32 +0.25 w/o EdgeHead 92.70 86.41 +0.21 Baseline (R-SNE + backbone) 91.62 84.54 +1.29
+
+LLEM, ALW, and EdgeHead modules also provide consis-tent improvements. Overall, the full model improves MaxF by 1.29% over the simplified baseline, supporting the benefit of the complete illumination-adaptive design. The absolute scores in Table III are therefore not directly comparable to the full-data comparison in Table I. The ablation results indicate that the proposed modules are complementary, with IAF and NAA providing the largest gains. V. C ONCLUSION 
+
+In this paper, we present IAF-Net, an illumination-adaptive fusion network for low-light urban road segmentation. The framework explicitly models illumination conditions and uses this cue to regulate multi-modal fusion and decod-ing. We also construct two dedicated datasets to facilitate the training and evaluation of low-light road segmenta-tion models. Experiments on the real-world nuScenes-NRS benchmark show state-of-the-art overall performance among the compared methods, while the synthetic CARLA-MWRS benchmark further validates robustness across adverse weather conditions. Ablation studies confirm the importance of the proposed modules, especially the illumination-adaptive fusion design. Future work will focus on improving efficiency toward real-time deployment and extending the framework to more modalities and more complex scenarios such as rainy and snowy conditions. Another direction is to study tighter inte-gration with downstream planning and control modules. REFERENCES [1] T. Sun et al., “ROD: RGB-only fast and efficient off-road freespace detection,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) , IEEE, 2025, pp. 9787–9793. [2] A. Milioto, I. Vizzo, J. Behley, and C. Stachniss, “RangeNet++: Fast and accurate LiDAR semantic segmentation,” in 2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,IEEE, 2019, pp. 4213–4220. [3] Y. Feng et al., “Sne-roadsegv2: Advancing heterogeneous feature fusion and fallibility awareness for freespace detection,” IEEE Trans. Instrum. Meas. , vol. 74, pp. 1–9, 2025. [4] Z. Chen, J. Zhang, and D. Tao, “Progressive LiDAR adaptation for road detection,” IEEE/CAA J. Autom. Sinica , vol. 6, no. 3, pp. 693– 702, 2019. [5] C. Min et al., “ORFD: A dataset and benchmark for off-road freespace detection,” in 2022 International Conference on Robotics and Automa-tion (ICRA) , IEEE, 2022, pp. 2532–2538. [6] D. Peng, B. Wang, F. Ma, L. Zhang, and J. Ma, “Litevilnet: Lightweight vision-lidar fusion network for efficient road segmenta-tion,” arXiv preprint arXiv:2605.21007 , 2026. [7] F. Ma, Y. Liu, S. Wang, J. Wu, W. Qi, and M. Liu, “Self-supervised drivable area segmentation using LiDAR’s depth information for autonomous driving,” in 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , IEEE, 2023, pp. 41–48. [8] B. Ghari, A. Tourani, A. Shahbahrami, and G. Gaydadjiev, “Pedestrian detection in low-light conditions: A comprehensive survey,” Image and Vision Computing , vol. 148, p. 105 106, 2024. [9] Z. Zheng, Y. Cheng, Z. Xin, Z. Yu, and B. Zheng, “Robust perception under adverse conditions for autonomous driving based on data augmentation,” IEEE Trans. Intell. Transp. Syst. , vol. 24, no. 12, pp. 13 916–13 929, 2023. [10] C. Guo et al., “Zero-reference deep curve estimation for low-light image enhancement,” in 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , IEEE, 2020, pp. 1777–1786. [11] J. Zhang, H. Liu, K. Yang, X. Hu, R. Liu, and R. Stiefelhagen, “CMX: Cross-modal fusion for RGB-X semantic segmentation with transformers,” IEEE Trans. Intell. Transp. Syst. , vol. 24, no. 12, pp. 14 679–14 694, 2023. [12] J. Li, Y. Zhang, P. Yun, G. Zhou, Q. Chen, and R. Fan, “Roadformer: Duplex transformer for rgb-normal semantic road scene parsing,” 
+
+IEEE Trans. Intell. Veh. , vol. 9, no. 7, pp. 5163–5172, 2024. [13] L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam, “Encoder-decoder with atrous separable convolution for semantic image segmentation,” in Computer Vision – ECCV 2018 , Springer International Publishing, 2018, pp. 833–851. [14] H. Zhao, J. Shi, X. Qi, X. Wang, and J. Jia, “Pyramid scene parsing network,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , 2017, pp. 6230–6239. [15] E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, and P. Luo, “SegFormer: Simple and efficient design for semantic segmentation with transformers,” in Advances in Neural Information Processing Systems , vol. 34, 2021, pp. 12 077–12 090. [16] J. Xu, Z. Xiong, and S. P. Bhattacharyya, “PIDNet: A real-time semantic segmentation network inspired by PID controllers,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, pp. 19 529–19 539. [17] H. Pan, Y. Hong, W. Sun, and Y. Jia, “Deep dual-resolution networks for real-time and accurate semantic segmentation of traffic scenes,” 
+
+IEEE Trans. Intell. Transp. Syst. , vol. 24, no. 3, pp. 3448–3460, 2023. [18] E. H. Land and J. J. McCann, “Lightness and retinex theory,” J. Opt. Soc. Am. , vol. 61, no. 1, pp. 1–11, 1971. [19] Y. Zhang, J. Zhang, and X. Guo, “Kindling the darkness: A practical low-light image enhancer,” in Proceedings of the 27th ACM Interna-tional Conference on Multimedia , 2019, pp. 1632–1640. [20] K. G. Lore, A. Akintayo, and S. Sarkar, “LLNet: A deep autoencoder approach to natural low-light image enhancement,” Pattern Recogni-tion , vol. 61, pp. 650–662, 2017. [21] Z. Wei, L. Chen, T. Tu, P. Ling, H. Chen, and Y. Jin, “Disentangle then parse: Night-time semantic segmentation with illumination disentan-glement,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 21 536–21 546. [22] J. Vertens, J. Z¨ urn, and W. Burgard, “Heatnet: Bridging the day-night domain gap in semantic segmentation with thermal images,” in 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , IEEE, 2020, pp. 8461–8468. [23] C. Li, W. Zhang, Z. Shao, L. Ma, and X. Wang, “Semantic seg-mentation method on nighttime road scene based on Trans-nightSeg,” 
+
+Journal of Zhejiang University (Engineering Science) , vol. 58, no. 2, pp. 294–303, 2024. [24] X. Wu, Z. Wu, H. Guo, L. Ju, and S. Wang, “DANNet: A one-stage domain adaptation network for unsupervised nighttime semantic segmentation,” in 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , IEEE, 2021, pp. 15 764–15 773. [25] H. Gao, J. Guo, G. Wang, and Q. Zhang, “Cross-domain correlation distillation for unsupervised domain adaptation in nighttime semantic segmentation,” in 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , IEEE, 2022, pp. 9903–9913. [26] R. Xia, C. Zhao, M. Zheng, Z. Wu, Q. Sun, and Y. Tang, “CMDA: Cross-modality domain adaptation for nighttime semantic segmen-tation,” in 2023 IEEE/CVF International Conference on Computer Vision (ICCV) , IEEE, 2023, pp. 21 515–21 524. [27] L. Annamalai and C. S. Thakur, “EventASEG: An event-based asyn-chronous segmentation of road with likelihood attention,” IEEE Robot. Autom. Lett. , vol. 9, no. 8, pp. 6951–6958, 2024. [28] T. Br¨ odermann, C. Sakaridis, Y. Fu, and L. Van Gool, “Cafuser: Condition-aware multimodal fusion for robust semantic perception of driving scenes,” IEEE Robot. Autom. Lett. , vol. 10, no. 4, pp. 3134– 3141, 2025. [29] H. Wang, Y. Sun, and M. Liu, “Self-supervised drivable area and road anomaly segmentation using RGB-D data for robotic wheelchairs,” 
+
+IEEE Robot. Autom. Lett. , vol. 4, no. 4, pp. 4386–4393, 2019. [30] J. Huang et al., “Roadformer+: Delivering RGB-X scene parsing through scale-aware information decoupling and advanced hetero-geneous feature fusion,” IEEE Trans. Intell. Veh. , vol. 10, no. 5, pp. 3156–3165, 2025. [31] Z. Liu et al., “Swin transformer: Hierarchical vision transformer using shifted windows,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2021, pp. 9992–10 002. [32] O. Oktay et al., “Attention U-Net: Learning where to look for the pancreas,” in Medical Imaging with Deep Learning , 2018. [33] H. Caesar et al., “nuScenes: A multimodal dataset for autonomous driving,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2020, pp. 11 618–11 628. [34] F. Ma, D. Peng, and J. Ma, Annotation-free detection of drivable areas and curbs leveraging lidar point cloud maps , 2026. arXiv: 2603. 27553 [cs.CV] .[35] A. Dosovitskiy, G. Ros, F. Codevilla, A. Lopez, and V. Koltun, “CARLA: An open urban driving simulator,” in Proceedings of the 1st Annual Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 78, PMLR, 2017, pp. 1–16. [36] L. Hoyer, D. Dai, and L. Van Gool, “DAFormer: Improving network architectures and training strategies for domain-adaptive semantic seg-mentation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, pp. 9914–9925.

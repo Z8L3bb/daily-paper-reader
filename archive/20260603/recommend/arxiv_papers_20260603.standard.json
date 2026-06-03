@@ -1,0 +1,351 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-03T22:27:22.377084+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 7,
+    "quick_skim_target": 12,
+    "quick_selected": 7
+  },
+  "deep_dive": [
+    {
+      "id": "2605.30060v2",
+      "source": "arxiv",
+      "title": "Towards Consistent Video Geometry Estimation",
+      "abstract": "This work presents ViGeo, a feed-forward foundation model for recovering spatially dense and temporally consistent geometry from video sequences. Built upon a plain transformer architecture without task-specific architectural modifications, ViGeo supports streaming, full-sequence, and long-video inference within a unified model. The key design is dynamic chunking attention, which exposes the model to both bidirectional and causal temporal contexts during training and allows it to adapt its attention pattern at test time without retraining. To improve supervision quality, we further introduce a completion-based data refinement framework. This framework trains a video depth completion teacher that conditions on sparse and noisy annotations and exploits video/multi-view context to produce dense, temporally coherent, and geometrically reliable training targets. Beyond depth and point maps, ViGeo also predicts surface normals within the same framework. Trained solely on public datasets, ViGeo achieves state-of-the-art performance across online, offline, and long-video depth estimation, surface normal estimation, and video point map estimation.",
+      "authors": [
+        "Zhu Yu",
+        "Jingnan Gao",
+        "Runmin Zhang",
+        "Lingteng Qiu",
+        "Zhengyi Zhao",
+        "Rui Peng",
+        "Yichao Yan",
+        "Kejie Qiu",
+        "Siyu Zhu",
+        "Zilong Dong",
+        "Si-Yuan Cao",
+        "Hui-Liang Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-28T15:11:17+00:00",
+      "link": "https://arxiv.org/pdf/2605.30060v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Trains a video depth completion teacher that conditions on sparse and noisy annotations, matching dense depth map estimation from sparse LiDAR data.",
+      "llm_evidence_cn": "训练视频深度补全教师模型，从稀疏噪声标注中估计稠密深度图，与从稀疏LiDAR数据估计稠密深度图的需求一致。",
+      "llm_evidence": "训练视频深度补全教师模型，从稀疏噪声标注中估计稠密深度图，与从稀疏LiDAR数据估计稠密深度图的需求一致。",
+      "canonical_evidence": "训练视频深度补全教师模型，从稀疏噪声标注中估计稠密深度图，与从稀疏LiDAR数据估计稠密深度图的需求一致。",
+      "llm_tldr_en": "ViGeo is a feed-forward transformer model for dense and temporally consistent geometry from video. It uses dynamic chunking attention and a depth completion teacher trained on sparse annotations to refine supervision, achieving state-of-the-art video depth estimation.",
+      "llm_tldr_cn": "ViGeo是一种从视频序列中恢复空间稠密且时间一致几何信息的前馈基础模型。针对稀疏标注监督质量不足的问题，提出视频深度补全教师模型，利用多视图上下文从稀疏噪声标注生成稠密深度作为监督信号。该教师模型条件于稀疏标注，提升了训练质量，并在视频深度估计任务上取得了领先性能。",
+      "llm_tldr": "ViGeo是一种从视频序列中恢复空间稠密且时间一致几何信息的前馈基础模型。针对稀疏标注监督质量不足的问题，提出视频深度补全教师模型，利用多视图上下文从稀疏噪声标注生成稠密深度作为监督信号。该教师模型条件于稀疏标注，提升了训练质量，并在视频深度估计任务上取得了领先性能。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.02552v1",
+      "source": "arxiv",
+      "title": "Modeling Depth Ambiguity: A Mixture-Density Representation for Flying-Point-Free Depth Estimation",
+      "abstract": "Despite advances in depth estimation, flying points remain a persistent failure mode: near object boundaries, depth estimators often predict spurious 3D points in the empty space between foreground and background surfaces. We trace this artifact to a standard modeling choice: assigning each pixel a single depth hypothesis. At boundaries, a pixel can straddle a foreground and a background surface, so its true depth is ambiguous between the two. A model that predicts a single depth cannot keep both possibilities, so training instead pulls the prediction toward an intermediate depth that lies on neither surface. We address this with MDA, a mixture-density representation that lets the model predict multiple depth hypotheses and their associated probabilities for each pixel. Near boundaries, different hypotheses can align with different surfaces, and the decoded depth is selected from one of these hypotheses rather than placed in the empty space between them. Across different backbones, MDA substantially improves boundary reconstruction and largely removes flying-point artifacts even under severe input blur, while adding negligible runtime overhead. The same mixture-density framework naturally extends to transparent objects, where it predicts multiple depth layers at transparent pixels, and to sky regions, where a dedicated component separates the unbounded sky from finite-depth regions, producing flying-point-free skylines. Project Page: https://biansy000.github.io/mda-site/.",
+      "authors": [
+        "Siyuan Bian",
+        "Congrong Xu",
+        "Jun Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-01T17:50:28+00:00",
+      "link": "https://arxiv.org/pdf/2606.02552v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "proposes mixture-density representation to resolve depth ambiguity and eliminate flying points",
+      "llm_evidence_cn": "提出混合密度表示解决深度歧义并消除飞点",
+      "llm_evidence": "提出混合密度表示解决深度歧义并消除飞点",
+      "canonical_evidence": "提出混合密度表示解决深度歧义并消除飞点",
+      "llm_tldr_en": "To eliminate flying points in depth estimation near boundaries, the paper introduces a mixture-density representation that models multiple depth hypotheses, trained with an ambiguity-aware loss, achieving state-of-the-art depth accuracy.",
+      "llm_tldr_cn": "针对深度估计在物体边界产生空中飞点的问题，提出混合密度表示允许每像素多个深度假设，结合歧义感知损失训练，在保持深度精度的同时彻底消除飞点，为鲁棒深度补全与3D感知奠定基础。",
+      "llm_tldr": "针对深度估计在物体边界产生空中飞点的问题，提出混合密度表示允许每像素多个深度假设，结合歧义感知损失训练，在保持深度精度的同时彻底消除飞点，为鲁棒深度补全与3D感知奠定基础。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.26914v1",
+      "source": "arxiv",
+      "title": "I2PRef: Image-Driven Point Completion with Iterative Refinement",
+      "abstract": "We present an image-conditioned point cloud completion approach that treats images as the primary geometric source rather than a secondary guide. To this end, we introduce an Image-to-Point (I2P) module that can reconstruct complete point clouds directly from a single RGB image, with no need for 3D inputs. Additionally, we introduce a transformer-based Point-to-Point (P2P) refinement module that uses self- and cross-attention between point tokens and image features to iteratively refine the coarse I2P output. The I2P module enables the image encoder to learn rich geometric representations, while the P2P module progressively recovers fine-grained details. Unlike existing multimodal methods that rely on auxiliary losses or fusion modules, our explicit I2P task provides a strong, geometry-aware prior based on images alone. Extensive experiments on ShapeNet-ViPC demonstrate state-of-the-art completion performance with a 12.3% relative Chamfer Distance improvement over prior methods. Code is available at: https://github.com/AzharSindhi/I2PRef.git",
+      "authors": [
+        "Azhar Hussian",
+        "Marina Ritthaler",
+        "André Kaup",
+        "Vasileios Belagiannis"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-26T12:12:20+00:00",
+      "link": "https://arxiv.org/pdf/2605.26914v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "generates synthetic complete point clouds from single RGB images, providing a source of virtual point clouds",
+      "llm_evidence_cn": "从单张RGB图像生成合成完整点云，提供虚拟点云来源",
+      "llm_evidence": "从单张RGB图像生成合成完整点云，提供虚拟点云来源",
+      "canonical_evidence": "从单张RGB图像生成合成完整点云，提供虚拟点云来源",
+      "llm_tldr_en": "I2PRef introduces an image-driven point cloud completion method that reconstructs complete point clouds from a single RGB image without 3D inputs, using a transformer-based iterative refinement module. It produces synthetic point clouds that can augment sparse LiDAR data for 3D detection.",
+      "llm_tldr_cn": "单个RGB图像到完整点云的重建是一个有价值但充满挑战的任务，现有方法多需3D输入辅助。本文提出I2PRef框架，包含图像到点云生成模块和点云迭代精化模块，直接从单图合成完整点云。通过Transformer交叉注意力，逐步恢复几何细节。在合成和真实数据上，该方法重建的点云质量优于以往图像驱动方法。该技术可作为虚拟点云生成器，为多模态3D检测任务生成候选点云。",
+      "llm_tldr": "单个RGB图像到完整点云的重建是一个有价值但充满挑战的任务，现有方法多需3D输入辅助。本文提出I2PRef框架，包含图像到点云生成模块和点云迭代精化模块，直接从单图合成完整点云。通过Transformer交叉注意力，逐步恢复几何细节。在合成和真实数据上，该方法重建的点云质量优于以往图像驱动方法。该技术可作为虚拟点云生成器，为多模态3D检测任务生成候选点云。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "synthetic point cloud generated from depth completion",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.03915v1",
+      "source": "arxiv",
+      "title": "PatchScene: Patch-based Voxel Diffusion for Large-Scale Scene Completion",
+      "abstract": "We propose PatchScene, a novel diffusion-based framework for large-scale LiDAR scene completion. Unlike existing methods that rely on global latent representations or dense voxel grids, PatchScene adopts a patch-based voxel diffusion paradigm that explicitly generates fine-grained geometry within localized 3D regions. To ensure coherent reconstruction at both spatial and temporal scales, we introduce a confidence-guided spatio-temporal fusion mechanism that integrates overlapping patches and adjacent frames in a unified generative process. Furthermore, we design an Annular-Flow diffusion strategy that leverages the radial density pattern of LiDAR scans to progressively propagate high-fidelity information from near-range to far-range regions, enabling spatially unbounded scene completion. Extensive experiments on the SemanticKITTI benchmark demonstrate that PatchScene achieves state-of-the-art performance across all standard metrics, surpassing previous approaches in both geometric accuracy and temporal consistency. Remarkably, the model trained on 20 m LiDAR ranges generalizes effectively to 50 m scenes without retraining, highlighting its strong scalability and generalization capability for real-world autonomous driving applications.",
+      "authors": [
+        "Qingdong Xu",
+        "Jiajun Zhu",
+        "Shilin Zhu",
+        "Xinjing He",
+        "Chao Lu",
+        "Huanran Wang",
+        "Jiyao Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-02T17:09:20+00:00",
+      "link": "https://arxiv.org/pdf/2606.03915v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LiDAR scene completion using patch-based voxel diffusion",
+      "llm_evidence_cn": "采用分块体素扩散的激光雷达场景补全",
+      "llm_evidence": "采用分块体素扩散的激光雷达场景补全",
+      "canonical_evidence": "采用分块体素扩散的激光雷达场景补全",
+      "llm_tldr_en": "The paper proposes PatchScene, a diffusion framework that completes large-scale LiDAR scenes by generating fine-grained geometry in local 3D patches with spatio-temporal fusion and annular-flow strategy.",
+      "llm_tldr_cn": "针对大规模激光雷达场景补全中全局表示难以捕捉细节的问题，本文提出基于分块体素扩散的PatchScene框架，通过局部3D区域生成精细几何，并引入置信度引导的时空融合与环形流扩散策略，实现从近程到远程的高保真场景重建。实验验证了该方法在提升补全质量和连贯性上的有效性。",
+      "llm_tldr": "针对大规模激光雷达场景补全中全局表示难以捕捉细节的问题，本文提出基于分块体素扩散的PatchScene框架，通过局部3D区域生成精细几何，并引入置信度引导的时空融合与环形流扩散策略，实现从近程到远程的高保真场景重建。实验验证了该方法在提升补全质量和连贯性上的有效性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.30939v1",
+      "source": "arxiv",
+      "title": "IAF-Net: Illumination-Adaptive Fusion for Low-Light Urban Road Segmentation",
+      "abstract": "Semantic road segmentation is important for autonomous driving, but existing methods suffer severe performance degradation under low-light conditions. Many existing multi-modal fusion methods do not explicitly adapt to illumination-dependent changes in modality reliability, which can propagate degraded RGB features into the fused representation at night. We propose IAF-Net (Illumination-Adaptive Fusion Network), an end-to-end framework with illumination-adaptive fusion for robust road segmentation across different lighting conditions. It dynamically adjusts fusion weights of RGB and geometric features via the core Illumination-Adaptive Fusion (IAF) module, and enhances low-light feature selection with a brightness-modulated attention decoder. We also construct two dedicated datasets: nuScenes Nighttime Road Segmentation (nuScenes-NRS) and CARLA Multi-Weather Road Segmentation (CARLA-MWRS). Experiments on nuScenes-NRS show state-of-the-art overall performance among the compared methods, while CARLA-MWRS further validates robustness across adverse weather conditions. Ablation studies on a 40% training subset further highlight the importance of the IAF module, which provides the largest individual gain of 0.70% in MaxF.",
+      "authors": [
+        "Bingtao Wang",
+        "Daojie Peng",
+        "Fulong Ma",
+        "Jun Ma",
+        "Liang Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-29T07:28:08+00:00",
+      "link": "https://arxiv.org/pdf/2605.30939v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Illumination-adaptive fusion of RGB and geometric features for robust road segmentation",
+      "llm_evidence_cn": "光照自适应融合RGB与几何特征实现鲁棒道路分割",
+      "llm_evidence": "光照自适应融合RGB与几何特征实现鲁棒道路分割",
+      "canonical_evidence": "光照自适应融合RGB与几何特征实现鲁棒道路分割",
+      "llm_tldr_en": "IAF-Net dynamically fuses RGB and geometric features for robust road segmentation under varying lighting, improving low-light performance for autonomous driving.",
+      "llm_tldr_cn": "针对低光照下道路分割性能退化问题，IAF-Net提出光照自适应融合网络，通过IAF模块动态调整RGB与几何特征融合权重，并利用亮度调制注意力解码器增强低光特征选择。实验表明该方法在不同光照条件下均能显著提升分割鲁棒性，对全天候自动驾驶具有重要价值。",
+      "llm_tldr": "针对低光照下道路分割性能退化问题，IAF-Net提出光照自适应融合网络，通过IAF模块动态调整RGB与几何特征融合权重，并利用亮度调制注意力解码器增强低光特征选择。实验表明该方法在不同光照条件下均能显著提升分割鲁棒性，对全天候自动驾驶具有重要价值。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.03992v1",
+      "source": "arxiv",
+      "title": "Exploring Easy Boosts for Lidar Semantic Scene Completion",
+      "abstract": "This paper investigates \"free lunch\" strategies to boost the performance of lidar semantic scene completion (SSC) without requiring complex architectural redesigns. We first demonstrate that endowing input point clouds with semantic pseudo-labels from off-the-shelf segmentors significantly improves the performance of existing architectures. By evaluating these models against an oracle, we establish that high-quality semantic priors are a primary driver of mIoU gains. Furthermore, we equip the input lidar scan with visibility information that distinguishes between empty and unknown spaces, which provides a secondary performance boost across the tested architectures. Using these simple enhancements, we observe that older models remain competitive with state-of-the-art systems, and can even outperform them. Our code is available at https://github.com/astra-vision/SSC-Priors.",
+      "authors": [
+        "Tetiana Martyniuk",
+        "Jonathan Seele",
+        "Alexandre Boulch",
+        "Gilles Puy",
+        "Renaud Marlet",
+        "Raoul de Charette"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-06-02T17:59:59+00:00",
+      "link": "https://arxiv.org/pdf/2606.03992v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "incorporates semantic pseudo-labels as auxiliary supervision to boost LiDAR scene completion, transferable to 3D detection",
+      "llm_evidence_cn": "融入语义伪标签作为辅助监督提升LiDAR场景补全，可迁移到3D检测",
+      "llm_evidence": "融入语义伪标签作为辅助监督提升LiDAR场景补全，可迁移到3D检测",
+      "canonical_evidence": "融入语义伪标签作为辅助监督提升LiDAR场景补全，可迁移到3D检测",
+      "llm_tldr_en": "This paper shows that simple strategies like adding semantic pseudo-labels from off-the-shelf segmentors as auxiliary input, along with visibility flags, significantly improve LiDAR semantic scene completion. These easy boosts are readily transferable to LiDAR-based 3D object detection.",
+      "llm_tldr_cn": "LiDAR语义场景补全旨在预测完整场景的语义占用，现有模型通常依赖复杂的架构设计。本文探索了两种‘免费午餐’策略：将现成分割器的语义伪标签作为附加输入，以及注入可见性掩码区分空与未知区域。实验证明，这些简单增强即可大幅提升多种架构的性能，使旧模型焕发竞争力。该发现表明辅助语义监督可有效引导点云特征学习，对LiDAR 3D检测同样具有借鉴意义。",
+      "llm_tldr": "LiDAR语义场景补全旨在预测完整场景的语义占用，现有模型通常依赖复杂的架构设计。本文探索了两种‘免费午餐’策略：将现成分割器的语义伪标签作为附加输入，以及注入可见性掩码区分空与未知区域。实验证明，这些简单增强即可大幅提升多种架构的性能，使旧模型焕发竞争力。该发现表明辅助语义监督可有效引导点云特征学习，对LiDAR 3D检测同样具有借鉴意义。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "auxiliary supervision and sparse convolution optimization for LiDAR based 3D detection",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.31576v1",
+      "source": "arxiv",
+      "title": "Joint Multi-Camera LiDAR Extrinsic Calibration via Learned Pairwise Initialization and Geometric Refinement",
+      "abstract": "Most learning-based camera-LiDAR calibration methods treat each camera-LiDAR pair independently, ignoring the rigid geometric coupling in multi-camera platforms. As a result, per-camera estimates may be individually accurate yet inconsistent at the system level. We present a two-stage framework for joint multi-camera LiDAR extrinsic calibration that combines learned pairwise matching with geometric refinement. First, CMRNext is applied independently to each camera to produce initial extrinsic estimates and dense 2D-3D correspondences. These predictions are then jointly refined through a multi-frame bundle adjustment with reprojection, per-camera prior, and relative-pose prior terms. This approach converts pairwise predictions into a globally consistent multi-camera calibration. Experiments on KITTI (in-domain for CMRNext) and Walkley (out-of-domain) datasets show improved per-camera accuracy and inter-camera consistency. On KITTI, the method achieves 0.89 cm translation error and 0.038 rotation error. On Walkley, it reduces translation error from 108.6 cm to 3.1 cm, highlighting the benefit of explicit multi-camera coupling when single-camera predictions are less reliable.",
+      "authors": [
+        "Aziz Al-Najjar",
+        "Marzieh Amini",
+        "James R. Green",
+        "Felix Kwamena"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-29T17:45:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.31576v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "joint multi-camera LiDAR extrinsic calibration using learned initialization and geometric refinement",
+      "llm_evidence_cn": "采用学习初始化和几何优化的联合多相机LiDAR外参标定",
+      "llm_evidence": "采用学习初始化和几何优化的联合多相机LiDAR外参标定",
+      "canonical_evidence": "采用学习初始化和几何优化的联合多相机LiDAR外参标定",
+      "llm_tldr_en": "Proposes a two-stage joint multi-camera LiDAR calibration framework combining learned pairwise initialization and geometric bundle adjustment to achieve accurate and consistent multi-sensor calibration.",
+      "llm_tldr_cn": "针对自动驾驶中多相机LiDAR系统外参标定的系统级不一致问题，本文提出一个两阶段联合标定框架。首先利用CMRNext为每个相机-LiDAR对预测初始外参和密集2D-3D对应，然后通过引入相机间约束的多帧光束平差进行联合优化。实验表明，该方法能有效保证多相机平台标定结果的系统一致性，精度优于传统独立标定。该工作为后续多模态感知融合奠定了精确的空间对齐基础。",
+      "llm_tldr": "针对自动驾驶中多相机LiDAR系统外参标定的系统级不一致问题，本文提出一个两阶段联合标定框架。首先利用CMRNext为每个相机-LiDAR对预测初始外参和密集2D-3D对应，然后通过引入相机间约束的多帧光束平差进行联合优化。实验表明，该方法能有效保证多相机平台标定结果的系统一致性，精度优于传统独立标定。该工作为后续多模态感知融合奠定了精确的空间对齐基础。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.01334v1",
+      "source": "arxiv",
+      "title": "HOLA: Holistic Multi-Modal Alignment for Open-Set 3D Recognition",
+      "abstract": "Open-set 3D recognition requires models that generalize to rare or unseen categories. Recent approaches address this by distilling language-vision knowledge into 3D encoders, typically relying on heavy 2D ViTs and aligning each point cloud with a single image or caption, thus anchoring representations to partial views. We propose aligning each point cloud with multiple images and textual descriptions to capture a more holistic understanding of 3D objects. To realize this idea, it is essential to design a loss function capable of jointly aligning a 3D instance with multiple matched signals, multi-view images and multiple texts, while separating positive aggregation from negative competition. We introduce such a function, termed the decoupled multi-positive contrastive loss. Our formulation enhances the loss's hardness-aware focus on challenging negatives, avoiding the \"spotlight crowding\" that occurs when many positives share the same softmax with all the negatives. Complementing this, we present a lightweight text adapter applied only to web captions, reducing the domain gap to curated annotations and enabling effective use of large-scale unsupervised text. Our model demonstrates state-of-the-art open-vocabulary performance on long-tail benchmarks, yielding substantial zero-shot improvements while sustaining high frame rates.",
+      "authors": [
+        "Koby Aharonov",
+        "Oren Shrout",
+        "Ayellet Tal"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-31T16:36:49+00:00",
+      "link": "https://arxiv.org/pdf/2606.01334v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Aligns each point cloud with multiple images and texts for holistic 3D understanding",
+      "llm_evidence_cn": "将每个点云与多幅图像和文本对齐，实现整体3D理解",
+      "llm_evidence": "将每个点云与多幅图像和文本对齐，实现整体3D理解",
+      "canonical_evidence": "将每个点云与多幅图像和文本对齐，实现整体3D理解",
+      "llm_tldr_en": "Proposes HOLA, a holistic multi-modal alignment method that aligns each 3D point cloud with multiple images and texts using a decoupled multi-positive contrastive loss, improving open-set 3D recognition.",
+      "llm_tldr_cn": "开放集三维识别要求模型泛化到罕见类别，现有方法通常将点云与单一图像或文本对齐，导致表示片面。本文提出HOLA，通过解耦多正例对比损失，将每个三维点云与多视角图像和多个文本描述同时对齐，捕获更全面的三维物体理解。实验表明该方法在开放集识别上显著优于单视图对齐方法，提升了泛化能力。",
+      "llm_tldr": "开放集三维识别要求模型泛化到罕见类别，现有方法通常将点云与单一图像或文本对齐，导致表示片面。本文提出HOLA，通过解耦多正例对比损失，将每个三维点云与多视角图像和多个文本描述同时对齐，捕获更全面的三维物体理解。实验表明该方法在开放集识别上显著优于单视图对齐方法，提升了泛化能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
