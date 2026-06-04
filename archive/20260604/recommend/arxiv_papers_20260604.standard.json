@@ -1,0 +1,182 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-04T21:54:21.487686+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2606.03568v1",
+      "source": "arxiv",
+      "title": "Learned Non-Maximum Suppression for 3D Object Detection",
+      "abstract": "Post-processing is a critical stage in LiDAR-based 3D object detection, where dense and overlapping proposals must be filtered for compact and reliable perception. This work introduces two learned filtering modules that replace heuristic non-maximum suppression (NMS) by leveraging relations among detections. D2D-Rescore employs transformer-based detection-to-detection (D2D) attention, while GossipNet3D adapts the 2D GossipNet concept to 3D through localized message passing in bird's-eye view. A metric-aware matching strategy aligned with the nuScenes evaluation protocol ensures consistent training and validation behavior, improving overall detection performance. Both approaches improve mean average precision (mAP), nuScenes detection score (NDS), and true positive quality compared to CircleNMS, particularly for small and infrequent classes, while adding minimal computational overhead. These results demonstrate that learned, detection-level filtering can enhance 3D detector reliability without modifying the base network, offering a principled alternative to heuristic suppression. Code is available at https://github.com/rst-tu-dortmund/learned-3d-nms .",
+      "authors": [
+        "Timo Osterburg",
+        "Stefan Schütte",
+        "Torsten Bertram"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-06-02T12:34:14+00:00",
+      "link": "https://arxiv.org/pdf/2606.03568v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "learned NMS for LiDAR-based 3D object detection",
+      "llm_evidence_cn": "用于激光雷达三维目标检测的学习型非极大值抑制",
+      "llm_evidence": "用于激光雷达三维目标检测的学习型非极大值抑制",
+      "canonical_evidence": "用于激光雷达三维目标检测的学习型非极大值抑制",
+      "llm_tldr_en": "Proposes learned NMS modules using transformer attention and message passing for LiDAR 3D detection, improving mAP and NDS on nuScenes.",
+      "llm_tldr_cn": "本文针对激光雷达三维目标检测的后处理，提出两种学习型非极大值抑制模块。D2D-Rescore利用检测间Transformer注意力建模检测关系，GossipNet3D通过鸟瞰图局部消息传递筛选高质量检测。在nuScenes数据集上，mAP和NDS均有提升，正样本质量更高。这项工作为取代启发式NMS提供了有效学习策略，对提升检测系统的整体精度和可靠性至关重要。该方法与主流三维检测器兼容，可即插即用地增强性能。",
+      "llm_tldr": "本文针对激光雷达三维目标检测的后处理，提出两种学习型非极大值抑制模块。D2D-Rescore利用检测间Transformer注意力建模检测关系，GossipNet3D通过鸟瞰图局部消息传递筛选高质量检测。在nuScenes数据集上，mAP和NDS均有提升，正样本质量更高。这项工作为取代启发式NMS提供了有效学习策略，对提升检测系统的整体精度和可靠性至关重要。该方法与主流三维检测器兼容，可即插即用地增强性能。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "three-dimensional object detection from point clouds",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.04891v1",
+      "source": "arxiv",
+      "title": "Hierarchical Space Partition for Surface Reconstruction",
+      "abstract": "Generating compact polygonal models from point clouds is a key problem in 3D vision and computer graphics. However, due to inherent limitations of LiDAR scanning (e.g. range constraints and occlusions), critical scene information is often missing, leading to degraded reconstruction accuracy. To address this, we propose a plane assembling strategy that effectively recovers missing details while maintaining model compactness. We classify all the planes extracted from the scene into three categories: highly visible, barely visible, and invisible. The invisible planes, which are recovered by scene structure analysis, indicate the missing details. The three types of planes correspond to the three growth priorities. Each plane grows according to the priority level, and the space is partitioned progressively, namely, the hierarchical partition. Subsequently, we generate a watertight polygonal mesh from the partition via a min-cut-based optimization. Finally, comparisons on public datasets show the effectiveness and superiority of our method against mainstream approaches. The project page is available at https://hsr-3dv.github.io/.",
+      "authors": [
+        "Minjie Tang",
+        "Xiangfei Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CG"
+      ],
+      "published": "2026-06-03T13:52:36+00:00",
+      "link": "https://arxiv.org/pdf/2606.04891v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Generating compact polygonal models from point clouds ... due to inherent limitations of LiDAR scanning",
+      "llm_evidence_cn": "从点云生成紧凑多边形模型...由于LiDAR扫描的固有限制",
+      "llm_evidence": "从点云生成紧凑多边形模型...由于LiDAR扫描的固有限制",
+      "canonical_evidence": "从点云生成紧凑多边形模型...由于LiDAR扫描的固有限制",
+      "llm_tldr_en": "Proposes a plane assembling strategy to recover missing details in surface reconstruction from LiDAR point clouds, classifying planes by visibility and growing them with priorities.",
+      "llm_tldr_cn": "针对LiDAR点云因遮挡和距离限制导致信息缺失的问题，提出一种平面组装策略，通过将场景中的平面分为高可见、勉强可见和不可见三类，并按优先级生长平面，有效恢复缺失细节，同时保持模型紧凑。该方法提升了从稀疏点云生成多边形模型的精度和完整性，对三维重建任务具有重要意义。",
+      "llm_tldr": "针对LiDAR点云因遮挡和距离限制导致信息缺失的问题，提出一种平面组装策略，通过将场景中的平面分为高可见、勉强可见和不可见三类，并按优先级生长平面，有效恢复缺失细节，同时保持模型紧凑。该方法提升了从稀疏点云生成多边形模型的精度和完整性，对三维重建任务具有重要意义。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "LiDAR point cloud data for 3D perception",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.03581v1",
+      "source": "arxiv",
+      "title": "UnsOcc: 3D Semantic Occupancy Prediction in Unstructured Scene via Rendering Fusion",
+      "abstract": "Unstructured scenes present unique challenges for autonomous driving, as irregular obstacles and sparse scene layouts undermine the effectiveness of traditional perception methods such as 3D object detection. 3D semantic occupancy prediction has emerged as a prominent focus due to its ability to provide dense spatial representations by assigning semantic labels to individual voxels in 3D space. However, directly applying 3D semantic occupancy prediction to unstructured scenes remains challenging because scene sparsity hinders effective cross-modal fusion and the more severe long-tail distribution in these scenarios further degrades prediction performance. To validate the effectiveness of our approach, we construct a dedicated dataset of unstructured scenes collected from open-pit mines. Based on this, we propose UnsOcc, a multi-modal 3D semantic occupancy prediction framework that improves robustness in unstructured environments. At its core, we introduce a rendering-based fusion module, RenderFusion, which enhances cross-modal feature alignment through bidirectional rendering supervision. Furthermore, we propose GSRefinement, a detail-aware auxiliary supervision method based on Gaussian Splatting that projects sparse 3D occupancy predictions into dense 2D semantic segmentation maps, enabling effective supervision for long-tail categories. Extensive experiments on both the open-pit mine dataset and the nuScenes dataset demonstrate that our method significantly outperforms existing state-of-the-art approaches.",
+      "authors": [
+        "Ye Wu",
+        "Ruiqi Song",
+        "Baiyong Ding",
+        "Nanxin Zeng",
+        "Junjie Cheng",
+        "Yunfeng Ai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-06-02T12:50:14+00:00",
+      "link": "https://arxiv.org/pdf/2606.03581v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "cross-modal fusion for 3D occupancy prediction in unstructured scenes",
+      "llm_evidence_cn": "跨模态融合用于非结构化场景的三维占用预测",
+      "llm_evidence": "跨模态融合用于非结构化场景的三维占用预测",
+      "canonical_evidence": "跨模态融合用于非结构化场景的三维占用预测",
+      "llm_tldr_en": "UnsOcc addresses 3D semantic occupancy prediction in unstructured scenes by improving cross-modal fusion to handle sparsity and long-tail distributions.",
+      "llm_tldr_cn": "UnsOcc针对非结构化场景中的三维语义占用预测，通过改进跨模态融合解决场景稀疏和长尾分布问题，构建专用数据集进行验证。",
+      "llm_tldr": "UnsOcc针对非结构化场景中的三维语义占用预测，通过改进跨模态融合解决场景稀疏和长尾分布问题，构建专用数据集进行验证。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.04437v1",
+      "source": "arxiv",
+      "title": "INTACT: Ego-Guided Typed Sparse Evidence Retrieval for Heterogeneous Collaborative Perception",
+      "abstract": "Collaborative perception extends the perceptual range of autonomous vehicles by sharing information across agents, but heterogeneous sensors and perception models make intermediate feature fusion difficult to deploy at scale. Existing heterogeneous collaboration methods typically follow a translation-first paradigm: collaborator features must be aligned, adapted, or projected into an ego-compatible space before fusion. Such feature-compatibility contracts improve fixed-system performance, but they couple deployment to collaborator-specific adaptation and make newly joined heterogeneous agents costly to integrate. To address this gap, we propose INTACT, an ego-guided typed sparse evidence retrieval framework for heterogeneous collaborative perception. Instead of translating an entire collaborator feature map, INTACT lets the ego vehicle issue typed evidence queries that express suspected objects and evidence-deficient regions. Collaborators respond only with local evidence at queried locations, and the ego selects useful responses through sparse per-query routing and injects them through gated residual write-back. This changes the compatibility requirement from global feature-map interpretability to local, typed response comparability under ego-issued queries, enabling a zero-training heterogeneous insertion protocol in which the ego interface is trained once and new collaborators join through checkpoint merging. Extensive experiments on simulated and real-world heterogeneous collaborative perception benchmarks validate the effectiveness and deployability of INTACT. On OPV2V-H, INTACT achieves 80.1 AP70 with only 0.52M additional parameters and 18.0 $\\log_2$ communication volume, corresponding to about 16$\\times$ compression over dense feature transmission. On DAIR-V2X, INTACT achieves 43.8 AP50 under challenging real-world conditions.",
+      "authors": [
+        "Chen Li",
+        "Shengrong Yuan",
+        "Jialong Zuo",
+        "Xinzhong Zhu",
+        "Nong Sang",
+        "Changxin Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-03T04:34:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.04437v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "heterogeneous collaborative perception framework for autonomous vehicles",
+      "llm_evidence_cn": "自动驾驶车辆的异构协同感知框架",
+      "llm_evidence": "自动驾驶车辆的异构协同感知框架",
+      "canonical_evidence": "自动驾驶车辆的异构协同感知框架",
+      "llm_tldr_en": "INTACT proposes an ego-guided typed sparse evidence retrieval for heterogeneous collaborative perception, enabling efficient feature fusion across diverse sensor modalities without costly compatibility contracts.",
+      "llm_tldr_cn": "针对自动驾驶中异构传感器协同感知面临的兼容性问题，INTACT提出一种自车引导的类型化稀疏证据检索框架，通过类型化证据选择实现高效融合，无需为每个新加入的异构代理进行专门适配，在保持性能的同时大幅降低部署成本。实验表明该方法有效提升了多传感器融合的可扩展性。",
+      "llm_tldr": "针对自动驾驶中异构传感器协同感知面临的兼容性问题，INTACT提出一种自车引导的类型化稀疏证据检索框架，通过类型化证据选择实现高效融合，无需为每个新加入的异构代理进行专门适配，在保持性能的同时大幅降低部署成本。实验表明该方法有效提升了多传感器融合的可扩展性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

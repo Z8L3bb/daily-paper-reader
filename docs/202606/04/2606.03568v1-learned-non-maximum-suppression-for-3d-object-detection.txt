@@ -1,0 +1,298 @@
+Title: Learned Non-Maximum Suppression for 3D Object Detection
+
+URL Source: https://arxiv.org/pdf/2606.03568v1
+
+Published Time: Wed, 03 Jun 2026 01:07:28 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Learned Non-Maximum Suppression for 3D Object Detection 
+
+Timo Osterburg, Stefan Schütte, and Torsten Bertram 
+
+Institute of Control Theory and Systems Engineering, TU Dortmund University, Germany. 
+
+> ©2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. This work has been accepted for publication in the proceedings of the IEEE Intelligent Vehicles Symposium 2026.
+
+Abstract —Post-processing is a critical stage in LiDAR-based 3D object detection, where dense and overlapping proposals must be filtered for compact and reliable perception. This work introduces two learned filtering modules that replace heuristic non-maximum suppression (NMS) by leveraging relations among detections. D2D-Rescore employs transformer-based detection-to-detection (D2D) attention, while GossipNet3D adapts the 2D GossipNet concept to 3D through localized message passing in bird’s-eye view. A metric-aware matching strategy aligned with the nuScenes evaluation protocol ensures consistent training and validation behavior, improving overall detection performance. Both approaches improve mAP, NDS, and true positive quality compared to CircleNMS, particularly for small and infrequent classes, while adding minimal computational overhead. These results demonstrate that learned, detection-level filtering can en-hance 3D detector reliability without modifying the base network, offering a principled alternative to heuristic suppression. Code is available at https://github.com/rst-tu-dortmund/learned-3d-nms. 
+
+I. I NTRODUCTION 
+
+Reliable 3D object detection is essential for autonomous driving, forming the foundation for downstream tasks such as tracking, motion prediction, and planning. LiDAR-based detectors, including CenterPoint [1], PointPillars [2], and DSVT [3], produce dense sets of detection candidates from spatial priors such as anchors or center points, resulting in numerous overlapping proposals per frame. To obtain a compact and reliable perception of the environment, these proposals must be filtered to remove duplicates and false positives. Classical post-processing performs this filtering through non-maximum suppression (NMS) and confidence thresholding. Although efficient, these heuristics are non-differentiable, rely on hand-tuned thresholds, and ignore contextual relations among detections. They therefore lack adaptation to scene-specific conditions such as occlusion or object density, which can suppress valid detections or retain false positives in crowded scenes [4]. The Detection Transformer (DETR) [5] introduced a training objective that integrates suppression into the detector. While its extensions to 3D detection [6], [7] adopt this paradigm, they focus on introducing new transformer-based architectures with increased memory requirements and inference latency, limiting their real-time applicability in automotive perception. Several learned filtering methods in 2D detection have shown that context-aware score refinement can surpass heuristic sup-pression [8], [9], [10]. In contrast, 3D detection has seen limited exploration of such approaches, motivating an investi-gation into whether existing detectors can profit from learned filtering without architectural or training modifications. This work addresses this by introducing lightweight, detector-agnostic learned filtering modules operating directly on 3D detection sets. It contributes by:  
+
+> •
+
+introducing D2D-Rescore, a transformer-based module that models inter-detection relations via self-attention to refine confidence scores,  
+
+> •
+
+proposing GossipNet3D, the first adaptation of Gossip-Net [8] to 3D detection, aggregating features within local bird-eye-view (BEV) neighborhoods, and  
+
+> •
+
+demonstrating consistent improvements in mean Average Precision (mAP), nuScenes Detection Score (NDS), and true-positive quality on nuScenes, with notable gains for rare and small classes. Both modules act as detector-agnostic post-processing compo-nents that replace heuristic NMS in the 3D detection pipeline, as illustrated in Figure 1. II. R ELATED WORK 
+
+Heuristic post-processing via NMS is widely used in 2D [11], [12] and 3D [1], [2], [3] object detection due to its simplicity and strong empirical performance. CenterPoint [1], applies a distance-based variant (CircleNMS) that suppresses candidates based on Euclidean center distance in BEV. However, NMS remains sensitive to fixed thresholds and may suppress valid detections or retain false positives in crowded scenes [4], [8]. Soft-NMS [4] mitigates hard suppression by decaying scores according to overlap with higher-scoring boxes. Though extendable to BEV or 3D using rotated-box intersection-over-union (IoU), it still depends on hand-tuned decay parameters and ignores contextual cues among detections. Learned NMS methods [8], [9], [10], [13] replace fixed rules with trainable modules that re-rank detections. Early variants operate on pairwise local features [8], while graph-based ap-proaches [10] propagate information between spatially related detections. Relation Networks [9] integrate relation reasoning directly into the detector, requiring retraining and relying on 2D-specific geometric features. Seq2Seq-NMS [13] refines 2D regions of interest (RoIs) via attention within IoU-based neighborhoods using image features from multiple encoder  
+
+> arXiv:2606.03568v1 [cs.CV] 2 Jun 2026 Dense Detections
+> Score Filter
+> Sparse Detections
+> Non-Maximum Suppression
+> Classical Filtering I
+> MLP
+> MLP
+> topK
+> Self Attention 1
+> Self Attention 2
+> Self Attention 3
+> Self Attention L
+
+## · · ·  
+
+> D2D-Rescore: dynamic inter-detection attention II
+> MLP
+> MLP
+> topK
+> Gossip Block 1
+> Gossip Block 2
+> Gossip Block 3
+> Gossip Block LG
+
+## · · · 
+
+> GossipNet3D: static local neighborhood III
+
+car truck trailer bus construction vehicle bicycle motorcycle pedestrian traffic cone barrier unattended target vehicle Figure 1: Overview of the post-processing pipelines: classical filtering (I) uses score thresholding and non-maximum suppression, while the proposed D2D-Rescore (II) and GossipNet3D (III) refine dense detector outputs via learnable layers and top-K selection to yield improved sparse detections. D2D-Rescores attention adapts in each layer and scene based on detection features, whereas GossipNet3D relies on static local neighborhoods defined by spatial proximity. levels, tying it to a specific backbone and hindering 3D trans-fer. Despite improved adaptability, these methods depend on hand-crafted neighborhood definitions, limiting global context modeling and robustness across data distributions. Transformer-based set prediction detectors such as DETR [5] and its 3D extensions [6], [7] integrate suppression into training by predicting a fixed set of objects via one-to-one matching, replacing NMS with top-K selection. While elegant, their many learned queries and costly cross-attention [14], [15] limit real-time use in automotive perception. Unlike heuristic suppression or feature-map-level set predic-tion, detection-level rescoring operates solely on dense pro-posals from a base detector, without accessing backbone fea-tures or raw point clouds. This enables lightweight, detector-agnostic modules that reason over detection relations to adjust objectness scores before top-K selection. Our proposed D2D-Rescore follows this paradigm, providing an adaptive alterna-tive to NMS. III. P ROBLEM FORMULATION 
+
+Let Dd = {di | i = 1, 2, . . . , N} denote the set of N candidate de-tections generated by a base detector [1], [2], [3], where each 
+
+di ∈ Rq0 represents an object hypothesis with q0 detection-level features predicted from a discrete reference location (anchor, center point, or similar). Each detection is encoded as 
+
+di = [ xi, yi, zi, li, wi, hi, θi, cid ,i, si, vx,i, vy,i]⊤,
+
+comprising the 3D bounding box center (xi, yi, zi), dimensions 
+
+(li, wi, hi), yaw θi, class ID cid ,i, score si, and planar velocity 
+
+(vx,i, vy,i). As each reference location contributes one detection, 
+
+Dd contains redundancy and false positives. The scene includes M ≤ N ground-truth objects G = {g j | j =
+
+1, 2, . . . , M} in the same format as di. A filtering function f
+
+is applied to Dd to obtain a sparser set D f = f (Dd ), which is evaluated against G using a task-specific similarity metric 
+
+S(D f , G) such as mAP or NDS [16]. The filtering objective is 
+
+D∗ 
+
+> f
+
+= argmax   
+
+> Df⊆Dd
+
+S(D f , G) s.t. D f = f (Dd ), |D f | ≤ K, (1) where K is the maximum number of retained detections. In conventional post-processing, f is rule-based, combining score thresholding with NMS to suppress overlaps and retain the top-K predictions. Such heuristics rely on fixed thresholds and ignore variations in object density, occlusion, or detector uncertainty, often suppressing valid detections or retaining false positives [4], [17]. These limitations motivate replacing 
+
+f with a learned function fθ , described in Section IV. IV. M ETHODOLOGY 
+
+The proposed methodology consists of several key components to build the learned filtering function fθθθ . It consists of three stages: input embedding, context feature aggregation, and score refinement. For context aggregation, we propose two interchangeable variants: the graph-based GossipNet3D and the transformer-based D2D-Rescore. These share identical embedding, refinement, and supervision schemes. 
+
+A. Input Embedding 
+
+Each detection di ∈ Rq0 , as defined in Section III, is mapped to a p-dimensional latent vector 
+
+xi = ρθθθ (di), ρθθθ : Rq0 → Rp, (2) via a shared multilayer perceptron (MLP) after applying fea-ture normalization, Fourier encodings [18] to the coordinates, encoding the heading as a 2D direction vector, and mapping the discrete class ID to a one-hot representation. The resulting set of embedded detections is 
+
+X = {xi | i = 1, 2, . . . , N}, xi ∈ Rp. (3) 
+
+B. Context Feature Aggregation 
+
+For the sake of brevity, we define a shorthand for the definition of input and output sets 
+
+{Rp}N = {X ⊂ Rp : |X| = N} (4) defining the set of sets X of vectors x ∈ Rp that have cardinality 
+
+N.Both aggregation modules map the embedded set X to context-enriched embeddings Z = {zi}Ni=1 using different mechanisms: 
+
+A) GossipNet3D. We adapt GossipNet [8] from 2D to 3D detection. The embedded detection set X is processed by a graph-based encoder 
+
+Z = γθθθ (X), γθθθ : {Rp}N → { Rp}N , (5) which consists of LG stacked GossipBlocks. Each block up-dates the embeddings by exchanging information within local neighborhoods as follows. For each detection xi ∈ X, we define a local neighborhood 
+
+Ni = { x j | ∥ ci − c j∥ ≤ ε, x j ∈ X }, (6) where ci and c j denote the 3D box centers and ε is a fixed radius threshold. For each pair (xi, x j), with x j ∈ Ni, we form a pair feature vector by concatenating both embeddings with hand-crafted geometric relations: 
+
+ui j = concat  xi, x j, ∆ci j , ∆si j , cos (∆θi j ), ∥ci − c j∥,
+
+where ∆ci j denotes the normalized center offset between the boxes, ∆si j are the normalized differences in box dimensions, 
+
+∆θi j is the difference in yaw angle, and ∥ci − c j∥ is the Euclidean distance between centers. An MLP maps each pair feature to a message: 
+
+mi j = μθθθ (ui j ), μθθθ : R2p+8 → Rp,
+
+which is aggregated for each target detection via max pooling: 
+
+mi =
+
+
+
+max  
+
+> j
+
+m[1] 
+
+> i j
+
+, max  
+
+> j
+
+m[2] 
+
+> i j
+
+, . . . , max  
+
+> j
+
+m[p]
+
+> i j
+
+T
+
+with x[k] denoting the k-th element of vector x.The aggregated message is added to the original embedding to form an updated representation: 
+
+x′ 
+
+> i
+
+= xi + mi.
+
+Applying these operations to all detections defines one Gos-sipBlock. GossipNet3D produces a context-enriched set Z =
+
+γθθθ (X) = {zi | i = 1, 2, . . . , N}, zi ∈ Rp.
+
+B) D2D-Rescore. The embedded detection set X is processed by a transformer encoder 
+
+Z = τθθθ (X), τθθθ : {Rp}N → { Rp}N , (7) consisting of L layers of multi-head self-attention and feed-forward sublayers with residual connections. Self-attention enables each detection to attend to all others in the frame, cap-turing global spatial relations and redundancy in the candidate set, which we term detection-to-detection (D2D) attention. A learnable temperature parameter in the attention softmax allows the model to balance between focused and distributed interactions. The resulting set Z = {zi | i = 1, 2, . . . , N} with 
+
+zi ∈ Rp contains context-enriched embeddings for all detec-tions. 
+
+C. Score Refinement Head 
+
+For each context-enriched embedding zi ∈ Rp from Z, a score MLP head 
+
+∆ℓi = ψθθθ (zi), ψθθθ : Rp → R (8) predicts a residual adjustment in logit space. Let ℓi = σ −1(si)
+
+be the logit of the original detector score si, derived from the inverse sigmoid function σ −1. The refined logit is computed as ˆℓi = ℓi + ∆ℓi. (9) This residual formulation preserves the base detector’s prior confidence while enabling context-driven adjustments derived from detection-to-detection attention. The score head is imple-mented as a multilayer perceptron whose last layer weights are initialized to zero. Refined scores are supervised by the binary cross-entropy loss, as described in Section IV-E. 
+
+D. Inference 
+
+At inference time, the refined logits ˆℓi are converted to objectness scores via the sigmoid function ˆsi = σ ( ˆℓi).
+
+The learned filtering function is then applied as 
+
+D f = fθθθ (Dd ) = topK (Dd , ˆs) , (10) where topK (·, ˆs) returns the K detections with the highest refined scores ˆ si. This selection step replaces heuristic NMS while remaining detector-agnostic and operating solely on detection-level inputs. 
+
+E. Supervision 
+
+Training follows a one-to-one assignment between detections in Dd and ground-truth objects in G. Instead of Hungarian matching with hand-tuned cost weights, we adopt a metric-aware greedy matching procedure aligned with the nuScenes evaluation protocol [16]. Thus, we apply the thresholds defined for the mAP calculation directly during training. For each semantic class, candidates are first sorted in descend-ing order by their refined score ˆ si. Each candidate is matched to the closest unmatched ground-truth object of the same class if the center distance is below a threshold τd . Matching proceeds sequentially with thresholds 
+
+τd ∈ { 0.5 m , 1 m , 2 m , 4 m }
+
+until no further matches can be made. A second, class-agnostic matching stage preserves correctly localized but misclassified detections, prioritizing safety over marginal metric degrada-tion. Matched detections form the positive set, and unmatched detections form the negative set for the binary cross-entropy loss. V. E XPERIMENTAL EVALUATION 
+
+A. Experimental Setup. 
+
+Dataset. We focus on CenterPoint [1] on nuScenes [16] as a representative baseline for high-performance 3D detection. However, our module’s reliance on universal detection features makes it architecturally compatible with any 3D detector. 
+
+Detection extraction. For each frame, we extract the dense set Dd of pre-NMS detections from the base detector, filtered by a confidence threshold of 0 .1. These outputs are stored and reused across all post-processing methods to ensure compara-bility. 
+
+Baselines. We use CenterPoint [1] as base detector and compare D2D-Rescore to four post-processing methods: (1) CircleNMS, the default distance-based suppression in Center-Point; (2) Soft-CircleNMS, an adaptation of Soft-NMS [4] with Gaussian score decay; (3) the graph convolutional du-plicate removal of [10] (GCN); and (4) GossipNet3D, our 3D adaptation of the learned NMS in [8]. 
+
+Evaluation metrics. We follow the official nuScenes evalua-tion protocol, reporting mAP and NDS, as well as per-class AP. As the work at hand does not consider object attributes, the reported NDS does not capture the up to 10 percentage points for correct attributes. In addition, we analyze true positive quality metrics, namely translation, scale, orientation, and velocity errors. All metrics are computed on the validation set using the official evaluation scripts. 
+
+Implementation details. All experiments are run with a batch size of 32 on a workstation with an NVIDIA RTX 3090 GPU and an AMD Ryzen 9 5900X CPU. The transformer encoder in D2D-Rescore has L = 6 layers, p = 64 feature channels, and h = 4 attention heads. GossipNet3D uses LG = 4 blocks, 
+
+p = 64 channels, and a neighborhood radius of ε = 5 m. The input MLP consists of two layers with ReLU activation and batch normalization. Location coordinates are augmented with Fourier features [18] using F = 10 frequencies. The score head consists of two layers with ReLU activation and instance normalization, with the last layer weights initialized to zero. Training uses the AdamW optimizer with a maximum learning rate of 5 .5 × 10 −4 and weight decay of 1 × 10 −2 with a cosine annealing learning rate schedule and constant warmup over 100 epochs. A maximum of K = 300 detections per frame is retained unless stated otherwise. 
+
+B. Comparison with Baselines 
+
+We first evaluate D2D-Rescore on CenterPoint detections using the four baseline post-processing methods described in Section V-A. Table I reports mAP, NDS, and the true positive quality metrics for translation ( et), scale ( es), orientation ( eo), and velocity ( ev) from the nuScenes devkit. D2D-Rescore surpasses the default CircleNMS by a clear margin in both mAP and NDS, while also improving transla-tion, scale, orientation, and velocity errors. Note that these scores are computed over all True Positives (TP), inher-ently increasing difficulty when producing more TP. Soft-CircleNMS performs worse than CircleNMS in our setting, consistent with the observation that in the BEV, overlaps correspond to actual spatial collisions, a scenario that is rare and thus not represented in the annotations. As a result, the soft decay of overlapping scores is less effective than hard suppression, in contrast to 2D image detection where overlaps frequently occur due to depth ambiguity. The GCN baseline also performs worse than CircleNMS, indicating that its graph-construction and message-passing approach does not translate effectively to dense 3D candidate sets from CenterPoint. GossipNet3D achieves the highest mAP among all methods, outperforming D2D-Rescore by roughly 1 pp. Training GossipNet3D is slower and more memory-intensive, while D2D-Rescore trains faster and with lower peak memory usage. At inference, D2D-Rescore remains smaller in model size, is comparatively fast on GPU, and is significantly faster on CPU, making it more practical for deployment in resource-constrained settings. It remains an open question why the neighborhood-constrained architecture of GossipNet3D yields better accuracy than the fully unconstrained transformer atten-tion used in D2D-Rescore. The investigation of the resulting neighborhoods in Section V-C aims to give insights into possible reasons for this phenomenon. As shown in Table I, D2D-Rescore achieves improvements over CircleNMS in all four true positive metrics while in-creasing the number of retained true positives. This is corrob-orated by the maximum recall values of the precision-recall-Table I: Comparison of post-processing methods on CenterPoint detections (nuScenes val).                                                           
+
+> Method mAP [%] NDS [%] TCPU /TGPU [ms] MGPU [MB] et↓es↓eo↓ev↓
+> CircleNMS 56.22 56.53 4.74 / 14.77 2-29.05 25.35 32.88 28.52 Soft-CircleNMS 53.71 55.56 6.74 / 26.84 2-28.38 25.14 31.46 27.98 GCN 53.73 55.36 346.27 / 3.42 44.58 29.40 25.42 32.14 28.03 GossipNet3D 58.39 57.78 180.66 / 7.75 263.71 29.07 25.30 32.51 27.25 D2D-Rescore (Ours) 57.50 57.34 9.35 / 6.66 51.57 28.97 25.31 32.59 27.38
+
+0 0.2 0.4 0.6 0.8 1
+
+0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1
+
+Recall 
+
+> Precision
+
+D2DRescore @ 0 .5 m 
+
+CircleNMS @ 0 .5 m 
+
+GossipNet3D @ 0 .5 m 
+
+D2DRescore @ 4 .0 m 
+
+CircleNMS @ 4 .0 m 
+
+GossipNet3D @ 4 .0 m 
+
+Figure 2: Precision-recall curves of D2D-Rescore (blue), CircleNMS (green), and GossipNet3D (red) for car detections at 0 .5 m (solid) and 4 .0 m (dashed) assignment thresholds on the nuScenes validation split. curve (Figure 2), which are higher for all classes and center-distance thresholds. At the 0 .5 m threshold, recall increases from 0 .84 to 0 .92 for car and from 0 .61 to 0 .81 for truck. These results indicate that the additional detections retained by D2D-Rescore are more numerous and also exhibit improved spatial accuracy compared to those retained by heuristic NMS. Figure 2 reveals that the improvements in precision are most pronounced at high recall levels, which typically correspond to more challenging detection scenarios. As shown in Table II, D2D-Rescore improves AP in 8 out of 10 classes compared to CircleNMS. The largest gains are observed for Construction Vehicle (1 .81 pp), Motorcycle (2 .93 pp), Bicycle (3 .56 pp), and Traffic Cone (2 .15 pp). Ex-cept for Traffic Cone, these categories are the rarest in the nuScenes dataset, indicating that the learned rescoring appears particularly beneficial for rare classes. For Traffic Cone, which is the smallest object category, the improvement suggests that D2D-Rescore can better retain small objects that might otherwise be suppressed by hard NMS. 
+
+C. Qualitative Comparison of Neighborhoods 
+
+The attention maps of D2D-Rescore and GossipNet3d shown in Figure 1, give insights into how both methods leverage inter-detection relations for score refinement. GossipNet3Ds neighborhood map shows a clear local focus on nearby detec-tions, while D2D-Rescore exhibits a broader and more blurred context awareness. While GossipNet3D receives features from each neighbor through maxpooling, D2D-Rescore receives a weighted sum of features from all neighbors. This may lead to more diffuse information propagation. 
+
+D. Ablation Studies 
+
+We conduct ablation studies to quantify the effect of individual design choices in D2D-Rescore. 
+
+Matching strategy. We compare the proposed metric-aware matching (Sec. IV-E) to Hungarian matching with hand-tuned cost weights, keeping all other settings identical. Table III shows that metric-aware matching yields higher mAP and NDS and converges more stably, likely due to its closer alignment with the nuScenes evaluation procedure. 
+
+Number of retained detections K. We vary K in the top-
+
+K selection stage to assess the ranking quality of the refined scores in Table III. Reducing K can benefit subsequent mod-ules such as multi-object tracking, which must process every retained detection. Conventional post-processing often retains up to 500 detections per frame, which may overwhelm such downstream tasks. Our results show that with D2D-Rescore, 
+
+K can be reduced to as few as 150 detections with only a negligible drop in mAP, indicating that the model effectively ranks the detections by quality. 
+
+Runtime and memory breakdown. We measure the average inference time T on CPU and GPU, and peak allocated GPU memory MGPU over the whole validation set, shown in Table I. On the GPU, D2D-Rescore runs at around 150 Hz compared to GossipNet3D, which runs at 129 Hz. A noticable difference is observed when executing the models on the CPU, where D2D-Rescore runs at 107 Hz compared to only 5 .5 Hz for GossipNet3D. During inference D2D-Rescore requires only 19 .56 % of the GPU memory compared to GossipNet3D. CircleNMS, implemented in C++, shows the lowest latency on CPU, but is slower on GPU due to its sequential processing of detections. VI. C ONCLUSION AND OUTLOOK 
+
+We present GossipNet3D and D2D-Rescore as learned filtering methods for refining dense 3D object detections using only detection-level features. Both improve over heuristic NMS in mAP, NDS, and true positive quality, with the largest gains for rare or small object classes. D2D-Rescore achieves com-petitive accuracy while being more efficient in memory and Table II: Per-class AP [%] on CenterPoint detections (nuScenes val). C.V. = Construction Vehicle, Ped. = Pedestrian, Motor. = Motorcycle, T.C. = Traffic Cone.                                                             
+
+> Method Car Truck Bus Trailer C.V. Ped. Motor. Bicycle T.C. Barrier CircleNMS 84.90 53.32 66.52 32.78 15.48 83.64 54.66 36.93 66.43 67.54
+> Soft-CircleNMS 78.52 47.79 62.85 31.72 14.91 81.22 54.56 37.82 64.39 63.29 GCN 82.89 49.28 63.21 25.72 13.10 82.25 54.24 37.83 66.35 62.38 GossipNet3D 85.04 53.75 66.90 34.24 18.63 85.26 61.33 43.41 68.67 66.70
+> D2D-Rescore (Ours) 84.91 53.62 66.12 34.03 17.29 84.47 57.59 40.49 68.58 66.79
+
+Table III: Ablation of matching strategy and retained detections K (nuScenes val) grouped by post-processing method.                        
+
+> Matching KmAP [%] ↑NDS [%] ↑
+> D2D-Rescore
+> Hungarian 300 56.29 56.66 Metric-aware 300 57.39 57.27 Metric-aware 150 57.23 57.34
+> Metric-aware 100 56.78 57.21
+> GossipNet3D
+> Hungarian 300 57.23 57.00 Metric-aware 300 58.39 57.78
+
+latency, whereas GossipNet3D remains the strongest in mAP. Ablations showed that metric-aware matching outperforms Hungarian matching and that refined scores are well-ranked, enabling top-K reduction with minimal loss. As these modules rely on a universal detection interface, they are inherently detector-agnostic. Future work will verify this generalization across further backbones, explore extensions to full box refine-ment, and analyze why neighborhood-constrained aggregation outperforms unconstrained attention. REFERENCES 
+
+[1] T. Yin, X. Zhou, and P. Krähenbühl, “Center-based 3d object detection and tracking,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2021. [2] A. H. Lang et al., “Pointpillars: Fast encoders for object detection from point clouds,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019. [3] H. Wang et al., “Dsvt: Dynamic sparse voxel trans-former with rotated sets,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023. [4] N. Bodla et al., “Soft-nms–improving object detection with one line of code,” in Proceedings of the IEEE international conference on computer vision , 2017. [5] N. Carion et al., “End-to-end object detection with transformers,” in European conference on computer vision , Springer, 2020. [6] Y. Wang et al., “Detr3d: 3d object detection from multi-view images via 3d-to-2d queries,” in Conference on robot learning , PMLR, 2022. [7] G. K. Erabati and H. Araujo, “Li3detr: A lidar based 3d detection transformer,” in Proceedings of the IEEE/CVF Winter conference on applications of computer vision ,2023. [8] J. Hosang, R. Benenson, and B. Schiele, “Learning non-maximum suppression,” in Proceedings of the IEEE conference on computer vision and pattern recognition ,2017. [9] H. Hu et al., “Relation networks for object detection,” in 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , 2018. [10] S. Ding et al., “End-to-end single shot detector using graph-based learnable duplicate removal,” in DAGM German Conference on Pattern Recognition , Springer, 2022. [11] W. Wang et al., “Internimage: Exploring large-scale vision foundation models with deformable convolu-tions,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2023. [12] C. Lyu et al., “Rtmdet: An empirical study of de-signing real-time object detectors,” arXiv preprint arXiv:2212.07784 , 2022. [13] C. Symeonidis et al., “Neural attention-driven non-maximum suppression for person detection,” IEEE transactions on image processing , vol. 32, 2023. [14] Y. Liu et al., “Petrv2: A unified framework for 3d perception from multi-camera images,” in Proceedings of the IEEE/CVF international conference on computer vision , 2023. [15] C. Yang et al., “Bevformer v2: Adapting modern image backbones to bird’s-eye-view recognition via perspec-tive supervision,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,2023. [16] H. Caesar et al., “Nuscenes: A multimodal dataset for autonomous driving,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,2020. [17] N. Gählert et al., “Visibility guided nms: Efficient boosting of amodal object detection in crowded traffic scenes,” arXiv preprint arXiv:2006.08547 , 2020. [18] M. Tancik et al., “Fourier features let networks learn high frequency functions in low dimensional domains,” 
+
+Advances in neural information processing systems ,vol. 33, 2020.

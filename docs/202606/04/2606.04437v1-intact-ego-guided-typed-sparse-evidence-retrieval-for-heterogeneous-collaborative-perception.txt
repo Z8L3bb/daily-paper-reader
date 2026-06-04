@@ -1,0 +1,605 @@
+Title: INTACT: Ego-Guided Typed Sparse Evidence Retrieval for Heterogeneous Collaborative Perception
+
+URL Source: https://arxiv.org/pdf/2606.04437v1
+
+Published Time: Thu, 04 Jun 2026 00:33:23 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# INTACT: E GO -G UIDED TYPED SPARSE EVIDENCE RETRIEVAL FOR HETEROGENEOUS COLLABORATIVE PERCEPTION 
+
+Chen Li 1, Shengrong Yuan 1, Jialong Zuo 1, Xinzhong Zhu 2, Nong Sang 1, Changxin Gao 1∗ 
+
+> 1
+
+National Key Laboratory of Multispectral Information Intelligent Processing Technology, School of Artificial Intelligence and Automation, Huazhong University of Science and Technology,  
+
+> 2
+
+Zhejiang Normal University. 
+
+{lichenrui27, shengrongyuan, jlongzuo, cgao}@hust.edu.cn 
+
+ABSTRACT 
+
+Collaborative perception extends the perceptual range of autonomous vehicles by sharing informa-tion across agents, but heterogeneous sensors and perception models make intermediate feature fusion difficult to deploy at scale. Existing heterogeneous collaboration methods typically follow a translation-first paradigm: collaborator features must be aligned, adapted, or projected into an ego-compatible space before fusion. Such feature-compatibility contracts improve fixed-system performance, but they couple deployment to collaborator-specific adaptation and make newly joined heterogeneous agents costly to integrate. To address this gap, we propose INTACT, an ego-guided typed sparse evidence retrieval framework for heterogeneous collaborative perception. Instead of translating an entire collaborator feature map, INTACT lets the ego vehicle issue typed evidence queries that express suspected objects and evidence-deficient regions. Collaborators respond only with local evidence at queried locations, and the ego selects useful responses through sparse per-query routing and injects them through gated residual write-back. This changes the compatibility require-ment from global feature-map interpretability to local, typed response comparability under ego-issued queries, enabling a zero-training heterogeneous insertion protocol in which the ego interface is trained once and new collaborators join through checkpoint merging. Extensive experiments on simulated and real-world heterogeneous collaborative perception benchmarks validate the effectiveness and deployability of INTACT. On OPV2V-H, INTACT achieves 80.1 AP70 with only 0.52M additional pa-rameters and 18.0 log 2 communication volume, corresponding to about 16 × compression over dense feature transmission. On DAIR-V2X, INTACT achieves 43.8 AP50 under challenging real-world conditions. 
+
+1 Introduction 
+
+Collaborative perception enables autonomous vehicles to share perceptual information, compensating for occlusions, limited fields of view, and long-range sensing challenges faced by single-agent systems [ 1 , 9 ]. Intermediate feature fusion has become the dominant paradigm: compared with early fusion and late fusion, it offers a favorable trade-off between perceptual richness and communication cost [ 4, 14 , 11 ]. However, this paradigm assumes that the exchanged feature representations are mutually interpretable. In practice, vehicles may carry different sensor suites, such as LiDAR, cameras, or inputs at different resolutions; use different backbone architectures, such as PointPillars, SECOND, EfficientNet, or ResNet; and be trained under different objectives [ 6, 17 , 10 , 3 ]. Such heterogeneity produces incompatible feature representations, making cross-vehicle fusion fundamentally difficult [15, 8, 2]. Most existing heterogeneous collaborative perception methods share a common premise: heterogeneous representations must first be made compatible before collaboration can occur. We refer to this as the translation-first paradigm. Feature alignment methods, such as MPDA [ 15 ] and HEAL/BackAlign [ 8 ], learn cross-representation mappings between specific ego-collaborator pairs. Shared protocol methods, such as STAMP [ 2 ] and GT-Space [ 12 ], predefine a common representation space into which all agents project their features. Although these methods differ in mechanism, they 
+
+> ∗
+
+Corresponding Author. 
+
+> arXiv:2606.04437v1 [cs.CV] 3 Jun 2026
+
+A PREPRINT - J UNE 4, 2026 Prior methods 
+
+> Heterogeneous collaborators
+> Camera
+> vehicle
+> LiDAR
+> vehicle
+> Truck
+> Infra.
+> RSU
+> Fusion
+> backbone
+
+! New collaborator types require 
+
+> adaptation or retraining.
+
+INTACT               
+
+> 1Ego BEV & query generation
+> Query module
+> (ego -guided)
+> Typed Evidence queries
+> Hypothesis
+> queries
+> Coverage
+> queries
+> 2Collaborators respond with local evidence (sparse)
+> Hypothesis responses Coverage responses
+> Camera vehicle
+> LiDAR vehicle
+> Truck
+> Infrastructure
+> Only task -relevant local evidence is returned.
+> 3Evidence fusion & sparse selection
+> Evidence fusion
+> & scoring
+> Top -k sparse selection
+> 4Gated write -back to ego BEV
+> Gated
+> Residual
+> write -back
+> Updated BEV
+> (ego state)
+> Hypothesis
+> query/token
+> Coverage
+> query/token
+> No/low evidence
+> returned
+> Local evidence
+> returned
+> Common
+> Space /
+> Translator
+> Ego Detection
+
+…
+
+…
+
+…
+
+Why it matters    
+
+> 1Train once
+> Plug in heterogeneous collaborators
+> No pair -specific feature translator
+> Direct inference
+> Ego state &
+> queries
+> INTACT
+> (model)
+> Detections
+> (ego)
+> No pair -specific feature translator
+> Scalable heterogeneous insertion
+> Sparse interaction, efficient inference
+> Robust to new collaborator types
+> INTACT model
+> (ego -guided querying,
+> fusion, gating)
+> 2
+> 3
+
+Figure 1: Conceptual comparison of heterogeneous collaborative perception interfaces. Prior translation-first methods align, adapt, or project heterogeneous collaborator features into an ego-compatible space before fusion. INTACT instead uses an ego-issued query interface: the ego generates typed evidence queries, collaborators return query-conditioned local responses at query anchors, and selected evidence is injected through gated residual write-back. This avoids pair-specific feature translators for newly inserted heterogeneous collaborators. share a fundamental limitation: the collaboration interface is coupled with feature-level compatibility. Introducing a new collaborator type, with a different sensor, backbone, or training procedure, usually requires learning a new alignment function for alignment-based methods, or ensuring that the predefined protocol space can sufficiently preserve the distinctive information of the new modality for protocol-based methods. This coupling limits deployment scalability. We argue that this coupling is not necessary. Consider a simple scenario: one participant holds a precise computer-generated drawing, while another holds a hand-drawn sketch of the same scene. The two representations cannot be directly merged, but collaboration does not require converting the entire sketch into the other’s drawing format. If the request is specific enough, for example asking whether a structure exists at a location or whether a boundary is reliable, the responder can provide local evidence from its own representation. For heterogeneous collaborative perception, this means that a collaborator does not have to translate its entire feature map into an ego-compatible representation. It only needs to return relevant local evidence according to the query issued by the ego vehicle. The key insight is that the query itself can serve as the collaboration interface: it defines interaction through location, query type, and task context, while abstracting away the internal representation differences among collaborators. This observation also aligns with recent query-based or instance-level collaborative perception studies. Prior work shows that, compared with directly exchanging dense features, concentrating collaboration on a smaller number of task-relevant locations or object instances can reduce communication redundancy and improve interaction efficiency [ 16 ]. However, in heterogeneous collaboration, queries should not be viewed only as a sparsification device. As summarized in Fig. 1, the deeper distinction lies in the definition of the collaboration interface. Prior methods first make heterogeneous collaborator features compatible through translation, adaptation, or projection, and then perform fusion. INTACT instead lets the ego vehicle define the interaction by issuing typed evidence queries from its current BEV state. These queries specify which object hypotheses require verification and which regions lack sufficient evidence, so collaborators only need to return local responses around the queried locations. This changes the role of the ego representation: it is no longer a passive target waiting for external feature fusion, but an active requester that retrieves task-relevant local evidence from heterogeneous collaborators. This shift provides the basis for the train-once and reusable deployment pattern illustrated in Fig. 1. 2A PREPRINT - J UNE 4, 2026 To this end, we propose INTACT, an ego-guided typed sparse evidence retrieval framework for heterogeneous collab-orative perception without learning pairwise feature translators. The framework organizes cross-vehicle interaction as a query, response, and gated residual write-back loop. The ego vehicle first generates typed evidence queries from its BEV representation to express object hypotheses and evidence-deficient regions. Collaborators then return local feature responses only at queried locations. The ego further selects more relevant evidence from candidate responses and injects it into its own representation through gated residual write-back. Therefore, the collaboration interface is no longer defined by a global feature space, but by local task requests issued by the ego vehicle. Since the interface is defined by ego queries, the model learns how to issue evidence requests, select local responses, and safely inject evidence, instead of learning a separate feature translator for every ego-collaborator combination. As a result, the ego-side interface only needs to be trained once and can then be reused when different heterogeneous collaborators are inserted, avoiding additional pairwise heterogeneous adaptation training. We conduct extensive experiments on simulated and real-world heterogeneous collaborative perception benchmarks, including OPV2V-H [ 8], DAIR-V2X [ 19 ], and V2X-Real [ 13 ]. The results show that INTACT maintains stable detection performance across different heterogeneous configurations while using low parameter and communication overhead. On OPV2V-H, INTACT achieves 80.1 AP70 with only 0.52M additional parameters and 18.0 log 2 communication volume, corresponding to about 16 × compression over dense feature transmission. On DAIR-V2X, INTACT achieves 43.8 AP50 under challenging real-world conditions. These results validate the effectiveness of ego-query-driven local evidence retrieval in terms of accuracy, efficiency, and deployment scalability. Our contributions are summarized as follows: • We revisit heterogeneous collaborative perception from the perspective of collaboration interface design. Instead of treating feature compatibility as the prerequisite for collaboration, we define the collaboration interface over ego-generated typed evidence queries, shifting heterogeneous collaboration from full-map representation translation to ego-demand-driven local evidence retrieval. • We propose INTACT, an ego-guided typed sparse evidence retrieval framework. It organizes the ego vehicle’s current BEV representation, object responses, and evidence-deficient regions into answerable queries, and performs heterogeneous collaboration through a query, response, and gated residual write-back loop: the ego issues queries, collaborators return local evidence, and the system selects useful responses and injects them into the ego representation through gated residual write-back. • We introduce a train-once, reusable ego-side mechanism for heterogeneous collaboration. Different from learning a separate feature translator for each ego-collaborator combination, INTACT learns an ego-defined evidence interaction interface, enabling different heterogeneous collaborators to provide complementary local evidence without additional pairwise adaptation training. • We conduct extensive experiments on simulated and real-world datasets. Results on OPV2V-H, DAIR-V2X, and V2X-Real show that INTACT achieves a favorable balance among detection accuracy, parameter efficiency, communication cost, and deployment scalability, and further analyses verify the effectiveness of its core designs. 
+
+2 Related Work 
+
+2.1 Feature Alignment and Adaptation 
+
+Collaborative perception has traditionally made feature compatibility the premise of intermediate fusion. Homogeneous systems assume shared architectures or feature distributions so that spatially aligned BEV features can be fused after coordinate transformation. Heterogeneous systems relax the sensor and model assumptions but often keep the same underlying contract: before fusion, a collaborator’s representation must be made interpretable to the ego. HEAL/BackAlign [ 8] and MPDA [ 15 ] are representative of this direction, learning alignment mechanisms or domain adaptation to reduce the representational gap between heterogeneous agents. These designs make heterogeneity explicit, but they still require a learned compatibility mechanism between feature spaces. INTACT avoids this by not asking the collaborator to export an ego-compatible dense feature map; it only requests local responses to typed ego-issued spatial queries and controls their effect through gated residual write-back. 
+
+2.2 Shared Protocols and Generative Communication 
+
+A second line of work introduces structured communication protocols to reduce dependence on raw feature compatibility. STAMP [ 2] and GT-Space [ 12 ] construct shared representation spaces into which agents project features before 3A PREPRINT - J UNE 4, 2026 interaction. GenComm [ 20 ] and CodeFilling [ 5 ] optimize communication through generative compression or code-based reconstruction. Where2comm [ 4] and Who2com [ 7] introduce spatial or agent-level sparsity into collaborative communication. EIMC [ 18 ] uses instance-aware top-K messaging for multi-modal collaboration. These methods improve communication efficiency and can provide more abstract exchange formats than dense feature sharing. However, most still assume that sender and receiver were trained to participate in the same communication scheme. INTACT’s protocol is asymmetric by design: the ego controls the request, the collaborator provides local evidence, and the ego decides whether and where to inject the response, enabling insertion of frozen heterogeneous collaborators without retraining the communication scheme. 
+
+2.3 Sparse and Query-Based Interaction 
+
+Sparse communication and query-based interaction have been widely explored in collaborative and transformer-based perception. Where2comm [ 4] selects spatial regions for communication; deformable attention [ 21 ] uses learned offsets to sample relevant features. These methods establish that perception can operate through selective evidence access. INTACT applies this principle at the cross-agent interface: typed evidence queries specify the location and type of evidence requested from a heterogeneous collaborator, responses are retrieved locally rather than densely translated, and routing serves as an efficiency-preserving selection mechanism. The key distinction is that sparsity in INTACT is not merely a way to reduce bandwidth within a compatible-feature framework; it is what makes local evidence exchange a viable alternative to global feature compatibility in the first place. 
+
+3 Method 
+
+3.1 Overall Framework 
+
+As illustrated in Fig. 2, INTACT restructures heterogeneous collaborative perception from full-map feature translation into an ego-issued query interface. Prior methods typically require collaborators to first generate ego-interpretable representations through adapters, feature translators, or shared protocol spaces before participating in fusion. INTACT does not require collaborators to output complete ego-compatible feature maps. Instead, the ego issues typed evidence queries from its BEV representation. Each query specifies the location and type of evidence being requested, and collaborators return query-conditioned local responses only at the queried positions. The ego then retrieves and selects relevant local evidence through Query-Guided Evidence Retrieval and injects it into its own representation through gated residual write-back. This process can be understood as a query, response, and gated residual write-back collaboration loop. The ego first issues local evidence requests, collaborators return local responses around those requests, and the ego injects useful evidence in a controlled manner. Unlike translation-first pipelines, the collaboration interface in INTACT is not defined by whether an entire collaborator feature map can be interpreted by the ego, but by what evidence the ego currently needs and where. Given the ego feature map Fe, collaborator feature maps {Fj }N −1 
+
+> j=1
+
+, and their geometric transformations {Te←j }N −1 
+
+> j=1
+
+to the ego coordinate system, INTACT first generates a set of typed evidence queries: 
+
+Q = {(qk, c k, s k)}Kk=1 , (1) where qk denotes query content, ck denotes the query location, and sk denotes query reliability, N denotes the number of agents including the ego vehicle, and K denotes the number of typed evidence queries issued by the ego. The index j enumerates collaborators, while k indexes ego-issued queries. The query set Q contains two complementary request types: hypothesis queries request verification evidence around potential objects the ego already attends to, while coverage queries request supplementary evidence in occluded, distant, or low-response regions. After query generation, the system retrieves local responses from collaborator features conditioned on each query, and selects the more relevant external evidence. Finally, the selected responses are reorganized as complementary residuals in the ego coordinate system and update the ego representation through gated residual write-back, yielding the enhanced feature F + 
+
+> e
+
+. The overall process is: 
+
+Q = Gq (Fe), {˜vk}Kk=1 = H {Fj , T e←j }N −1 
+
+> j=1
+
+, Q  , F + 
+
+> e
+
+= W  Fe, {˜vk}Kk=1 , Q  , (2) where Gq denotes the typed evidence query generator, H denotes the Query-Guided Evidence Retrieval module, and 
+
+W denotes the gated residual write-back module. Section 3.2 describes how the ego generates hypothesis queries and coverage queries. Section 3.3 describes how collaborators return query-conditioned local responses and how the ego retrieves and selects local evidence from candidate responses. Section 3.4 describes how selected external evidence is stably injected into the ego representation through gated residuals. 4A PREPRINT - J UNE 4, 2026 Prior Method INTACT (Ours) No extra training           
+
+> Train Base New Collaborator
+> joins
+> Pair -Specific
+> Adapter deploy Learn Ego
+> Interface
+> Reuse Ego
+> Query Interface
+> Direct
+> inference
+> Gated
+> Residual
+> Write -Back
+> Detection
+> Injected local evidence
+> Original ego evidence
+> Typed evidence
+> queries
+> (𝑞 !,𝑐 !,𝑠 !)
+> Hypothesis Queries
+> Coverage Queries
+> lidar
+> camera
+> radar
+> M"
+> Local Response
+> Ego BEV feature map 𝐹 !
+> Query -Conditioned Local Responses
+> Enhanced
+> ego BEV
+
+Stage 1: Learn Ego Interface   
+
+> Stage 2: Direct Inference
+> Reused Ego
+> Query Interface
+> Ego asks for typed evidence ; collaborators return local responses ; gated residual write -back updates the ego BEV.
+> lidar
+> camera
+> radar
+> 𝑀 !
+> Query -Guided
+> Evidence
+> Retrieval
+> Gated
+> Residual
+> Write -Back
+> Detection
+> Enhanced
+> ego BEV
+> New Heterogeneous Collaborators
+
+Figure 2: Overview of INTACT. Stage 1 learns the ego-issued query interface once, including typed evidence query generation, query-conditioned local responses, Query-Guided Evidence Retrieval, and gated residual write-back. Stage 2 reuses the learned ego interface for direct inference with newly joined heterogeneous collaborators without extra pairwise heterogeneous adaptation. 
+
+3.2 Typed Evidence Query Generator 
+
+INTACT does not start cross-vehicle interaction by directly exchanging dense features. The ego first generates typed evidence queries to express what local evidence it still needs from external collaborators given its current perceptual state. These queries are not direct copies of ego features; they are controlled evidence requests that specify where evidence is requested, what type of evidence is requested, and how reliable the request is in the current scene. Specifically, given the ego feature map Fe, the model first produces intermediate features Ze = ψ(Fe) and predicts an object response map: 
+
+M = σ(h(Ze)) , (3) where ψ is a lightweight ego-side feature projection, h is an object-response head, and σ denotes the sigmoid function. This response map is not used for final detection. It serves as a spatial cue for query generation, indicating which locations are most likely to benefit from external evidence. Gq selects high-response locations from this map as the positions of hypothesis queries, which request collaborators to verify potential objects the ego already attends to. However, if queries concentrate only in high-response regions, the interaction becomes overly biased toward locations where the ego is already relatively confident, making it difficult to actively cover occluded, distant, and low-response areas. To address this, INTACT further places a sparse set of fixed grid points on the normalized BEV plane as the positions of coverage queries to probe evidence-deficient regions. Hypothesis queries and coverage queries together form the final query location set, denoted {ck}Kk=1 .After determining query locations, Gq constructs a typed evidence query for each location ck. We define: 
+
+qk = LN  ttask + ttype( k) + ϕtype( k)(pk) + P (ck), (4) where ttask is a task token shared by all queries, ttype( k) distinguishes hypothesis queries from coverage queries, and 
+
+P (ck) provides explicit positional encoding. pk is a lightweight local prior extracted by the query generator from the ego representation at location ck, and ϕtype( k)(·) maps this prior into the query space, modulating its contribution according to query type. This local prior supplies only the scene cues needed for query construction, such as object response or coverage deficiency signals, rather than directly copying the ego’s full local features into the query. Consequently, qk
+
+5A PREPRINT - J UNE 4, 2026 (a) Typed Evidence Query Generator (b) Query -Guided Evidence Retrieval (c) Gated Residual Write -Back 
+
+Figure 3: Mechanism visualization of INTACT. (a) Typed Evidence Query Generator with a query-density heatmap, hypothesis queries, coverage queries, and ground-truth boxes. (b) Query-Guided Evidence Retrieval with query-conditioned local responses and color-coded collaborator assignments. (c) Gated Residual Write-Back showing the gated spatial residual injected into the ego feature map. expresses not what the ego already possesses at that location, but what local evidence the ego expects collaborators to supplement there under that query type. In addition to query content and location, Gq outputs a query score sk for each query, reflecting its reliability in the current scene. For hypothesis queries, this score is derived from the response magnitude at the corresponding location; for coverage queries, a fixed moderate confidence is assigned. This design lets subsequent modules know not only where to retrieve evidence and what type to retrieve, but also how strongly the returned evidence should participate in gated residual write-back. Finally, Gq outputs the query set (qk, c k, s k), which is fed into the Query-Guided Evidence Retrieval module. 
+
+3.3 Query-Guided Evidence Retrieval 
+
+Once typed evidence queries are defined, the role of each collaborator is no longer to translate its entire feature map into a unified representation that the ego can directly fuse. Instead, the ego-issued query interface has already specified what the ego currently needs and where; collaborators need only return query-conditioned local responses at positions relevant to those requests. Specifically, for each collaborator j, the system first geometrically transforms its feature map into the ego coordinate system: 
+
+¯Fj = Warp( Fj , T e←j ). (5) It then extracts query-conditioned local responses at query locations ck via grid sampling: 
+
+vk,j = Sample( ¯Fj , c k). (6) Here, vk,j is the local evidence returned by collaborator j for query k. Importantly, this response comes only from the vicinity of the query anchor, not from a complete collaborator feature map. The module therefore does not require collaborators to produce full-map ego-compatible representations; it only requires that they can return comparable local responses around the ego’s evidence requests. After collecting candidate responses, the system does not directly average the local evidence from different collaborators. For the same query, different collaborators may return responses of varying quality, and relevance depends on local observations, modality capability, and the current query type. Averaging all responses indiscriminately would mix useful evidence with irrelevant or noisy contributions; heterogeneity would manifest as signal dilution. INTACT therefore adopts a per-query evidence selection mechanism. For each query, the system compares how well each collaborator’s local response matches the current query and selects the more relevant evidence source. To this end, queries and local responses are projected into a lightweight retrieval scoring space and matched via normalized similarity: 
+
+ˆqk = Norm( ηq (qk)) , ˆvk,j = Norm( ηv (vk,j )) , rk,j = ⟨ˆqk, ˆvk,j ⟩. (7) Here, ηq (·) and ηv (·) are lightweight projections used solely for local evidence scoring. They do not translate a collaborator’s entire feature map into an ego representation; they only establish the comparison space needed to match queries and local responses. rk,j indicates whether, under the local evidence request defined by query k, the response returned by collaborator j is more suitable as the answer for that request. The system thus focuses not on how to translate entire feature maps, but on which collaborator’s local evidence should be used for the current ego query. 6A PREPRINT - J UNE 4, 2026 Table 1: Comparison on OPV2V-H and DAIR-V2X benchmarks. #P(M) denotes heterogeneous enabling parameters per pair; Comm. Vol. is reported in log 2 scale. Baseline values are from published results [ 15 , 8, 5, 2, 20 ] or local reproduction. The L64  
+
+> P
+
+ego-only detector, corresponding to m1, serves as a strong LiDAR reference.                                                                              
+
+> Method
+> OPV2V-H DAIR-V2X Comm. Vol.
+> (log 2)↓
+> #P(M) ↓
+> L64
+> P-CEL64
+> P-L32
+> SL64
+> P-CRL64
+> P-L40
+> S
+> AP50 AP70 AP50 AP70 AP50 AP70 AP30 AP50 MPDA [15] 0.8794 0.7520 0.8779 0.7459 0.8776 0.7464 0.4246 0.3641 22.0 1.91 BackAlign [8] 0.8807 0.7588 0.9115 0.7720 0.8808 0.7579 0.4562 0.3727 22.0 21.84 CodeFilling [5] 0.8810 0.7565 0.8805 0.7580 0.8809 0.7583 0.3848 0.3189 14.7 0.27
+> STAMP [2] 0.8756 0.7607 0.8679 0.7576 0.8752 0.7614 0.4468 0.3913 22.0 1.09 GenComm [20] 0.8953 0.7511 0.9241 0.7662 0.8930 0.7508 0.4593 0.3786 16.1 0.81
+> INTACT (Ours) 0.9011 0.8009 0.9015 0.8009 0.9014 0.8008 0.5049 0.4382 18.0 0.52
+
+During training, the system uses soft routing to distribute weights across collaborators, keeping the selection process differentiable: 
+
+ak,j = softmax j (rk,j /τ n), ˜vk = X 
+
+> j
+
+ak,j vk,j . (8) Here, the softmax is computed over collaborators for each query k, ak,j is the routing weight for collaborator j, and τn
+
+controls the routing sharpness. During inference, the system adopts a sparser winner-take-all strategy and retains only the most relevant local response: 
+
+j∗ 
+
+> k
+
+= arg max  
+
+> j
+
+rk,j , ˜vk = vk,j ∗ 
+
+> k
+
+. (9) The former is a continuous relaxation of discrete collaborator selection; the latter better matches the deployment goal: each query retrieves evidence only from the most relevant source. After this stage, the originally dense collaborator feature maps have been compressed into a set of per-query local evidence vectors {˜vk}Kk=1 . The remaining question is how to stably write these sparse evidence vectors back into the ego’s main representation. Regarding communication, the sparsity of INTACT comes from changing the unit of interaction: the system exchanges query-conditioned local responses rather than dense feature maps. In simulation, candidate local responses for each query are scored to evaluate how effectively the ego selects relevant evidence under query conditioning. In practical deployment, the same interface can be realized with a two-phase protocol: collaborators first return lightweight visibility or confidence cues, and the ego then requests local responses only from the selected sources. In either implementation, INTACT avoids full-map feature translation and dense feature transmission, rather than relying on indiscriminate fusion of all collaborator feature maps. 
+
+3.4 Gated Residual Write-Back 
+
+After the previous stage, the system possesses a set of query-indexed local external evidence vectors, rather than a shared representation aligned one-to-one with the ego feature map. INTACT therefore does not perform full-map fusion. Instead, it reorganizes the per-query evidence into complementary residuals in the ego coordinate system and injects them locally into the main representation through gated residual write-back. First, the system uses the query score to modulate the strength of each selected response: 
+
+uk = sk ˜vk. (10) Here, uk denotes the reliability-weighted local evidence for query k, where sk is the query reliability predicted by the query generator and ˜vk is the selected response from Query-Guided Evidence Retrieval. This step does not alter the content of the returned evidence; it only controls how strongly that evidence should affect the subsequent gated residual write-back stage, preventing low-utility or low-confidence queries from causing overly strong updates. Next, the system scatters these weighted responses back onto the ego BEV grid according to their query coordinates. If multiple queries fall on the same location, their responses are averaged, yielding a sparse residual field. Since this residual field remains discrete and sparse, INTACT further applies local convolutional encoding, normalization, and magnitude clipping to convert it into a writable dense complementary residual ∆. This process does not aim to 7A PREPRINT - J UNE 4, 2026 Table 2: Deployment-oriented results on V2X-Real and OPV2V-H. For V2X-Real, AP is reported on the vehicle class following the GenComm evaluation convention; L128  
+
+> H
+
+corresponds to the ego model m1, and L128  
+
+> L
+
+, L128  
+
+> M
+
+, and L128 
+
+> T
+
+are sequentially inserted collaborators. The OPV2V-H block reports sequential multi-collaborator results, where L64 
+
+> P
+
+corresponds to m1, together with the total deployed parameter count of the final multi-agent model. 
+
+V2X-Real Sequential Multi-Collaborator Setting 
+
+Method L128  
+
+> H
+
++L128  
+
+> L
+
+L128  
+
+> H
+
++L128  
+
+> L
+
++L128  
+
+> M
+
+L128  
+
+> H
+
++L128  
+
+> L
+
++L128  
+
+> M
+
++L128  
+
+> T
+
+#P(M,total) ↓
+
+AP30 ↑ AP50 ↑ AP30 ↑ AP50 ↑ AP30 ↑ AP50 ↑
+
+MPDA [15] 0.6344 0.5725 0.6323 0.5751 0.6211 0.5672 40.93 BackAlign [8] 0.6313 0.5822 0.6386 0.5878 0.6352 0.5896 39.02 CodeFilling [5] 0.6273 0.5826 0.6284 0.5799 0.6081 0.5571 29.35 STAMP [2] 0.6314 0.5881 0.6335 0.5893 0.6289 0.5882 49.53 GenComm [20] 0.6848 0.6175 0.6961 0.6299 0.7144 0.6362 46.76 
+
+INTACT (Ours) 0.7083 0.6783 0.7500 0.7116 0.7588 0.7208 25.40 OPV2V-H Sequential Multi-Collaborator Setting 
+
+Method L64  
+
+> P
+
++CE L64  
+
+> P
+
++CE +L32  
+
+> S
+
+L64  
+
+> P
+
++CE +L32  
+
+> S
+
++CR #P(M,total) ↓
+
+AP50 ↑ AP70 ↑ AP50 ↑ AP70 ↑ AP50 ↑ AP70 ↑
+
+MPDA [15] 0.8817 0.7449 0.8818 0.7451 0.8816 0.7444 40.93 BackAlign [8] 0.8818 0.7448 0.7600 0.6325 0.7601 0.6332 39.02 CodeFilling [5] 0.8826 0.7453 0.8828 0.7454 0.8826 0.7454 29.35 STAMP [2] 0.8827 0.7461 0.8826 0.7468 0.8823 0.7481 49.53 GenComm [20] 0.8941 0.7486 0.9020 0.7527 0.9018 0.7531 46.76 
+
+INTACT (Ours) 0.9070 0.8003 0.9070 0.8001 0.9071 0.8002 25.40 
+
+reconstruct a new collaborator feature map; it transforms sparse local answers into incremental updates in the ego coordinate system. Finally, the system jointly uses the original ego feature Fe and the complementary residual ∆ to predict a spatial residual gate, and injects the residual as: 
+
+g = clip [ρ, 1] (σ(Γ([ Fe, ∆]))) , F + 
+
+> e
+
+= Fe + g ⊙ ∆. (11) Here, [Fe, ∆] denotes channel-wise concatenation, Γ( ·) is a lightweight gate prediction network, σ(·) is the sigmoid function, and clip [ρ, 1] (·) constrains the gate value to the interval [ρ, 1] . The operator ⊙ denotes element-wise multiplica-tion. The gate g is a location-dependent residual injection strength, which decides how much complementary evidence should be written into each ego BEV location. The lower bound ρ prevents the gate from collapsing too quickly to zero during early training, while the upper bound keeps the residual update bounded. The key role of gated residual write-back is to separate the retrieval of external evidence from its safe injection into the ego representation. The preceding typed evidence queries define the evidence requests; Query-Guided Evidence Retrieval determines which local evidence to retrieve and select from collaborators; and gated residual write-back determines how this evidence enters the ego representation in a local and stable manner. Through this design, INTACT organizes heterogeneous collaboration as a complete ego-issued query interface: the ego issues typed evidence requests, collaborators return query-conditioned local responses, and the ego retrieves, selects, and injects useful evidence under controlled gating. 
+
+4 Experiments 
+
+4.1 Experimental Settings Datasets. We evaluate INTACT on OPV2V-H [ 8], DAIR-V2X [ 19 ], and V2X-Real [ 13 ]. OPV2V-H is the primary simulated heterogeneous benchmark and supports controlled pairwise, no-train, and multi-collaborator evaluation. DAIR-V2X and V2X-Real provide real-world validation under more limited but practically important sensing conditions. 8A PREPRINT - J UNE 4, 2026 Table 3: OPV2V-H results under Pyramid Fusion [ 8]. All methods use Pyramid as the fusion backbone. INTACT keeps the ego-issued query interface, Query-Guided Evidence Retrieval, and gated residual write-back while replacing the default fusion backbone with Pyramid. Fusion Network Method 
+
+OPV2V-H 
+
+L64  
+
+> S
+
+L64  
+
+> P
+
+-CE L64  
+
+> P
+
+-L32  
+
+> S
+
+L64  
+
+> P
+
+-CR
+
+AP50 AP70 AP50 AP70 AP50 AP70 AP50 AP70 Pyramid Fusion Late fusion 0.818 0.690 0.772 0.615 0.821 0.680 0.766 0.613 HEAL [8] 0.889 0.801 0.827 0.724 0.887 0.801 0.823 0.728 STAMP [2] 0.886 0.801 0.833 0.734 0.876 0.806 0.827 0.738 GT-Space [12] 0.894 0.803 0.848 0.766 0.891 0.810 0.844 0.762 
+
+INTACT (Ours) 0.922 0.833 0.895 0.810 0.899 0.815 0.895 0.812 
+
+Following prior heterogeneous collaborative perception work [8], we use mi as shorthand for concrete heterogeneous agent configurations. On OPV2V-H, m1 = L64  
+
+> P
+
+denotes the LiDAR PointPillars ego model with 64-channel BEV features, m2 = CE denotes the camera EfficientNet collaborator, m3 = L32  
+
+> S
+
+denotes the LiDAR SECOND collaborator with 32-channel BEV features, and m4 = CR denotes the camera ResNet101 collaborator. Thus the OPV2V-H pairwise columns L64  
+
+> P
+
+-CE , L64  
+
+> P
+
+-L32  
+
+> S
+
+, and L64  
+
+> P
+
+-CR correspond to m1+m2, m1+m3, and m1+m4, respectively. On DAIR-V2X [ 19 ], we report the L64  
+
+> P
+
+-L40  
+
+> S
+
+vehicle-infrastructure setting. For V2X-Real, we follow GenComm [ 20 ] and denote L128  
+
+> H
+
+as the ego model m1, while L128  
+
+> L
+
+, L128  
+
+> M
+
+, and L128  
+
+> T
+
+are the sequentially inserted heterogeneous collaborators. 
+
+Compared methods. We compare with representative heterogeneous collaboration baselines that cover the major design families in this area. MPDA and BackAlign/HEAL learn alignment or adaptation modules for heterogeneous features. STAMP and GT-Space introduce shared interaction protocols. CodeFilling studies reconstruction or codebook-based interaction, while GenComm uses generative communication to support heterogeneous collaboration. These baselines retain a translation-first or protocol-compatibility premise in which collaborator representations must be made compatible before fusion. INTACT instead trains a train-once ego-issued query interface and reuses it for heterogeneous pairwise and multi-agent inference with no extra pairwise heterogeneous adaptation. 
+
+Implementation details. Training-dependent baselines follow their released homogeneous-to-heterogeneous pipelines. INTACT trains the ego-issued query interface once on m1 and then inserts heterogeneous collaborators by reusing the same checkpoint. Unless otherwise specified, the remaining evaluation protocol follows GenComm. All experiments use four NVIDIA RTX 4090 GPUs with a total batch size of 4. Additional implementation details and deployment-oriented results are provided in the appendix. 
+
+4.2 Main Results Pairwise heterogeneous benchmarks. Table 1 reports pairwise heterogeneous results on OPV2V-H and DAIR-V2X. Across the three OPV2V-H heterogeneous pairs, INTACT obtains stable AP70 values of 0.8008 to 0.8010. This consistency is important because the collaborators differ in modality and backbone, yet the same ego-issued query interface is reused rather than retrained for each pair. The m1 ego-only result should be interpreted as a strong LiDAR reference, not as the main collaboration baseline that every heterogeneous pair must surpass. Under this reference, the small gap between the m1 single-agent detector and INTACT indicates that inserting weaker or different collaborators does not introduce substantial negative transfer. On DAIR-V2X, INTACT reaches AP30 0.5049 and AP50 0.4382 under the listed setting, outperforming the compared baselines in Table 1. This result suggests that typed evidence queries can remain useful beyond the simulated OPV2V-H setting, although real-world validation should still be expanded. INTACT also keeps the heterogeneous enabling overhead small: it adds 0.52M parameters per pair, compared with 21.84M for BackAlign and 0.81M for GenComm. Its communication volume is 18.0 log 2, which corresponds to roughly 16 × compression relative to dense feature transmission. Thus, the main table supports the intended trade-off: stable heterogeneous collaboration with substantially lower pair-specific parameter overhead than alignment-heavy baselines. 
+
+V2X-Real and deployment evidence. Table 2 (top) reports V2X-Real vehicle-class AP following the GenComm evaluation convention. INTACT reaches AP50 values of 0.6783, 0.7116, and 0.7208 across the listed V2X-Real collaborator settings, outperforming the compared baselines while using the smallest deployed parameter count among the compared methods. These real-data results support the same deployment-oriented trade-off observed on OPV2V-H and DAIR-V2X: INTACT keeps a lightweight ego-issued query interface without adding pair-specific heterogeneous translators. 9A PREPRINT - J UNE 4, 2026 Scene 1         
+
+> idx 00880
+> Ego-only GenComm BackAlign CodeFilling INTACT
+> Scene 2
+> idx 00480
+> Scene 3
+> idx 01520
+> Qualitative detection comparison on OPV2V-H m1 -> m4
+> GT Prediction Missed GT False positive INTACT recovered object
+
+Figure 4: Qualitative detection comparison on the challenging OPV2V-H m1 → m4 heterogeneous setting. We compare Ego-only, GenComm, BackAlign, CodeFilling, and INTACT on three representative scenes with identical BEV crops and visualization settings. Green boxes denote ground-truth objects and red boxes denote predictions. Pink circles highlight missed ground-truth objects, purple dashed marks indicate false positives, and blue circles mark objects recovered by INTACT. The examples illustrate that INTACT retrieves useful complementary evidence in difficult heterogeneous cases, leading to more complete detections and fewer visually apparent errors. GenComm INTACT 
+
+Figure 5: Qualitative no-train comparison between GenComm and INTACT on the same OPV2V-H m1 → m2 scene. Each row shows the ego response, the direct no-train pairwise response, and the signed gain. INTACT produces more target-concentrated positive updates, which is consistent with its train-once ego-issued query interface. Table 2 (bottom) further reports OPV2V-H sequential multi-collaborator deployment results. INTACT maintains strong AP50/AP70 as additional heterogeneous collaborators are inserted, while using the smallest total deployed parameter count among the compared methods. Table 3 evaluates INTACT with Pyramid as the fusion backbone and shows that the typed evidence query interface remains runnable under a different fusion backbone. 
+
+4.3 Qualitative Detection Comparison 
+
+Fig. 4 provides a BEV qualitative comparison on the challenging OPV2V-H m1 → m4 (L64  
+
+> P
+
+→ CR) setting. All methods are visualized on the same scenes with identical crops and display settings, so differences in missed objects and false positives can be compared directly. The first two rows show high-gap cases where INTACT recovers objects that multiple baselines miss, while the third row is a more neutral representative case. This mix avoids presenting only success cases while still exposing the failure modes that motivate typed evidence retrieval. 10 A PREPRINT - J UNE 4, 2026 Table 4: Ablation studies on OPV2V-H. We report pairwise results between m1 and the other three heterogeneous collaborators.                                                  
+
+> Variant Components m1 +m2 m1 +m3 m1 +m4
+> Typed queries Q-cond. response Gated write-back AP50 AP70 AP50 AP70 AP50 AP70 Full INTACT ✓✓✓0.9011 0.8009 0.9015 0.8009 0.9014 0.8008 w/o query-guided evidence retrieval ✓✓0.8920 0.7934 0.8920 0.7933 0.8920 0.7934 w/o gated residual write-back ✓✓0.8873 0.7656 0.8876 0.7655 0.8879 0.7654 w/o typed evidence queries ✓✓0.7792 0.6374 0.8462 0.7653 0.8774 0.7726
+
+The qualitative behavior is consistent with the mechanism of INTACT. GenComm, BackAlign, and CodeFilling often produce either missed ground-truth objects or additional false positives in crowded, occluded, or long-range regions. INTACT’s blue highlighted detections indicate cases where query-conditioned local responses provide complementary evidence at locations that the ego or other baselines handle less reliably. These examples do not by themselves replace quantitative evaluation, but they illustrate how the ego-issued query interface can turn sparse collaborator evidence into localized improvements through Query-Guided Evidence Retrieval and gated residual write-back. 
+
+4.4 Ablation Studies 
+
+Table 4 reports ablation studies on OPV2V-H across the three pairwise heterogeneous settings. We evaluate the contribution of three components in the interaction chain: typed evidence queries, Query-Guided Evidence Retrieval, and gated residual write-back. Removing typed evidence queries leads to the largest degradation. In the m1+m2 setting, AP70 drops from 0.8009 to 0.6374, showing that untyped interaction is insufficient when the ego must decide where and what evidence to request from heterogeneous collaborators. The degradation is smaller but still visible on m1+m3 and m1+m4, where AP70 decreases from 0.8009 to 0.7653 and from 0.8008 to 0.7726, respectively. These results indicate that typed evidence queries are the most important component on average, especially under the m1+m2 setting, while gated residual write-back provides a more uniform stabilization effect across all pairs. Gated residual write-back is also important for stable evidence injection. Replacing the learned gate with an ungated residual update reduces AP70 from about 0.8008–0.8009 to 0.7654–0.7656 across all three pairs. This consistent drop suggests that external evidence should not be directly added to the ego representation without spatially adaptive control. The gate helps determine where the retrieved evidence should affect the ego BEV feature map and prevents noisy or weak responses from dominating the update. Removing Query-Guided Evidence Retrieval causes a smaller but consistent drop, with AP70 decreasing to 0.7933– 0.7934 across the three pairwise settings. This shows that the model can still retain much of its performance when typed queries and gated write-back remain active, but per-query evidence retrieval further improves the use of collaborator responses. Overall, the ablation results support the design of INTACT: typed evidence queries provide the main interface for heterogeneous evidence requests, Query-Guided Evidence Retrieval selects useful local responses, and gated residual write-back stabilizes their injection into the ego representation. 
+
+4.5 More Analysis Robustness. Fig. 6 (left) evaluates robustness under pose errors and time delays. All methods degrade as the geometric or temporal mismatch increases, which is expected for cooperative perception. INTACT remains comparatively stable in the plotted curves, especially under larger perturbations where training-dependent baselines drop more sharply. 
+
+No-train retention behavior. Fig. 6 (right) compares AP70 retention when pretrained models are directly switched to untrained heterogeneous collaborator settings, with each method’s m1 reference normalized to 100%. INTACT stays close to its m1 reference across all collaborator compositions, whereas GenComm and BackAlign suffer larger retention drops. In particular, BackAlign degrades sharply in the full multi-collaborator setting, retaining only 68.4%. This contrast supports the claim that the train-once ego-issued query interface is more stable under collaborator switching than pair-specific heterogeneous adaptation. 
+
+Qualitative ablation. Fig. 7 visualizes inference-time mechanism suppression on the hardest OPV2V-H m1 → m4
+
+pair. The full model produces more spatially concentrated target-related responses, while suppressing the interaction chain disperses them, with the most disruptive spatial pattern when the gated residual write-back is removed. This 11 A PREPRINT - J UNE 4, 2026 0.0 0.2 0.4 0.6 0.8                           
+
+> Error (m)
+> 0.85
+> 0.86
+> 0.87
+> 0.88
+> 0.89
+> 0.90
+> 0.91
+> 0.92
+> AP@50
+> Location Error
+> 0.0 0.2 0.4 0.6 0.8
+> Error (deg)
+> Heading Error
+> 0100 200 300 400 500
+> Delay (ms)
+> Time Delay
+> INTACT GenComm BackAlign MPDA STAMP INTACT GenComm BackAlign
+> 96%
+> 98%
+> 100%
+> AP@70 (% of m1-only)  100
+> 99.7 99.7 99.6 99.6
+> 100
+> 96.2 96.0
+> 95.4
+> 96.0
+> 100
+> 97.8 97.8 97.8
+> 96.2
+> 68.4%
+> m1-only = 100%
+> No-train Train
+> m1 m1m2 m1m3 m1m4 m1m2m3m4
+
+Figure 6: Robustness and no-train retention analysis on OPV2V-H. Left: detection performance under location errors, heading errors, and time delays. Right: solid bars show AP70 retention under direct no-train collaborator switching, computed from Appendix Table 5 as AP70(setting) /AP70( m1). Dashed outlines indicate the corresponding trained reference when available. INTACT maintains higher no-train retention under collaborator switching, supporting the train-once ego-issued query interface. Full w/ o Coverage Query w/ o Routing w/ o Gated Residual Write -Back 
+
+Figure 7: Qualitative sensitivity visualization on the hardest OPV2V-H m1 → m4 pair, complementary to the retrained staircase in Table 4. Compared with the full model, suppressing components of the interaction chain at inference weakens the spatial concentration of useful responses, with the most visible disruption caused by removing the gated residual write-back. This panel illustrates inference-time spatial behavior and is not a one-to-one match to the retrained quantitative variants. qualitative panel should be read as a sensitivity visualization alongside the retrained staircase in Table 4; it illustrates spatial behavior rather than reproducing the retrained quantitative variants. 
+
+5 Conclusion 
+
+We presented INTACT, an ego-guided typed sparse evidence retrieval framework for heterogeneous collaborative per-ception. Instead of making collaborator features globally ego-compatible before fusion, INTACT defines collaboration through typed evidence queries issued by the ego vehicle. Collaborators return query-conditioned local responses at queried locations, and the ego injects selected evidence through gated residual write-back. This design shifts heterogeneous collaboration from full-map feature translation to local evidence retrieval under an ego-issued query interface. Experiments across simulated and real-world benchmarks show that INTACT achieves competitive detection accuracy with low communication and parameter overhead, while supporting a train-once deployment pattern without extra pairwise heterogeneous adaptation. The retrained staircase ablation further indicates that typed evidence queries are central to the framework, with gated residual write-back providing additional stabilization for injecting retrieved evidence. INTACT still assumes reasonably accurate geometric alignment and an ego-centered request-and-injection protocol. Future work should extend typed evidence retrieval to broader real-world settings, richer collaborator selection, stronger temporal reasoning, and more diverse ego and collaborator modalities. 
+
+References 
+
+[1] Eduardo Arnold, Mehrdad Dianati, Robert De Temple, and Saber Fallah. Cooperative perception for 3d object detection in driving scenarios using infrastructure sensors. IEEE Transactions on Intelligent Transportation Systems , 23(3):1852–1864, 2020. [2] Xiangbo Gao, Runsheng Xu, Jiachen Li, Ziran Wang, Zhiwen Fan, and Zhengzhong Tu. Stamp: Scalable task- and model-agnostic collaborative perception. In The Thirteenth International Conference on Learning Representations ,2025. [3] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , pages 770–778, 2016. 12 A PREPRINT - J UNE 4, 2026 [4] Yue Hu, Shaoheng Fang, Zixing Lei, Yiqi Zhong, and Siheng Chen. Where2comm: Communication-efficient collaborative perception via spatial confidence maps. Advances in neural information processing systems , 35: 4874–4886, 2022. [5] Yue Hu, Juntong Peng, Sifei Liu, Junhao Ge, Si Liu, and Siheng Chen. Communication-efficient collaborative perception via information filling with codebook. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15481–15490, 2024. [6] Alex H Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12697–12705, 2019. [7] Yen-Cheng Liu, Junjiao Tian, Chih-Yao Ma, Nathan Glaser, Chia-Wen Kuo, and Zsolt Kira. Who2com: Collabo-rative perception via learnable handshake communication. In 2020 IEEE International Conference on Robotics and Automation (ICRA) , pages 6876–6883. IEEE, 2020. [8] Yifan Lu, Yue Hu, Yiqi Zhong, Dequan Wang, Yanfeng Wang, and Siheng Chen. An extensible framework for open heterogeneous collaborative perception. In The Twelfth International Conference on Learning Representations ,2024. [9] Bharath Rajiv Nair. Collaborative perception in multi-robot systems: Case studies in household cleaning and warehouse operations. In International Conference on Robotics and Computer Vision (ICRCV) , pages 195–200. IEEE, 2024. [10] Mingxing Tan and Quoc Le. Efficientnet: Rethinking model scaling for convolutional neural networks. In 
+
+International conference on machine learning , pages 6105–6114. PMLR, 2019. [11] Tsun-Hsuan Wang, Sivabalan Manivasagam, Ming Liang, Bin Yang, Wenyuan Zeng, and Raquel Urtasun. V2vnet: Vehicle-to-vehicle communication for joint perception and prediction. In European conference on computer vision ,pages 605–621. Springer, 2020. [12] Wentao Wang, Haoran Xu, and Guang Tan. Gt-space: Enhancing heterogeneous collaborative perception with ground truth feature space. In The Fourteenth International Conference on Learning Representations , 2026. [13] Hao Xiang, Zhaoliang Zheng, Xin Xia, Runsheng Xu, Letian Gao, Zewei Zhou, Xu Han, Xinkai Ji, Mingxi Li, Zonglin Meng, et al. V2x-real: a largs-scale dataset for vehicle-to-everything cooperative perception. arXiv preprint arXiv:2403.16034 , 2024. [14] Runsheng Xu, Hao Xiang, Zhengzhong Tu, Xin Xia, Ming-Hsuan Yang, and Jiaqi Ma. V2x-vit: Vehicle-to-everything cooperative perception with vision transformer. In European conference on computer vision , pages 107–124. Springer, 2022. [15] Runsheng Xu, Jinlong Li, Xiaoyu Dong, Hongkai Yu, and Jiaqi Ma. Bridging the domain gap for multi-agent perception. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 6035–6042. IEEE, 2023. [16] Yunjiang Xu, Lingzhi Li, Jin Wang, Yupeng Ouyang, and Benyuan Yang. Instinct: Instance-level interaction architecture for query-based collaborative perception. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 25464–25473, 2025. [17] Yan Yan, Yuxing Mao, and Bo Li. Second: Sparsely embedded convolutional detection. Sensors , 18(10):3337, 2018. [18] Kang Yang, Peng Wang, Lantao Li, Tianci Bu, Chen Sun, Deying Li, and Yongcai Wang. Eimc: Efficient instance-aware multi-modal collaborative perception. arXiv preprint arXiv:2603.02532 , 2026. [19] Haibao Yu, Yizhen Luo, Mao Shu, Yiyi Huo, Zebang Yang, Yifeng Shi, Zhenglong Guo, Hanyu Li, Xing Hu, Jirui Yuan, et al. Dair-v2x: A large-scale dataset for vehicle-infrastructure cooperative 3d object detection. In 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 21361–21370, 2022. [20] Junfei Zhou, Penglin Dai, Quanmin Wei, Bingyi Liu, Xiao Wu, and Jianping Wang. Pragmatic heterogeneous collaborative perception via generative communication mechanism. arXiv preprint arXiv:2510.19618 , 2025. [21] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable transformers for end-to-end object detection. In International Conference on Learning Representations , 2021. 13 A PREPRINT - J UNE 4, 2026 
+
+A Technical appendices and supplementary material 
+
+A.1 Additional Implementation Details 
+
+Unless otherwise stated, all training-dependent baselines follow the released homogeneous-to-heterogeneous training schedules of GenComm/HEAL. For INTACT on OPV2V-H, the stage-1 INTACT query-interface setting uses a 31-epoch schedule with Adam and an initial learning rate of 10 −3. The default query configuration uses up to 512 queries with a hypothesis ratio of 0.75; coverage queries are sampled from a deficiency-based score map with an 8 × 8 anchor grid; routing uses soft assignment during training and hard selection at inference; and the gated residual write-back uses a gate floor of 0.08 with delta clipping at 5.0. Pairwise and multi-agent heterogeneous evaluations then reuse the learned 
+
+m1 checkpoint directly, without introducing an extra hetero retraining stage. Real-data experiments follow the same pipeline, with dataset-specific sensor/backbone definitions kept identical to the official benchmark settings 
+
+A.2 Supplementary Deployment-Oriented Results 
+
+Table 5: Absolute no-train deployment performance on OPV2V-H. Each method starts from its own pretrained m1 ego and directly switches to the listed collaborators without any extra heterogeneous retraining. This table complements the no-train retention panel in Figure 6 by reporting absolute AP rather than normalized retention. 
+
+Method m1 m1 → m2 m1 → m3 m1 → m4 m1 → m1m2m3m4
+
+AP50 AP70 AP50 AP70 AP50 AP70 AP50 AP70 AP50 AP70 GenComm 0.9300 0.7758 0.8853 0.7460 0.8828 0.7444 0.8737 0.7400 0.8899 0.7448 BackAlign 0.9212 0.7749 0.8807 0.7580 0.8806 0.7578 0.8807 0.7579 0.8827 0.7453 
+
+INTACT (Ours) 0.9108 0.8037 0.9011 0.8009 0.9015 0.8009 0.9014 0.8008 0.9071 0.8002 
+
+A.3 Deployment-Oriented Protocol Comparison 
+
+Table 6: Workflow-level comparison of heterogeneous collaboration protocols when collaborator composition changes. The table summarizes each method’s intended deployment workflow, rather than whether a manually merged checkpoint can be forced to run once.                      
+
+> Method Training Dependency Deployment Behavior Interface Paradigm Before Hetero Deployment When a New Collaborator Joins Checkpoint Switch Cost INTACT Reuse stage-1 base None; reuse the same ego-issued query interface Existing stage-1 base
+> Direct Ego-typed evidence query GenComm Train method-specific homogeneous generators before hetero integration Retrain deformable message extractor for the new pair/combo Pair/combo checkpoint Retrain Shared generator BackAlign Reuse stage-1 base Retrain the new-agent alignment branch / encoder side Pair checkpoint Retrain Pairwise alignment MPDA Reuse stage-1 base Retrain the hetero adaptation module for the new combo Combo checkpoint Retrain Domain adaptation CodeFilling Reuse stage-1 base Retrain the codebook / fusion module for the new combo Combo checkpoint Retrain Code reconstruction STAMP Reuse stage-1 base Retrain the protocol adapter and reverter Pair checkpoint Retrain Shared protocol
+
+Table 6 complements the no-train analyses in the main paper by making the workflow difference explicit. Existing baselines are still organized around pair- or combo-specific heterogeneous training steps, which means that when collaborator composition changes, the system must prepare a new checkpoint or retrain a dedicated interaction module. INTACT instead reuses the same ego-issued query interface and therefore supports direct collaborator insertion in its 14 A PREPRINT - J UNE 4, 2026 intended workflow. This workflow-level difference is the deployment counterpart to the main-paper no-train retention and absolute no-train utility results. 15
