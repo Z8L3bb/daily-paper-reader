@@ -1,0 +1,501 @@
+Title: ATLAS: A Large-Scale Evaluation Benchmark for Adversarial LiDAR Perception
+
+URL Source: https://arxiv.org/pdf/2606.02924v1
+
+Published Time: Wed, 03 Jun 2026 00:27:56 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# ATLAS: A Large-Scale Evaluation Benchmark for Adversarial LiDAR Perception 
+
+Mellon M. Zhang * Siddhant Panse * Zimo Fan Akshal Dhal Rishit Sarkar Glen Chou 
+
+Georgia Institute of Technology 
+
+{meilongz, spanse30, zfan321, adhal8, rsarkar44, chou}@gatech.edu 
+
+## Abstract 
+
+Autonomous driving perception is typically evaluated on clean benchmark data, yet real-world deployment requires robustness to rare, structured, and potentially adversarial sensor anomalies. This gap is especially critical for LiDAR, where external actors can physically manipulate the sensing process to induce black-box perception failures without accessing the model. Existing LiDAR benchmarks provide little visibility into this failure mode. Prior adversarial LiDAR studies have largely centered on attack hardware, geometric and algorithmic defenses, and early-generation detectors, leaving the robustness of modern perception systems unexplored. To address this evaluation gap, we introduce ATLAS (Adversarial Tem-poral LiDAR Attack Suite), the first large-scale, physically grounded evaluation benchmark for LiDAR perception models under black-box sensor attacks, simu-lating the two primary attack modes – point injection and point removal – across real driving sequences. Evaluating a broad cross-section of current state-of-the-art LiDAR perception models, ATLAS reveals a surprising robustness asymmetry: models with stronger performance on standard benchmarks tend to better with-stand removal attacks, yet are actually more vulnerable to injection attacks than weaker models. We trace this vulnerability to standard object database sampling augmentations, revealing how current training practices can induce architecture-agnostic robustness failures, and study initial directions for mitigating both attack modes. We release the ATLAS generation code to support extensible, reproducible evaluations as attack capabilities evolve, helping make black-box sensor robustness an explicit consideration in future LiDAR perception development. 
+
+## 1 Introduction 
+
+Accurate 3D perception is a core requirement for autonomous driving, where vehicles must localize, recognize, and react to surrounding agents in dynamic environments. Modern perception stacks combine cameras, LiDAR, radar, temporal tracking, and map priors for reliability under diverse conditions. Among these, LiDAR remains a central source of metric 3D geometry: by actively scanning with laser pulses and measuring returns, it provides precise 3D structures difficult to recover from RGB imagery alone, making LiDAR-based 3D object detection a major benchmark task. However, the same active sensing process that makes LiDAR valuable also creates a distinct physical attack surface. Unlike passive cameras, LiDAR sensors construct point clouds through an exter-nally observable measurement process that an adversary can exploit without accessing the detector architecture, weights, or training data. In a point injection attack, carefully timed external laser signals create phantom geometry resembling real objects; in a point removal attack, legitimate returns 
+
+> *Equal contribution. Preprint.
+> arXiv:2606.02924v1 [cs.CV] 1 Jun 2026
+
+are suppressed, causing real structure to disappear. These attacks are black-box and sensor-level, corrupting the LiDAR stream before perception begins. Current LiDAR benchmarks evaluate performance under benign conditions, capturing variation in weather, lighting, and traffic, but do not test whether perception models remain reliable when sensing is maliciously manipulated. This leaves a critical gap: as autonomous vehicles move toward public deployment, robustness to adversarial sensor corruption must be measurable during development. Moreover, robustness cannot be assumed from clean-data accuracy, as stronger detectors, temporal aggregation, and multimodal fusion may reject or amplify corrupted geometric evidence in unpredictable ways. We introduce ATLAS (Adversarial Temporal Li DAR Attack Suite), a large-scale, physically grounded benchmark for evaluating black-box LiDAR spoofing robustness in real driving sequences. Built on the Waymo Open Dataset, ATLAS simulates point injection and point removal with attack budgets aligned with emerging hardware capabilities, enabling systematic evaluation of how modern 3D object detectors behave when the LiDAR stream is corrupted before perception. Using ATLAS, we conduct a broad empirical audit of modern LiDAR perception systems, includ-ing single-frame, temporal, streaming, and camera-LiDAR fusion detectors across convolutional, transformer, and state-space architectures. Our central finding is that progress on clean benchmarks does not reliably translate to spoofing robustness: stronger models can better tolerate point removal but become more susceptible to point injection, revealing a concerning robustness asymmetry that motivates adversarial sensor-level evaluation as a first-class criterion. Our contributions are as follows: 1. We introduce ATLAS , a large-scale benchmark for evaluating black-box adversarial LiDAR spoofing under physically grounded point injection and removal attacks in real sequences. 2. We conduct a comprehensive robustness audit of 3D object detectors across single-frame, temporal, streaming, camera-LiDAR fusion, and diverse architectural families. 3. We identify a systematic robustness asymmetry: stronger clean-benchmark models can partially recover from point removal, but often become more vulnerable to point injection. 4. We release ATLAS to support extensible evaluation of LiDAR perception robustness under evolving sensor-level attack capabilities. 
+
+## 2 Related Work 
+
+LiDAR Perception Benchmarks . Large-scale driving datasets have been the primary basis of LiDAR-based 3D object detection research. KITTI [ 9] established the first multimodal benchmark, with subsequent datasets increasing scale and di-versity [ 4, 2 , 32 , 26 ]: nuScenes introduced a full 360° sensor suite, Argoverse 2 [ 3] focused on HD maps, and Waymo Open [ 21 ] provided over 12 million 3D annotations. However, these datasets largely assume a trustworthy sensing process and do not account for malicious manipulation of Li-DAR measurements. Existing robustness bench-marks such as KITTI-C, nuScenes-C, and Waymo-C [ 8] primarily evaluate performance under natural corruptions including weather, sensor noise, and beam dropout, leaving adversarial sensing attacks largely unexplored (Fig.1). This missing evalua-tion setting motivates the development of ATLAS, a benchmark specifically designed to study adver-sarial robustness in LiDAR perception systems. 
+
+LiDAR Spoofing . LiDAR sensors are vulnerable to physical attacks that inject phantom objects or remove legitimate returns [20, 18, 12]. Sun et al. 
+
+Figure 1: ATLAS fills a missing axis in LiDAR robustness evaluation. While existing benchmarks primarily study nat-ural perturbations, ATLAS targets black-box, sensor-level spoofing attacks. [ 20 ] demonstrated feasibility with 140 structured injected points, PLA-LiDAR [ 12 ] scaled to 4200 points with 51–98% false detection rates on PointPillars [ 15 ] and SECOND [ 27 ], PhantomLidar [13 ] injected 16,000 points via electromagnetic interference, and Sato et al. [ 19 ] showed 1,000 wall-2arranged points suffice to trigger emergency braking. Beyond injection, Sato et al. [ 18 ] demonstrated hiding real vehicles via the sensor’s denoising mechanism, and their follow-up work [ 19 ], which grounds our removal simulation, introduced the adaptive high-frequency removal (A-HFR) attack, showing a 20° azimuthal sector suffices to eliminate all points from a vehicle at range. Cao et al. [ 5 ]further confirm removal via relay and jamming. Despite these advances, evaluation protocols remain anchored to early single-frame detectors [ 15 , 27 , 28 , 1, 24 , 6, 14 ], leaving modern architectures and temporal methods unevaluated, with no open-source benchmark unifying these attack models. 
+
+## 3 Adversarial Temporal LiDAR Attack Suite (ATLAS) 
+
+Figure 2: Atlas simulates the main attack modes. Point injection attacks inject spurious objects to induce sudden driving control change. Point removal attacks interfere with the scanning process to hide real objects from sensor readings. 
+
+3.1 Threat Model 
+
+We consider the physically realizable roadside spoofer threat model shown in Figure 2 [ 19 ][ 12 ], where an attacker near the ego vehicle emits synchronized laser signals to inject or remove LiDAR points, creating false measurements. Prior work has shown that such attacks can inject thousands of points per frame [ 12 , 13 ], sufficient to form object-like structures [ 20 ]. This threat model is practical and requires no access to model parameters, relying only on publicly available LiDAR scan patterns [4, 21 , 3 , 9]. Since the attack directly manipulates the physical sensing process, it is difficult to detect with standard cybersecurity defenses. We focus on the two main attack modes: point injection [ 12 ]and point removal [19]. 
+
+3.2 Benchmark Scope 
+
+We construct a large-scale benchmark emulating modern physical LiDAR spoofing on multi-frame detection pipelines, built on the Waymo Open Dataset (WOD) [ 21 ] for realistic driving scenarios with diverse traffic and sensor conditions. For point injection, we vary point budget and phantom-object position; for removal, we vary azimuthal attack width, which determines the expected point removal rate. Both families share the same temporal attack schedule (Sec. 3.3), yielding twelve variants of the WOD validation split. Altogether, ATLAS comprises > 460 k LiDAR point clouds across 195 
+
+diverse driving trajectories each approximately 20 seconds long. 
+
+Point injection point budget. We vary injected point count across three regimes: easy (100–200 points), aligned with early spoofing devices [ 20 ]; medium (300–500 points), and hard (500–1000 points), both representative of state-of-the-art systems such as PLA-LiDAR [ 12 ], which can inject up to 4200 points of any arbitrary geometry. 
+
+Phantom object position. We consider two physically grounded modes: relative-position fixed ,where the injected object maintains a constant pose relative to the ego vehicle, simulating an adversary moving alongside it [ 5]; and global-position fixed , where the spoofed object is placed at a fixed world-frame location, simulating a static roadside attacker injecting a phantom parked vehicle as the ego approaches [20, 18, 19, 22]. 
+
+Point removal rate. We design the point removal attacks to reflect the capabilities of the adaptive high-frequency removal (A-HFR) attack from [ 19 ]. A-HFR removes points by emitting high-3frequency LiDAR pulses only when the sensor is scanning a target region, disrupting true returns so the object is not recorded. Sato et al. demonstrate that the target azimuthal sector width directly constrains removal efficacy. We construct six datasets of varying target azimuthal sector widths (10°—60°) and adopt empirically-validated point removal rates (PRR) from [ 19 ], restated in Table 1. Table 1: Target removal azimuth vs Point removal rate (PRR) Azimuth 10° 20° 30° 40° 50° 60° PRR 97% 100% 99% 98% 90% 90% 
+
+Attack timing. We model the temporal evolution of spoofing attacks by considering both their onset and accumulation. At attack onset, the multi-frame detectors operate on clean historical memory, allowing us to isolate the immediate impact of injected points. As the attack persists, spoofed observations are incorporated into the model’s memory, enabling us to study how errors accumulate and propagate over time within multi-frame pipelines. 
+
+3.3 Temporal attack schedule 
+
+To model sustained attack behavior, we schedule spoofing in alternating temporal windows within each driving segment of the WOD validation split. We partition each sequence into 32-frame blocks and alternate between clean and spoofed intervals. Let si ∈ { 0, 1} denote whether frame i is spoofed. We initialize with a clean frame ( s0 = 0 ), and for i ≥ 1 define the attack schedule in Eq. 1. 
+
+si = 1[⌊i/ 32 ⌋ mod 2 = 1] . (1) This attack schedule is applied to both the point injection and removal benchmarks. For point injection, this produces a repeating pattern in which a phantom vehicle appears, persists for 32 frames (≈ 3.2 seconds), disappears, and reappears after an equally long clean interval. For point removal, it defines a window in which several frames contain point clouds where 90-100% of points within an azimuthal sector are removed. Unlike point injection, the attack is not guaranteed to persist across each frame within the 32-frame window, due to probabilistic modeling of simulated spoofing device functionality (see Stochastic point removal) .We use a 32-frame horizon, matching both the practical capability of existing LiDAR spoofing systems to sustain multi-second attacks [ 22 ] and the upper range of temporal context used by modern multi-frame detectors (4–32 frames). This setting allows us to evaluate how adversarial signals interact with the full memory capacity of temporal perception models. 
+
+3.4 Point Injection Benchmark Construction Trace library. Rather than inserting synthetic points, we simulate sensor-level injection to approxi-mate physical attacks [ 20 , 12 ]. We extract annotated vehicles from Waymo Open [ 21 ] and aggregate their LiDAR returns in a canonical vehicle frame, preserving range-dependent sparsity, occlusion patterns, and intensity distributions. Replaying these traces into new scenes synthesizes physically plausible phantom vehicles, closely following the record-based spoofing of PLA-LiDAR [ 12 ], which replays recorded LiDAR observations via synchronized laser injection to induce false detections. To generate an attack instance, we sample a vehicle trace and target placement relative to the ego vehicle: longitudinal offset x ∼ U (15 m, 20 m) and lateral offset y ∼ U (−3m, 3m). The trace is centered on its annotated box, perturbed with random yaw ψ ∼ U (−0.2, 0.2) , translated to the sampled location, ground-aligned, and assigned range-consistent intensity and elongation statistics. 
+
+Modeling adversary position In the relative-position fixed setting, the ghost vehicle is initialized at a sampled ego-relative offset (x0, y 0) (see Trace Library ) and maintains this offset throughout the spoof window. As a result, the injected object remains at a constant bearing and distance relative to the ego vehicle, mimicking an adversary that tracks or moves alongside it. In the global-position fixed setting, the spoofed object is anchored in the world frame and does not move as the ego vehicle approaches it. We define an anchor frame as the final frame of each 32-frame spoof block. The object is first placed at the sampled ego-relative offset in this anchor frame and then transformed into global coordinates, as illustrated in Eq. 2. 
+
+pworld = Ranc pego anc + tanc (2) 
+
+Ranc and tanc denote the ego-to-world rotation and translation. For each frame k within the spoof window, these world-frame points are projected back into the ego coordinate system, shown in Eq.3. 
+
+pego  
+
+> k
+
+= T−1 
+
+> k
+
+pworld . (3) 4Tk ∈ SE (3) is the ego-to-global transformation at frame k. As the ego vehicle moves, the ghost object therefore follows a natural approach-and-recede trajectory in the ego frame while remaining stationary in the world. 
+
+Sensor-level spoof simulation via raycasting. To enforce physical realism, we explicitly model occlusion through spherical raycasting in discretized sensor coordinates. Both scene and spoof points are first converted to spherical coordinates (r, θ, ϕ ) and binned into an (M × N ) grid indexed by azimuth and beam. Azimuth is discretized into M = ⌈360 ◦/0.1358 ◦⌉ ≈ 2651 bins, matching Waymo’s [ 21 ] native angular resolution, while elevation is quantized to the nearest of N = 64 
+
+physical beam inclinations extracted from the sensor specification. This discretization maps the continuous raycasting problem into a finite set of independent rays, each identified by a unique (azimuth bin, beam index) pair. For each spoofed point at range rspoof , we apply range-based visibility rules relative to scene returns 
+
+ri: (1) if rspoof lies behind all scene returns, the point is discarded; (2) if rspoof is the nearest return, it becomes the primary echo and occludes all scene returns; (3) if ri < r spoof < r j , it occludes all farther returns {rk : rk ≥ rj }. In case (2), we retain the nearest return behind the spoof as a secondary pulse with probability pdual = 0 .01 to approximate dual-return behavior [17]. The visible spoof and scene points are merged to form the final point cloud for each frame. All injected points are processed identically to real measurements, meaning that they enter the pipeline prior to voxelization. When a spoofed object is present in the scene, its ground-truth bounding box is transformed into the current ego frame and recorded as g ∈ R8 (comprising [x, y, z, l, w, h, θ, c ]
+
+where θ is heading and c is the object class). The bounding boxes of the spoofed objects are recorded for downstream attack success rate computation (Sec. 4). The full process of generating the point injection benchmark is summarized with Algorithm 1 in Appendix A. 
+
+3.5 Point Removal Benchmark Construction Target selection and tracking Unlike the phantom point injection attack, the point removal attack removes real LiDAR points from an angular sector aimed at a target object. For each 32-frame attack window, we select an initial vehicle target from the Waymo ground-truth objects. We then track the initial target through the attack window using a simple velocity-guided association rule. Given the previous box center ck−1 and planar velocity (vx, v y ), we use the relation in Eq. 4 to predict the next-frame target center. 
+
+ˆck = ck−1 + ∆ t [vx vy 0] ⊤ (4) We choose ∆t = 0 .1s to be consistent with Waymo’s 10 Hz LiDAR [ 21 ]. The target in frame k is then chosen as the nearest same-class ground truth box to ˆck, subject to a maximum displacement limit and a bounding-box volume consistency check. If no valid match is found, the target is considered lost and no removal attack is applied for that frame. 
+
+Removal sector construction. For each frame where the object targeted for removal is successfully tracked, we aim the removal sector at the center of the tracked target box. Let pi = ( xi, y i, z i) denote a LiDAR point and let (θi, ϕ i) be its azimuth and elevation. Similarly, let (θ⋆k, ϕ ⋆k) be the azimuth and elevation of the tracked target center in frame k. The removal sector is defined in Eq. 5 
+
+Sk =
+
+
+
+i : |wrap( θi − θ⋆k)| ≤ α
+
+2 , |ϕi − ϕ⋆k| ≤ β
+
+2
+
+
+
+, (5) We define α as the azimuth attack width and β as the elevation width. Following [ 19 ], we vary α but fix β = 16 ◦. The azimuth width α determines the point-removal probability premove according to the empirical relation shown in Table 1. 
+
+Stochastic point removal. We simulate point removal deployment as a stochastic removal condi-tioned on ego-to-target distance. Sato et al. [ 19 ] report distance-binned A-HFR success rate and attribute the attack not firing to missed weak-synchronization events. The attack is triggered only when the optical receiver detects the victim LiDAR pulse, so scans with missed LiDAR pulses fail to launch the attack. Accordingly, after selecting a target object to hide, we sample whether the attack fires using the empirical distance-dependent success probabilities averaged over vehicle speeds (Table XI in [19]). This is summarized by the distribution in Eq. 6. 
+
+ak ∼ Bernoulli( pdist (rk)) (6) 5Table 2: Summary of evaluated perception models. 
+
+Model Conf. Type Arch. Frames L2 mAP/mAPH Rank 
+
+CenterPoint [28] CVPR’21 Single-Frame Conv. 1 65.7/63.3 9CenterFormer [30] ECCV’22 Single-Frame Trans. 1 69.9/69.4 5DSVT [25] CVPR’23 Single-Frame Trans. 1 74.0/72.1 4PHiM [29] WACV’26 Streaming Mamba 1 68.7/66.7 7LoGoNet [16] CVPR’23 Cam-LiDAR Conv+Attn 1 68.6/65.9 8CenterPoint-4f [28] CVPR’21 Multi-Frame Conv. 4 69.1/67.6 6MSF-4f [10] CVPR’23 Multi-Frame Conv+Attn 4 74.7/73.4 2MSF-8f [10] CVPR’23 Multi-Frame Conv+Attn 8 74.4/73.0 3PTT [11] CVPR’24 Multi-Frame Conv+Attn 32 74.9/73.6 1
+
+0 2 4 6 8
+
+0
+
+2
+
+4
+
+6
+
+8 
+
+> CP [28]
+> CF [30]
+> DSVT [25]
+> PHiM [29]
+> LGN [16]
+> CP4F [28] MSF4 [10]
+> MSF8 [10]
+> PTT [11]
+
+Injection Robustness Rank 
+
+> Removal Robustness Rank
+
+## Robustness Correlation 
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+> Clean Performance Rank
+
+Figure 3: Negative correlation between injection and removal robustness. Models with higher injection robustness tend to ex-hibit lower removal robustness (R2 = 0.87 ). Each point rep-resents a model; color encodes clean detection performance on the benchmark (higher is better). The dashed line shows the linear regression fit. Injection and re-moval robustness ranks are com-puted by averaging the per-setting ASR rankings across all injection and removal configurations, re-spectively, where lower ASR in-dicates higher robustness. The firing probability is dependent on pdist (rk), the distance-dependent firing probability and rk, the distance between the ego LiDAR and target object. If ak = 1 , each point within Sk is removed with probability premove . Points outside of Sk are retained. This produces a structured angular deletion pattern rather than random point dropout across the full scene. For point removal, g ∈ R8 denotes the real tracked target box that the adversary attempts to hide. We store g only for frames in which the target is successfully tracked and the firing gate is active; otherwise g is set to null. This field is stored separately from the standard ground-truth boxes and is used only for attack success evaluation (See Sec. 4). The full process of generating the point removal benchmark is summarized with Algorithm 2 found in Appendix [A]. 
+
+## 4 Evaluation Setup 
+
+We evaluate the detectors from Table 2 on ATLAS. We train all models on 8 NVIDIA L40S GPUs and run each evaluaton on 1 NVIDIA H100 GPU. For an in-depth summary of baseline functionality, refer to Appendix B. For detector-specific evaluation details, refer to Appendix C. 
+
+Evaluation Metric. We report attack success rate (ASR) to quantify spoofing effectiveness. For injection, an attack succeeds if any predicted box overlaps the phantom ground-truth box g with IoU 
+
+≥ 0.7 [21 ]. For removal, an attack succeeds if no predicted box overlaps the target ground-truth box 
+
+g at the same threshold, indicating a missed detection. The ASR for both cases is then defined as the fraction of spoofed targets for which a successful false positive/negative is produced: ASR = # of successful spoofed targets 
+
+# of total spoofed targets . (7) In addition to ASR, we analyze confidence scores to better understand model calibration under attack. We evaluate phantom object confidence for point injection and the confidence degradation of surviving objects for point removal. 6Table 3: Point injection attack performance across spoofing modes and difficulty levels. Entries report Waymo L2 mAP ↑ and Attack Success Rate (ASR) ↓.Rel-Fixed Easy Rel-Fixed Medium Rel-Fixed Hard Global Easy Global Medium Global Hard Detector L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR CenterPoint [28] 65.5 0.11 65.1 0.12 65.1 0.10 65.5 0.16 65.3 0.30 65.2 0.32                                                                                                  
+
+> CenterFormer [30] 68.9 0.12 68.7 0.13 68.6 0.20 68.9 0.18 68.7 0.31 68.7 0.34 DSVT [25] 72.1 0.12 71.8 0.21 71.7 0.28 72.1 0.18 71.9 0.33 71.8 0.37 PHiM [29] 68.3 0.07 68.0 0.14 67.9 0.23 68.4 0.14 68.2 0.26 68.1 0.33 LoGoNet [16] 68.3 0.11 67.8 0.13 67.9 0.12 68.2 0.20 68.1 0.36 67.9 0.37 CenterPoint-4F [28] 68.8 0.12 68.5 0.22 68.5 0.29 68.9 0.18 68.8 0.36 68.8 0.45 MSF-4f [10] 74.6 0.13 74.3 0.29 74.3 0.35 74.6 0.19 74.5 0.41 74.5 0.46 MSF-8f [10] 74.2 0.14 73.9 0.31 73.8 0.39 74.3 0.23 74.2 0.49 74.1 0.54 PTT [11] 75.0 0.14 74.7 0.26 74.7 0.35 75.0 0.21 74.9 0.44 74.9 0.50
+> Best results are shown in bold , and second-best results are underlined.
+
+## 5 Results 
+
+We structure our results section to highlight three critical findings from our evaluations on ATLAS. 1. Stronger clean benchmark performance improves robustness to point removal, but unexpect-edly increases vulnerability to point injection ( Finding 1 ). 2. Spoofed objects induce false high confidence across detectors ( Finding 2 ). 3. Temporal detectors rely heavily on current observations to make predictions ( Finding 3 ). For additional results, see AppendixD. 
+
+Finding 1. Detection performance and adversarial robustness exhibit opposing trends across attack types, as illustrated by the negative correlation ( R2 = 0 .87 ) in Figure 3. Under point injection, single-frame detectors are the most robust: CenterPoint and PHiM yield the lowest ASR across all spoofing configurations (e.g., 0.32 and 0.33 under global-hard), while ranking among the weakest in clean detection performance (L2 mAP of 65.7 and 68.7, respectively - Table 2). Multi-frame temporal detectors are consistently more vulnerable. MSF-8f yields the highest injection ASR of any detector (0.54 under global-hard), followed by PTT (0.5). Notably, injection vulnerability is not strictly monotonic with clean performance: PTT’s detection capability is marginally higher than that of MSF-8f and MSF-4f (reflected by a higher L2 mAP) yet is less susceptible to injection, suggesting that architectural differences in temporal aggregation, not model capacity alone, modulate injection vulnerability (Table 3). This trend reverses under point removal. PTT yields the lowest removal ASR of any detector (0.50 under removal-60), while CenterPoint and PHiM suffer ASRs of 0.77 at the same setting (Table 4). These results demonstrate that more performant models can recover from point removal attacks using stronger learned representations or temporal context, but are more vulnerable to point injection attacks. We analyze this phenomenon in further detail in Sec. 6. 
+
+Finding 2. Table 3 shows that each point injection attack variant induces a non-trivial rate of phantom detections across all detectors. Figure 5 reveals that these detections aren’t all low-confidence artifacts easily filtered by score thresholding: across most detectors and point injection configurations, at least 20 % of phantom detections receive confidence scores exceeding 0.7. PHiM is a notable outlier, with phantom confidence concentrated below 0.4 in the relative-fixed modes. As point density increases (easy vs medium vs hard), the confidence distributions shift rightwards, yielding the intuitive result that richer spoofed point clouds produce more convincing phantom signatures. 
+
+Finding 3. Figure 4 reveals that temporal detectors disproportionately rely on current-frame obser-vations. Each subplot traces ASR across the full attack life cycle: attack onset (left of the dashed red line), where the current frame is spoofed and the contamination progressively fills the historical window, and attack decay (right of the dashed red line), where the current frame returns to clean and spoofed frames age out of the history. We consider CP-4f on the Removal 40 setting as an example. ASR rises sharply from 0 ASR at k = 0 (all clean) to ~0.47 ASR at k = 1 (current frame spoofed only), then increases marginally as additional historical frames are contaminated, before peaking at ~0.9 ASR at k = 4 (all four frames spoofed). At k = 5 , the current frame becomes clean while all historical frames remain spoofed, and ASR drops to ~0.15, despite 75% of the temporal window still containing evidence of spoofing. This asymmetry between attack onset and decay is consistent across all four detectors; a single spoofed current frame produces a larger ASR increase than all historical spoofed frames without a current spoofed frame. MSF-4f, MSF-8f, and PTT exhibit a similar pattern at their respective window sizes, with PTT sharply dropping at the transition (from ASR=~0.85 to ~0.10 for Removal 40, for example) despite having 31 contaminated sets of proposals in its history. These results demonstrate that temporal detectors treat current-frame evidence as dominant, using historical context primarily for refinement rather than as an equal contributor to detection decisions. 7Table 4: Point removal attack performance across removal configurations. Entries report Waymo L2 mAP ↑ and Attack Success Rate (ASR) ↓.Removal 10 Removal 20 Removal 30 Removal 40 Removal 50 Removal 60 Detector L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR CenterPoint [28] 64.3 0.90 62.4 1.00 60.0 0.96 60.7 0.95 60.7 0.77 60.7 0.77 CenterFormer [30] 67.9 0.85 66.0 1.00 65.3 0.94 65.3 0.95 65.2 0.74 65.0 0.73 DSVT [25] 72.0 0.84 70.9 1.00 69.1 0.92 69.2 0.93 69.2 0.71 68.9 0.71 PHiM [29] 67.0 0.87 65.1 0.99 62.5 0.97 62.5 0.97 63.5 0.74 63.1 0.74 LoGoNet [16] 66.9 0.84 64.9 1.00 62.6 0.93 62.6 0.93 63.9 0.68 63.6 0.68 CenterPoint-4f [28] 67.8 0.75 65.8 0.94 63.9 0.83 66.0 0.84 66.1 0.60 66.1 0.59 MSF-4f [10] 73.4 0.73 71.0 1.00 69.2 0.83 71.7 0.83 71.7 0.54 71.7 0.53 MSF-8f [10] 73.0 0.72 70.7 0.99 68.9 0.82 71.3 0.82 71.4 0.54 71.4 0.54 PTT [11] 73.8 0.68 71.4 0.99 69.6 0.79 72.2 0.79 72.2 0.51 72.3 0.50 
+
+Best results are shown in bold , and second-best results are underlined. 
+
+Figure 4: Decay of removal vulnerability. The attack success rate peaks when the history is fully saturated before decaying monotonically as clean observations enter the temporal memory buffer. 
+
+Figure 5: High proportion of high-confidence phantom proposals. Across most models and point injection modes, at least 25% of false positives are high in confidence (>0.7). 
+
+## 6 Discussion 
+
+In this section, we examine our most counterintuitive finding: models that perform better on clean benchmarks are often more vulnerable to point-injection attacks than weaker counterparts. We consider two possible explanations. First , memory mechanisms may amplify small corruptions: once injected geometry is incorporated into a temporal state, subsequent predictions may inherit or 8Table 5: Effect of LOT on robustness under different point injection attacks. Clean Rel-Fixed Easy Rel-Fixed Medium Rel-Fixed Hard Global Easy Global Medium Global Hard Detector L2 mAP L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR PHiM [29] 48.97 48.26 0.0642 48.26 0.1888 48.02 0.2817 48.40 0.0918 48.22 0.2442 48.04 0.3174 PHiM + LOT 54.28 53.45 0.0985 53.21 0.2089 55.08 0.2753 53.44 0.1222 53.42 0.3016 53.20 0.3233 
+
+> Models are trained on the 1/20 split of the Waymo dataset and validated on 1/5 adversarial dataset.
+
+Table 6: Effect of LOT on robustness under point removal attacks across different removal levels. Clean Removal 10 Removal 20 Removal 30 Removal 40 Removal 50 Removal 60 Detector L2 mAP L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR L2 mAP ASR PHiM [29] 48.97 47.25 0.9502 46.06 0.9990 44.13 0.9812 44.22 0.9828 44.39 0.8622 43.90 0.8680 PHiM + LOT 54.28 52.45 0.9296 51.05 0.9987 48.83 0.9780 49.07 0.9771 49.42 0.8192 48.99 0.8225 
+
+> Models are trained on the 1/20 split of the Waymo dataset and validated on 1/5 adversarial dataset.
+
+compound the error. Second , standard training augmentations [ 23 , 7, 31 ] may inadvertently resemble the perturbations used by point-injection attacks, causing spoofed geometry to appear in-distribution. These hypotheses are motivated by two observations. Existing multi-frame detectors typically incorporate memory late in the detection pipeline, after proposals or detections have already been produced. As a result, the current observation is often merged into memory with limited scrutiny, effectively granting the present frame full trust. This design makes robustness strongly dependent on the reliability of the instantaneous observation, consistent with Fig. 4 and Fig. 6. Separately, many LiDAR detectors are trained with ground-truth sampling, where object traces are copied from training scenes and pasted into other point clouds to increase foreground density. Although effective for clean benchmark performance, this procedure can violate the physical constraints of real LiDAR scans, such as occlusion, visibility, and sensor-return consistency. In this sense, ground-truth sampling is structurally similar to point injection. Models that excel under such training may therefore learn to treat inserted object-like point patterns as plausible scene content, increasing their susceptibility to spoofed objects at test time. To isolate these mechanisms, we introduce Latent Occupancy Tracking (LOT), a lightweight memory module that operates at the beginning of the detection pipeline. LOT maintains an online latent expectation of scene occupancy and compares it against the current observation before downstream detection, allowing the model to estimate uncertainty prior to proposal generation. We deploy LOT on PHiM because its streaming state-space formulation over partial sectors provides a controlled substrate for studying early-stage temporal context: unlike conventional multi-frame detectors, PHiM does not rely on late proposal- or detection-level fusion, allowing us to evaluate whether latent memory itself improves robustness without conflating it with downstream aggregation effects. Additional implementation details are provided in Appendix E. Under point-removal attacks (Tab. 6), LOT consistently improves robustness, suggesting that sequen-tial memory can help recover missing geometry from contextual occupancy expectations even in a single-frame detection setting. In contrast, under point-injection attacks (Tab. 5), LOT increases ASR by approximately 3 percentage points relative to base PHiM. Because the attack is confined to a single frame and LOT filters the input before downstream detection, this degradation is unlikely to arise from temporal error accumulation alone. Instead, it supports the second hypothesis: training with ground-truth sampling may bias stronger or more context-sensitive models toward accepting inserted object-like structures as plausible. Thus, while early latent memory can mitigate attacks that remove evidence, it does not necessarily protect against attacks that add plausible but spurious evidence. 
+
+## 7 Conclusion 
+
+We introduce ATLAS, a large-scale benchmark for evaluating black-box adversarial robustness of LiDAR perception under physically grounded point injection and removal attacks. Across nine detectors spanning single-frame, multi-frame, streaming, and camera-LiDAR fusion architectures, ATLAS reveals a robustness asymmetry: stronger models better withstand point removal attacks but become more vulnerable to point injection attacks. We trace this to late-stage temporal aggregation granting current frames disproportionate trust, and to ground-truth sampling augmentation structurally resembling injection attacks. While ATLAS simulates the attacks physics via ray casting and empirical removal rates from prior works, validating these findings against hardware spoofing rigs remains an important future work to confirm that our architectural rankings hold under physical spoofing attacks. Our LOT case study shows early latent memory can mitigate the effects of point removal but not injection, suggesting training-time interventions are necessary alongside architectural defenses. We 9release ATLAS to make black-box sensor robustness a measurable axis of perception development as physical attack capabilities evolve. 10 References 
+
+[1] Temesgen Mikael Abraha, John Brandon Graham-Knight, Patricia Lasserre, Homayoun Najjaran, and Yves Lucet. Convnet-generated adversarial perturbations for evaluating 3d object detection robustness. 
+
+Sensors , 25(19):6026, 2025. [2] Mina Alibeigi, William Ljungbergh, Adam Tonderski, Georg Hess, Adam Lilja, Carl Lindstrom, Daria Motorniuk, Junsheng Fu, Jenny Widahl, and Christoffer Petersson. Zenseact open dataset: A large-scale and diverse multimodal dataset for autonomous driving. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2023. [3] Wilson Benjamin, Qi William, Agarwal Tanmay, Lambert John, Singh Jagjeet, Khandelwal Siddhesh, Pan Bowen, Kumar Ratnesh, Hartnett Andrew, Kaesemodel-Pontes Jhony, Ramanan Deva, Carr Peter, and Hays James. Argoverse 2: Next generation datasets for self-driving perception and forecasting. In 
+
+Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2) , 2021. [4] Holger Caesar, Varun Bankiti, Alex H. Lang, Sourabh Vora, Venice Erin Liong, Qiang Xu, Anush Krishnan, Yu Pan, Giancarlo Baldan, and Oscar Beijbom. nuscenes: A multimodal dataset for autonomous driving. In CVPR , 2020. [5] Yulong Cao, S Hrushikesh Bhupathiraju, Pirouz Naghavi, Takeshi Sugawara, Z Morley Mao, and Sara Rampazzi. You can’t see me: Physical removal attacks on lidar-based autonomous vehicles driving frameworks. In 32nd USENIX security symposium (USENIX Security 23) , pages 2993–3010, 2023. [6] Yulong Cao, Chaowei Xiao, Benjamin Cyr, Yimeng Zhou, Won Park, Sara Rampazzi, Qi Alfred Chen, Kevin Fu, and Z. Morley Mao. Adversarial sensor attack on lidar-based perception in autonomous driving. In Proceedings of the 2019 ACM SIGSAC Conference on Computer and Communications Security , CCS ’19, page 2267–2281. ACM, November 2019. [7] MMDetection3D Contributors. MMDetection3D: OpenMMLab next-generation platform for general 3D object detection. https://github.com/open-mmlab/mmdetection3d , 2020. [8] Yinpeng Dong, Caixin Kang, Jinlai Zhang, Zijian Zhu, Yikai Wang, Xiao Yang, Hang Su, Xingxing Wei, and Jun Zhu. Benchmarking robustness of 3d object detection to common corruptions. In CVPR , 2023. [9] Andreas Geiger, Philip Lenz, Christoph Stiller, and Raquel Urtasun. Vision meets robotics: The kitti dataset. The international journal of robotics research , 32(11):1231–1237, 2013. [10] Chenhang He, Ruihuang Li, Yabin Zhang, Shuai Li, and Lei Zhang. Msf: Motion-guided sequential fusion for efficient 3d object detection from point cloud sequences. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 5196–5205, June 2023. [11] Kuan-Chih Huang, Weijie Lyu, Ming-Hsuan Yang, and Yi-Hsuan Tsai. Ptt: Point-trajectory transformer for efficient temporal 3d object detection. In CVPR , 2024. [12] Zizhi Jin, Xiaoyu Ji, Yushi Cheng, Bo Yang, Chen Yan, and Wenyuan Xu. Pla-lidar: Physical laser attacks against lidar-based 3d object detection in autonomous vehicle. In 2023 IEEE Symposium on Security and Privacy (SP) , pages 1822–1839. IEEE, 2023. [13] Zizhi Jin, Qinhong Jiang, Xuancun Lu, Chen Yan, Xiaoyu Ji, and Wenyuan Xu. Phantomlidar: Cross-modality signal injection attacks against lidar. In NDSS , San Diego, CA, USA, February 2025. [14] Ryoma Kobayashi, Kazuki Nomoto, Yuta Tanaka, Goki Tsuruoka, and Tatsuya Mori. Invisible but detected: Physical adversarial shadow attack and defense on LiDAR object detection. In 34th USENIX Security Symposium (USENIX Security 25) , pages 7369–7386. USENIX Association, August 2025. [15] Alex H. Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, and Oscar Beijbom. Pointpillars: Fast encoders for object detection from point clouds. In CVPR , 2019. [16] Xin Li, Tao Ma, Yuenan Hou, Botian Shi, Yuchen Yang, Youquan Liu, Xingjiao Wu, Qin Chen, Yikang Li, Yu Qiao, and Liang He. Logonet: Towards accurate 3d object detection with local-to-global cross-modal fusion. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2023. [17] Y. Li et al. Detection and utilization of reflections in lidar scans for autonomous systems. Sensors , 2024. [18] Takami Sato, Yuki Hayakawa, Ryo Suzuki, Yohsuke Shiiki, Kentaro Yoshioka, and Qi Alfred Chen. Practical removal attacks on lidar-based object detection in autonomous driving. In Symposium on Vehicle Security and Privacy , San Diego, CA, USA, February 2023. 
+
+11 [19] Takami Sato, Ryo Suzuki, Yuki Hayakawa, Kazuma Ikeda, Ozora Sako, Rokuto Nagata, Ryo Yoshida, Qi Alfred Chen, and Kentaro Yoshioka. On the realism of lidar spoofing attacks against autonomous driving vehicle at high speed and long distance. In NDSS , 2025. [20] Jiachen Sun, Yulong Cao, Qi Alfred Chen, and Z. Morley Mao. Towards robust lidar-based perception in autonomous driving: General black-box adversarial sensor attack and countermeasures, 2020. [21] Pei Sun, Henrik Kretzschmar, Xerxes Dotiwalla, Aurelien Chouard, Vijaysai Patnaik, Paul Tsui, James Guo, Yin Zhou, Yuning Chai, Benjamin Caine, Vijay Vasudevan, Wei Han, Jiquan Ngiam, Hang Zhao, Aleksei Timofeev, Scott Ettinger, Maxim Krivokon, Amy Gao, Aditya Joshi, Yu Zhang, Jonathon Shlens, Zhifeng Chen, and Dragomir Anguelov. Scalability in perception for autonomous driving: Waymo open dataset. In CVPR , 2020. [22] Ryo Suzuki, Takami Sato, Yuki Hayakawa, Kazuma Ikeda, Ozora Sako, Rokuto Nagata, Qi Alfred Chen, and Kentaro Yoshioka. Wip: Towards practical lidar spoofing attack against vehicles driving at cruising speeds. In ISOC Symposium on Vehicle Security and Privacy (VehicleSec) , 2024. [23] OpenPCDet Development Team. Openpcdet: An open-source toolbox for 3d object detection from point clouds. https://github.com/open-mmlab/OpenPCDet , 2020. [24] James Tu, Mengye Ren, Siva Manivasagam, Ming Liang, Bin Yang, Richard Du, Frank Cheng, and Raquel Urtasun. Physically realizable adversarial examples for lidar object detection, 2020. [25] Haiyang Wang, Chen Shi, Shaoshuai Shi, Meng Lei, Sen Wang, Di He, Bernt Schiele, and Liwei Wang. Dsvt: Dynamic sparse voxel transformer with rotated sets. In CVPR , 2023. [26] Hao Xiang, Zhaoliang Zheng, Xin Xia, Runsheng Xu, Letian Gao, Zewei Zhou, Xu Han, Xinkai Ji, Mingxi Li, Zonglin Meng, Li Jin, Mingyue Lei, Zhaoyang Ma, Zihang He, Haoxuan Ma, Yunshuang Yuan, Yingqian Zhao, and Jiaqi Ma. V2x-real: A large-scale dataset for vehicle-to-everything cooperative perception. In European Conference on Computer Vision (ECCV) , 2024. [27] Yan Yan, Yuxing Mao, and Bo Li. Second: Sparsely embedded convolutional detection. In Sensors , 2018. [28] Tianwei Yin, Xingyi Zhou, and Philipp Krahenbuhl. Center-based 3d object detection and tracking. In 
+
+CVPR , 2021. [29] Mellon M. Zhang, Glen Chou, and Saibal Mukhopadhyay. Towards streaming lidar object detection with point clouds as egocentric sequences, 2025. [30] Zixiang Zhou, Xiangchen Zhao, Yu Wang, Panqu Wang, and Hassan Foroosh. Centerformer: Center-based transformer for 3d object detection. In ECCV , 2022. [31] Benjin Zhu, Zhengkai Jiang, Xiangxin Zhou, Zeming Li, and Gang Yu. Class-balanced grouping and sampling for point cloud 3d object detection. arXiv preprint arXiv:1908.09492 , 2019. [32] Xiaosu Zhu, Hualian Sheng, Sijia Cai, Bing Deng, Shaopeng Yang, Qiao Liang, Ken Chen, Lianli Gao, Jingkuan Song, and Jieping Ye. Roscenes: A large-scale multi-view 3d dataset for roadside perception. In 
+
+European Conference on Computer Vision (ECCV) , 2024. 
+
+12 A Dataset Generation Algorithms 
+
+Algorithm 1 Phantom point injection dataset generation 
+
+Require: Point cloud sequence {P t}Tt=1 , ego-pose sequence {Tt ∈ SE (3) }Tt=1 , trace library L,perturbation mode m ∈ { GLOBAL , RELATIVE }, seed s
+
+Ensure: Spoofed sequence { ˜Pt}, phantom GT boxes {˜bt}
+
+1: A ← TOGGLE SCHEDULE ({1 . . . T }, w =32) 
+
+2: R ← EXTRACT RUNS (A)
+
+3: for each run W = [ ts, t e] ∈ R do 
+
+4: ˜p, ˜b ← SAMPLE TRACE (L, s +ts)
+
+5: ˜p ← ˜p − mean(˜ p[: , : 2]) 
+
+6: ˜p ← R(ψ) ˜ p ▷ offset δ ∼ U ([15 , 20] × [−3, 3]) , ψ ∼ U (−0.2, 0.2) 
+
+7: if m = GLOBAL then 
+
+8: Tanc ← Tte
+
+9: ˜pW ← Tanc ˜p
+
+10: ˜bW ← Tanc ˜b
+
+11: end if 
+
+12: for each frame t ∈ W do 
+
+13: if m = GLOBAL then 
+
+14: ˜pt ← T−1 
+
+> t
+
+˜pW
+
+15: ˜bt ← T−1 
+
+> t
+
+˜bW
+
+16: else 
+
+17: ˜pt ← ˜p
+
+18: ˜bt ← ˜b
+
+19: end if 
+
+20: ˜pt ← GROUND ANCHOR (˜ pt, Pt)
+
+21: ˜Pt ← RAYCAST (Pt, ˜pt)
+
+22: end for 
+
+23: end for Algorithm 2 Point removal dataset generation 
+
+Require: Point cloud sequence {P t}Tt=1 , GT box sequence {B t}, azimuth width α, elevation width β = 16 ,seed s
+
+Ensure: Attacked sequence { ˜Pt}
+
+1: A ← TOGGLE SCHEDULE ({1 . . . T }, w =32) 
+
+2: R ← EXTRACT RUNS (A)
+
+3: for each run W = [ ts, t e] ∈ R do 
+
+4: Select initial target box bts from Bts
+
+5: for each frame t ∈ W do 
+
+6: ˆct ← ct−1 + ∆ t[vx, v y , 0] ⊤ ▷ predict next pos. 
+
+7: bt ← nearest same-class box to ˆct with displacement < d max 
+
+8: if bt = ∅ then ▷ tracking lost 
+
+9: ˜Pt ← P t; continue 
+
+10: end if 
+
+11: Compute (θ∗ 
+
+> t
+
+, ϕ ∗ 
+
+> t
+
+) from bt center 
+
+12: at ∼ Bernoulli( pdist (rt)) ▷ firing gate 
+
+13: if at = 0 then 
+
+14: ˜Pt ← P t; continue 
+
+15: end if 
+
+16: St ← { i : |wrap( θi − θ∗ 
+
+> t
+
+)| ≤ α 
+
+> 2
+
+, |ϕi − ϕ∗ 
+
+> t
+
+| ≤ β 
+
+> 2
+
+}
+
+17: Mt ∼ Bernoulli( premove )|S t|
+
+18: ˜Pt ← P t \ { pi : i ∈ S t, Mt,i = 1 }
+
+19: end for 
+
+20: end for 
+
+1B Baselines 
+
+CenterPoint. CenterPoint [ 28 ] encodes a LiDAR point cloud into a bird’s-eye-view (BEV) feature map using a 3D backbone, then applies convolution-based heads to produce a class-specific heatmap whose local peaks identify object centers. From each center, the network regresses 3D size, orientation, and velocity, unifying detection and tracking in a single anchor-free framework. A second-stage refinement extracts bilinear-interpolated face-center features from predicted bounding boxes to produce IoU-aware confidence scores and refined box estimates. CenterPoint 4-frame (referred to as CP4F) extends CenterPoint by concatenating four consecutive LiDAR sweeps into a single point cloud before encoding. This multi-frame aggregation produces denser voxel evidence, yielding richer representations particularly for stationary objects that accumulate points across frames. 
+
+MSF. MSF [ 10 ] is a two-stage temporal detector that uses CenterPoint 4-frame as its region proposal network (RPN). Current-frame proposals are propagated backward using estimated velocities, and 128 raw LiDAR points from each historical frame are pooled within expanding cylindrical regions centered on the propagated proposal locations. The sampled points are encoded via geometric and motion embeddings, then refined through three learning blocks containing multi-head self-attention and a Bidirectional Feature Aggregation (BiFA) module. BiFA enables cross-frame information exchange in both temporal directions, allowing persistent patterns across frames to be mutually reinforced. A query-based transformer decoder produces the final proposal representation for box regression and confidence prediction. In this work, we evaluate the performance of MSF with a four-frame and eight-frame point cloud histories. 
+
+PTT. PTT [ 11 ] is a two-stage temporal detector that uses CP4F as its RPN. It requires only the current frame’s point cloud alongside a 32 frame history of proposals, avoiding storage of historical point clouds. Point-to-Proposal features encode geometric relationships between current-frame points and historical proposal box corners, while Proposal-to-Proposal features capture inter-frame displacements. These are combined into per-frame point-trajectory features. These features are split into long-term and short-term memories, where short-term features query the long-term memory via cross-attention to extract relevant historical trends. A future-aware module further encodes anticipated trajectory features from estimated velocities. Finally, a point-trajectory aggregator fuses all memory outputs with current-frame point features to produce final detections. 
+
+LoGoNet. LoGoNet [ 16 ] is a LiDAR-camera fusion detector designed for Waymo-scale 3D object detection. It fuses the two modalities at both global and local scales: a Global Fusion module aligns image features with LiDAR voxel features across the full scene using point centroids for accurate cross-modal projection, while a Local Fusion module subdivides each 3D proposal into a uniform grid, projects grid centers into camera images, and fuses sampled image features with position-decorated point-cloud features for each candidate region. A Feature Dynamic Aggregation module then allows locally and globally fused representations to interact before final box refinement. Because LoGoNet is publicly available and natively supports Waymo, no custom re-implementation was required. From an adversarial robustness perspective, LoGoNet is not explicitly designed as a defense. Its fusion strategy primarily enhances LiDAR features with image cues rather than performing explicit cross-modal consistency checks. As a result, a LiDAR-only phantom that successfully induces a strong geometric response may still persist if the fused representation remains confident, even in the absence of clear supporting evidence from the camera. LoGoNet is evaluated against all six point injection modes and all six point removal widths (10°–60°). 
+
+PHiM. PHiM [ 29 ] is a State Space Model (SSM) architecture designed specifically for polar-coordinate streaming LiDAR object detection. Instead of relying on traditional 3D convolutions, PHiM leverages a custom Mamba-based streaming backbone with dimensionally-decomposed opera-tions to avoid the heavy distortions typical of polar representations. It employs local bidirectional Mamba blocks for intra-sector spatial encoding and a global forward Mamba block for inter-sector temporal modeling. Local sector features are extracted via this backbone and accumulated into a sector feature buffer, enabling efficient inter-sector communication through a full-scan backbone. This hybrid approach combines the rapid update rates of polar processing with accurate full-scene reasoning, processing point clouds as egocentric sequences to overcome the limited visibility and cross-sector dependencies of prior streaming methods. 
+
+DSVT. DSVT [ 25 ] is a single-stride, window-based voxel Transformer backbone designed to efficiently handle the inherent sparsity of outdoor point clouds. To process sparse voxels in a fully 2parallel manner without relying on customized CUDA operations, DSVT introduces Dynamic Sparse Window Attention, which partitions a series of local regions within each window according to their sparsity. To enable cross-set feature exchange, it employs a rotated set partitioning strategy that alternates between two spatial partitioning configurations across consecutive self-attention layers. Additionally, DSVT utilizes an attention-style 3D pooling module to downsample features while effectively encoding geometric information. This purely Transformer-based architecture avoids the representational limitations of sparse convolutions and serves as a highly deployment-friendly, general-purpose 3D perception backbone. 
+
+CenterFormer. CenterFormer [ 30 ] is a center-based transformer network that constructs long-range feature attention for 3D object detection while mitigating the immense computational complex-ity typical of standard query-based transformers on large point clouds. The architecture first utilizes a standard voxel-based backbone and a center heatmap to identify a limited number of object center candidates. The features extracted from these center candidates are then explicitly used as the initial query embeddings in the transformer module. A cross-attention mechanism is employed to aggregate contextual features from neighboring spatial regions around each candidate. To leverage temporal context, CenterFormer further incorporates a multi-frame cross-attention mechanism that aligns and fuses object features from historical frames, allowing the network to robustly handle moving objects before applying regression heads to produce final bounding box predictions. 
+
+## C Evaluation Implementation 
+
+Single frame method evaluation. Because ATLAS consists of spoofed single-frames, evaluating single-frame methods [ 30 , 28 , 29 , 25 ] Proposal generation with CenterPoint. MSF [ 10 ] and PTT [ 11 ] use CP4F as a first stage. To ensure that spoofed observations propagate through the detection pipeline realistically, we recompute region proposals using CP4F [28]. First, spoofed points are ray-casted into the four-frame history of a current frame based on the spoof schedule described by Eq. (1) . Then, for each frame t, a four-frame point cloud is constructed by transforming the single-frame point clouds from frames t − 3, ..., t into the ego coordinate frame at time t. This can be represented by Eq. (8), 
+
+P(t) =
+
+> 3
+
+[
+
+> j=0
+
+ T−1 
+
+> t
+
+Tt−j ˜p, p 3:5 , 0.1j : p ∈ P t−j , (8) where Tk ∈ SE (3) is the ego-to-global transformation at frame k, ˜p = [ px, p y , p z , 1] ⊤ is the homogeneous point coordinate, p3:5 are the intensity and elongation channels, and 0.1j is a lag timestamp encoding the frame’s temporal offset in seconds. When all four frames in the history are clean, the original unmodified dataloader points are used; for frames containing spoofed objects in the history, the modified aggregated cloud is constructed. A CenterPoint forward pass is performed, and the resulting proposals, labels, and confidence scores are stored per-frame for use as RPN input to the temporal detectors. 
+
+MSF Evaluation. For each frame t, the four-frame point cloud is reconstructed from the spoofed dataset following Eq. (8) . A modified version of Eq. (8) which goes up to i j = 7 is used to evaluate the eight-frame variant of MSF. The stored CenterPoint proposals for the current frame undergo a velocity rescaling identical to the one used by the official MSF pipeline, as shown in Eq. (9): 
+
+(ˆ vx, ˆvy ) = ( −0.1 · vx, −0.1 · vy ). (9) This converts the CenterPoint proposal velocities into backward motion used by MSF’s motion-guided point sampler to propagate proposals to their estimated past locations. The transformed bounding box proposals, scores, labels, and four/eight-frame point cloud are used for an MSF forward pass. 
+
+PTT evaluation. For each frame t, the stored proposals from the preceding 32 frames are collected, velocity-rescaled via Eq. (9), and transformed into the ego coordinate frame of frame t:
+
+ˆBk = fbox 
+
+ T−1 
+
+> t
+
+Tk, Bk
+
+ , k = t − 31 , . . . , t, (10) where fbox denotes the rigid-body transformation of box center, heading, and velocity. A PTT forward pass is then performed, using the current frame’s point cloud and transformed proposal history, label history, and confidence score history as inputs. 3D Extended Results 
+
+Figure 6: Decay of injection vulnerability. The ASR peaks at the end of the attack frames before decaying monotonically as clean frames enter the temporal memory buffer. Figure 6 above illustrates the ASR in a chronological timeline of frames, highlighting how the temporal vulnerability peaks immediately before the injection attack ends. Once the continuous introduction of spoofed points ends, the memory buffer begins processing the actual spatial data instead of adversarial features. As a result, the ASR exhibits rapid and monotonic decay as incoming clean frames successfully dull the compromised history of the system. 
+
+Figure 7: False confidence during point injection. Detectors assign high confidence to injected phantom objects during the active attack frames, which rapidly dissipates once the temporal buffer is overwritten with uncompromised frames. As shown in Figure 7 above, the confidence score distributions for point injection attacks skew toward maximum certainty during the active spoofing phase because these dense and high-confidence clusters confirm that temporal detectors fail to reject phantoms and instead actively reinforce them until 4the attack threshold is crossed. During the following recovery phase, this false confidence rapidly decreases as uncompromised frames enter the temporal window and overwrite the spoofed history. 
+
+Figure 8: Target confidence degradation and recovery. Point removal systematically suppresses real target confidence scores during the active attack, followed by a full recovery to baseline certainty as clean point clouds reconstruct the scene. In contrast, Figure 8 demonstrates the shifting confidence distributions of real targets subjected to point removal across the temporal history buffer. During the active attack frames, the system’s spatial perception is significantly disrupted, causing detectable target objects to exhibit significantly degraded confidence scores relative to their respective clean baselines. Once the adversarial removal frames conclude, the continuous flow of clean point clouds enables temporal fusion modules to reconstruct accurate object representations and recover baseline confidence scores. Table 7: Center gap between clean and perturbed score peaks across point removal levels. Method Removal 10 Removal 20 Removal 30 Removal 40 Removal 50 Removal 60 CenterPoint [28] 0.614 0.158 0.724 0.722 0.168 0.148 CenterPoint 4F [28] 0.581 0.622 0.674 0.664 0.123 0.130 MSF4 [10] 0.657 0.742 0.672 0.682 0.617 0.614 MSF8 [10] 0.659 0.759 0.672 0.679 0.622 0.627 PTT [11] 0.594 0.759 0.637 0.634 0.586 0.586 LoGoNet [16] 0.682 0.063 0.707 0.722 0.604 0.602 PHiM [29] 0.363 0.058 0.451 0.464 0.328 0.308 Figure 9 shows the score distribution of objects that the removal attack failed to hide. For most target removal azimuths, the proportion of surviving detection scores above 0.7 is less than 20% . Moreover, Table 7 illustrates the difference in peaks of the object’s spoofed score distribution and the peak of the same object’s clean score distribution. Combined with the result seen in Fig. 9, we observe that the majority of detections that survive point removal have much lower confidence scores than the same detection in a clean setting. This yields the expected conclusion that point removal-attacked detections that survive the IoU threshold have heavily degraded scores. 5Figure 9: Systematic degradation of target confidence in removal attacks. Adversarial point removal effectively suppresses the certainty of legitimate detections, driving a significant proportion of target confidence scores below the 0.7 threshold. 
+
+## E LOT Implementation Details 
+
+Our proposed Latent Occupancy Tracking (LOT) module operates in the polar occupancy domain to model temporal consistency of LiDAR observations under adversarial perturbations. The implemen-tation maintains a latent occupancy representation over discretized polar coordinates, where each voxel is indexed by (z, t, r ) corresponding to height, azimuth, and radial distance bins, respectively. 
+
+E.1 Polar Occupancy Construction 
+
+Given voxelized point features extracted by the backbone, LOT first predicts a scalar occupancy confidence for each voxel using a lightweight MLP which consists of two linear layers with GELU activation in between. The predicted scores are scattered into a dense polar occupancy grid using the corresponding voxel coordinates. To reduce computational complexity, the occupancy map is collapsed along the height dimension through masked averaging: 
+
+O2D (t, r ) = 
+
+P 
+
+> z
+
+O(z, t, r ) · M (z, t, r )
+
+P 
+
+> z
+
+M (z, t, r ) ,
+
+where M denotes the voxel validity mask. The resulting 2D occupancy map is further downsampled using average pooling over the angular and radial dimensions. The full azimuth space is partitioned into multiple sectors, and each sector is processed independently. A fixed-length buffer stores historical sector occupancy maps for forecasting. 
+
+E.2 Forecasting via ConvSSM 
+
+LOT employs a convolutional state-space model (ConvSSM) to predict future occupancy states from historical occupancy observations. Given a sequence of historical occupancy maps 
+
+{Xt−K+1 , . . . , X t},
+
+6the hidden state evolves according to: 
+
+hk = Ah k−1 + B(Xk),
+
+where A is a learnable diagonal state transition matrix parameterized in log-space for stability, and 
+
+B(·) is implemented using a convolutional projection layer. The predicted occupancy map is decoded as: 
+
+ˆXt+1 = C(ht) + DX t,
+
+where C(·) is a convolutional decoder and D denotes a learnable skip connection from the latest observation. The final latent occupancy representation is obtained by merging the current observation with the predicted future occupancy: 
+
+Xfinal = 0 .5Xcurrent + 0 .5Xforecast .
+
+To suppress adversarial or inconsistent voxels, LOT computes voxel-wise confidence scores from the predicted occupancy map and dynamically filters low-confidence voxels before passing features to downstream detection heads. 
+
+E.3 Ground-Truth Occupancy Generation 
+
+Ground-truth occupancy supervision is generated directly from annotated bounding boxes in polar coordinates. Each box is projected onto the polar grid according to its radial and angular extent, producing a binary occupancy mask. The occupancy map is subsequently downsampled and divided into sectors. To provide smoother supervision, Gaussian kernels are applied around occupied cells: 
+
+G(t, r ) = exp 
+
+
+
+− (t − tc)2
+
+2σ2
+
+> t
+
+− (r − rc)2
+
+2σ2
+
+> r
+
+
+
+.
+
+The final supervision map is obtained by combining the Gaussian occupancy target with the binary sector occupancy map. 
+
+E.4 Training Strategy 
+
+Training is performed in a staged manner to stabilize optimization and disentangle occupancy estimation, temporal forecasting, and downstream detection learning. 
+
+Stage 1: Score MLP Pretraining. In the first stage, only the voxel scoring network ( score_mlp )is trained. The objective is to learn reliable occupancy estimation from spatial voxel features before introducing SSM modeling. 
+
+Stage 2: SSM Training. After the occupancy scoring network converges, the ConvSSM module is optimized while keeping the pretrained scoring network fixed. Since the forecasting input consists of different spatial sectors within the same LiDAR frame , the SSM is trained to model spatial occupancy continuity and sector-wise latent consistency across neighboring regions. The ConvSSM branch is supervised using a CenterNet-style focal occupancy loss: 
+
+Lf orecast = Lf ocal ( ˆX, X gt ),
+
+where ˆX denotes the predicted occupancy map and Xgt represents the generated occupancy supervi-sion target. 
+
+Stage 3: Detector Fine-Tuning. Finally, the entire VFE and LOT modules are frozen, including both the occupancy scoring network and ConvSSM branch. The remaining detector components are then fine-tuned using the filtered latent occupancy features for downstream 3D object detection. 7F Broader impact 
+
+As advances are made in attack hardware, the threat of autonomous vehicles operating in adversarial sensing conditions continues to grow. We envision ATLAS helping drive the development and evaluation of the next generation of LiDAR object detectors by enabling rigorous assessment of their adversarial robustness capabilities. 8

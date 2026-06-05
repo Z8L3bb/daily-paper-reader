@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-05",
+  "date": "2026-06-05",
+  "generated_at": "2026-06-05T20:53:03",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/05/2606.06255v1-radiusfps-efficient-farthest-point-sampling-on-cpus-and-gpus-via-spherical-voxel-pruning",
+      "section": "quick",
+      "title_en": "RadiusFPS: Efficient Farthest Point Sampling on CPUs and GPUs via Spherical Voxel Pruning",
+      "authors": "Ziyang Yu, Xiang Li, Qiong Chang, Jun Miyazaki",
+      "date": "2026-06-04",
+      "pdf": "https://arxiv.org/pdf/2606.06255v1",
+      "score": "7.0",
+      "evidence": "提出面向LiDAR点云的高效最远点采样加速三维感知流程",
+      "tldr": "经典最远点采样（FPS）因计算复杂度高成为点云感知的延迟瓶颈，难以满足实时机器人需求。本文提出RadiusFPS，利用球体素剪枝加速FPS，在不改变更新规则下推导几何边界来跳过冗余距离计算，并推出GPU优化版RadiusFPS-G融合核函数消除全局内存往返。在室内外基准测试上获得最高2.5倍加速，分割精度相当，且与FastPoint结合实现最快端到端推理，为资源受限场景提供可行的高质量采样方案。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Point clouds are a primary sensory representation for robotic perception, underpinning LiDAR-based autonomous driving, simultaneous localization and mapping (SLAM), and navigation. Within these pipelines, Farthest Point Sampling (FPS) is the most well-known downsampling operator, as its uniform coverage preserves the geometric structure on which downstream perception relies. However, the large time complexity of classical FPS scales poorly with the million-point-per-second rates of modern 3D sensors, making it a dominant latency bottleneck that conflicts with the real-time and limited onboard compute budgets of robotic systems. Therefore, we propose RadiusFPS, an FPS acceleration framework based on spherical voxel pruning that preserves the standard FPS update rule under the same initialization and tie-breaking policy. By indexing the point cloud with spherical voxels, RadiusFPS derives a conservative geometric bound that prunes redundant distance computations in each iteration, complemented by a coordinate-wise point-skip test that removes residual updates. We further introduce RadiusFPS-G, a warp-level GPU implementation that fuses voxel selection, pruning, and distance update into memory-coalesced kernels, eliminating costly global-memory round-trips. On indoor (S3DIS, ScanNet) and outdoor LiDAR (SemanticKITTI) benchmarks, RadiusFPS-G attains up to 2.5x speedup over GPU-based FPS and matches or exceeds QuickFPS among the evaluated methods while using roughly half its GPU memory, with comparable segmentation accuracy. When coupled with the learning-based FastPoint sampler, the resulting pipeline achieves the fastest End-to-End inference among all evaluated configurations. These properties make high-quality FPS-style sampling practical for latency- and memory-constrained robotic vision.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/05/2606.02924v1-atlas-a-large-scale-evaluation-benchmark-for-adversarial-lidar-perception",
+      "section": "quick",
+      "title_en": "ATLAS: A Large-Scale Evaluation Benchmark for Adversarial LiDAR Perception",
+      "authors": "Mellon M. Zhang, Siddhant Panse, Zimo Fan, Akshal Dhal, Rishit Sarkar, Glen Chou",
+      "date": "2026-06-01",
+      "pdf": "https://arxiv.org/pdf/2606.02924v1",
+      "score": "6.0",
+      "evidence": "对抗性LiDAR感知基准",
+      "tldr": "LiDAR感知模型在干净数据上表现优异，但面临物理黑盒攻击时鲁棒性未充分评估。我们提出ATLAS基准，在真实驾驶序列上模拟点注入与移除攻击，评估现代感知模型。实验发现，强模型虽能抵御移除攻击，却更易受注入攻击，漏洞源于标准数据增强。该基准及代码发布将推动感知系统抵御黑盒攻击的研究。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Autonomous driving perception is typically evaluated on clean benchmark data, yet real-world deployment requires robustness to rare, structured, and potentially adversarial sensor anomalies. This gap is especially critical for LiDAR, where external actors can physically manipulate the sensing process to induce black-box perception failures without accessing the model. Existing LiDAR benchmarks provide little visibility into this failure mode. Prior adversarial LiDAR studies have largely centered on attack hardware, geometric and algorithmic defenses, and early-generation detectors, leaving the robustness of modern perception systems unexplored. To address this evaluation gap, we introduce ATLAS (Adversarial Temporal LiDAR Attack Suite), the first large-scale, physically grounded evaluation benchmark for LiDAR perception models under black-box sensor attacks, simulating the two primary attack modes -- point injection and point removal -- across real driving sequences. Evaluating a broad cross-section of current state-of-the-art LiDAR perception models, ATLAS reveals a surprising robustness asymmetry: models with stronger performance on standard benchmarks tend to better withstand removal attacks, yet are actually more vulnerable to injection attacks than weaker models. We trace this vulnerability to standard object database sampling augmentations, revealing how current training practices can induce architecture-agnostic robustness failures, and study initial directions for mitigating both attack modes. We release the ATLAS generation code to support extensible, reproducible evaluations as attack capabilities evolve, helping make black-box sensor robustness an explicit consideration in future LiDAR perception development.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
