@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-06",
+  "date": "2026-06-06",
+  "generated_at": "2026-06-06T20:36:16",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/06/2606.03100v1-zero-shot-3d-question-answering-via-hierarchical-view-to-token-transportation",
+      "section": "quick",
+      "title_en": "Zero-Shot 3D Question Answering via Hierarchical View-to-Token Transportation",
+      "authors": "Dongsheng Wang, Dawei Su, Hui Huang",
+      "date": "2026-06-02",
+      "pdf": "https://arxiv.org/pdf/2606.03100v1",
+      "score": "6.0",
+      "evidence": "提出分层视图和令牌重要性评估机制以聚合点云中的三维细节",
+      "tldr": "本文解决零样本3D场景理解中，将点云投影为多视图并输入VLM时受限于输入令牌数量、难以保留关键细节的问题。提出KeyVT分层方法，在视图和令牌两个级别引入基于语义和几何重要性的选择机制，优先保留与任务相关的三维信息。实验表明，该方法在ScanQA和SQA3D上以更少输入令牌达到了更优性能，为3D-2D跨模态理解提供了高效聚合策略。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Recently, zero-shot 3D scene understanding via 2D Vision-Language Models (VLMs) has gained increasing research interest due to their promising spatial reasoning capabilities. Typically, multiple 2D views are sampled from a 3D point cloud and fed into pre-trained VLMs to answer a given question. This paradigm highlights the critical role of input context quality and raises the challenge of retaining as many task-relevant 3D details as possible under a limited input budget. We propose \\texttt{KeyVT}, a hierarchical approach for input context collection at both the view and token levels. Specifically, we combine pixel features with camera parameters and assess view importance based on both semantic content and geometric position, resulting in spatially consistent and task-relevant views. Furthermore, we address redundancy among patches across selected views by identifying representative tokens under the optimal transport (OT) framework, where view tokens and key tokens are formulated as two discrete distributions in the embedding space. These key tokens are expected to cover all view features by minimizing the OT distance. We evaluate our framework on three widely used benchmarks, demonstrating significant improvements over existing tuning-free methods and performance comparable to training-based approaches.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/06/2606.05774v1-liauto-geox-efficient-grounded-driving-transformer",
+      "section": "quick",
+      "title_en": "LiAuto-GeoX: Efficient Grounded Driving Transformer",
+      "authors": "Jiawei Lian, Haoyi Sun, Yang Wu, Lifu Mu, Siyuan Wang, Le Hui, Ning Mao, Tao Wei, Pan Zhou, Kun Zhan, Jian Yang",
+      "date": "2026-06-04",
+      "pdf": "https://arxiv.org/pdf/2606.05774v1",
+      "score": "6.0",
+      "evidence": "利用稀疏LiDAR先验进行稠密深度估计",
+      "tldr": "现有视觉几何模型计算量大，缺乏远程几何保真度。LiAuto-GeoX利用稀疏LiDAR先验从环视图像中估计稠密三维几何，实现实时场景理解。该方法在大规模数据上学习驾驶几何模型，并通过高效设计支持实际部署，为自动驾驶提供可靠的空间感知。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Dense 3D reconstruction has demonstrated immense potential for spatial understanding, yet its viability as a real-time, onboard representation for autonomous driving remains an open challenge. Existing large-scale visual geometry models typically require substantial computational resources and lack the long-range geometric fidelity, surround-view consistency, and real-time efficiency demanded by dynamic driving environments. To bridge this gap, we present \\textbf{LiAuto-GeoX}, an efficient grounded driving transformer designed for deployable, ego-centric 3D scene understanding. Our approach begins by learning a high-capacity driving geometry model from large-scale surround-view data, utilizing sparse LiDAR priors to provide robust geometric grounding in distant, ambiguous, or structure-sparse regions. We then instantiate this capability into a highly compact 155M-parameter onboard model through a novel geometry-preserving distillation framework. This framework employs mask-guided depth-aware distillation to retain fine-grained metric structures by emphasizing geometrically informative regions, and relative-pose relational distillation to enforce cross-view spatial consistency through pose-induced geometric relations. Extensive evaluations reveal that \\textbf{LiAuto-GeoX} runs at 220 FPS on KITTI while maintaining high-fidelity dense reconstruction, enabling real-time deployment. The learned geometry transfers seamlessly to downstream autonomy tasks, achieving 90.6 PDMS in trajectory prediction, 24.63 mIoU in occupancy prediction, and 47.67 IoU in future-frame prediction. These all demonstrate that efficient dense 3D reconstruction can transcend its traditional role as a perception target to serve as a scalable, foundational geometric representation for next-generation autonomous driving.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
