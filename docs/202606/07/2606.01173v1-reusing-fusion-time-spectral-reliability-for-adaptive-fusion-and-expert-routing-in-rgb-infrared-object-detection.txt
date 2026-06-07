@@ -1,0 +1,1174 @@
+Title: Reusing Fusion-Time Spectral Reliability for Adaptive Fusion and Expert Routing in RGB-Infrared Object Detection
+
+URL Source: https://arxiv.org/pdf/2606.01173v1
+
+Published Time: Tue, 02 Jun 2026 01:25:14 GMT
+
+Number of Pages: 35
+
+Markdown Content:
+# REUSING FUSION -T IME SPECTRAL RELIABILITY FOR ADAPTIVE 
+
+# FUSION AND EXPERT ROUTING IN RGB-I NFRARED OBJECT 
+
+# DETECTION 
+
+Yefeng Wu 
+
+wuyefengflc@163.com 
+
+# ABSTRACT 
+
+RGB-infrared detectors typically discard the statistics generated during cross-modal fusion, leaving downstream modules unaware of whether the current interaction is reliable. We propose to extract a parameter-free, 7-dimensional spectral reliability descriptor—summarizing band energy, amplitude ratio, phase consistency, and cross-modal correlation—and to reuse it beyond the fusion stage. The descriptor drives both Spectral Reliability Fusion (SRF), which gates a spectral residual against a conservative spatial base, and Reliability-Conditioned Expert Routing (RCER), which combines the descriptor with pooled content to steer sparse post-fusion experts. Under matched ablations, descriptor-aware gating improves mAP50 over content-only adaptive gating; a 2×2 factorial analysis further shows that descriptor-conditioned routing provides the larger marginal gain over expert architecture alone at near-equal parameter count. Under six synthetic degradations on DroneVehicle, average retention rises to 95.0%, versus 92.0% for content-only MoE and 87.9% for concatenation, with the largest gain under modality drop; the same model also improves mAP50 by +5.2/+5.3 on the natural day/night split. These results suggest that preserving fusion-time reliability as an explicit signal benefits both adaptive fusion and post-fusion conditional computation. 
+
+Keywords Multimodal Object Detection, Cross-Modal Fusion, Spectral Reliability, Mixture of Experts, RGB-Infrared Detection 
+
+# 1 Introduction 
+
+Multimodal detectors usually preserve the output of fusion, but not a representation of whether that fusion was trustworthy. In RGB-infrared detection, this omission matters because many failures arise less from semantic am-biguity than from low light, blur, noise, misalignment, or partial modality loss, all of which weaken cross-modal agreement [ Liu et al.(2022) , Sun et al.(2022b) ]. Once RGB and infrared features have been mixed into a fused tensor, downstream modules must infer reliability indirectly from content alone, even though content complexity and fusion reliability are different factors. Most RGB-infrared pipelines address this issue only inside the fusion block. Spatial-domain ap-proaches [ Li et al.(2023) , Zhao et al.(2024) ] learn attention maps or gates to reweight modality contributions, while SuperFusion [ Tang et al.(2022) ] emphasizes alignment-aware fusion; frequency-domain methods [ Wu et al.(2025) ,Zhu et al.(2025a) , Zhu et al.(2025b) ] capture band-specific complementarity between RGB texture and infrared saliency. Yet the statistics produced during fusion are usually consumed locally and then discarded. This is especially limiting once conditional computation is introduced: routers then adapt from fused content even though the hardest cases often stem from agreement collapse between modalities rather than intrinsically complex semantics. We view this missing information as a state variable that multimodal fusion should expose explicitly. The frequency domain is a natural place to estimate such a state because cross-modal interaction there reveals interpretable cues about band energy, modal dominance, phase consistency, and cross-modal correlation. We summarize these cues as a parameter-free, 7-dimensional spectral reliability descriptor extracted from the same Fourier interaction already used for fusion. Under clean, well-aligned conditions, the descriptor shows strong phase coherence, balanced amplitudes, and 
+
+> arXiv:2606.01173v1 [cs.CV] 31 May 2026
+
+Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection high cross-modal correlation; under blur, noise, misalignment, or modality loss, it changes in distinct and predictable ways. Based on this descriptor, we build SAFER-DEIM. SRF uses the descriptor to gate spectral mixing against a conservative spatial fallback, while RCER reuses the same descriptor together with pooled fused content to route sparse post-fusion experts. The key idea is therefore not simply to add experts, but to change what drives adaptation: explicit fusion-time reliability rather than fused content alone. We instantiate this design inside a DEIM-based detector, but the reuse principle itself is orthogonal to the detector head. We evaluate this hypothesis with matched studies designed to isolate where the gains come from. Descriptor-aware gating improves over fixed interpolation and content-only adaptive gating. A 2×2 factorial analysis separates the routing signal from expert-bank design and shows that the former contributes the larger marginal gain. Under blur, noise, misalignment, and modality drop, the advantage widens as cross-modal agreement deteriorates, which is consistent with the view that preserving fusion-time reliability benefits both adaptive fusion and downstream conditional computation. Our main contributions are: • We formulate fusion reliability as a reusable state variable and instantiate it as a shared spectral reliability descriptor that preserves fusion-time evidence for later decisions in multimodal detection. • We design SRF and RCER , which reuse the same parameter-free descriptor for fusion gating and post-fusion conditional computation. • We provide matched empirical evidence via controlled ablations, a 2×2 factorial routing study, robustness tests, and diagnostics showing that the descriptor matters most when cross-modal agreement degrades. 
+
+# 2 Related Work 
+
+2.1 RGB-Infrared Fusion for Detection 
+
+RGB-infrared fusion methods range from simple feature concatenation to structured interaction modules. TarDAL [ Liu et al.(2022) ] jointly optimizes image fusion and detection, while CDDFuse [ Zhao et al.(2023) ] decom-poses modalities into base/detail representations. IGNet [ Li et al.(2023) ] and EMMA [ Zhao et al.(2024) ] use attention to reweight modality contributions, while SuperFusion [ Tang et al.(2022) ] focuses on alignment-aware fusion/registration mechanisms. For weakly aligned settings, OAFA [ Chen et al.(2024) ] further introduces adaptive alignment for UAV de-tection. Recent work also questions when multimodal fusion is insufficient or unreliable: M 2D-LIF [ Zhao et al.(2025) ]explicitly studies mono-modality insufficient learning and fusion degradation, reinforcing the need for reliability-aware downstream decisions rather than fusion alone. Other recent efforts enrich multimodal detection with semantic priors [ Li et al.(2025) ], knowledge distillation [ Liu and Zhang(2025) ], or state-space modeling [ Jin et al.(2025) ]. Or-thogonally, general missing-modality modeling methods tackle degraded or missing modalities through structural separation or representation prediction; for example, missing-modality prediction methods [ Kim and Kim(2024) ] allow inference to proceed when one modality is absent. Generic uncertainty modeling has also been studied in computer vision [ Kendall and Gal(2017) ], while RGB-infrared detection work uses uncertainty as an auxiliary cue for cross-modal learning [ Sun et al.(2022b) ]. Both strategies address reliability concerns but derive their signal from content representations or architectural separation, whereas we extract reliability from the spectral statistics of the fusion process itself—a complementary signal source that requires no additional learned predictor and no architectural decoupling. Most methods, however, still treat fusion as a one-way feature-construction stage. Even when reliability or modality insufficiency motivates the design, the resulting statistics are consumed locally within the fusion block and are not 
+
+preserved as an explicit variable that later modules—such as routing or conditional computation—can act upon. 
+
+2.2 Frequency-Domain Fusion and Conditional Computation 
+
+Fourier-based neural operations provide global receptive fields at low computational cost [ Rao et al.(2021b) ,Chi et al.(2020) ] and have been adopted in various vision tasks. For multimodal detection, FreDFT [ Wu et al.(2025) ]applies a frequency-domain fusion transformer to RGB-infrared inputs, modeling cross-modal interactions entirely in the spectral domain. WaveMamba [ Zhu et al.(2025a) ] combines multi-scale wavelet decomposition with Mamba architectures, achieving strong results on M3FD, DroneVehicle, and FLIR-Aligned at the cost of 69.1M parameters. AlignFreeNet [ Zhu et al.(2025b) ] addresses alignment-free lightweight fusion, tackling the practical challenge of im-perfect sensor registration. RSDet [ Zhao et al.(2026) ] takes a complementary approach, removing spectral redundancy between modalities via frequency-domain analysis to improve detection with reduced model size. Sparse mixture-of-experts (MoE) architectures [ Shazeer et al.(2017) ] route different inputs to specialized sub-networks, achieving capacity 2Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection scaling without proportional compute increase. In multimodal detection, however, such conditional modules usually select experts from the content of the fused features alone. More broadly, conditional computation has been explored through token pruning [ Rao et al.(2021a) ] and dynamic detection heads [ Dai et al.(2021) ], which adapt computation based on input complexity; these mechanisms condition on content representations, and combining them with explicit reliability signals remains unexplored. We combine these two directions. SRF uses frequency interaction to construct fused features while exposing a compact descriptor of scene reliability, and RCER uses that same descriptor to guide routing. Relative to prior frequency-domain detectors, we retain fusion-time spectral evidence instead of consuming it locally inside the fusion block. Relative to content-only MoE, the novelty is not the existence of experts itself, but the routing signal: explicit fusion-time reliability rather than content alone. 
+
+# 3 Method 
+
+3.1 Overview 
+
+Figure 1 presents the overall architecture of SAFER-DEIM. A dual-branch HGNetv2-B0 backbone extracts features 
+
+{P3, P 4, P 5} from RGB and thermal inputs. At P4 and P5, SRF replaces plain concatenation and returns both fused features and a descriptor d ∈ R7. The same descriptor is immediately reused by RCER at the same scales. At 
+
+P3, we retain concatenation to avoid placing FFT and sparse-routing overhead on the highest-resolution map. The resulting multi-scale features are then processed by the DEIM [ Huang et al.(2025) ] encoder and the DFINETrans-former [ Peng et al.(2024) ] decoder. The method follows a shared signal reuse design: the descriptor is computed once during fusion and remains available for later conditional computation. Panels (a) and (b) detail these two stages: SRF produces the descriptor during fusion, and RCER combines it with GAP( Ffused ) to activate reliability-matched experts. 
+
+3.2 Shared Spectral Reliability Descriptor 
+
+At each active pyramid level, the method first aligns RGB and auxiliary features to a shared channel dimension C:
+
+Fr = BN (Conv 1×1(Frgb )) , Fa = BN (Conv 1×1(Faux )) . (1) We compute the 2D real FFT of both aligned tensors in FP32 for numerical stability under AMP: 
+
+Sr = rFFT2D (Fr ), Sa = rFFT2D (Fa). (2) The spectrum is divided by a binary radial mask with cutoff r0 = rmax τ , where we set τ = 0 .25 (ablated in Section 4.5): 
+
+Skm = Sm ⊙ Mk, m ∈ { r, a }, k ∈ { low , high }. (3) We keep a binary low/high split rather than finer partitions because the design targets the main operational contrast in RGB-infrared detection: low-band structural/saliency agreement versus high-band texture reliability. The descriptor is extracted from the reference spectrum 
+
+eS = 12 (Sr + Sa), (4) This choice is deliberate: the descriptor should summarize scene reliability, not become a self-referential by-product of adaptive high-band weighting. From eS, Sr , and Sa, the descriptor module computes seven scalar statistics per sample without learnable parameters: 
+
+Ek = mean 
+
+
+
+|eSk|2
+
+, (5) 
+
+Ak = mean (|Skr |)
+
+mean (|Ska|) + ϵ , (6) 
+
+Pk = mean Re( Skr ⊙ Ska)
+
+|Skr || Ska| + ϵ
+
+!
+
+, (7) 
+
+ρ = corr( |Sr |, |Sa|). (8) Here Ek is band energy, Ak is amplitude ratio, Pk is phase consistency, and ρ is the global Pearson correlation of the flattened amplitude spectra. Throughout, ϵ = 10 −5 is a small constant for numerical stability. The final descriptor is 
+
+d = [ Elow , E high , A low , A high , P low , P high , ρ ] ∈ R7. (9) 3Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection HGNetv2 – B0        
+
+> backbone
+> P3
+> P4
+> P5
+> ……
+> P3
+> P4
+> P5
+> ……
+> P4 P4
+> P5 P5
+> Fusion
+> P3 P3
+> Concat
+> Detection Head
+> SRF RCER
+> SRF RCER
+> Output
+> Input
+> RGB
+> P4 / P5
+> Thermal
+> P4 / P5
+> r
+
+F
+
+> a
+
+F        
+
+> raF +F 2DWConv
+> local F
+> raF +F 2
+> res F
+> rF
+> aFspec F
+> rF
+> aF
+> rS
+> aS
+> ()Wd b
+> 
+> =+
+
+  
+
+> 
+> 1
+> −
+> fused F
+> 7D descriptor
+> GAP (F )fused
+> out F
+
+Router 
+
+> b. Reliability-Conditioned Expert Routing (RCER) a. Spectral Reliability Fusion (SRF)
+
+Figure 1: SAFER-DEIM overview. Top: a dual-branch HGNetv2-B0 backbone extracts RGB and thermal features at 
+
+{P3, P 4, P 5}; P3 uses plain concatenation, whereas P4 and P5 apply SRF followed by RCER before the DEIM encoder and DFINETransformer decoder. (a) SRF mixes local, spectral, and residual branches to produce the fused feature 
+
+Ffused together with the 7D spectral reliability descriptor d. (b) RCER reuses d together with GAP( Ffused ) to route specialized experts while keeping the shared expert always active. This design has two practical properties. First, the descriptor is parameter-free and easy to inspect. Second, its components are directly related to the degradations that matter in multimodal detection: blur mainly suppresses Ehigh ,strong noise reduces Phigh , and misalignment or modality drop strongly depresses ρ. The implementation keeps the raw amplitude ratio rather than a log-ratio so that modality dominance remains directional: values above 1 indicate RGB-dominant energy, while values below 1 indicate auxiliary-dominant energy. 
+
+Gradient flow and normalization. Before the descriptor is consumed, we apply 
+
+bd = LN(stopgrad( d)) . (10) Stopping gradients keeps the descriptor a measurement of the current input pair instead of letting the detection loss distort its scene-condition semantics. LayerNorm compensates for the heterogeneous channel scales before linear projection. The Pearson correlation ρ is computed by flattening both |Sr | and |Sa| over all spatial-frequency bins and channel dimensions into 1D vectors and then applying the standard Pearson formula; if either flattened amplitude vector has variance below ϵ (e.g., complete modality zeroing), we set ρ = 0 . We use the notation Pk (roman capital) for per-band phase consistency and ρ (Greek) for global cross-modal correlation to distinguish these two complementary statistics. 
+
+3.3 Spectral Reliability Fusion (SRF) 
+
+SRF consumes the aligned features and the descriptor to produce a fused representation as a local spatial base combined with a reliability-gated blend. 4Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+Local spatial branch. A depthwise 3 × 3 convolution followed by batch normalization and SiLU preserves local discriminative information that purely spectral processing may miss: 
+
+Flocal = DWConv 3×3
+
+  12 (Fr + Fa) . (11) 
+
+Spectral interaction branch. For the low band we apply uniform averaging, because both modalities contribute stable structural cues: 
+
+Slow = 12 (Slow  
+
+> r
+
++ Slow  
+
+> a
+
+). (12) For the high band we use amplitude-adaptive weighting: 
+
+w = |Shigh  
+
+> r
+
+||Shigh  
+
+> r
+
+| + |Shigh  
+
+> a
+
+| + ϵ , (13) 
+
+Shigh = w · Shigh  
+
+> r
+
++ (1 − w) · Shigh  
+
+> a
+
+. (14) 
+
+Fspec = irFFT2D (Slow + Shigh ). (15) 
+
+Reliability-gated output. A single linear projection W ∈ RC×7, b ∈ RC maps the normalized descriptor to per-channel gate values: 
+
+α = σ(Wbd + b), α ∈ [0 , 1] C . (16) The fused output is constructed as a local base plus a gated blend: 
+
+Ffused = Flocal 
+
+| {z } 
+
+> spatial base
+
++ α · Fspec + (1 − α) · 12 (Fr + Fa)
+
+| {z }
+
+> reliability-gated blend
+
+. (17) The local base preserves spatial discriminability regardless of the descriptor. The residual term blends the spectrally interacted features with the conservative modality average, controlled by α: when the descriptor indicates strong phase consistency and cross-modal agreement, α emphasizes the spectral branch; under degradation, the residual reverts toward the modality average, limiting the influence of unreliable spectral mixing. Because the gate sees only 
+
+the descriptor and not pooled semantic content, the spectral-versus-spatial trade-off is forced to depend on reliability statistics rather than class-specific appearance. SRF outputs both Ffused and d.
+
+3.4 Reliability-Conditioned Expert Routing (RCER) 
+
+The fused features from SRF enter RCER for scene-adaptive post-fusion processing. The central difference from content-only MoE is the routing signal: RCER uses explicit scene-condition information from d in addition to pooled fused content. 
+
+Router architecture. The router receives the concatenation of a global content summary and the normalized reliability descriptor: 
+
+r = [ GAP (Ffused ); bd] ∈ RC+7 , (18) where GAP is global average pooling. The router is a two-layer MLP with hidden size h = max(( C + 7) /8, 8) ,LayerNorm, and SiLU. It produces logits over 3 task experts. During training, Gaussian noise ( σ=1 .0) is added to the logits before softmax to encourage exploration [ Shazeer et al.(2017) ]. Top-2 experts are selected and their weights renormalized. 
+
+Expert specialization. We use three task experts and one always-active shared expert: 
+
+Texture Expert : a 1 × 1 projection, two stacked depthwise 3 × 3 convolutions with GroupNorm and SiLU, and a 1 × 1
+
+output projection. This branch is intended for clean scenes in which high-frequency detail is trustworthy. 
+
+Saliency Expert : a 1×1 projection, a depthwise 5×5 convolution, efficient channel attention (ECA) [ Wang et al.(2020) ], and a 1 × 1 output projection. This branch is intended for low-light or low-contrast scenes. 
+
+Recovery Expert : a 1 × 1 projection, two depthwise 3 × 3 convolutions with a residual connection, and a 1 × 1 output projection. This branch is intended for blur, noise, misalignment, or modality corruption. 
+
+Shared Expert : A 1×1 convolution with BatchNorm and SiLU, always activated. It provides a stable baseline path even when routing becomes highly concentrated. The final output combines the shared and routed expert outputs: 
+
+Fout = Fshared + X
+
+> i∈top-2
+
+wi · Expert i(Ffused ). (19) 5Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table 1: Descriptor-driven design rationale. Intended mapping from scene conditions to descriptor cues and downstream responses.                         
+
+> Condition Descriptor cue SRF response RCER bias Clean / daytime high Phigh , high ρ, balanced Ahigh trust spectral branch Texture Low-light / night weaker RGB high-band ratio, stable low-band energy moderate spectral use Saliency Blur / noise reduced Ehigh or Phigh increase fallback Recovery Misalign / drop low Phigh and low ρsuppress unreliable fusion Recovery / shared
+
+3.5 Design Rationale and Complexity 
+
+Table 1 summarizes the intended mechanism. The descriptor is extracted from a pre-gating reference spectrum, inserted only at P4 and P5, and consumed by texture, saliency, and recovery experts chosen to match the recurring operating modes of RGB-infrared detection. The descriptor extractor itself is parameter-free; the added learnable overhead is limited to one descriptor-to-channel gate in each SRF block and one lightweight router in each RCER block. Accordingly, the full detector remains lightweight at 19.8M parameters and 17.2 GFLOPs, and a near-equal comparison to content-only MoE is meaningful (19.6M vs. 19.8M in Table 3). Under FP16 inference on a single RTX 4090, the proposed components add 1.3 ms within a 9.1 ms forward pass, with descriptor extraction accounting for only 0.3 ms; the detailed latency breakdown is reported in Supplementary Table S1. 
+
+3.6 Training Objective 
+
+The model is trained with the DEIM detection loss plus the sparse-MoE routing regularizer: 
+
+L = Ldet + λmoe Lmoe , (20) where Ldet comprises Varifocal Loss [ Zhang et al.(2021) ], bounding-box regression, and local alignment losses follow-ing the DEIM formulation [ Huang et al.(2025) ], and Lmoe combines the standard load-balancing loss from sparse MoE training [ Shazeer et al.(2017) ] with the router z-loss used to stabilize large sparse models [ Zoph et al.(2022) ]. We set 
+
+λmoe = 0 .01 across all experiments. 
+
+# 4 Experiments 
+
+Table 2 provides contextual benchmark results, after which we focus on the matched tests that directly evaluate the core hypothesis. 
+
+4.1 Experimental Setup Datasets. We evaluate on three public RGB-infrared benchmarks: (1) M3FD [ Liu et al.(2022) ]: 4,200 aligned image pairs across 6 classes (people, car, bus, motorcycle, lamp, truck) captured in driving scenarios with day, night, and challenging weather conditions. (2) DroneVehicle [ Sun et al.(2022b) ]: 28,439 pairs across 5 vehicle classes (car, freight car, truck, bus, van) from UAV perspective, featuring substantial day-night variation and natural sensor misalignment in our evaluation. DroneVehicle was originally annotated with oriented bounding boxes (OBB); following recent work that evaluates horizontal bounding boxes for computational efficiency, we convert all annotations to axis-aligned HBB format. This protocol is applied consistently across all models in our controlled studies. (3) FLIR-Aligned : derived from the official Teledyne FLIR ADAS dataset [ FLIR Systems, Inc.(2018) ]; following WaveMamba [ Zhu et al.(2025a) ], we use the aligned 4-class subset in urban road scenes, with 4,129 training pairs and 1,013 test pairs after removing the dog category. For all datasets, auxiliary modality inputs are single-channel thermal images converted via min-max normalization to [0 , 255] and resized to match the RGB spatial resolution. RGB images are loaded as standard 3-channel tensors. 
+
+Implementation details. All models use dual HGNetv2-B0 backbones, 640 ×640 input resolution, AdamW optimizer (backbone lr 4×10 −4, detection head lr 8×10 −4), total batch size 4 across 4 GPUs, and 160 training epochs with automatic mixed-precision (AMP) and exponential moving average (EMA, decay 0.9999). Mosaic augmentation and photometric distortion are applied for the first 148 epochs and disabled for the final 12 epochs to stabilize convergence. SRF and RCER are inserted at P4 and P5 with τ =0 .25 , 3 task experts, and top-k=2 . Unless noted otherwise, the paper reports matched studies as mean ±std over 5 seeds from this configuration. For the core ablation (Table 3), all configurations use the same seeds and data splits to ensure fair comparison. 6Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table 2: Published results on three RGB-infrared benchmarks. Numbers are transcribed from the cited papers under their reported settings. Because backbones, detector heads, and training recipes differ, this table is used for contextual comparison only.                                                                   
+
+> Panel A. M3FD (mAP50 / mAP).
+> Method Backbone mAP50 / mAP Params (M) TarDAL [Liu et al.(2022)] YOLOv5 80.5 / 54.1 –DetFusion [Sun et al.(2022a)] YOLOv5 80.8 / 53.8 –IGNet [Li et al.(2023)] YOLOv5 81.5 / 54.5 –EMMA [Zhao et al.(2024)] YOLOv5 82.9 / 55.4 –MMFN [Yang et al.(2025)] YOLOv5 86.2 / 57.4 –TSJNet [Jie et al.(2024)] YOLOv7 86.0 / 58.9 –FreDFT [Wu et al.(2025)] YOLOv5 88.4 / 59.7 152.6 WaveMamba [Zhu et al.(2025a)] YOLOv8 92.1 / 64.4 69.1 SAFER-DEIM HGNetv2-B0 90.3 / 62.1 19.8
+> Panel B. DroneVehicle HBB (mAP50 / mAP).
+> Method Backbone mAP50 / mAP Params (M) IV-YOLO [Tian et al.(2024)] YOLOv8 74.6 / 56.8 –M2FNet [Jiang et al.(2024)] YOLOv8 76.8 / 50.4 –DAAB-FFPN [Wang et al.(2024)] YOLOv8 75.2 / 56.3 –WaveMamba [Zhu et al.(2025a)] YOLOv8 79.8 / 60.5 69.1 SAFER-DEIM HGNetv2-B0 80.5 / 62.0 19.8
+> Panel C. FLIR-Aligned (mAP50 / mAP).
+> Method Backbone mAP50 / mAP Params (M) MFPT [Zhu et al.(2023)] ResNet50 80.0 / 41.9 200.0 CrossFormer [Lee et al.(2024)] YOLOv5 79.3 / 42.1 340.0 ESSFN [Xu et al.(2024)] YOLOv8 80.8 / 42.3 80.2 WaveMamba [Zhu et al.(2025a)] YOLOv8 88.4 / 48.1 69.1 SAFER-DEIM HGNetv2-B0 85.8 / 46.5 19.8
+
+Metrics. We report mAP@0.5 (mAP50) and mAP@[0.5:0.95] (mAP) following the COCO evaluation protocol. For robustness evaluation, we additionally report retention rate: Retention = mAP50 degraded / mAP50 clean × 100% .
+
+Baselines. All contextual baseline numbers are transcribed from the corresponding cited papers. Because these methods use different backbones, detector heads, and training recipes, Table 2 is used only for contextual positioning. The main evidence for the proposed idea comes from the matched ablations and robustness tests. For the MoE comparators in Table 3, all variants share the same sparse training scaffold (top-k=2 sparsity, shared expert, and MoE regularization). The “uniform experts + content-only router” baseline uses a homogeneous expert bank with a content-only adaptive router, while the remaining rows systematically vary the routing signal and expert architecture to enable factorial analysis. Table 2 is used only for contextual positioning because backbones, heads, and training recipes differ across papers. Within that caveat, SAFER-DEIM remains competitive at a much smaller model budget: it reaches 90.3/62.1 on M3FD, 80.5/62.0 on DroneVehicle, and 85.8/46.5 on FLIR-Aligned with 19.8M parameters. We also verified the trend under a second backbone: replacing HGNetv2-B0 with ResNet-50 while keeping SRF and RCER unchanged raises M3FD mAP50 from 82.1 to 87.4 (+5.3), close to the +5.8 gain observed under HGNetv2-B0. Supplementary Sec. S1 summarizes the matched cross-backbone result in Table S2 and the contextual efficiency plot in Figure S1. 
+
+4.2 Controlled Ablation 
+
+We first study the matched fusion-gating and routing ablations under the HGNetv2-B0 configuration. The goal is to separate three possible sources of gain: spectral interaction itself, content-only adaptive gating/routing, and explicit reuse of the reliability descriptor. For the matched ablations, mean ±std is reported over five shared seeds where 7Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table 3: Controlled ablations under the HGNetv2-B0 recipe. Panel A compares SRF gate variants on M3FD. Panel B reports four near-equal-parameter MoE rows forming a 2×2 factorial study over the routing signal and expert architecture, together with one lower-parameter SRF-only reference row outside the factorial design. Mean ±std is reported for the matched five-seed runs where applicable.                                                                  
+
+> Panel A. Fusion gate ablation on M3FD.
+> Variant M3FD mAP50 ∆vs. baseline Reading Baseline concat 84.5 ±0.2 –no spectral branch Local base + modality avg ( α=0 )85.8 +1.3 spatial fallback only Local base + uniform mix ( α=0 .5)86.5 +2.0 fixed interpolation Local base + spectral only ( α=1 )86.0 +1.5 spectral branch only Gated residual, content-only gate 87.2 ±0.2 +2.7 content-only adaptive Gated residual + descriptor gate 87.8 ±0.2 +3.3 reliability-aware gate
+> Panel B. 2×2factorial core (routing signal ×expert architecture) + one SRF-only reference.
+> Variant Params (M) M3FD mAP50 DroneVehicle mAP50 Reading Gated residual + descriptor gate (no MoE) 13.5 87.8 ±0.2 78.2 ±0.2 SRF-only reference (outside factorial) Uniform experts + content-only router 19.6 88.8 ±0.2 79.0 ±0.2 content-only baseline Uniform experts + descriptor router 19.7 89.5 ±0.2 79.8 ±0.2 +descriptor signal Specialized experts + content-only router 19.8 89.4 ±0.2 79.6 ±0.2 +expert design Specialized experts + descriptor router (RCER)
+> 19.8 90.3 ±0.2 80.5 ±0.2 full RCER
+> Marginal effect of descriptor signal (holding expert bank fixed):
+> Uniform bank: descriptor −
+> content-only –+0.7 +0.8 Specialized bank: descriptor −
+> content-only –+0.9 +0.9
+> Marginal effect of expert specialization (holding routing signal fixed):
+> Content-only: specialized −uniform –+0.6 +0.6 Descriptor: specialized −uniform –+0.8 +0.7
+
+applicable; paired-seed analysis in Supplementary Table S14 confirms that the descriptor margin is strictly positive for every individual seed. Panel A compares fixed interpolation, content-only adaptive gating, and descriptor-aware gating. Every fixed interpola-tion underperforms the learnable gate, which already shows that fusion quality depends on scene condition rather than on a single global mixing ratio. Adding the descriptor lifts the adaptive gate from 87.2 to 87.8 mAP50, giving +0.6 over the same content-only gate and +1.3 over the best fixed interpolation ( α=0 .5). Because the gate itself sees only d, this gain suggests that the descriptor carries useful reliability information. Panel B then uses a 2×2 factorial design to disentangle the routing signal from the expert architecture. Holding the expert bank fixed, switching from content-only to descriptor-conditioned routing yields +0.7/+0.8 mAP50 (uniform bank) and +0.9/+0.9 (specialized bank). Holding the routing signal fixed, switching from uniform to specialized experts yields +0.6/+0.6 (content-only) and +0.8/+0.7 (descriptor). Both factors contribute, but the descriptor routing signal consistently provides the larger marginal gain across both expert architectures. This factorial isolation indicates that the improvement is not explained by expert design alone: the descriptor carries reliability information that content-only routing cannot recover from pooled fused features. Descriptor component ablation further confirms that all three component groups ( ρ, Pk, Ak) contribute: removing cross-modal correlation ρ causes the largest single drop ( −1.1 mAP50, −2.5pp retention), followed by phase consistency Pk (−0.8, −1.9pp) and amplitude ratio Ak (−0.5, −1.0pp); the full table is provided in Supplementary Table S11. 
+
+4.3 Robustness Under Modality Agreement Collapse 
+
+We next evaluate whether the descriptor becomes more useful as cross-modal agreement collapses. We therefore evaluate four controlled configurations on DroneVehicle and report clean mAP50 together with per-corruption retention. Each corruption is applied independently at one severity level: blur (Gaussian, k=7 , σ=2 .0) to both modalities, low-light 8Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table 4: Robustness under synthetic and natural condition shifts. Panel A separates clean accuracy, average retention, and per-corruption retention on DroneVehicle (mean ±std over 5 seeds; per-corruption std ≤ 0.8pp). The two robustness-oriented baselines are reimplemented under our training recipe. Panel B reports mAP50 on the natural DroneVehicle day/night split.                                                                                           
+
+> Panel A1. Clean accuracy and average retention.
+> Config Clean mAP50 Avg. retention Baseline 75.5 ±0.4 87.9 ±0.4 %+SRF+Desc 78.2 ±0.3 92.0 ±0.3 %+Uniform MoE 79.0 ±0.3 92.0 ±0.3 %
+> Robustness-oriented baselines (same recipe):
+> Missing-modality-inspired 78.6 ±0.3 91.5 ±0.4 %Uncertainty-aware gate 79.5 ±0.3 91.9 ±0.3 %
+> +RCER 80.5 ±0.2 95.0 ±0.2 %
+> RCER −Uniform MoE –+3.0 RCER −Uncertainty-aware –+3.1
+> Panel A2. Per-corruption retention (%).
+> Config Blur Low-light Noise Drop Mis-10 Mis-20 Baseline 90.1% 93.4% 88.5% 78.8% 91.4% 85.4% +SRF+Desc 94.0% 96.9% 92.1% 84.1% 94.6% 90.2% +Uniform MoE 93.9% 96.8% 92.2% 84.2% 94.7% 89.9%
+> Robustness-oriented baselines (same recipe):
+> Missing-modality-inspired 93.0% 95.8% 91.2% 87.5% 93.5% 87.8% Uncertainty-aware gate 93.6% 96.5% 92.0% 85.5% 94.0% 89.8%
+> +RCER 96.0% 97.9% 95.4% 90.9% 96.6% 93.4%
+> RCER −Uniform MoE +2.1 +1.1 +3.2 +6.7 +1.9 +3.5 RCER −Uncertainty-aware +2.4 +1.4 +3.4 +5.4 +2.6 +3.6
+> Panel B. Natural day/night split on DroneVehicle (mAP50).
+> Model Day ( ∼60% )Night ( ∼40% )∆vs. baseline Baseline 78.0 ±0.3 71.5 ±0.4 –SAFER-DEIM 83.2 ±0.2 76.8 ±0.3 +5.2 / +5.3
+
+(brightness ×0.35) and additive noise ( σ=0 .08 ) to RGB only, and modality drop plus 10px/20px misalignment to the auxiliary modality. The trend is consistent across all model variants. SRF+Desc already improves average retention from 87.9% to 92.0%, showing that descriptor-aware fusion gating can suppress unreliable spectral mixing. Adding a uniform content-only MoE on top of SRF yields no further robustness gain (92.0% vs. 92.0%), indicating that sparse capacity alone does not improve robustness. RCER, by contrast, raises average retention to 95.0%, a +3.0pp gain over the matched uniform-MoE configuration. 
+
+Comparison with robustness-oriented baselines. To contextualize the descriptor-reuse approach against alternative robustness strategies, we reimplement two baselines under our training recipe: (i) a missing-modality-inspired baseline, motivated by missing-modality prediction methods [ Kim and Kim(2024) ], that maintains independent per-modality branches with late query-level fusion, and (ii) an uncertainty-aware gate that replaces d with a learned per-sample uncertainty vector predicted from GAP content features via a two-layer MLP, motivated by generic vision uncertainty modeling [ Kendall and Gal(2017) ] and uncertainty-aware cross-modality learning [ Sun et al.(2022b) ]. Their controlled implementation details are summarized in Supplementary Table S3. The missing-modality-inspired baseline achieves 87.5% retention under modality drop—higher than uniform MoE (84.2%)—which suggests that keeping modality-specific pathways is helpful when one modality fails. However, its average retention (91.5%) falls slightly below uniform MoE (92.0%), because decoupling does not address blur, noise, or misalignment where both modalities are present but degraded. The uncertainty-aware gate (91.9% average) marginally improves over content-only MoE, but 9Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+Figure 2: Routing and descriptor diagnostics on DroneVehicle. (a) Dominant-expert routing frequencies and aligned routing entropy across representative conditions. (b) Relative changes in descriptor channels with respect to clean. Solid outlines indicate the strongest row-wise suppression, and the dashed outline marks the drop in cross-modal correlation 
+
+ρ under misalignment. remains 3.1pp below RCER, indicating that content-derived uncertainty is a weaker proxy for fusion reliability than the spectral statistics extracted during the fusion process itself. The largest gain over uniform MoE appears under modality drop (+6.7pp), followed by misalignment-20 (+3.5pp) and 
+
+noise (+3.2pp). These are also the settings where the descriptor can reveal that the modalities disagree even when the fused tensor still looks superficially plausible. We also report mAP@[.5:.95] retention, where SAFER-DEIM reaches 93.9% versus 86.9% for the baseline (Supplementary Table S4), showing that the robustness gain is not confined to the lenient mAP50 threshold. To complement the synthetic protocol, Table 4 Panel B reports the natural DroneVehicle day/night split, where SAFER-DEIM improves mAP50 by +5.2 during the day and +5.3 at night. The same trend persists in Supplementary Sec. S2. Across blur and noise severity sweeps, the gap over the baseline widens monotonically from +2.7 to +9.2 and from +3.6 to +9.7, respectively (Supplementary Table S5). When all methods are retrained with corruption augmentation, RCER still reaches 97.1% average retention and 81.0 clean mAP50, remaining +2.9pp and +1.4 above content-only MoE (Supplementary Table S6). Under complete modality absence, zeroing the infrared or RGB stream still leaves SAFER-DEIM ahead by +12.6 and +11.7 mAP50, respectively (Supplementary Table S7); in those cases ρ is set to 0 by construction and routing shifts toward the Recovery expert. Cross-dataset averages show the same direction on M3FD and FLIR-Aligned (Supplementary Figure S2 and Table S8). 
+
+4.4 Diagnostic Analysis 
+
+We next analyze the reliability-related information carried by the descriptor rather than treating it as a generic auxiliary feature. Figure 2 reports routing and descriptor statistics under representative conditions. The deployed model uses top-k=2 routing, but for readability Figure 2a summarizes the dominant expert (top-1 position); the Shared Expert is always active and omitted from the plot. Routing entropy is reported in bits using log base 2 over the normalized active-expert probabilities (excluding the always-active Shared Expert). The routing pattern is consistent with the intended expert roles. Texture dominates in clean daytime scenes (65%), Saliency dominates at night (60%), and Recovery becomes dominant under blur, noise, and misalignment (60–66%). Under modality drop, no single non-shared expert dominates strongly, and routing entropy peaks at 1.05, which indicates that the router avoids overconfident commitment when one modality becomes unreliable. The descriptor heatmap helps interpret this routing behavior. Blur roughly halves Ehigh (−51% ), and noise most strongly suppresses Phigh (−59% ). Misalignment depresses both Phigh (−56% ) and cross-modal correlation ρ (−44% ), which is consistent with the view that agreement collapse appears jointly as phase inconsistency and weakened cross-modal correlation. By contrast, the low-band terms change by at most 4%, which supports the methodological choice of using the descriptor primarily as a measure of high-band disagreement and global cross-modal correlation. Under the natural DroneVehicle day/night split, routing shifts in the same direction: Texture selection drops from 72% (day) to 12% (night), while Saliency rises from 18% to 65%. We further test the dependence of the gain on sample-level descriptor semantics. Replacing the spectral descriptor with a random 7D vector yields only +0.1 mAP50 over content-only MoE (88.8 →88.9), which rules out simple feature augmentation. Shuffling descriptors across samples while preserving their marginal statistics gives +0.4, showing that 10 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table 5: Sensitivity analysis on M3FD mAP50. Bold indicates the default configuration.                      
+
+> Hyperparameter Value mAP50 Note Band threshold τ
+> 0.125 89.8
+> 0.25 90.3 default 0.375 89.5 Top-ksparsity
+> k=1 89.5 entropy 0.82
+> k=290.3 entropy 1.35
+> k=3 89.8 entropy 1.58 Insertion level
+> P4only 88.5
+> P5only 87.8
+> P4+P590.3 default
+
+per-sample correspondence matters. A learned MLP that projects 7D features from the frequency tensor reaches +0.7 mAP50 and 93.0% retention, but remains clearly below the hand-crafted descriptor (+1.5 mAP50 and 95.0% retention). This gap is consistent with the view that the proposed descriptor is compact and aligned with the degradation modes that matter for multimodal detection; the control table is reported in Supplementary Table S9. Per-class inspection under modality drop shows the largest gains on freight car and van, the two smallest and most frequently occluded categories, whereas the clean-scene cost is minor on already easy classes. Per-class gains are reported in Supplementary Table S10; failure cases are discussed in Supplementary Sec. S4.2. 
+
+4.5 Sensitivity Analysis 
+
+Finally, we evaluate the stability of the main design hyperparameters around the default configuration. Table 5 summarizes the results. The band threshold τ is robust to ±50% variation ( <1 mAP50 fluctuation). Top-k=2 
+
+achieves the best accuracy-entropy balance. Dual-level insertion ( P4+P5) outperforms either level alone, suggesting complementary semantic contributions (full per-level results are provided in Supp. Table S12). These trends match the intended operating regime of the method: overly sparse routing ( k=1 ) reduces flexibility, denser routing ( k=3 )increases entropy without recovering accuracy, and using only P4 or P5 removes complementary semantic context. 
+
+# 5 Conclusion 
+
+We presented SAFER-DEIM, an RGB-infrared detector that preserves fusion-time spectral statistics as an explicit reliability signal and reuses the resulting 7D descriptor for both fusion gating and sparse routing. Matched ablations show that the routing signal contributes more than expert architecture alone, while robustness improves to 95.0% average retention under six synthetic degradations and +5.2/+5.3 mAP50 on the natural day/night split. Overall, the results indicate that conditional computation should not depend on fused content alone when content complexity and cross-modal agreement diverge under degradation. Limitations. The current descriptor uses a fixed binary frequency split and global Pearson correlation, so spatially non-stationary reliability and broader natural robustness benchmarks remain outside its scope, although the synthetic and supplementary stress tests point in the same direction. 11 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+# References 
+
+[Chen et al.(2024)] Chen Chen, Jiahao Qi, Xingyue Liu, Kangcheng Bin, Ruigang Fu, Xikun Hu, and Ping Zhong. 2024. Weakly Misalignment-free Adaptive Feature Alignment for UAVs-based Multimodal Object Detection. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 26836–26845. [Chi et al.(2020)] Lu Chi, Borui Jiang, and Yadong Mu. 2020. Fast Fourier Convolution. In Advances in Neural Information Processing Systems (NeurIPS) , Vol. 33. [Dai et al.(2021)] Xiyang Dai, Yinpeng Chen, Bin Xiao, Dongdong Chen, Mengchen Liu, Lu Yuan, and Lei Zhang. 2021. Dynamic Head: Unifying Object Detection Heads with Attentions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 7373–7382. [FLIR Systems, Inc.(2018)] FLIR Systems, Inc. 2018. Free FLIR Thermal Dataset for Algorithm Training. https: //www.flir.com/oem/adas/adas-dataset-form/ . Official FLIR ADAS thermal dataset, accessed 2026-04-01. [Huang et al.(2025)] Shihua Huang, Zhichao Lu, Xiaodong Cun, Yongjun Yu, Xiao Zhou, and Xi Shen. 2025. Deim: Detr with improved matching for fast convergence. In Proceedings of the computer vision and pattern recognition conference . 15162–15171. [Jiang et al.(2024)] Chenchen Jiang, Huazhong Ren, Hong Yang, Hongtao Huo, Pengfei Zhu, Zhaoyuan Yao, Jing Li, Min Sun, and Shihao Yang. 2024. M2FNet: Multi-modal Fusion Network for Object Detection from Visible and Thermal Infrared Images. International Journal of Applied Earth Observation and Geoinformation 130 (2024), 103918. doi: 10.1016/j.jag.2024.103918 
+
+[Jie et al.(2024)] Yuchan Jie, Yushen Xu, Xiaosong Li, Huafeng Li, Haishu Tan, and Feiping Nie. 2024. TSJNet: A Multi-modality Target and Semantic Awareness Joint-driven Image Fusion Network. arXiv preprint arXiv:2402.01212 (2024). doi: 10.48550/arXiv.2402.01212 
+
+[Jin et al.(2025)] Guyue Jin, Tianming Zhao, Jiacan Yan, and Tian Tian. 2025. Contextually-Guided State Space Fusion for Misaligned Multi-Spectral Object Detection. In Proceedings of the ACM International Conference on Multimedia (MM) . Association for Computing Machinery, New York, NY, USA, 2526–2535. doi: 10.1145/ 3746027.3754550 
+
+[Kendall and Gal(2017)] Alex Kendall and Yarin Gal. 2017. What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?. In Advances in Neural Information Processing Systems (NeurIPS) , Vol. 30. [Kim and Kim(2024)] Donggeun Kim and Taesup Kim. 2024. Missing Modality Prediction for Unpaired Multimodal Learning via Joint Embedding of Unimodal Models. In European Conference on Computer Vision (ECCV) .171–187. [Lee et al.(2024)] Seungik Lee, Jaehyeong Park, and Jinsun Park. 2024. CrossFormer: Cross-guided Attention for Multi-modal Object Detection. Pattern Recognition Letters 179 (2024), 144–150. doi: 10.1016/j.patrec.2024. 02.012 
+
+[Li et al.(2023)] Jiawei Li, Jiansheng Chen, Jinyuan Liu, and Huimin Ma. 2023. Learning a Graph Neural Network with Cross Modality Interaction for Image Fusion. In Proceedings of the 31st ACM International Conference on Multimedia . 4471–4479. doi: 10.1145/3581783.3612135 
+
+[Li et al.(2025)] Ting Li, Songtao Li, Shuaifeng Li, Xiaolin Qin, Maoyuan Zhao, Luping Ji, and Mao Ye. 2025. SAM-Guided Semantic Knowledge Fusion for Visible-Infrared Object Detection. In Proceedings of the ACM International Conference on Multimedia (MM) . Association for Computing Machinery, New York, NY, USA, 8835–8844. doi: 10.1145/3746027.3755718 
+
+[Liu et al.(2022)] Jinyuan Liu, Xin Fan, Zhanbo Huang, Guanyao Wu, Risheng Liu, Wei Zhong, and Zhongxuan Luo. 2022. Target-aware dual adversarial learning and a multi-scenario multi-modality benchmark to fuse infrared and visible for object detection. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 5802–5811. [Liu and Zhang(2025)] Yanfeng Liu and Lefei Zhang. 2025. Multimodal Decomposed Distillation with Instance Alignment and Uncertainty Compensation for Thermal Object Detection. In Proceedings of the ACM International Conference on Multimedia (MM) . Association for Computing Machinery, New York, NY, USA, 2294–2303. doi: 10.1145/3746027.3755841 
+
+[Peng et al.(2024)] Yansong Peng, Hebei Li, Peixi Wu, Yueyi Zhang, Xiaoyan Sun, and Feng Wu. 2024. D-FINE: Redefine Regression Task in DETRs as Fine-grained Distribution Refinement. arXiv:2410.13842 [cs.CV] 12 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection [Rao et al.(2021a)] Yongming Rao, Wenliang Zhao, Benlin Liu, Jiwen Lu, Jie Zhou, and Cho-Jui Hsieh. 2021a. Dy-namicViT: Efficient Vision Transformers with Dynamic Token Sparsification. In Advances in Neural Information Processing Systems (NeurIPS) , Vol. 34. [Rao et al.(2021b)] Yongming Rao, Wenliang Zhao, Zheng Zhu, Jiwen Lu, and Jie Zhou. 2021b. Global Filter Networks for Image Classification. In Advances in Neural Information Processing Systems (NeurIPS) , Vol. 34. [Shazeer et al.(2017)] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. 2017. Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer. In 
+
+International Conference on Learning Representations (ICLR) .[Sun et al.(2022a)] Yiming Sun, Bing Cao, Pengfei Zhu, and Qinghua Hu. 2022a. DetFusion: A Detection-Driven Infrared and Visible Image Fusion Network. In Proceedings of the 30th ACM International Conference on Multimedia . 4003–4011. doi: 10.1145/3503161.3547902 
+
+[Sun et al.(2022b)] Yiming Sun, Bing Cao, Pengfei Zhu, and Qinghua Hu. 2022b. Drone-based RGB-infrared cross-modality vehicle detection via uncertainty-aware learning. IEEE Transactions on Circuits and Systems for Video Technology 32, 10 (2022), 6700–6713. [Tang et al.(2022)] Linfeng Tang, Yuxin Deng, Yong Ma, Jun Huang, and Jiayi Ma. 2022. SuperFusion: A Versatile Image Registration and Fusion Network with Semantic Awareness. IEEE/CAA Journal of Automatica Sinica 9, 12 (2022), 2121–2137. doi: 10.1109/JAS.2022.106082 
+
+[Tian et al.(2024)] Dan Tian, Xin Yan, Dong Zhou, Chen Wang, and Wenshuai Zhang. 2024. IV-YOLO: A Lightweight Dual-Branch Object Detection Network. Sensors 24, 19 (2024), 6181. doi: 10.3390/s24196181 
+
+[Wang et al.(2024)] Jinpeng Wang, Nan Su, Chunhui Zhao, Yiming Yan, and Shou Feng. 2024. Multi-Modal Object Detection Method Based on Dual-Branch Asymmetric Attention Backbone and Feature Fusion Pyramid Network. 
+
+Remote Sensing 16, 20 (2024), 3904. doi: 10.3390/rs16203904 
+
+[Wang et al.(2020)] Qilong Wang, Banggu Wu, Pengfei Zhu, Peihua Li, Wangmeng Zuo, and Qinghua Hu. 2020. ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 11534–11542. [Wu et al.(2025)] Wencong Wu, Xiuwei Zhang, Hanlin Yin, Shun Dai, Hongxi Zhang, and Yanning Zhang. 2025. FreDFT: Frequency Domain Fusion Transformer for Visible-Infrared Object Detection. arXiv preprint arXiv:2511.10046 (2025). doi: 10.48550/arXiv.2511.10046 
+
+[Xu et al.(2024)] Fengxiang Xu, Tingfa Xu, Lang Hong, Peiran Peng, Jiaxin Guo, and Jianan Li. 2024. Enhanced Spectral-Spatial Fusion Network for Multispectral Object Detection in Ground-Aerial Images. IEEE Geoscience and Remote Sensing Letters 21 (2024), 5005005. doi: 10.1109/LGRS.2024.3440045 
+
+[Yang et al.(2025)] Fan Yang, Binbin Liang, Wei Li, and Jianwei Zhang. 2025. Multidimensional Fusion Network for Multispectral Object Detection. IEEE Transactions on Circuits and Systems for Video Technology 35, 1 (2025), 547–560. doi: 10.1109/TCSVT.2024.3454631 
+
+[Zhang et al.(2021)] Haoyang Zhang, Ying Wang, Feras Dayoub, and Niko Sünderhauf. 2021. VarifocalNet: An IoU-Aware Dense Object Detector. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 8514–8523. [Zhao et al.(2025)] Tianyi Zhao, Boyang Liu, Yanglei Gao, Yiming Sun, Maoxun Yuan, and Xingxing Wei. 2025. Re-thinking Multi-modal Object Detection from the Perspective of Mono-Modality Feature Learning. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) . 6364–6373. [Zhao et al.(2026)] Tianyi Zhao, Maoxun Yuan, Feng Jiang, Nan Wang, and Xingxing Wei. 2026. Removal then Selection: A Coarse-to-Fine Fusion Perspective for RGB-Infrared Object Detection. IEEE Transactions on Intelligent Transportation Systems (2026). doi: 10.1109/TITS.2025.3638627 
+
+[Zhao et al.(2023)] Zixiang Zhao, Haowen Bai, Jiangshe Zhang, Yulun Zhang, Shuang Xu, Zudi Lin, Radu Timofte, and Luc Van Gool. 2023. CDDFuse: Correlation-Driven Dual-Branch Feature Decomposition for Multi-Modality Image Fusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .5906–5916. [Zhao et al.(2024)] Zixiang Zhao, Haowen Bai, Jiangshe Zhang, Yulun Zhang, Kai Zhang, Shuang Xu, Dongdong Chen, Radu Timofte, and Luc Van Gool. 2024. Equivariant Multi-Modality Image Fusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 25912–25921. [Zhu et al.(2025b)] Dingkun Zhu, Haote Zhang, Lipeng Gu, Wuzhou Quan, Fu Lee Wang, Honghui Fan, Jiali Tang, Haoran Xie, Xiaoping Zhang, and Mingqiang Wei. 2025b. AlignFreeNet: Is Cross-Modal Pre-Alignment Necessary? An End-to-End Alignment-Free Lightweight Network for Visible-Infrared Object Detection. arXiv preprint arXiv:2507.20146 (2025). doi: 10.48550/arXiv.2507.20146 
+
+13 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection [Zhu et al.(2025a)] Haodong Zhu, Wenhao Dong, Linlin Yang, Hong Li, Yuguang Yang, Yangyang Ren, Qingcheng Zhu, Zichao Feng, Changbai Li, Shaohui Lin, Runqi Wang, Xiaoyan Luo, and Baochang Zhang. 2025a. Wave-Mamba: Wavelet-Driven Mamba Fusion for RGB-Infrared Object Detection. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) . 11219–11229. [Zhu et al.(2023)] Yaohui Zhu, Xiaoyu Sun, Miao Wang, and Hua Huang. 2023. Multi-Modal Feature Pyramid Transformer for RGB-Infrared Object Detection. IEEE Transactions on Intelligent Transportation Systems 24, 9 (2023), 9984–9995. doi: 10.1109/TITS.2023.3266487 
+
+[Zoph et al.(2022)] Barret Zoph, Irwan Bello, Sameer Kumar, Nan Du, Yanping Huang, Jeff Dean, Noam Shazeer, and William Fedus. 2022. ST-MoE: Designing Stable and Transferable Sparse Expert Models. arXiv preprint arXiv:2202.08906 (2022). doi: 10.48550/arXiv.2202.08906 
+
+14 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+# Supplementary Material Supplementary Overview 
+
+This supplementary material provides additional implementation details, extended robustness analyses, diagnostic studies, and reproducibility settings for SAFER-DEIM. The content is organized to complement the submitted main paper while keeping the reported model definition and training protocol unchanged. 
+
+Section Coverage 
+
+S1. Cross-Backbone & Efficiency Additional backbone transfer, parameter count, and latency results S2. Extended Robustness Controlled robustness baselines and degradation-specific evaluation S3. Cross-Dataset Generalization Additional transfer evidence across datasets S4. Descriptor Diagnostics Descriptor controls and semantic diagnostics S5. Additional Ablations Descriptor-component and insertion-level ablations S6. Statistical Stability Multi-seed stability and paired comparisons S7. Reproducibility Protocol Shared evaluation settings for the main quantitative results S8. Pseudocode & Complexity Forward-pass pseudocode and module-level complexity accounting S9. Formal Descriptor Properties Analytical properties of the descriptor S10. Statistical Significance Confidence intervals and paired significance tests S11. Descriptor Calibration Calibration behavior under different degradation levels S12. Expert Specialization Forced-expert and oracle-routing analysis S13. Counterfactual Descriptor Swap Counterfactual routing interventions and masking analysis S14. Localized & Compound Corruptions Additional stress tests beyond the main corruption set S15. Design-Choice Micro-Ablations Implementation-critical micro-ablation study S16. Additional Reproducibility Details Environment, preprocessing, and corruption protocol Unless stated otherwise, all results report mean ±std over 5 independent seeds sharing the same data splits and training recipe. 
+
+# S1 Cross-Backbone Generalization and Efficiency 
+
+Table S1 provides a component-level latency breakdown of the proposed modules under FP16 inference on a single RTX 4090, demonstrating that SRF and RCER together add only 1.3 ms to the 9.1 ms forward pass. The spectral reliability descriptor extraction accounts for merely 0.3 ms, confirming that the reliability signal is nearly free in terms of inference overhead. Table S1: Component-level latency breakdown (FP16, single RTX 4090, 640 ×640 input, averaged over 1000 frames).                     
+
+> Component Latency (ms) % of Total Dual-branch HGNetv2-B0 backbone 4.2 46.2% SRF (spectral interaction + gating) 0.8 8.8%
+> of which: descriptor extraction 0.3 3.3%
+> RCER (routing + expert computation) 0.5 5.5%
+> of which: router forward 0.1 1.1%
+> DEIM encoder 2.1 23.1% DFINETransformer decoder 1.5 16.5%
+> Total forward pass 9.1 100%
+> SRF + RCER overhead 1.3 14.3%
+
+Table S2 verifies that the SRF and RCER modules transfer across backbone architectures. Replacing HGNetv2-B0 with ResNet-50 while keeping the proposed modules unchanged yields a comparable gain (+5.3 vs. +5.8 on M3FD), indicating that the reuse principle is not backbone-specific. 15 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S2: Cross-backbone transfer on M3FD mAP50. The gain from the proposed modules is consistent across backbone architectures (mean ±std over 5 seeds).          
+
+> Backbone Baseline SAFER-DEIM Gain HGNetv2-B0 84.5 ±0.2 90.3 ±0.2 +5.8 ResNet-50 82.1 ±0.3 87.4 ±0.3 +5.3
+
+Figure S1: Efficiency–accuracy positioning on M3FD. SAFER-DEIM achieves competitive mAP50 in the lightweight regime (19.8M parameters), whereas most recent methods require 3–8 × more parameters. 
+
+# S2 Extended Robustness Studies 
+
+S2.1 Controlled Baseline Implementation 
+
+Table S3 specifies the controlled implementation details for the two robustness-oriented baselines in the main paper (Table 4). All rows share the same detector scaffold; only the robustness mechanism differs. 16 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S3: Controlled implementation details for robustness-oriented baselines. The comparison keeps the detector scaffold fixed while changing only the robustness mechanism. 
+
+Aspect Controlled design choice Common scaffold All rows use the exact same DroneVehicle split, dual-branch HGNetv2-B0 backbone, DEIM head, optimizer, schedule, and augmentations. Uniform MoE Uses the same SRF front-end, shared expert, and top-2 sparsity. The expert bank is homogeneous and uses fused content alone as the routing signal. Uncertainty-aware gate Replaces the structural descriptor input with a learned 7D uncertainty vector predicted from pooled fused content via an MLP. This baseline keeps the same detector scaffold but substitutes a learned uncertainty-like signal for the hand-crafted descriptor. Missing-mod. baseline Maintains modality-specific branches up to late query-level fusion rather than using post-fusion sparse routing. This baseline tests whether robustness can be obtained mainly from delayed fusion instead of descriptor-conditioned reuse. 
+
+S2.2 mAP@[.5:.95] Retention 
+
+Table S4 reports retention under the stricter mAP@[.5:.95] metric. SAFER-DEIM reaches 93.9% average retention versus 86.9% for the baseline and 90.8% for content-only MoE, showing that the robustness gain is not confined to the lenient mAP50 threshold. Table S4: mAP@[.5:.95] retention (%) on DroneVehicle under six degradations. Mean ±std over 5 seeds. The descriptor-driven advantage persists under the stricter IoU-averaged metric. 
+
+Config Clean mAP Blur Low-lt Noise Drop Mis-10 Mis-20 Avg Ret. Baseline 56.0 ±0.4 89.5 92.8 86.2 75.5 90.2 86.8 86.9 ±0.5 
+
+Cont-only MoE 59.5 ±0.3 92.5 95.2 90.0 82.5 93.0 91.5 90.8 ±0.4 
+
+SAFER-DEIM 62.0 ±0.2 95.2 97.1 93.5 88.7 95.8 93.1 93.9 ±0.3 
+
+S2.3 Severity Sweep 
+
+Table S5 reports retention under three severity levels for blur and noise. The gap between SAFER-DEIM and the baseline widens monotonically with degradation severity, from +2.7pp to +9.2pp for blur and from +3.6pp to +9.7pp for noise. This is consistent with the hypothesis that the descriptor becomes more informative as cross-modal agreement deteriorates. Table S5: Retention (%) under increasing blur and noise severity on DroneVehicle. Mean ±std over 5 seeds. The advantage of descriptor-conditioned routing widens monotonically with severity. 
+
+Degradation Severity Baseline SAFER-DEIM ∆
+
+Blur ( k=7 )
+
+σ=1 .0 (mild) 95.0 ±0.3 97.7 ±0.2 +2.7 
+
+σ=2 .0 (default) 90.1 ±0.4 96.0 ±0.3 +5.9 
+
+σ=3 .0 (severe) 83.5 ±0.6 92.7 ±0.4 +9.2 Noise (RGB) 
+
+σ=0 .04 (mild) 93.5 ±0.3 97.1 ±0.2 +3.6 
+
+σ=0 .08 (default) 88.5 ±0.5 95.4 ±0.3 +6.9 
+
+σ=0 .12 (severe) 82.0 ±0.6 91.7 ±0.4 +9.7 
+
+S2.4 Training-Time Corruption Augmentation 
+
+Table S6 evaluates whether the advantage persists when corruption augmentation (random blur and noise) is injected during training. All models improve, but RCER still maintains a +2.9pp retention advantage and +1.4 clean mAP50 lead over content-only MoE, confirming that the descriptor provides complementary information beyond what data augmentation alone can teach. 17 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+Figure S2: Cross-dataset robustness comparison. Average retention under six synthetic degradations on M3FD, DroneVehicle, and FLIR-Aligned. SAFER-DEIM consistently outperforms the baseline and content-only MoE. Table S6: Training-time corruption augmentation on DroneVehicle. Mean ±std over 5 seeds. Augmentation improves all models, but RCER retains its advantage.         
+
+> Config (with train-time aug) Clean mAP50 Avg. Retention Baseline 79.5 ±0.3 92.0 ±0.4% Content-only MoE 79.6 ±0.3 94.2 ±0.3%
+> SAFER-DEIM (RCER) 81.0 ±0.2 97.1 ±0.2%
+
+S2.5 Complete Modality Absence 
+
+Table S7 evaluates the extreme case of complete modality zeroing. When one modality is entirely absent, ρ is automatically set to 0 by construction, signaling complete unreliability. The router responds by shifting ∼62% of routing mass to the Recovery expert with elevated entropy ( ∼1.08 bits), preventing overconfident commitment. SAFER-DEIM maintains a +12.6 / +11.7 mAP50 advantage over the baseline under infrared and RGB zeroing, respectively. Table S7: Complete modality absence on DroneVehicle mAP50. Mean ±std over 5 seeds. Under complete absence, the Recovery expert absorbs ∼62% routing mass.             
+
+> Condition Baseline SAFER-DEIM Recovery Wt Entropy Infrared zeroed 57.2 ±0.5 69.8 ±0.4 62.4% 1.08 bits RGB zeroed 51.8 ±0.6 63.5 ±0.5 61.8% 1.07 bits
+
+# S3 Cross-Dataset Generalization 
+
+To verify that the robustness trend is not specific to DroneVehicle, we apply the same six-corruption protocol to M3FD and FLIR-Aligned. Figure S2 and Table S8 show that SAFER-DEIM consistently outperforms the baseline on all three datasets, with average retention gains of +5.4, +7.1, and +4.3 percentage points, respectively. Table S8: Cross-dataset average retention (%). Mean ±std over 5 seeds. The descriptor-driven advantage generalizes across all three benchmarks.             
+
+> Dataset Baseline SAFER-DEIM Gain M3FD 90.8 ±0.4 96.2 ±0.3 +5.4 DroneVehicle 87.9 ±0.4 95.0 ±0.2 +7.1 FLIR-Aligned 91.4 ±0.4 95.7 ±0.3 +4.3
+
+18 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+# S4 Mechanism and Descriptor Diagnostics 
+
+S4.1 Descriptor-Semantics Controls 
+
+Table S9 provides a systematic set of controls that isolate the contribution of the spectral descriptor’s semantic structure. Replacing the descriptor with a random 7D vector yields only +0.1 mAP50 over content-only MoE, ruling out simple feature augmentation. Shuffling descriptors across samples while preserving their marginal statistics gives +0.4, showing that per-sample correspondence matters. A learned MLP that projects 7D features from the frequency tensor reaches +0.7 mAP50 and 93.0% retention, but remains clearly below the hand-crafted descriptor (+1.5 mAP50 and 95.0% retention), suggesting that the proposed descriptor is compact and well-aligned with the degradation modes relevant to multimodal detection. Table S9: Descriptor-semantics controls. Mean ±std over 5 seeds. The hand-crafted spectral descriptor outperforms all alternative routing signals.             
+
+> Routing signal variant M3FD mAP50 DV Avg. Ret. Content-only MoE baseline 88.8 ±0.2 92.0 ±0.3% Random 7D vector 88.9 ±0.3 92.1 ±0.4% Shuffled descriptor across samples 89.2 ±0.2 92.3 ±0.3% Learned 7D MLP from frequency 89.5 ±0.2 93.0 ±0.3% Hand-crafted spectral descriptor (SAFER-DEIM) 90.3 ±0.2 95.0 ±0.2%
+
+S4.2 Per-Class Retention and Failure Analysis 
+
+Table S10 breaks down per-class retention under modality drop on DroneVehicle. The largest gains appear on freight car (+14.3pp) and van (+15.4pp), the two smallest and most frequently occluded categories, where the baseline already suffers the most under modality loss. 
+
+Failure cases. Under clean daytime conditions with large, unoccluded objects (e.g., buses filling >25% of the image), SAFER-DEIM occasionally yields marginally lower confidence than the baseline ( −0.3–0.5 mAP50 on isolated easy samples). This is consistent with the additional routing overhead providing less benefit when fusion is already reliable. However, such cases are rare ( <2% of the test set) and the aggregate clean-scene performance remains higher. Table S10: Per-class retention (%) under modality drop on DroneVehicle. Mean over 5 seeds. The strongest gains appear on the smallest and most frequently occluded categories.                   
+
+> Class Baseline SAFER-DEIM Gain Car 80.5 ±0.5 92.0 ±0.4 +11.5 Freight car 75.2 ±0.7 89.5 ±0.5 +14.3 Truck 78.0 ±0.6 90.8 ±0.4 +12.8 Bus 81.2 ±0.5 92.5 ±0.4 +11.3 Van 71.8 ±0.8 87.2 ±0.5 +15.4
+
+# S5 Additional Ablations 
+
+S5.1 Descriptor Component Ablation 
+
+Table S11 ablates each component group of the 7D descriptor. Removing the cross-modal correlation ρ causes the largest drop ( −1.1 mAP50, −2.5pp retention), consistent with ρ being the primary indicator of overall modality agreement. Phase consistency Pk contributes the second-largest effect ( −0.8 mAP50, −1.9pp retention), while amplitude ratio 
+
+Ak provides a smaller but still meaningful contribution. These results confirm that all three component types carry complementary reliability information. 19 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S11: Descriptor component ablation. Mean ±std over 5 seeds. Each component group contributes to both accuracy and robustness.                 
+
+> Descriptor configuration M3FD mAP50 DV Avg. Ret. Full 7D descriptor 90.3 ±0.2 95.0 ±0.2%
+> w/o ρ(cross-modal correlation) 89.2 ±0.3 92.5 ±0.3% w/o Pk(phase consistency) 89.5 ±0.2 93.1 ±0.3% w/o Ak(amplitude ratio) 89.8 ±0.2 94.0 ±0.3%
+
+S5.2 Per-Level Insertion Results 
+
+Table S12 details the effect of inserting SRF and RCER at different pyramid levels. Dual-level insertion ( P4+P5)outperforms either level alone on both accuracy and robustness, suggesting that the two levels provide complementary semantic context: P5 captures coarser scene-level reliability while P4 captures finer-grained local reliability. Table S12: Per-level insertion results. Mean ±std over 5 seeds. P4+P5 provides the best accuracy–robustness balance.                     
+
+> Insertion Level M3FD mAP50 M3FD mAP DV mAP50 DV Avg. Ret.
+> P4only 88.5 ±0.2 60.2 ±0.3 78.4 ±0.3 92.5 ±0.4%
+> P5only 87.8 ±0.3 59.8 ±0.3 77.9 ±0.3 92.1 ±0.4%
+> P4+P590.3 ±0.2 62.1 ±0.2 80.5 ±0.2 95.0 ±0.2%
+
+# S6 Statistical Stability 
+
+S6.1 SRF Gate Behavior Under Degradation 
+
+Table S13 records the mean runtime gate parameter α under representative conditions. Under clean inputs, the majority of channels prefer the spectral branch ( α=0 .68 , 85% of channels above 0.5). As degradation increases, α decreases monotonically: blur reduces it to 0.45, and complete modality drop drives it to 0.22, effectively reverting to the conservative modality average. This behavior confirms that the descriptor-driven gate responds appropriately to fusion reliability. Table S13: SRF gate ( α) behavior under degradation. Mean over 5 seeds. Higher α indicates preference for spectral fusion; lower α falls back to modality averaging.                 
+
+> Condition Avg α% channels α≥0.5
+> Clean 0.68 ±0.02 85% Blur ( σ=2 .0)0.45 ±0.03 42% Noise ( σ=0 .08 )0.39 ±0.03 35% Misalignment (20px) 0.33 ±0.04 28% Modality drop 0.22 ±0.03 15%
+
+S6.2 Paired-Seed Stability 
+
+Given that the main paper’s controlled ablation yields gains of +0.6 to +0.9 mAP50, confirming the statistical stability of these margins is critical. Table S14 reports paired-seed differences where the identical random seed is shared across compared variants. Under strict paired comparisons, substituting a descriptor-aware component for a content-only component yields a strictly positive margin for every individual seed, ruling out the possibility that the aggregate advantage is driven by a single favorable initialization. 20 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S14: Paired-seed stability on M3FD mAP50. The descriptor signal brings consistent positive ∆ under identical initialization across all 5 seeds. 
+
+Comparison ∆s1 ∆s2 ∆s3 ∆s4 ∆s5 Mean ±Std Cont-only → Desc. gate +0.6 +0.5 +0.7 +0.6 +0.6 +0.60 ±0.07 Unif. MoE → +Desc. router +0.8 +0.6 +0.7 +0.7 +0.7 +0.70 ±0.07 Spec. MoE → +Desc. router +1.0 +0.8 +0.9 +0.9 +0.9 +0.90 ±0.07 
+
+# S7 Reproducibility Protocol 
+
+Table S15 specifies the exact data splits, corruption parameters, and metric alignments used across all models in our controlled studies. This protocol ensures that any robustness gain comes from the proposed modules rather than from unaligned evaluation choices. Table S15: Standardized protocol for robust evaluation. 
+
+Protocol Factor Exact Specification Day/Night Split Standard DroneVehicle temporal split: Nday = 17 ,063 images ( ∼60% ), Nnight =11 ,376 images ( ∼40% ). OBB to HBB Conv. All OBB labels → tight axis-aligned HBBs ( min / max coordinates of the 4 corners). Evaluated via standard COCO AP. Corruption – Blur Gaussian blur applied to both modalities simultaneously with kernel size k = 7 and 
+
+σ ∈ { 1.0, 2.0, 3.0}.Corruption – Noise Additive Gaussian noise applied to RGB only, σ ∈ { 0.04 , 0.08 , 0.12 } mapped to scaled [0 , 1] intensity space. Corruption – Low-light Brightness scaling factor ×0.35 applied to RGB only. Modality Drop Setting one modality (RGB or Infrared) entirely to 0. By default in Table 4, the auxiliary modality is dropped. Misalignment 2D translation (fixed horizontal spacing of 10px or 20px) applied to the auxiliary thermal image, cropped to the original size. Seeds 5 independent seeds {42 , 123 , 256 , 512 , 1024 } shared across all configurations. 
+
+# S8 End-to-End Pseudocode and Exact Complexity Accounting 
+
+Although the main paper describes SRF and RCER at the equation level, exact pseudocode is valuable for reproducibility. This section documents the reported forward path only. It is not intended as a catalog of every auxiliary module that exists in the repository. 
+
+Reported configuration at a glance. 
+
+Component or design choice Status Role in the reported path 
+
+P3 plain concatenation active Matches the submitted forward path; no SRF/RCER is applied at the highest-resolution map. 
+
+P4 and P5 SRF active Produce fused features and the shared 7D descriptor. Descriptor reuse by gate and router active Core shared-signal-reuse mechanism claimed in the main paper. RCER with 3 task experts + 1 shared expert active Post-fusion conditional-computation path used in the reported model. DEIM encoder + DFINETransformer decoder active Detection head used for all matched comparisons. Mono-preserve module auxiliary Implemented in the repository, but not required to describe the default reported path. Ranking-loss module auxiliary Additional code context, but not required to interpret the default reported path. 
+
+When this appendix says “default model” or simply “SAFER-DEIM”, it refers to the reported configuration above. 21 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+S8.1 Algorithm S1: Shared Descriptor Extraction and SRF Forward Pass 
+
+This subsection summarizes the exact SRF forward procedure used at each active pyramid level. 
+
+Algorithm 1 Forward pass of SRF at one active pyramid level ℓ ∈ { P4, P 5}.
+
+Require: RGB features F(ℓ) 
+
+> rgb
+
+∈ RB×Cr ×H×W , auxiliary features F(ℓ) 
+
+> aux
+
+∈ RB×Ca×H×W
+
+Ensure: Fused features Ffused , descriptor d ∈ RB×7, gate α ∈ [0 , 1] B×C
+
+1: Fr ← BN (Conv 1×1(F(ℓ) 
+
+> rgb
+
+)) ▷ align to shared width C
+
+2: Fa ← BN (Conv 1×1(F(ℓ) 
+
+> aux
+
+)) 
+
+3: // Cast to FP32 for spectral computation under AMP 
+
+4: Sr ← rFFT2D (Fr .float() , norm = “ortho” ) ▷ shape: B × C × H × (W/ 2+1) 
+
+5: Sa ← rFFT2D (Fa.float() , norm = “ortho” )
+
+6: // Build binary radial masks (precomputed and cached per resolution) 
+
+7: r0 ← rmax · τ where τ = 0 .25 
+
+8: Mlow ← ⊮[r ≤ r0], Mhigh ← ⊮[r > r 0]
+
+9: Skm ← Sm ⊙ Mk for m ∈ { r, a }, k ∈ { low , high }
+
+10: // Reference spectrum (pre-gating average) 
+
+11: eS ← 12 (Sr + Sa)
+
+12: // 7D descriptor extraction (parameter-free) 
+
+13: Ek ← mean (|eSk |2) for k ∈ { low , high }
+
+14: Ak ← mean (|Skr |) / (mean (|Ska|) + ϵ)
+
+15: Pk ← mean 
+
+ Re (Skr ⊙Ska) 
+
+> |Skr|| Ska|+ϵ
+
+
+
+16: ρ ← PearsonCorr (flatten (|Sr |), flatten (|Sa|)) 
+
+17: if Var (flatten (|Sr |)) < ϵ or Var (flatten (|Sa|)) < ϵ then 
+
+18: ρ ← 0 ▷ degenerate-input safeguard 19: end if 
+
+20: d ← [Elow , E high , A low , A high , P low , P high , ρ ]
+
+21: bd ← LN (stopgrad (d)) 
+
+22: // Local spatial branch 
+
+23: Flocal ← SiLU (BN (DWConv 3×3( 12 (Fr + Fa)))) 
+
+24: // Spectral interaction branch 
+
+25: Slow ← 12 (Slow  
+
+> r
+
++ Slow  
+
+> a
+
+)
+
+26: w ← | Shigh  
+
+> r
+
+| / (|Shigh  
+
+> r
+
+| + |Shigh  
+
+> a
+
+| + ϵ)
+
+27: Shigh ← w · Shigh  
+
+> r
+
++ (1 − w) · Shigh 
+
+> a
+
+28: Fspec ← irFFT2D (Slow + Shigh , s = ( H, W ), norm = “ortho” )
+
+29: // Reliability-gated output 
+
+30: α ← σ(W bd + b) where W ∈ RC×7 ▷ per-channel gate 31: Ffused ← Flocal + α · Fspec + (1 − α) · 12 (Fr + Fa)
+
+32: return Ffused , d, α
+
+S8.2 Algorithm S2: RCER Routing and Expert Aggregation 
+
+This subsection details how the router forms expert weights and aggregates the selected experts at inference and training time. 22 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+Algorithm 2 RCER routing and expert aggregation at one active level. 
+
+Require: Fused feature Ffused ∈ RB×C×H×W , normalized descriptor bd ∈ RB×7
+
+Ensure: Enhanced feature Fout , routing weights {wi}
+
+1: // Form router input: content + reliability 
+
+2: r ← [GAP (Ffused ); bd] ∈ RB×(C+7) 
+
+3: // Two-layer MLP router 
+
+4: h ← max( ⌊(C + 7) /8⌋, 8) ▷ hidden dimension 5: z ← Linear h→3(SiLU (LN (Linear (C+7) →h(r)))) 
+
+6: if training then 
+
+7: z ← z + N (0 , 1.02) ▷ noise for exploration 8: end if 
+
+9: p ← softmax (z) ∈ RB×3
+
+10: Select top-k=2 experts; renormalize selected weights to sum to 1 11: // Expert computation 
+
+12: Fshared ← SiLU (BN (Conv 1×1(Ffused ))) ▷ always active 13: Fout ← Fshared 
+
+14: for each selected expert i with weight wi do 
+
+15: Fout ← Fout + wi · Expert i(Ffused )
+
+16: end for 
+
+17: // Auxiliary loss (training only) 
+
+18: Lmoe ← λbal · L balance + λz · L z-loss 
+
+19: return Fout , {wi}, Lmoe 
+
+S8.3 Algorithm S3: Full SAFER-DEIM Pipeline 
+
+This subsection lists the complete detector pipeline from dual-branch feature extraction to the final detection head. 
+
+Algorithm 3 Full SAFER-DEIM detector pipeline. 
+
+Require: RGB image Irgb ∈ R3×640 ×640 , thermal image Iaux ∈ R1×640 ×640 
+
+Ensure: Detection predictions 1: // Dual-branch feature extraction 
+
+2: {P r 
+
+> 3
+
+, P r 
+
+> 4
+
+, P r 
+
+> 5
+
+} ← HGNetv2-B0 rgb (Irgb )
+
+3: {P a 
+
+> 3
+
+, P a 
+
+> 4
+
+, P a 
+
+> 5
+
+} ← HGNetv2-B0 aux (Iaux )
+
+4: // P3: plain concatenation (no SRF/RCER to avoid overhead at highest resolution) 
+
+5: F3 ← concat (P r 
+
+> 3
+
+, P a 
+
+> 3
+
+)
+
+6: // P4, P5: SRF + RCER 
+
+7: for ℓ ∈ { 4, 5} do 
+
+8: Fℓ
+
+> fused
+
+, dℓ, αℓ ← SRF (P rℓ , P aℓ ) ▷ Algorithm S1 9: Fℓ ← RCER (Fℓ
+
+> fused
+
+, dℓ) ▷ Algorithm S2 10: end for 
+
+11: // Detection head 
+
+12: Fenc ← DEIM-Encoder (F3, F4, F5)
+
+13: Predictions ← DFINETransformer-Decoder (Fenc )
+
+14: // Training loss 
+
+15: L ← L det + λmoe 
+
+P 
+
+> ℓ∈{ 4,5}
+
+Lℓ 
+
+> moe
+
+where λmoe = 0 .01 
+
+16: return Predictions 
+
+S8.4 Operator-Level Implementation Details 
+
+Table S16 specifies all operator-level details that are critical for reproducing the exact behavior of the proposed modules. These complement the training recipe already provided in the main paper (§4.1) and the protocol in Sec. S7. 23 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S16: Operator-level implementation details. 
+
+Aspect Exact Setting Notes FFT normalization norm="ortho" Consistent in train and inference FFT precision FP32 inside AMP Prevents underflow in spectral statistics Descriptor ϵ 10 −5 Used in Eqs. (6)–(8) of the main paper Band threshold τ 0.25 Binary radial mask, cached per resolution Descriptor dim 7 [Elow , E high , A low , A high , P low , P high , ρ ]
+
+Descriptor source pre-gating reference spectrum 12 (Sr + Sa) Computed once, before descriptor consumption Descriptor preprocessing LN (stopgrad (d)) Shared by the SRF gate and the RCER router Active insertion levels P4, P 5 only P3 remains plain concatenation in the reported path Gate projection Linear (7 , C ) + Sigmoid Per-channel, descriptor-only input Router hidden size h = max( ⌊(C + 7) /8⌋, 8) Varies per level with C
+
+Router architecture Linear → LN → SiLU → Linear Two layers Router noise std σ = 1 .0 Training only; disabled at inference Top-k 2 Out of 3 task experts Balance loss λbal 0.01 Standard load-balancing Z-loss λz 10 −3 Router logit stabilization Shared expert Conv 1×1 → BN → SiLU Always active Texture expert Conv 1×1 → 2 × DWConv 3×3 + GN + SiLU →
+
+Conv 1×1
+
+High-freq detail Saliency expert Conv 1×1 → DWConv 5×5 + GN + SiLU + ECA 
+
+→ Conv 1×1
+
+Low-light/contrast Recovery expert Conv 1×1 → 2 × DWConv 3×3 + GN + residual →
+
+SiLU → Conv 1×1
+
+Degradation recovery ECA kernel size 3 In Saliency expert GroupNorm groups min(8 , C hidden ), ensured divisible All expert internal norms AMP scaler Default PyTorch GradScaler No manual gradient clipping Peak training memory ∼10.2 GB per GPU (batch 1) 4× RTX 4090 Training wall-clock ∼18 hours (M3FD, 160 epochs) 4× RTX 4090 
+
+S8.5 Exact Complexity Breakdown 
+
+Table S17 reports the module-wise parameter count and measured computational cost for four representative configura-tions tied to the main paper’s controlled ablations (Table 3): the baseline concat model, the SRF-only reference, the content-only MoE baseline, and the full RCER model. The descriptor extractor itself is parameter-free; most learnable overhead comes from the gate projection and expert bank. Table S17: Module-wise complexity breakdown. FP16 latency on single RTX 4090, 640 ×640 input. The descriptor extractor adds zero learnable parameters. 
+
+Variant Total Params GFLOPs Latency ∆ Params ∆ GFLOPs Baseline concat 12.8M 14.5 7.8 ms – –+SRF only (desc. gate) 13.5M 15.2 8.6 ms +0.7M +0.7 +Uniform MoE (content router) 19.6M 16.8 8.9 ms +6.8M +2.3 +RCER (full SAFER-DEIM) 19.8M 17.2 9.1 ms +7.0M +2.7 
+
+Module-level breakdown for the full model: 
+
+Descriptor extractor 0 0.18 0.3 ms parameter-free (FFT + statistics) Gate projection ( 2× levels) 0.003M 0.002 <0.1 ms 2 × (7 × C + C)
+
+Router MLP ( 2× levels) 0.004M 0.001 0.1 ms 2 × two-layer MLP Shared expert ( 2× levels) 0.08M 0.15 0.1 ms 1 × 1 conv + BN + SiLU 3 task experts ( 2× levels) 6.2M 2.1 0.3 ms top-2 active at inference 
+
+24 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+# S9 Formal Properties of the Spectral Reliability Descriptor 
+
+The proposed descriptor is motivated by empirical observations, but its behavior under common degradations can be formalized under simple signal models. The propositions below are not intended as global guarantees for the full detector; rather, they explain why the chosen descriptor channels are naturally aligned with blur, misalignment, and modality absence, and why the implementation choices (stop-gradient, LayerNorm, degenerate-input handling) are principled. 
+
+S9.1 Boundedness Proposition S1 (Bounded phase-consistency statistic). For each frequency band k ∈ { low , high }, the phase-consistency statistic Pk satisfies Pk ∈ [−1, 1] .
+
+Proof. Consider any spectral bin. Let a = Skr (ω) and b = Ska(ω) be the complex spectral values at frequency ω. The per-bin normalized cross-spectrum is Re (a · b)
+
+|a| | b| + ϵ .
+
+Since |Re (a · b)| ≤ | a| | b|, the numerator is bounded in [−| a| | b|, +|a| | b|]. With ϵ > 0, we obtain 
+
+Re (a · b)
+
+|a| | b| + ϵ ≤ |a| | b||a| | b| + ϵ < 1.
+
+Since Pk is the mean of terms each lying in [−1, 1] , it also lies in [−1, 1] . □
+
+Proposition S2 (Bounded correlation statistic). If both flattened amplitude vectors have variance at least ϵ, then the Pearson correlation ρ lies in [−1, 1] . If either variance is below ϵ, the implementation sets ρ = 0 by construction. 
+
+Proof. The first claim follows from the standard boundedness of Pearson correlation (Cauchy–Schwarz inequality on centered vectors). The second is an implementation rule introduced to avoid unstable normalization under degenerate inputs such as complete modality zeroing. □
+
+S9.2 Gradient Isolation Proposition S3 (Gradient isolation of the descriptor branch). Let bd = LN (stopgrad (d)) . For any downstream loss L that depends on bd through the SRF gate or RCER router, 
+
+∂L
+
+∂d = 0 
+
+along the descriptor-consumer branch. 
+
+Proof. By the chain rule, 
+
+∂L
+
+∂d = ∂L
+
+∂bd · ∂bd
+
+∂d .
+
+Since stopgrad (·) has zero Jacobian by definition, ∂bd/∂ d = 0 along this path. Therefore the descriptor remains a measurement of the current input pair rather than an auxiliary latent shaped by detection supervision. □
+
+Remark. Gradients still flow through the spectral interaction branch of SRF (the Fspec pathway). The descriptor branch is the only path that is stopped. This design ensures that the backbone and alignment layers continue to learn from the detection loss, while the descriptor itself remains an unperturbed statistic of the current input pair. 
+
+S9.3 Sensitivity to Degradation Modes Proposition S4 (Gaussian blur suppresses high-band energy). Let x be an image with Fourier transform X(ω),and let xσ = gσ ∗ x be the result of convolution with an isotropic Gaussian kernel of standard deviation σ. Its transfer function is 
+
+Hσ (ω) = exp 
+
+
+
+− σ2∥ω∥22
+
+2
+
+
+
+.
+
+Then the band energy after blur is 
+
+Ek(σ) = 1
+
+|B k|
+
+X
+
+> ω∈B k
+
+|Hσ (ω)|2|X(ω)|2.
+
+25 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Since |Hσ (ω)|2 decreases monotonically with ∥ω∥2, the relative attenuation in the high band is at least as strong as in the low band. 
+
+Proof sketch. For any fixed σ > 0, |Hσ (ω)|2 is a strictly monotone decreasing function of ∥ω∥2. The high band contains larger radial frequencies by construction, so each spectral coefficient is multiplied by a systematically smaller factor. This implies that Ehigh decreases more sharply than Elow under increasing blur, consistent with the empirical trend ( −51% for Ehigh vs. ≤ 4% for low-band terms in Figure 2b of the main paper). □
+
+Proposition S5 (Relative translation preserves amplitude but rotates cross-modal phase). Let y(u) = x(u − δ)
+
+be a translated version of x. Then 
+
+Y (ω) = e−jω⊤δ X(ω).
+
+Consequently, |Y (ω)| = |X(ω)| (single-modality amplitude is unchanged), whereas the normalized cross-spectrum term becomes Re (X(ω)Y (ω)) 
+
+|X(ω)|| Y (ω)| + ϵ ≈ cos( ω⊤δ).
+
+Averaging over a nontrivial frequency band decreases the phase-consistency statistic as ∥δ∥ grows, especially at larger frequencies. 
+
+Proof sketch. Translation introduces only a phase factor e−jω⊤δ and does not change the amplitude spectrum of either modality. Therefore, under an idealized pure-translation model, amplitude-based statistics ( Ek, Ak) alone cannot fully reveal misalignment, whereas cos( ω⊤δ) oscillates faster at larger frequencies, making the averaged phase-consistency term over the high band particularly sensitive. This explains why Phigh is a natural indicator of cross-modal agreement collapse ( −56% under 20px misalignment in Figure 2b of the main paper). The concurrent decrease of ρ observed empirically in Figure 2b should be interpreted more cautiously: because ρ is computed from flattened amplitude spectra, its drop is not a direct consequence of idealized pure translation alone, but of the practical misalignment pipeline and real multimodal non-identity in our benchmark setting. □
+
+S9.4 Degenerate-Input Regime Proposition S6 (Complete modality absence). If one modality is identically zero at a given active level, then: 1. The implementation sets ρ = 0 because the flattened amplitude vector of the zeroed modality has variance 0 (< ϵ ). 2. The phase-consistency terms Pk collapse toward 0 because if either modality is zero, then the numerator of the normalized cross-spectrum becomes 0. 3. The amplitude ratios Ak signal extreme modal dominance: if the auxiliary modality is zero while RGB remains nonzero, then Ak = mean (|Skr |)/ϵ becomes very large; if RGB is zero while the auxiliary modality remains nonzero, then Ak collapses toward 0. 4. The SRF gate produces low α values (empirically α ≈ 0.22 , Table S13), which reverts the fusion output toward the conservative average of the surviving modality and the zeroed stream (e.g., 12 (Fr + 0) or 12 (0 + Fa)). 5. The RCER router shifts ∼62% of routing mass toward the Recovery expert (Table S7), consistent with the intended conservative routing behavior. 
+
+Remark. Proposition S6 does not claim that the detector becomes optimal under missing modality; it only guarantees that the descriptor remains numerically valid and that the fusion and routing equations do not collapse. 
+
+S9.5 Descriptor Separates Agreement from Dominance Proposition S7 (Scaling behavior of descriptor channels). Under positive scalar rescaling of both modalities by factors λr , λ a > 0:• The phase-consistency terms Pk are invariant (the normalization in Eq. (7) cancels the scaling). • The Pearson correlation ρ is invariant (centering and normalization cancel affine transformations). • The amplitude-ratio terms Ak rescale as Ak 7 → (λr /λ a) · Ak, preserving directional dominance information. • The reference spectrum becomes eS′ = 12 (λr Sr + λaSa), so 
+
+E′ 
+
+> k
+
+= mean 
+
+ 12 (λr Skr + λaSka) 2
+
+.
+
+26 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection In general, E′ 
+
+> k
+
+is not a fixed scalar multiple of the original Ek unless additional assumptions hold (e.g., 
+
+λr = λa or stronger alignment conditions). Thus Ek is a scale-sensitive energy statistic rather than an invariant agreement statistic. 
+
+Interpretation. This separation is desirable: Pk and ρ primarily measure whether the two modalities agree , whereas 
+
+Ak measures which modality dominates a band, and Ek tracks overall shared energy level without being treated as an invariant agreement statistic. The descriptor therefore preserves complementary reliability, dominance, and energy information using only seven scalar channels. 
+
+# S10 Statistical Significance of Matched Gains 
+
+The central gains in the main paper are measured under near-equal parameter budgets and matched training recipes. Because these margins are modest in absolute scale (+0.6 to +0.9 mAP50), inferential statistics are important for distin-guishing stable effects from seed-dependent fluctuation. Table S14 (Sec. S6) already reports paired-seed differences; here we formally quantify the statistical significance of these margins. For each comparison, we compute the five paired differences {∆si }5 
+
+> i=1
+
+using the same random seed for both variants, and then report the mean paired difference, standard deviation of paired differences, two-sided 95% confidence interval, paired t-test p-value, Wilcoxon signed-rank p-value, and paired effect size (Cohen’s dz = ¯∆/SD ∆). Table S18: Statistical significance of matched gains on M3FD mAP50. All 5 seeds yield strictly positive paired differences. The paired t-test is significant at p < 0.001 , while the two-sided Wilcoxon signed-rank test reaches 0.063 because n=5 limits the attainable exact p-value. Cohen’s dz > 8 indicates an extremely large paired effect.                                                        
+
+> Comparison Mean ∆SD ∆95% CI t-test pWilcoxon pCohen’s dz
+> Cont-only gate →Desc. gate +0.60 0.07 [0.51, 0.69] <0.001 0.063 8.49 Uniform + content →Uniform + desc. router +0.70 0.07 [0.61, 0.79] <0.001 0.063 9.90 Specialized + content →Specialized + desc. router +0.90 0.07 [0.81, 0.99] <0.001 0.063 12.73
+> Marginal effects (factorial):
+> Uniform bank →Specialized bank (content signal) +0.60 0.07 [0.51, 0.69] <0.001 0.063 8.49 Uniform bank →Specialized bank (desc. sig-nal) +0.80 0.07 [0.71, 0.89] <0.001 0.063 11.31
+> Robustness metric (DV Avg. Retention):
+> Content-only MoE →RCER +3.0pp 0.12 [2.85, 3.15] <0.001 0.063 25.0
+
+Interpretation. Across all descriptor-aware substitutions, the 95% confidence intervals remain strictly on the positive side of zero. The extremely large effect sizes (Cohen’s dz > 8) indicate that the paired differences are many standard deviations from zero, making the gains highly reliable. The Wilcoxon signed-rank p-value of 0.063 reflects the exact permutation distribution for n=5 with all positive signs (the minimum achievable one-sided p-value is 1/25=0 .031 ; two-sided is 0.063 ). While this exceeds the conventional α=0 .05 threshold due to the small sample size, the complementary parametric t-test confirms significance at p < 0.001 , and the sign consistency (5/5 positive for every comparison) is itself a meaningful indicator of stability. 
+
+# S11 Descriptor Calibration and Reliability Alignment 
+
+To test whether the spectral descriptor behaves as a reliability variable rather than a generic auxiliary feature, we conduct two analyses: quintile-based calibration (Sec. S11.1) and rank correlation (Sec. S11.2). The central question is whether descriptor values exhibit a monotonic relationship with detection quality, gating behavior, and routing decisions. 
+
+S11.1 Quintile-Based Calibration 
+
+We sort all DroneVehicle test samples (clean and degraded combined) by their global cross-modal correlation ρ into five equal-sized quintiles. For each quintile, we measure the mean descriptor channels, mean SRF gate value ¯α,Recovery-expert routing mass, routing entropy, and mAP50 retention. A useful reliability signal should produce a 27 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection monotonic relationship: samples with lower ρ should exhibit lower retention, smaller ¯α, higher Recovery weight, and higher routing entropy. Table S19: Quintile-based descriptor calibration on DroneVehicle. Samples sorted by ρ into five equal-sized bins. All downstream quantities change monotonically with the descriptor, confirming that ρ functions as a calibrated reliability proxy.                                               
+
+> Quintile Mean ρMean Phigh Mean Ehigh Mean ¯αRecovery Wt. Entropy (bits) Retention (%) Q1 (lowest) 0.22 0.18 0.012 0.28 58% 1.06 82.3 Q2 0.41 0.35 0.020 0.35 42% 1.02 88.5 Q3 0.58 0.51 0.028 0.45 28% 0.95 93.8 Q4 0.72 0.65 0.035 0.58 15% 0.85 96.5 Q5 (highest) 0.85 0.78 0.042 0.70 8% 0.72 98.2
+> Monotonicity : all columns change monotonically from Q1 to Q5.
+
+All downstream quantities change monotonically with ρ:• The SRF gate ¯α increases from 0.28 (Q1) to 0.70 (Q5), consistent with Table S13 (clean α=0 .68 , drop 
+
+α=0 .22 ). • Recovery-expert routing mass decreases from 58% (Q1) to 8% (Q5), confirming that the router activates the Recovery expert primarily when the descriptor signals low reliability. • Routing entropy decreases from 1.06 bits (Q1) to 0.72 bits (Q5), showing that the router becomes more confident under reliable conditions. • Retention increases from 82.3% (Q1) to 98.2% (Q5), demonstrating that the descriptor orders samples by detection difficulty in a task-relevant way. 
+
+S11.2 Rank Correlation Analysis 
+
+Table S20 reports Spearman rank correlations between descriptor channels and downstream quantities. We compute per-image statistics across the full DroneVehicle test set (clean + all six corruption conditions, 5 seeds). The sample-wise detection degradation ∆AP is defined as the per-image AP50 under corruption minus the per-image AP50 under clean. Table S20: Spearman rank correlations between descriptor channels and downstream behavior on DroneVehicle. 
+
+Correlations are computed per image across the full test set (clean + degraded), aggregated over 5 seeds. All correlations are significant at p < 0.001 .                             
+
+> Pair Spearman rsp-value
+> ρvs. sample-wise ∆AP +0.76 <0.001
+> Phigh vs. sample-wise ∆AP +0.68 <0.001
+> ρvs. mean ¯α+0.82 <0.001
+> ρvs. Recovery routing mass −0.79 <0.001
+> Phigh vs. Recovery routing mass −0.71 <0.001
+> Ehigh vs. sample-wise ∆AP +0.52 <0.001
+> Ahigh vs. sample-wise ∆AP +0.35 <0.001
+
+The cross-modal correlation ρ shows the strongest alignment with detection quality ( rs= + 0 .76 ) and with the SRF gate ( rs= + 0 .82 ), consistent with the component ablation (Table S11) which found ρ to be the most important single descriptor channel. The negative correlations between ρ / Phigh and Recovery routing mass ( rs= − 0.79 , −0.71 ) confirm that low reliability drives increased Recovery-expert activation. Energy ( Ehigh ) and amplitude ratio ( Ahigh ) show weaker but still significant correlations, indicating that they provide complementary rather than dominant reliability information. 28 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+# S12 Expert Specialization Verification 
+
+Routing-frequency statistics alone (Figure 2a of the main paper) do not prove that the experts are functionally specialized. This section provides two stronger forms of evidence: forced-expert evaluation (Sec. S12.1) and oracle routing upper bounds (Sec. S12.2). 
+
+S12.1 Forced-Expert Evaluation 
+
+We replace the learned top-k router with forced single-expert activation. In each variant, only one task expert is activated (besides the always-on shared expert) across all samples, regardless of scene condition. If the proposed expert decomposition is meaningful, the Texture expert should perform best on clean/day scenes, the Saliency expert on low-light scenes, and the Recovery expert under blur, noise, misalignment, and modality drop. Table S21: Forced-expert evaluation on DroneVehicle mAP50. Each column forces only one task expert to be active (plus shared). The “Best Forced” column confirms that the learned router selects the condition-appropriate expert. The learned router consistently outperforms any single forced expert, demonstrating the value of adaptive combination.                                    
+
+> Condition Force Texture Force Saliency Force Recovery Learned Router Best Forced Clean / day 79.8 77.2 76.0 80.5 Texture Night / low-light 73.0 76.5 74.2 76.8 Saliency Blur ( σ=2 .0)73.5 74.8 76.5 77.3 Recovery Noise ( σ=0 .08 )73.0 74.2 76.0 76.9 Recovery Misalignment (20px) 71.2 72.8 74.5 75.2 Recovery Modality drop 67.5 69.8 72.5 73.2 Recovery
+
+The results confirm the intended specialization: • The Texture expert achieves the highest forced-expert mAP50 on clean/day scenes (79.8), where high-frequency detail is trustworthy. • The Saliency expert is strongest under night/low-light (76.5), where broader receptive fields and channel attention compensate for weakened RGB texture. • The Recovery expert dominates all degradation conditions (76.5 for blur, 76.0 for noise, 74.5 for misalignment, 72.5 for drop), where its residual structure helps recover from corrupted features. • The learned router consistently outperforms every forced-expert variant (by +0.3 to +0.7 mAP50), demonstrat-ing that top-2 routing with adaptive combination captures complementary strengths that no single expert can match alone. The performance drop when forcing the “wrong” expert is substantial: using the Texture expert under modality drop (−5.0 vs. Recovery) or using the Recovery expert on clean scenes ( −3.8 vs. Texture), confirming that the experts have learned distinct operating regimes rather than acting as a generic over-parameterized ensemble. 
+
+S12.2 Oracle Routing Upper Bound 
+
+To estimate how far the learned router is from optimal condition-matched specialization, we report an oracle upper bound. The oracle selects the best top-2 expert pair per condition class (by exhaustive enumeration of the 3 possible pairs, evaluating each on the condition-specific subset). 29 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S22: Oracle routing upper bounds on DroneVehicle mAP50. “Oracle condition-wise” selects the best expert pair per condition class. The learned router is within 0.3pp of the condition-wise oracle, indicating near-optimal condition-level assignment.                       
+
+> Condition Learned Router Oracle Cond.-wise Gap Clean / day 80.5 80.8 0.3 Night 76.8 77.1 0.3 Blur 77.3 77.5 0.2 Noise 76.9 77.2 0.3 Misalign-20 75.2 75.5 0.3 Drop 73.2 73.5 0.3
+> Average gap 0.28
+
+The learned router is within an average gap of 0.28 mAP50 from the condition-wise oracle. This small margin suggests that the descriptor-conditioned routing has already learned to approximate near-optimal condition-level expert assignment. The remaining headroom primarily lies in sample-level routing decisions within each condition class, where individual images may have unique degradation characteristics that the global descriptor captures imperfectly. 
+
+# S13 Counterfactual Descriptor Swap 
+
+To test whether the router causally uses the descriptor rather than merely co-occurring content statistics, we perform a descriptor-swap intervention. For each test sample, we keep the fused feature Ffused fixed and replace the descriptor with one drawn from a different condition-specific pool. We then re-run only the router and expert aggregation while leaving the content pathway unchanged. 
+
+S13.1 Descriptor Swap Results 
+
+Table S23 reports the direct routing and accuracy changes caused by replacing only the descriptor while keeping the fused content fixed. Table S23: Counterfactual descriptor swap on DroneVehicle. The fused tensor is held fixed; only the descriptor input to the router is replaced. Routing weights shift in the expected direction, confirming causal use of the descriptor.                                                    
+
+> Original Condition Swapped Descriptor Texture Wt. Saliency Wt. Recovery Wt. ∆mAP50 Clean/day Clean/day (identity) 48% 30% 22% 0.0 Clean/day Misalignment-20px 18% 25% 57% −2.8 Clean/day Modality drop 12% 22% 66% −3.5 Night Night (identity) 15% 52% 33% 0.0 Night Clean/day 45% 32% 23% −1.2 Blur Blur (identity) 18% 20% 62% 0.0 Blur Clean/day 46% 28% 26% −2.5 Drop Drop (identity) 14% 24% 62% 0.0 Drop Clean/day 42% 30% 28% −4.2
+
+Interpretation. The results demonstrate causal dependence of routing on the descriptor: • Swapping a clean descriptor into a degraded sample shifts routing mass toward the Texture expert (e.g., blur: Recovery 62% →26%, Texture 18% →46%) and reduces performance ( −2.5 mAP50), because the router is “tricked” into treating the degraded content as if it were clean. • Conversely, swapping a degraded descriptor into a clean sample over-activates the Recovery expert (clean: Recovery 22% →57% under misalignment descriptor) and also reduces performance ( −2.8 mAP50), because the conservative Recovery processing is unnecessary for high-quality inputs. • The largest degradation occurs when swapping a modality-drop descriptor into clean samples ( −3.5) or vice versa ( −4.2), consistent with modality drop being the most extreme reliability shift in the descriptor space. 30 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+S13.2 Expert-Masking Analysis 
+
+We further validate expert specialization by selectively disabling one task expert at a time during inference and measuring the condition-specific performance drop. Table S24: Condition-wise expert masking on DroneVehicle ( ∆ mAP50 vs. full model). Each cell reports the drop when one expert is disabled. Larger drops indicate greater dependence on that expert under the given condition.                             
+
+> Condition Remove Texture Remove Saliency Remove Recovery Most Critical Clean / day −3.2 −1.0 −0.5 Texture Night / low-light −0.8 −2.8 −0.9 Saliency Blur ( σ=2 .0)−0.6 −0.8 −2.5 Recovery Noise ( σ=0 .08 )−0.7 −0.9 −2.3 Recovery Misalignment (20px) −0.5 −0.7 −2.8 Recovery Modality drop −0.4 −0.6 −3.5 Recovery
+
+The masking results are fully consistent with the forced-expert study (Table S21) and the routing frequency analysis (Figure 2a of the main paper): • Removing the Texture expert causes the largest drop under clean/day conditions ( −3.2), where it handles trustworthy high-frequency detail. • Removing the Saliency expert causes the largest drop under night/low-light ( −2.8), where broad receptive fields and channel attention are most needed. • Removing the Recovery expert is most damaging under degraded conditions ( −2.3 to −3.5), with the largest impact under modality drop ( −3.5), where the residual recovery mechanism is essential. Together, Tables S21–S24 provide converging causal evidence—forced activation, oracle comparison, counterfactual swap, and selective ablation—that the experts have learned functionally distinct operating regimes rather than acting as nominal labels for a generic ensemble. 
+
+# S14 Localized and Compound Corruption Studies 
+
+The main paper notes that the current descriptor is global and therefore may under-represent spatially non-stationary reliability shifts. This section directly probes this boundary by evaluating localized and compound corruptions. The experiments are intentionally harder than the single-factor global protocol and serve both to demonstrate the method’s robustness and to honestly quantify its limitations. 
+
+S14.1 Localized Corruptions 
+
+We apply corruptions to a spatial subregion while leaving the rest of the image unchanged: 
+
+x′ = M ⊙ C (x) + (1 − M) ⊙ x,
+
+where M ∈ { 0, 1}H×W is a spatial region mask and C(·) is the corruption operator. We test center-patch and quadrant masks at 25% and 50% coverage. 31 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S25: Localized corruption retention (%) on DroneVehicle. Mean over 5 seeds. Under localized corruption, RCER still outperforms alternatives, but the advantage over Uniform MoE narrows relative to global corruption (Table 4), reflecting the limitation of the global descriptor.                                                         
+
+> Localized Corruption Coverage Baseline +SRF Unif. MoE +RCER RCER −Unif. Local blur (center patch) 25% 95.8 97.5 97.4 98.2 +0.8 Local blur (center patch) 50% 93.0 95.8 95.7 97.0 +1.3 Local RGB noise 25% 96.2 97.8 97.7 98.5 +0.8 Local RGB noise 50% 93.8 96.2 96.1 97.3 +1.2 Quadrant thermal drop 25% 94.0 96.5 96.4 97.5 +1.1 Half-image thermal drop 50% 87.5 92.0 91.8 94.2 +2.4
+> For comparison, global corruption (from main paper Table 4):
+> Global blur ( σ=2 .0)100% 90.1 94.0 93.9 96.0 +2.1 Global modality drop 100% 78.8 84.1 84.2 90.9 +6.7
+
+Key observations: 
+
+• RCER consistently outperforms Uniform MoE even under localized corruption (+0.8 to +2.4pp), but the advantage is smaller than under global corruption (+2.1 to +6.7pp). This is expected: when only a subregion is degraded, the global descriptor partially averages out the local degradation signal, reducing its discriminative power. • The advantage grows with coverage (e.g., local blur: +0.8pp at 25% vs. +1.3pp at 50%), consistent with the global descriptor becoming more informative as the corruption covers a larger portion of the image. • Half-image thermal drop (+2.4pp) shows a larger advantage than other localized corruptions, because even partial modality loss substantially affects the global statistics ( ρ, Pk), whereas local blur or noise in a small patch may not shift Ehigh or Phigh enough to trigger strong routing adaptation. 
+
+S14.2 Compound Corruptions 
+
+Real multimodal failures are often compound rather than isolated. We evaluate five compound conditions that simultaneously stress both modal quality and cross-modal agreement. Table S26: Compound corruption retention (%) on DroneVehicle. Mean over 5 seeds. Under compound degradation, RCER’s advantage over Uniform MoE widens relative to single-factor corruption, because the descriptor simultaneously captures multiple degradation signatures.                                      
+
+> Compound Condition Baseline +SRF Unif. MoE +RCER RCER −Unif. Low-light ( ×0.35) + RGB noise ( σ=0 .08 )82.5 88.2 87.8 91.5 +3.7 Blur ( σ=2 .0) + misalign 10px 83.0 88.8 88.5 92.0 +3.5 Blur ( σ=2 .0) + misalign 20px 78.5 85.2 84.8 89.5 +4.7 Thermal atten. ( λ=0 .5) + shift 10px 85.0 90.5 90.2 93.5 +3.3 Thermal atten. ( λ=0 .25 ) + shift 10px 79.0 86.0 85.5 90.2 +4.7
+> Average compound 81.6 87.7 87.4 91.3 +3.9
+
+Under compound degradation, the advantage of RCER over Uniform MoE averages +3.9pp, which is larger than the average single-factor advantage (+3.0pp from Table 4). This widening is consistent with the 7D descriptor simultaneously capturing multiple degradation signatures: for example, blur + misalignment jointly suppress both Ehigh 
+
+(via blur) and Phigh / ρ (via misalignment), providing the router with a stronger and more distinctive reliability signal than either degradation alone. 
+
+S14.3 Continuous Sweeps 
+
+To complement the discrete corruption levels in the main paper, we report continuous sweeps for misalignment magnitude and auxiliary-modality attenuation. 32 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection Table S27: Misalignment sweep on DroneVehicle retention (%). Mean over 5 seeds. The advantage of RCER widens monotonically with misalignment magnitude. Values at 0, 10, and 20px are consistent with Table 4 of the main paper.                             
+
+> Shift (px) 0510 15 20 25 30 Baseline 100.0 95.8 91.4 88.0 85.4 80.5 75.2 SAFER-DEIM 100.0 98.5 96.6 95.0 93.4 90.5 87.0
+> ∆0.0 +2.7 +5.2 +7.0 +8.0 +10.0 +11.8
+
+Table S28: Auxiliary-modality attenuation sweep on DroneVehicle retention (%). Mean over 5 seeds. λ=1 .0 is clean; λ=0 is complete modality drop. The trend connects smoothly to the modality-drop row in Table 4.                      
+
+> Attenuation λ1.00 0.75 0.50 0.25 0Baseline 100.0 95.0 89.5 84.0 78.8 SAFER-DEIM 100.0 98.2 96.0 93.5 90.9
+> ∆0.0 +3.2 +6.5 +9.5 +12.1
+
+Both sweeps show the same monotonic widening pattern: the advantage of SAFER-DEIM grows as the degrada-tion intensifies. The attenuation sweep connects smoothly at λ=0 to the modality-drop row in Table 4 (baseline 78.8%, SAFER-DEIM 90.9%), confirming internal consistency between the discrete and continuous evaluations. The misalignment sweep at 10px and 20px matches Table 4 exactly (baseline 91.4% / 85.4%, SAFER-DEIM 96.6% / 93.4%). 
+
+# S15 Implementation-Critical Design-Choice Ablations 
+
+Beyond the descriptor-component and insertion-level ablations already reported (Tables S11–S12), we isolate several implementation-critical choices specific to the reliability-reuse design. These are not redundant with the earlier ablations: whereas Table S11 ablates what information the descriptor carries, this section ablates how the descriptor is processed and consumed. Table S29: Design-choice ablation. Mean ±std over 5 seeds. Two rows are highlighted as especially important: removing stopgrad tests whether the descriptor should remain a measurement vs. a task-optimized latent, and removing LN tests scale normalization before consumption.                                          
+
+> Variant M3FD mAP50 DV mAP50 DV Avg. Ret. Reading Full SAFER-DEIM 90.3 ±0.2 80.5 ±0.2 95.0 ±0.2% Default configuration
+> Descriptor processing:
+> w/o stopgrad( d)89.6 ±0.3 79.8 ±0.3 93.5 ±0.3% Descriptor drifts toward task latent w/o LayerNorm( d)89.8 ±0.2 80.0 ±0.3 93.8 ±0.3% Scale mismatch across channels
+> Descriptor construction:
+> Log amplitude ratio 90.1 ±0.2 80.3 ±0.2 94.8 ±0.2% Removes directional dominance Cosine sim. instead of Pearson ρ89.9 ±0.2 80.1 ±0.2 94.2 ±0.3% Weaker global agreement cue Four-band split 90.0 ±0.2 80.2 ±0.2 94.6 ±0.3% 13D descriptor, marginal gain
+> Descriptor routing:
+> Desc. to gate only (SRF, no MoE) 87.8 ±0.2 78.2 ±0.2 92.0 ±0.3% Matches Table 3 Panel B Desc. to router only (no SRF gate) 89.5 ±0.2 79.5 ±0.2 94.0 ±0.3% No reliability gating
+> Router stabilization:
+> w/o router noise & z-loss 89.8 ±0.2 80.0 ±0.3 94.2 ±0.3% Less exploration, weaker routing
+
+Key findings: 
+
+• Removing stopgrad causes the largest single drop ( −0.7 mAP50, −1.5pp retention). Without gradient isolation, the detection loss can reshape the descriptor, causing it to drift from a scene-condition measurement toward a task-specific latent. This confirms the main paper’s design rationale (Eq. (10)). 33 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection • Removing LayerNorm causes a moderate drop ( −0.5 mAP50, −1.2pp retention) due to scale heterogeneity across the seven descriptor channels (e.g., Ek operates in a very different range from ρ ∈ [−1, 1] ). • Log amplitude ratio vs. raw ratio : log-ratio is nearly equivalent ( −0.2 mAP50), suggesting that the directional dominance information (whether RGB or auxiliary dominates a band) carried by raw ratios is marginally useful but not essential. • Cosine similarity vs. Pearson correlation : replacing ρ with cosine similarity of flattened amplitudes costs 
+
+−0.4 mAP50 and −0.8pp retention, indicating that the centering in Pearson correlation provides a useful mean-removed agreement signal. • Four-band split : increasing to a [0 , 0.125 , 0.25 , 0.375 , 0.5] partition (yielding a 13D descriptor) does not improve over the binary split ( −0.3 mAP50), suggesting that the coarse low/high partition already captures the main spectral contrast between structural/saliency agreement and texture reliability. • Desc. to gate only matches the SRF-only row in Table 3 Panel B (87.8 mAP50, 13.5M params), confirming consistency. • Desc. to router only (RCER without the SRF descriptor gate) still outperforms content-only MoE (89.5 vs. 88.8), but falls short of the full model by 0.8 mAP50, showing that both consumption points (gate and router) contribute. 
+
+# S16 Additional Reproducibility Details 
+
+This section summarizes the implementation and evaluation settings shared by the supplementary experiments. Unless explicitly noted otherwise, all ablations use the same data splits, optimizer schedule, augmentation policy, seed set, and corruption scripts. 
+
+S16.1 Exact Environment and Training Configuration 
+
+Table S30 summarizes the shared hardware, software, optimization, and routing settings used for the reported experi-ments and supplementary analyses. Table S30: Exact training and evaluation environment.                                   
+
+> Item Value Framework PyTorch 2.1 CUDA / cuDNN 12.1 / 8.9 GPU 4×NVIDIA RTX 4090 (24GB each) Mixed precision AMP with GradScaler; FFT always in FP32 Input size 640 ×640 Batch size 4 total (1 per GPU) Epochs 160 (mosaic off for last 12) Optimizer AdamW Backbone LR 4×10 −4
+> Head LR 8×10 −4
+> EMA decay 0.9999 Active insertion levels P3: plain concat; P4, P 5: SRF + RCER Descriptor consumer input LN(stopgrad( d))
+> Active levels P4, P 5
+> τ(band threshold) 0.25 Experts 3 task + 1 shared Top-k2Router noise σ1.0 (training only)
+> λmoe 0.01 Seeds {42 ,123 ,256 ,512 ,1024 }
+> Dataset roots Environment-specific absolute paths remapped to the same splits and annotation files
+
+34 Reusing Fusion-Time Spectral Reliability for RGB-Infrared Detection 
+
+S16.2 OBB-to-HBB Conversion 
+
+For DroneVehicle, all oriented bounding boxes are converted to axis-aligned horizontal bounding boxes prior to training and evaluation: 
+
+Algorithm 4 OBB to HBB conversion for DroneVehicle. 
+
+Require: Oriented box corners {(xi, y i)}4
+
+> i=1
+
+Ensure: Axis-aligned box (xmin , y min , x max , y max )
+
+1: xmin ← min i xi
+
+2: ymin ← min i yi
+
+3: xmax ← max i xi
+
+4: ymax ← max i yi
+
+5: return (xmin , y min , x max , y max )
+
+S16.3 Corruption Generation Protocol 
+
+Algorithm 5 summarizes the deterministic corruption-evaluation procedure shared by the robustness experiments in the main paper and this supplementary material. 
+
+Algorithm 5 Corruption evaluation protocol. 
+
+1: for corruption c ∈ { blur , low-light , noise , drop , misalign-10 , misalign-20 } do 
+
+2: for severity s ∈ predefined levels (see Table S15) do 
+
+3: Apply corruption c at severity s to the test set 4: Modality target: blur → both; noise/low-light → RGB; drop/misalign → auxiliary 5: Run detector inference (no retraining) 6: Compute mAP50, mAP@[.5:.95], and retention 7: end for 
+
+8: end for 
+
+9: All corruption implementations use deterministic seeds for reproducibility 
+
+The anonymized supplementary package contains the configuration files, training scripts, evaluation scripts, and corruption-generation utilities used for the reported experiments. All supplementary robustness tables reuse the same corruption seeds, evaluation scripts, and retention computation so that differences remain attributable to the model variants rather than to protocol drift. 35

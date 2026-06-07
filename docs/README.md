@@ -6,29 +6,26 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-06
-- 运行时间：2026-06-06 20:36:02 UTC
+- 最新运行日期：2026-06-07
+- 运行时间：2026-06-07 21:18:32 UTC
 - 运行状态：成功
-- 本次总论文数：2
-- 精读区：0
-- 速读区：2
+- 本次总论文数：1
+- 精读区：1
+- 速读区：0
 
 ### 今日简报（AI）
-今日速览两篇AI前沿论文，聚焦3D问答与自动驾驶接地。  
-值得关注：零样本3D问答通过分层视图-令牌传输实现空间推理，自动驾驶模型LiAuto-GeoX追求高效接地与场景理解。  
-建议留意多模态3D场景问答与轻量驾驶Transformer的融合趋势。
-- 详情：[/202606/06/README](/202606/06/README)
+今日精读一篇RGB-红外目标检测新作，聚焦如何重用时序光谱可靠性来改善多模态融合。
+核心结论：自适应融合与专家路由策略可有效利用跨帧光谱稳定性，在复杂场景下显著提升检测鲁棒性。
+想入手多模态检测的朋友可以重点关注其“可靠性复用”思路，尝试将类似的时序线索融入自己的融合模块。
+- 详情：[/202606/07/README](/202606/07/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Reusing Fusion-Time Spectral Reliability for Adaptive Fusion and Expert Routing in RGB-Infrared Object Detection](/202606/07/2606.01173v1-reusing-fusion-time-spectral-reliability-for-adaptive-fusion-and-expert-routing-in-rgb-infrared-object-detection)  
+   标签：评分：8.0/10、query:lidar-d-det
+   evidence：提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符
 
 ### 速读区论文标签
-1. [Zero-Shot 3D Question Answering via Hierarchical View-to-Token Transportation](/202606/06/2606.03100v1-zero-shot-3d-question-answering-via-hierarchical-view-to-token-transportation)  
-   标签：评分：6.0/10、query:lidar-d-det
-   evidence：提出分层视图和令牌重要性评估机制以聚合点云中的三维细节
-2. [LiAuto-GeoX: Efficient Grounded Driving Transformer](/202606/06/2606.05774v1-liauto-geox-efficient-grounded-driving-transformer)  
-   标签：评分：6.0/10、query:lidar-d-det
-   evidence：利用稀疏LiDAR先验进行稠密深度估计
+- 本次无速读推荐。
 
 
 <div class="dpr-home-promo-card">

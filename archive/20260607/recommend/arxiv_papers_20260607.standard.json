@@ -1,0 +1,53 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-07T21:16:14.899883+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2606.01173v1",
+      "source": "arxiv",
+      "title": "Reusing Fusion-Time Spectral Reliability for Adaptive Fusion and Expert Routing in RGB-Infrared Object Detection",
+      "abstract": "RGB-infrared detectors typically discard the statistics generated during cross-modal fusion, leaving downstream modules unaware of whether the current interaction is reliable. We propose to extract a parameter-free, 7-dimensional spectral reliability descriptor -- summarizing band energy, amplitude ratio, phase consistency, and cross-modal correlation -- and to reuse it beyond the fusion stage. The descriptor drives both Spectral Reliability Fusion (SRF), which gates a spectral residual against a conservative spatial base, and Reliability-Conditioned Expert Routing (RCER), which combines the descriptor with pooled content to steer sparse post-fusion experts. Under matched ablations, descriptor-aware gating improves mAP50 over content-only adaptive gating; a $2{\\times}2$ factorial analysis further shows that descriptor-conditioned routing provides the larger marginal gain over expert architecture alone at near-equal parameter count. Under six synthetic degradations on DroneVehicle, average retention rises to 95.0%, versus 92.0% for content-only MoE and 87.9% for concatenation, with the largest gain under modality drop; the same model also improves mAP50 by +5.2/+5.3 on the natural day/night split. These results suggest that preserving fusion-time reliability as an explicit signal benefits both adaptive fusion and post-fusion conditional computation.",
+      "authors": [
+        "Yefeng Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-31T11:28:41+00:00",
+      "link": "https://arxiv.org/pdf/2606.01173v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes adaptive fusion and expert routing for RGB-infrared object detection, reusing fusion-time spectral reliability descriptor",
+      "llm_evidence_cn": "提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符",
+      "llm_evidence": "提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符",
+      "canonical_evidence": "提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符",
+      "llm_tldr_en": "The paper proposes using a spectral reliability descriptor from RGB-IR fusion to gate feature fusion and route sparse experts, improving detection performance with negligible overhead.",
+      "llm_tldr_cn": "该文针对RGB-红外目标检测中交叉模态交互可靠性不确定的问题，提出从融合过程中提取频谱可靠性描述符，并据此设计频谱可靠性融合（SRF）和可靠性条件专家路由（RCER）机制。实验表明，该方法在保持极低计算开销的同时，显著提升了检测精度，为多模态融合提供了轻量且有效的动态调节思路。",
+      "llm_tldr": "该文针对RGB-红外目标检测中交叉模态交互可靠性不确定的问题，提出从融合过程中提取频谱可靠性描述符，并据此设计频谱可靠性融合（SRF）和可靠性条件专家路由（RCER）机制。实验表明，该方法在保持极低计算开销的同时，显著提升了检测精度，为多模态融合提供了轻量且有效的动态调节思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

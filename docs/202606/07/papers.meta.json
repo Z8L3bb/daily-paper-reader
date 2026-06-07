@@ -1,0 +1,24 @@
+{
+  "label": "2026-06-07",
+  "date": "2026-06-07",
+  "generated_at": "2026-06-07T21:18:39",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202606/07/2606.01173v1-reusing-fusion-time-spectral-reliability-for-adaptive-fusion-and-expert-routing-in-rgb-infrared-object-detection",
+      "section": "deep",
+      "title_en": "Reusing Fusion-Time Spectral Reliability for Adaptive Fusion and Expert Routing in RGB-Infrared Object Detection",
+      "authors": "Yefeng Wu",
+      "date": "2026-05-31",
+      "pdf": "https://arxiv.org/pdf/2606.01173v1",
+      "score": "8.0",
+      "evidence": "提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符",
+      "tldr": "现有RGB-红外目标检测方法通常忽略跨模态融合过程中产生的统计信息，导致下游模块缺乏对当前交互可靠性的感知。为此，本文提出一种无参数的7维频谱可靠性描述符，涵盖带能量、幅度比、相位一致性及跨模态相关性，并驱动频谱可靠性融合（SRF）与可靠性条件专家路由（RCER）两个模块。在DroneVehicle数据集上的实验表明，面对六种合成退化，该方法将平均检测保留率从87.9%提高到95.0%，并在自然昼夜分割上带来了+5.2/+5.3的mAP50增益。研究证明，显式地将融合可靠性信号保留下来，能够显著提升自适应融合与后处理条件计算的效果。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "RGB-infrared detectors typically discard the statistics generated during cross-modal fusion, leaving downstream modules unaware of whether the current interaction is reliable. We propose to extract a parameter-free, 7-dimensional spectral reliability descriptor -- summarizing band energy, amplitude ratio, phase consistency, and cross-modal correlation -- and to reuse it beyond the fusion stage. The descriptor drives both Spectral Reliability Fusion (SRF), which gates a spectral residual against a conservative spatial base, and Reliability-Conditioned Expert Routing (RCER), which combines the descriptor with pooled content to steer sparse post-fusion experts. Under matched ablations, descriptor-aware gating improves mAP50 over content-only adaptive gating; a $2{\\times}2$ factorial analysis further shows that descriptor-conditioned routing provides the larger marginal gain over expert architecture alone at near-equal parameter count. Under six synthetic degradations on DroneVehicle, average retention rises to 95.0%, versus 92.0% for content-only MoE and 87.9% for concatenation, with the largest gain under modality drop; the same model also improves mAP50 by +5.2/+5.3 on the natural day/night split. These results suggest that preserving fusion-time reliability as an explicit signal benefits both adaptive fusion and post-fusion conditional computation.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
