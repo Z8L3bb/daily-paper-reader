@@ -1,0 +1,24 @@
+{
+  "label": "2026-06-08",
+  "date": "2026-06-08",
+  "generated_at": "2026-06-08T21:59:19",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202606/08/2606.07233v1-does-appearance-help-a-systematic-study-of-image-based-re-identification-in-online-3d-multi-pedestrian-tracking",
+      "section": "quick",
+      "title_en": "Does Appearance Help? A Systematic Study of Image-Based Re-Identification in Online 3D Multi-Pedestrian Tracking",
+      "authors": "Eduardo Borges, Luís Garrote, Urbano J. Nunes",
+      "date": "2026-06-05",
+      "pdf": "https://arxiv.org/pdf/2606.07233v1",
+      "score": "7.0",
+      "evidence": "基于LiDAR的3D多目标跟踪融合RGB重识别以实现拥挤场景下的稳健检测",
+      "tldr": "在复杂动态环境中，仅依赖几何信息的激光雷达3D多行人跟踪难以在遮挡或密集人群中维持目标身份。本文系统研究了图像重识别融合，提出一种轻量级投影框架解耦几何与外观建模，并评估级联匹配等数据关联策略。实验表明，级联匹配能有效恢复遮挡轨迹、防止身份切换，而朴素融合因视觉噪声降低性能。该工作为移动机器人提供了低延迟、高辨别力的在线跟踪方案，保障安全导航与社会感知。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "LiDAR-based 3D Multi-Object Tracking (MOT) typically relies solely on geometric information, which is often insufficient to distinguish between targets during prolonged occlusions or in crowded human-populated environments. While integrating RGB-based Re-Identification (ReID) offers a theoretical solution for preserving identity context, existing approaches often rely on computationally expensive parallel detectors that hinder real-time robot responsiveness. This work presents a systematic study of image-based ReID in online 3D MOT, utilizing a lightweight projection-based framework to decouple geometric and appearance modeling for mobile robots. A comprehensive analysis of feature extraction architectures is conducted, employing lightweight CNNs and Vision Transformers, and evaluating various multi-modal data association strategies to balance computational latency with robust tracking. Experiments on the Pedestrian class of the KITTI dataset reveal that naive linear fusion, of appearance and motion costs, degrades performance due to visual noise. Conversely, a cascaded matching strategy successfully recovers occluded tracks without compromising overall precision, effectively preventing identity switches to maintain human-robot interaction continuity. We show that lightweight architectures can offer an optimal trade-off between the low latency required for safe navigation and the discriminative power needed for social awareness.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

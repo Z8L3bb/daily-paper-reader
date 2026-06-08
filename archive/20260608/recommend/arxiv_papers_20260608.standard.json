@@ -1,0 +1,58 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-08T21:57:32.680999+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.07233v1",
+      "source": "arxiv",
+      "title": "Does Appearance Help? A Systematic Study of Image-Based Re-Identification in Online 3D Multi-Pedestrian Tracking",
+      "abstract": "LiDAR-based 3D Multi-Object Tracking (MOT) typically relies solely on geometric information, which is often insufficient to distinguish between targets during prolonged occlusions or in crowded human-populated environments. While integrating RGB-based Re-Identification (ReID) offers a theoretical solution for preserving identity context, existing approaches often rely on computationally expensive parallel detectors that hinder real-time robot responsiveness. This work presents a systematic study of image-based ReID in online 3D MOT, utilizing a lightweight projection-based framework to decouple geometric and appearance modeling for mobile robots. A comprehensive analysis of feature extraction architectures is conducted, employing lightweight CNNs and Vision Transformers, and evaluating various multi-modal data association strategies to balance computational latency with robust tracking. Experiments on the Pedestrian class of the KITTI dataset reveal that naive linear fusion, of appearance and motion costs, degrades performance due to visual noise. Conversely, a cascaded matching strategy successfully recovers occluded tracks without compromising overall precision, effectively preventing identity switches to maintain human-robot interaction continuity. We show that lightweight architectures can offer an optimal trade-off between the low latency required for safe navigation and the discriminative power needed for social awareness.",
+      "authors": [
+        "Eduardo Borges",
+        "Luís Garrote",
+        "Urbano J. Nunes"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-06-05T13:00:04+00:00",
+      "link": "https://arxiv.org/pdf/2606.07233v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LiDAR-based 3D MOT integrates RGB ReID for robust detection in crowded scenes",
+      "llm_evidence_cn": "基于LiDAR的3D多目标跟踪融合RGB重识别以实现拥挤场景下的稳健检测",
+      "llm_evidence": "基于LiDAR的3D多目标跟踪融合RGB重识别以实现拥挤场景下的稳健检测",
+      "canonical_evidence": "基于LiDAR的3D多目标跟踪融合RGB重识别以实现拥挤场景下的稳健检测",
+      "llm_tldr_en": "This paper systematically studies image-based ReID in online 3D multi-pedestrian tracking, proposing a lightweight projection framework that fuses LiDAR geometry with RGB appearance for robust identity preservation in crowded environments.",
+      "llm_tldr_cn": "本文系统研究了在线3D多行人跟踪中基于图像的重识别，提出一种轻量级投影框架，将LiDAR几何信息与RGB外观信息融合，以在拥挤场景中保持身份一致性。该框架解耦了几何与外观建模，通过综合分析特征提取架构，在保持实时响应的同时提升了跟踪鲁棒性，为多模态融合在3D感知中的应用提供了实证参考。",
+      "llm_tldr": "本文系统研究了在线3D多行人跟踪中基于图像的重识别，提出一种轻量级投影框架，将LiDAR几何信息与RGB外观信息融合，以在拥挤场景中保持身份一致性。该框架解耦了几何与外观建模，通过综合分析特征提取架构，在保持实时响应的同时提升了跟踪鲁棒性，为多模态融合在3D感知中的应用提供了实证参考。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "integrating multiple sensor modalities for robust detection",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

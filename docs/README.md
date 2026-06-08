@@ -6,26 +6,26 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-07
-- 运行时间：2026-06-07 21:18:32 UTC
+- 最新运行日期：2026-06-08
+- 运行时间：2026-06-08 21:59:09 UTC
 - 运行状态：成功
 - 本次总论文数：1
-- 精读区：1
-- 速读区：0
+- 精读区：0
+- 速读区：1
 
 ### 今日简报（AI）
-今日精读一篇RGB-红外目标检测新作，聚焦如何重用时序光谱可靠性来改善多模态融合。
-核心结论：自适应融合与专家路由策略可有效利用跨帧光谱稳定性，在复杂场景下显著提升检测鲁棒性。
-想入手多模态检测的朋友可以重点关注其“可靠性复用”思路，尝试将类似的时序线索融入自己的融合模块。
-- 详情：[/202606/07/README](/202606/07/README)
+今日速读论文一篇，系统探究外观信息在在线3D多行人跟踪中的真实助力。
+研究发现纯图像重识别对3D跟踪提升有限，几何与运动线索往往更关键。
+建议读者关注如何将外观与时空信息深度融合，而非单纯依赖图像特征。
+- 详情：[/202606/08/README](/202606/08/README)
 
 ### 精读区论文标签
-1. [Reusing Fusion-Time Spectral Reliability for Adaptive Fusion and Expert Routing in RGB-Infrared Object Detection](/202606/07/2606.01173v1-reusing-fusion-time-spectral-reliability-for-adaptive-fusion-and-expert-routing-in-rgb-infrared-object-detection)  
-   标签：评分：8.0/10、query:lidar-d-det
-   evidence：提出RGB-红外目标检测中的自适应融合与专家路由，复用融合时频谱可靠性描述符
+- 本次无精读推荐。
 
 ### 速读区论文标签
-- 本次无速读推荐。
+1. [Does Appearance Help? A Systematic Study of Image-Based Re-Identification in Online 3D Multi-Pedestrian Tracking](/202606/08/2606.07233v1-does-appearance-help-a-systematic-study-of-image-based-re-identification-in-online-3d-multi-pedestrian-tracking)  
+   标签：评分：7.0/10、query:stage-d-det
+   evidence：基于LiDAR的3D多目标跟踪融合RGB重识别以实现拥挤场景下的稳健检测
 
 
 <div class="dpr-home-promo-card">

@@ -1,0 +1,291 @@
+Title: Does Appearance Help? A Systematic Study of Image-Based Re-Identification in Online 3D Multi-Pedestrian Tracking
+
+URL Source: https://arxiv.org/pdf/2606.07233v1
+
+Published Time: Mon, 08 Jun 2026 01:03:24 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026. 1
+
+# Does Appearance Help? A Systematic Study of Image-Based Re-Identification in Online 3D Multi-Pedestrian Tracking 
+
+Eduardo Borges, Lu´ ıs Garrote, and Urbano J. Nunes 
+
+Abstract —LiDAR-based 3D Multi-Object Tracking (MOT) typically relies solely on geometric information, which is of-ten insufficient to distinguish between targets during pro-longed occlusions or in crowded human-populated environ-ments. While integrating RGB-based Re-Identification (ReID) offers a theoretical solution for preserving identity context, existing approaches often rely on computationally expensive parallel detectors that hinder real-time robot responsiveness. This work presents a systematic study of image-based ReID in online 3D MOT, utilizing a lightweight projection-based framework to decouple geometric and appearance modeling for mobile robots. A comprehensive analysis of feature extraction architectures is conducted, employing lightweight CNNs and Vision Transformers, and evaluating various multi-modal data association strategies to balance computational latency with robust tracking. Experiments on the Pedestrian class of the KITTI dataset reveal that naive linear fusion, of appearance and motion costs, degrades performance due to visual noise. Conversely, a cascaded matching strategy successfully recov-ers occluded tracks without compromising overall precision, effectively preventing identity switches to maintain human-robot interaction continuity. We show that lightweight architectures can offer an optimal trade-off between the low latency required for safe navigation and the discriminative power needed for social awareness. 
+
+Index Terms —Multi-Pedestrian Tracking, Multi-Object Tracking, Object Re-Identification, Tracking-by-Detection. 
+
+I. I NTRODUCTION 
+
+The deployment of social and service robots has been a rapidly growing field, particularly in the last decade, mainly due to fast and impactful advancements in deep learning and artificial intelligence [1]. These advancements enabled the development of models and techniques that are increas-ingly effective in accomplishing tasks related to perception, localization, and human behavior analysis. These tasks are essential to ensure the safe and socially acceptable navigation of an agent ( e.g., a service robot or an autonomous mobile robot) within dynamic, human-populated environments such as crowded public spaces, hospitals, or factory floors. To facilitate natural human-robot interaction and socially aware navigation, the agent must not only detect surrounding pedestrians but also track their movement over time. This allows the robot to predict human trajectories, respect per-sonal space, and maintain interaction context. Multi-Object Tracking (MOT) addresses this by first generating detections from sensor data. Second, it assigns a unique identifier (ID) to each person, associating detections across frames to manage stored trajectories. In the context of human-robot interaction, 
+
+Authors are with the Institute of Systems and Robotics, Department of Electrical and Computer Engineering, University of Coimbra, Portugal. 
+
+{eduardo.borges, garrote, urbano }@isr.uc.pt ReID Model     
+
+> 2D ROI Crops
+> 3D Detections
+> RGB Image
+> Compute Geometric Affinity Affinity Fusion
+> Hungarian Algorithm
+> Matches: (1,1), (2,3), (3,2), (4,4)
+> Compute Appearance Affinity
+> Embeddings
+> Data Association
+
+Fig. 1. Overview of the proposed re-identification framework. The pipeline integrates an additional RGB-based appearance branch to comple-ment motion with appearance information in data association. 
+
+reliably maintaining this unique ID is critical. This ensures the agent does not lose track of an interaction partner during prolonged occlusions in crowded environments. LiDAR has become one of the most widely used sen-sors for 3D MOT, mainly due to its precise depth mea-surements [2]. This motivated many trackers, such as AB3DMOT [3], to rely solely on geometric information ( e.g., 
+
+3D Generalized Intersection over Union (GIoU) [4]) and motion prediction ( e.g., Kalman Filter [5]) for data associa-tion. These choices lead to highly computationally efficient systems. However, motion-only approaches face challenges in complex scenarios. In crowded scenes, where pedestri-ans are close and occlusions are frequent or prolonged, geometric information is often insufficient to distinguish between pedestrians or to identify lost targets, leading to identity switches or fragmented tracks. Here, knowledge of the object’s appearance is required. In this work, a comprehensive study was conducted to an-alyze the impact of image-based Re-Identification (ReID) on online 3D Multi-Pedestrian Tracking (MPT). A lightweight baseline was established with PointPillars [6] as the 3D detector and AB3DMOT [3] as the tracker. Then, a modular projection-based ReID branch was integrated to introduce ap-pearance information. To select an appropriate ReID network, a range of feature extractors was evaluated, from lightweight Convolutional Neural Networks (CNNs) to Vision Transform-ers (ViTs). The overall pipeline is illustrated in Fig. 1. This work’s contributions are summarized as follows:  
+
+> •
+
+Systematic ReID Benchmark: A comprehensive set of feature-extracting backbones is benchmarked to deter-mine the optimal trade-off between inference latency and discriminative power for online 3D MOT.   
+
+> arXiv:2606.07233v1 [cs.CV] 5 Jun 2026 2IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026.
+> •
+
+Robust Fusion Strategy: Different multi-modal associ-ation strategies are evaluated to identify the optimal balance between motion and appearance.  
+
+> •
+
+Appearance Modeling Strategy: Different appearance modeling strategies are evaluated to identify the most effective method to preserve appearance information.  
+
+> •
+
+Impact Analysis: An analysis on the KITTI MOT dataset is provided using common metrics such as HOTA, MOTA, and IDF1. Finally, the impact of domain adap-tation and appearance memory strategies on tracking robustness is analyzed. II. R ELATED WORK 
+
+A. Multi-Object Tracking 
+
+Within MOT, one of the most popular paradigms follows the Tracking-by-Detection (TBD) approach, where the pro-cess is separated into two independent stages of object detec-tion and temporal association [7], [8]. Some adopters of this paradigm, such as SORT [9] and AB3DMOT [3], for 2D and 3D MOT, respectively, focused on maximizing speed needed for online deployment, relying solely on motion information. Both utilize Intersection over Union (IoU) to calculate the spatial overlap between current detections and Kalman Filter predictions based on previous detections. Then, they use the Hungarian algorithm [10] to perform the optimal assignment between them. Although effective for short-term tracking on non-challenging datasets, motion-only systems [3], [9], [11], [12] suffer in crowded scenes or during prolonged occlu-sions. Wojke et al. extended the original SORT framework by introducing DeepSORT [13], a variant that integrates a lightweight CNN to extract appearance-based features. This addition enabled object re-identification following temporary disappearance or occlusion, marking a shift in MOT systems toward a greater emphasis on appearance-based association. This paradigm shift gave rise to two new approaches, highlighted in Fig. 2, focused on the first stage of MOT: Separate Detection and Embedding (SDE), in which object detection and embedding extraction for ReID are handled by independent networks, and Joint Detection and Embed-ding (JDE), where both tasks are performed by a single network. SDE frameworks [13]–[18] benefit from the ability to utilize high-performance specialized backbones. However, because ReID must be performed every frame, these often suffer from computational redundancy and lower speeds. JDE frameworks [19]–[24] achieve higher speeds due to the integration of both tasks into a single network. Nevertheless, they typically exhibit inferior performance and must carefully address task competition between class-level recognition for detection and instance-level discrimination for ReID. 
+
+B. Object Re-Identification 
+
+A standard ReID pipeline typically involves designing or selecting an appropriate loss function to train a CNN-based feature extraction backbone. Some methods employ well-established networks such as ResNet [25] or MobileNet [26], while others propose task-specific CNN architectures tai-lored for ReID. For example, MGN [27] modifies a CNN RGB Image    
+
+> Detector ReID Model Embeddings Detections
+> Separate Detection and Embedding (SDE)
+> RGB Image
+> JDE Model Embeddings Detections
+> Joint Detection and Embedding (JDE)
+
++  
+
+> Fig. 2. Separate Detection and Embedding (SDE) and Joint Detec-tion and Embedding (JDE) paradigms. SDE employs two independent networks, maximizing accuracy. JDE integrates both tasks into a single backbone, achieving higher speed but requiring a careful balancing of the loss functions.
+
+backbone to simultaneously learn global representations and fine-grained part-level features, improving robustness to pose and viewpoint variations. More recently, ViTs have emerged as a capable alternative. Unlike CNNs, which rely on local information, transformers leverage self-attention mechanisms to capture long-range dependencies and global context, offer-ing increased robustness in handling occlusions and complex pose variations [28]. Regardless of the architecture, some of the most commonly used loss functions to train ReID networks are the cross-entropy loss, the triplet loss [29], and the contrastive loss. Cross-entropy loss treats ReID as a classification problem by training the network to assign a class to each object or identity. The learned feature space implicitly clusters the embeddings of the same object. Both contrastive and triplet losses follow the same principle: minimize the distance be-tween embeddings of the same object (positive pairs), while simultaneously maximizing the distance between embeddings of different objects (negative pairs). However, they differ in their implementation: contrastive loss operates on pairs of samples, while triplet loss works with triplets of samples (anchor, positive, and negative). Recent advancements, such as proposed by Luo et al. [30], have further refined these pipelines by introducing techniques such as the BNNeck and warm-up learning rate schedules, establishing strong baselines that balance the optimization of both cross-entropy and triplet losses. 
+
+C. Multi-Modal 3D Tracking 
+
+To overcome the sparsity of LiDAR data, recent ap-proaches have proposed the integration of information from RGB images. A common approach, used by state-of-the-art frameworks like EagerMOT [31] and DeepFusionMOT [32], relies on a “decision-level fusion” strategy. These systems utilize two independent detectors running in parallel: a 3D detector for the point cloud and a 2D detector for the RGB image. The 2D and 3D detections are then fused, allowing the 3D tracker to inherit the robustness of 2D trackers (usually using appearance embeddings). While effective, this depen-dency on two detectors increases the computational complex-ity. In contrast, fewer works [18] explore a projection-based SDE approach, where 3D detections are directly projected to IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026. 3Point Cloud 3D Detections 
+
+PointPillars 
+
+3D Object Detector 
+
+AB3DMOT 
+
+RGB Image 
+
+## Project And Crop 
+
+2D ROI Crops 
+
+3D Bounding Boxes 
+
+ReID Model 
+
+> Embedding Memory
+> Compute Cost Matrix
+> Data Association (Hungarian Algorithm)
+> 3D Kalman Filter
+
+Tracker 
+
+> detections embeddings
+
+tracks      
+
+> Fig. 3. Overview of the proposed Multi-Modal 3D MOT framework. The pipeline operates in two parallel streams. The geometric branch (top) processes the raw LiDAR point cloud using a PointPillars detector to generate 3D bounding boxes. The appearance branch (bottom) projects these 3D detections onto the RGB image to extract the corresponding 2D RoI crops, which are then encoded by a ReID network ( embeddings ). Finally, a modified AB3DMOT
+> tracker fuses these modalities, utilizing the Hungarian Algorithm to perform the data association, outputting the final updated trajectories ( tracks ).
+
+extract image features, which avoids a dedicated 2D detection pipeline while still capturing appearance information. 
+
+D. Impact of Re-Identification on MOT Performance 
+
+Despite the prevalence of appearance models in modern trackers, research quantifying their specific contribution re-mains sparse. Early metrics like Multiple Object Tracking Accuracy (MOTA) [33] are heavily biased toward detection accuracy and often fail to capture improvements in associa-tion. In contrast, identity-aware metrics such as IDF1 [34] and the more recently proposed Higher Order Tracking Accuracy (HOTA) [35] provide a clearer measure of tracking consistency, penalizing identity switches explicitly. Several ablation studies [11], [12] have claimed that in high frame rate scenarios, simple motion heuristics (like IoU or Kalman Filters) can outperform complex ReID models, which may introduce noise due to appearance ambiguities. Conversely, in scenarios with prolonged occlusions or low frame rates, ReID has been shown to be critical for track recovery [11], [13]. This highlights the need for careful ablation studies, such as the one presented in this work, to clearly differentiate between the gains of geometric association and those of visual discrimination. III. M ETHODOLOGY 
+
+A. System Overview 
+
+The proposed 3D MOT framework follows a TBD paradigm, integrating motion information from LiDAR point clouds with appearance features from RGB images to en-hance tracking robustness. The overall architecture of the framework is illustrated in Fig. 3. The system operates in four main stages. First, a 3D object detector (PointPillars [6]) processes the raw LiDAR point cloud to generate 3D bounding box proposals. Second, these 3D detections are projected onto the corresponding RGB image plane using the camera calibration matrices. This projection allows for the extraction of 2D RoI crops corre-sponding to each detected 3D object. Third, the extracted image crops are fed into a ReID network. This module maps each crop into a high-dimensional embedding space, where the distance between embeddings represents the appearance similarity between pedestrians. Finally, the tracking module, built on top of the AB3DMOT [3] framework, performs state estimation and data association. The association step combines motion information (via 3D GIoU [4]) with the extracted appearance embeddings (via cosine distance) to match current detections with existing tracklets, to minimize identity switches in complex scenarios. 
+
+B. RGB-Based ReID Module 1) Feature Extraction Architectures: To identify the op-timal trade-off between feature representativeness and in-ference speed for 3D tracking, a diverse set of backbone architectures was evaluated. These were categorized into four groups:  
+
+> •
+
+Standard CNNs: ResNet-18 and ResNet-50 [25] were selected as robust baselines for feature extraction.  
+
+> •
+
+Lightweight CNNs: To address the computational con-straints of real-time deployment, MobileNetV2 and MobileNetV3-Small [26] were evaluated.  
+
+> •
+
+Vision Transformers: ViT-B/16, ViT-B/32 [36], and Swin-T [37] were explored due to the growing popular-ity of feature extraction transformer-based architectures and to assess the impact of attention mechanisms.  
+
+> •
+
+Specialized ReID Architectures: The MGN architec-ture [27] was implemented due to its fine-grained fea-ture retrieval capability. To maintain system efficiency, the standard MGN backbone was replaced with the lightweight MobileNetV3-Small. For all architectures, the original classification heads were substituted with a custom projection head, following the 
+
+BNNeck strategy proposed by Luo et al. [30]. First, the back-bone features are mapped to a lower-dimensional embedding 4 IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026.     
+
+> Fig. 4. Architecture of the ReID head employing the BNNeck [30] strategy. Features extracted from the backbone are processed through a com-bined Batch Normalization (BN) and ℓ2normalization block. The resulting normalized embeddings are utilized for both metric learning (Triplet Loss) and inference during tracking, while a final fully connected (FC) layer maps them to class logits for the Cross-Entropy loss.
+
+space of size d using a linear layer. This is followed by a one-dimensional Batch Normalization (BN) layer and an ℓ2
+
+normalization operation: 
+
+fnorm = BN (Wproj · fbackbone )
+
+∥BN (Wproj · fbackbone )∥2
+
+(1) Normalized embeddings fnorm are used for the calculation of triplet loss and during inference. Finally, a fully connected classifier layer maps these normalized embeddings to class logits for the cross-entropy loss calculation. The complete ReID framework is illustrated in Fig. 4. 
+
+2) Training Objective: The networks were optimized us-ing a loss function designed to ensure both within-class compactness and between-class separability. The total loss 
+
+Ltotal is defined as the sum of the classification loss and the metric learning loss: 
+
+Ltotal = Lce + Ltriplet (2) where Lce is the Cross-Entropy loss computed on the class logits, and Ltriplet is the Triplet Margin loss with hard negative mining. 
+
+3) Embedding Dimensionality: The size of the embedding vector d is a hyperparameter that affects both discrim-inability and memory size. To determine the most efficient configuration, an ablation study was performed across five different embedding sizes: d ∈ { 128 , 256 , 512 , 1024 , 2048 }.This allows for the selection of a dimension that maximizes ReID accuracy while minimizing the computational cost of the data association step. 
+
+4) Domain Adaptation: A notable challenge when apply-ing ReID to 3D MOT is the domain gap between standard surveillance viewpoints and the ego-perspective of a mobile robot sharing the floor with humans. To address this, a two-stage training strategy was employed: 1) General Pre-training: Models were first trained on the large-scale Market-1501 dataset [38], allowing the network to learn robust general-purpose pedestrian features. 2) Target Domain Fine-tuning: To adapt the represen-tations to the specific viewpoints, lighting, and oc-clusions found in human-robot shared environments, some selected models were fine-tuned in an adapted version of the KITTI [39] dataset. This KITTI-ReID 
+
+dataset was constructed by extracting 2D pedestrian crops from RGB images, using the ground-truth track IDs as unique identities. 
+
+C. Tracking and Association 1) State Estimation: A standard Kalman Filter frame-work was employed to estimate the state of each tracked pedestrian in 3D space, following the formulation of AB3DMOT [3]. The state vector of a tracklet is defined as 
+
+s = ( x, y, z, θ, l, w, h, v x, v y , v z ), representing the 3D center coordinates, heading angle, bounding box dimensions, and linear velocities, respectively. A constant velocity model is employed for the state transition, allowing the tracker to predict the pedestrian’s position in the next frame. When a detection is associated with a tracklet, the Kalman Filter update step corrects the predicted state using the observed detection parameters. If no detection is matched for a prede-fined number of frames ( max age ), the tracklet is considered lost and removed from the system. 
+
+2) Temporal Appearance Modeling: An appearance model is essential for comparing and associating pedestrians over time, particularly to recover identities after occlusion. Three strategies to maintain and update the pedestrian-specific appearance representations were evaluated: 
+
+a) Fixed-Window Gallery: A fixed-size gallery G =
+
+{f1, f 2, . . . , f N } is maintained for each tracklet to store the N most recent embeddings. Embeddings are inserted in temporal order. Once the capacity N is reached, a First-In, First-Out (FIFO) strategy is applied, removing the oldest feature to accommodate the new one. During association, the similarity between a detection embedding fdet and a tracklet is computed using a maximum similarity strategy: 
+
+Sgallery (fdet , G ) = max 
+
+> fi∈G
+
+(Sim (fdet , f i)) (3) This approach allows the tracker to match against multiple records of the pedestrian, increasing robustness to changes in viewing angle and pedestrian pose. 
+
+b) Cumulative Moving Average (CMA): Instead of stor-ing multiple vectors, a single template embedding μt is main-tained representing the mean of all observed embeddings. The template is updated online as a cumulative moving average. For a tracklet with current mean μt−1 and count n, the new mean after matching detection fdet is: 
+
+μt = n − 1
+
+n μt−1 + 1
+
+n fdet (4) This strategy provides a stable representation but may lag in adapting to rapid appearance changes. 
+
+c) Exponential Moving Average (EMA): To improve stability, the pedestrian template et is updated using an exponential moving average. Upon a match with detection 
+
+fdet , the template is updated as: 
+
+et = αf det + (1 − α)et−1 (5) where α is a momentum term. This gives greater weight to recent appearance features while retaining a decreasing memory of historical information. IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026. 5
+
+3) Multi-Modal Data Association: To determine the op-timal match between incoming 3D detections and existing tracklets, the tracking module must effectively fuse spatial proximity with visual appearance. We evaluate two distinct multi-modal fusion strategies for computing the final assign-ment cost: 
+
+a) Weighted Linear Combination: A fused cost matrix 
+
+C was constructed by linearly combining geometric and appearance costs. Geometric cost is defined as Cgeo =1−GIoU 3D , and appearance cost as Capp = 1 −Sreid , where 
+
+Sreid is the cosine similarity score derived from the selected appearance model. The final cost matrix is as follows: 
+
+Ctotal = w · Cgeo + (1 − w) · Capp (6) The contribution of each cost can be adjusted by varying the weighting parameter w within the range [0 , 1] , simultaneously considering spatial overlap and pedestrian appearance. The optimal assignment is obtained by applying the Hungarian algorithm to Ctotal . Assignments exceeding the cost thresh-old are discarded. 
+
+b) Cascaded Matching Strategy: Alternatively, the as-sociation is decomposed into a 2-step cascaded process. First, the assignment problem is solved using the geometric cost matrix Cgeo to associate spatially consistent detections. Sec-ond, a new cost matrix Capp is constructed from unmatched detections and unmatched tracklets obtained from the first stage. A second round of Hungarian matching is performed based purely on appearance similarity, allowing the system to recover tracks that have moved unexpectedly, effectively serving as an occlusion recovery mechanism. IV. E XPERIMENTS 
+
+A. Implementation Details 
+
+Experimental Setup: Models were implemented using Py-Torch and trained on a single NVIDIA RTX 5090 GPU. The ReID backbones were trained using the AdamW optimizer with a learning rate of 1 · 10 −3, a batch size of 32 and a triplet loss margin of 1, for 400 epochs. A 10-epoch warm-up strategy was applied followed by a plateau-based scheduler. For the 3D tracker, the association thresholds were set to 0 for GIoU and 0.9 for embedding similarity. Regarding track man-agement, the minimum number of consecutive associations required to initialize a track ( min hits ) was set to 5, while the maximum number of consecutive frames a track could remain unassociated before termination ( max age ) was set to 10. 
+
+Datasets: The experiments are conducted on the KITTI dataset [39], a widely adopted benchmark comprising 21 training sequences and 29 test sequences for evaluating multi-object tracking systems. While KITTI is traditionally an automotive dataset, we utilize its pedestrian sequences as a proxy for a mobile robot navigating highly dynamic outdoor environments. Since ground-truth annotations for the test set are not publicly available, the data split proposed in [3] was adopted to construct training and validation sets from the original training set. Furthermore, the analysis was restricted     
+
+> Fig. 5. Inference Speed (FPS) vs. Accuracy (mAP) on the Market-1501 dataset. The marker color indicates the model architecture, while its shape represents the embedding dimension. The Pareto front (top-right boundary) highlights the most balanced models.
+
+to the Pedestrian category to align with the current focus on human-robot interaction. 
+
+Evaluation Metrics: To assess performance in a compre-hensive manner, two sets of metrics were utilized:  
+
+> •
+
+ReID Metrics: The mean Average Precision (mAP) was used to evaluate the discriminative power of the appearance models.  
+
+> •
+
+Tracking Metrics: To evaluate the tracking system as a whole, HOTA [35] was selected as the primary metric. Since this study focuses on the impact of ReID, the Association Accuracy (AssA) sub-metric is also reported to isolate association performance from detection quality (DetA). Additional classical metrics are also included, such as MOTA [33] and IDF1 [34], to facilitate com-parison with earlier works, and the number of Identity Switches (IDSW) to evaluate track consistency. The system’s inference speed, in Frames Per Second (FPS), is included to better evaluate the trade-off between accuracy and latency. 
+
+B. ReID Component Analysis 1) Architecture Efficiency Trade-off: This section will analyze the trade-off between feature representativeness and inference speed for the ReID module, to determine the optimal backbone for online tracking within the tested archi-tectures. Fig. 5 illustrates the analysis results. An observable Pareto front is formed mainly by the MGN, MobileNetV2, and ResNet18 architectures, representing the solutions that provide the best trade-off between speed and accuracy. The MGN (using a MobileNetV3-Small backbone) with an em-bedding size of 128 achieves the highest accuracy, reaching a mAP of approximately 79% on the Market-1501 dataset. Although it has a complex structure, the inference speed still reaches above 150 FPS. The MobileNetV2 also achieved adequate results, with mAP scores between 71% and 78% and FPS between 170 and 200, being the most consistent in the group. The ResNet18, while not the most accurate, with mAP between 57% and 70%, is the fastest, achieving a remarkable 6 IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026.         
+
+> Fig. 6. Impact of Embedding Size on Discriminability (mAP). Perfor-mance of the selected feature-extracting backbones was evaluated across increasing embedding dimensions d∈ { 128 ,256 ,512 ,1024 ,2048 }.
+
+367 FPS of inference speed. Vision Transformers (ViT-B/16 and ViT-B/32) displayed weaker performance, achieving lower mAP scores when compared to CNNs. Notably, the Swin-T transformer architecture did not behave in the same manner, achieving comparable mAP results to CNNs. This can likely be explained by the limited inductive biases and higher data requirements of ViT-B architectures [36], which are more effectively addressed by Swin-T [37]. Based on this analysis, three configurations were selected to integrate into the 3D tracker: MGN (128-dim) as the high-accuracy option, ResNet-18 (128-dim) as the high-speed option, and 
+
+MobileNetV2 (2048-dim) as the balanced option. Beyond the previous architecture selection, the embedding dimension’s d relation with feature discriminability is also analyzed, as seen in Fig. 6. Two types of behavior are ob-served. Standard CNNs, such as the ResNets or MobileNets, generally benefit from higher dimensionality. In contrast, the MGN architecture appears to be robust to dimensionality variation, even going against the norm and decreasing slightly with larger embedding sizes. This finding is significant for online tracking applications since it allows for the selection of this heavier network with a more compact embedding size (128), minimizing storage for memory without sacrificing accuracy. 
+
+2) Impact of Domain Adaptation: Fig. 7 highlights the impact of domain adaptation on the three selected models. A direct transfer of models trained on Market-1501 to the KITTI domain results in a significant performance drop, with mAP scores falling by approximately 25-30 percentage points across architectures. This is likely due to the fact that person crops in KITTI are often lower resolution and heavily occluded compared to the clean pedestrian images from Market-1501. However, the implemented fine-tuning strategy effectively shrinks this gap, with MGN recovering 10.7 percentage points. 
+
+C. 3D Multi-Object Tracking 
+
+In this section, the impact of integrating these ReID models into the full 3D tracking pipeline is thoroughly evaluated. 
+
+1) Impact of Association Strategy: Here, the two fusion strategies (Weighted Sum vs. Cascaded) and the appearance- 
+
+> Fig. 7. Impact of Domain Shift and Fine-Tuning on ReID Accuracy.
+> The mAP is reported for the three selected architectures: MGN (128-dim), MobileNetV2 (2048-dim), and ResNet-18 (128-dim). The Market →Market bars represent the baseline performance on the source domain. Direct transfer to the target domain (Market →KITTI) results in a significant degradation (highlighted in red). Fine-tuning on target domain crops (KITTI →KITTI) partially recovers this loss (highlighted in green).
+
+only approach are compared with the geometry-only baseline. Table I displays this quantitative evaluation for each of the selected ReID frameworks, using the Cumulative Moving Av-erage (CMA) as the appearance embedding storage strategy. First, relying exclusively on appearance for association (2d emb ) produces clearly inferior results to geometric-only association, with all metrics falling considerably and ID switches increasing more than 10 times over. Second, the naive linear fusion strategy ( w sum ) with equal weighing (w = 0.5) generally degraded the association. While it achieved the lowest number of ID switches for MobileNetV2, with 156, a decrease of 8 from the baseline (164), it produced a noticeable drop in primary tracking metrics such as HOTA, MOTA, and IDF1 across ReID networks. This suggests that this manner of including appearance generated unnecessary noise, dragging down the overall tracking precision in situa-tions where geometric-based matching was sufficient. Finally, the proposed 2-step cascaded strategy ( 2-step ) proved to be the most robust approach. It preserved the detection accuracy from the baseline (maintaining MOTA ≈ 11%) while using ReID to recover occluded or disappeared tracks. The MobileNetV2 backbone with 2-step association achieves the highest overall performance (37.67 HOTA, 54.90 IDF1), proving it can offer marginal but consistent gains in tracking consistency (+0.27 IDF1) without introducing the harmful noise observed in weighted sum. However, the addition of ReID comes with a significant latency cost, increasing the total processing time from 57ms to over 100ms per frame. 
+
+2) Impact of Feature Memory: In 3D MOT, object appear-ance can change rapidly due to occlusions and changes in viewing angle. To mitigate this, two strategies for modeling tracklet appearance were evaluated: a sliding window history (W) of size N , and an Exponential Moving Average (EMA). Table II presents this comparison. Storing a history of embeddings severely increases com-putational requirements during the association phase. As 
+
+N increases from 1 to 50, the total system latency nearly IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026. 7TABLE I                                                                                          
+
+> IMPACT OF ASSOCIATION STRATEGY ON 3D MOT P ERFORMANCE .
+> THE Assoc. COLUMN DENOTES THE MATCHING STRATEGY :ONLY GEOMETRIC (GIoU ), ONLY APPEARANCE (2d emb ), WEIGHTED SUM
+> (w sum ), OR THE CASCADED MATCHING (2-step ). Model Assoc. HOTA ↑AssA ↑MOTA ↑IDSW ↓IDF1 ↑Time ↓
+> –GIoU 37.58 43.43 11.35 164 54.63 57
+> MGN(MN3s) 2d emb 22.52 17.18 -9.56 1400 30.12 88 MGN(MN3s) w sum 34.86 38.51 6.40 188 50.67 106 MGN(MN3s) 2-step 37.65 43.74 10.57 166 54.75 115 MobileNetV2 2d emb 20.06 13.90 -18.50 1951 27.73 85 MobileNetV2 w sum 36.40 41.59 7.91 156 53.12 102 MobileNetV2 2-step 37.67 43.69 11.28 164 54.90 109 ResNet18 2d emb 16.81 9.90 -25.08 2461 22.23 85 ResNet18 w sum 36.68 42.34 7.56 172 54.11 104 ResNet18 2-step 37.58 43.43 11.35 164 54.63 108
+
+triples ( e.g., MGN rises from 116ms to 370ms), suggesting that high-N configurations may be unsuitable for real-time applications. Surprisingly, this added cost did not yield performance gains. For the MGN backbone, the simplest configuration of keeping only the last embedding ( N = 1 )actually achieved the highest HOTA (38.24), outperforming all larger history sizes. This suggests that the most recent appearance is often the most reliable, with older embeddings, which were potentially captured from significantly different viewing angles, possibly introducing noise. The EMA strat-egy might offer an interesting alternative, particularly for the lighter models. For MobileNetV2, EMA achieves the highest HOTA (38.02) for that architecture, and the lowest number of Identity Switches (162) overall, all while maintaining a fast inference time (114ms), which is comparable to the single-frame approach. This indicates that for less discrim-inative backbones, temporal smoothing might help stabilize the appearance-feature representation. Notably, the ResNet-18 model with the Window strategy ( W ) could not improve over the geometry-only baseline (HOTA 37.58), producing equivalent metrics across all window sizes. This implies that ResNet-18 features may lack the necessary discriminative power to override geometric association. V. C ONCLUSION 
+
+In this work, a systematic study was conducted to evaluate the integration of image-based ReID into online 3D MOT pipelines. By separating geometric association from appear-ance modeling, their specific contributions were successfully isolated and quantified. While geometric heuristics remain highly capable, appear-ance information serves as an important recovery mechanism for long-term occlusions. Crucially, the integration strategy is a deciding factor. A naive linear fusion of appearance and motion costs degraded performance compared to a geometry-only baseline due to appearance ambiguities. Conversely, a cascaded association strategy—where ReID is applied only as a secondary stage to recover lost tracklets—delivered the                                                                                                                          
+
+> TABLE II
+> IMPACT OF FEATURE MEMORY STRATEGY ON TRACKING
+> PERFORMANCE .TWO UPDATE MECHANISMS WERE COMPARED :
+> FIXED -WINDOW GALLERY (W)OR APPLYING AN EMA WITH α= 0 .9.Model Memory HOTA ↑AssA ↑MOTA ↑IDSW ↓IDF1 ↑Time ↓
+> Type N– (GIoU) ––37.58 43.43 11.35 164 54.63 57
+> MGN(MN3s) W138.24 44.95 10.93 163 56.20 116 MGN(MN3s) W10 38.22 44.94 10.87 166 56.35 192 MGN(MN3s) W50 38.20 44.94 10.77 166 56.34 370 MGN(MN3s) EMA –37.76 44.02 10.52 167 55.31 111 MobileNetV2 W137.70 43.66 11.53 163 54.86 108 MobileNetV2 W10 37.79 43.90 11.47 163 55.11 177 MobileNetV2 W50 37.74 43.78 11.59 164 54.99 334 MobileNetV2 EMA –38.02 44.45 11.44 162 55.75 114 ResNet18 W137.58 43.43 11.35 164 54.63 110 ResNet18 W10 37.58 43.43 11.35 164 54.63 177 ResNet18 W50 37.58 43.43 11.35 164 54.63 361 ResNet18 EMA –37.68 43.68 11.41 164 54.91 112
+
+best performance, improving identity consistency without compromising overall precision. Regarding feature extraction, lightweight CNNs (such as MobileNetV2) and ReID-specific networks (such as MGN) offered the optimal accuracy-latency trade-off for online ap-plications, outperforming heavier Transformer architectures. Furthermore, long memory structures like sliding windows (with N > 1) incurred prohibitive computational costs without delivering accuracy gains. Instead, retaining only the latest appearance embedding or applying simple temporal smoothing via EMAs provided the most stable representation. Ultimately, while RGB-based ReID enables valuable track-recovery, it introduces a significant latency overhead that is not fully compensated by proportional overall performance gains. Nevertheless, it remains a fundamental addition for critical environments where processing speed can be traded for increased safety and interaction consistency, provided domain-specific fine-tuning and careful association strate-gies are employed. Future work focusing on models with increased discriminative power and improved domain adapta-tion will further minimize appearance ambiguity, potentially justifying this computational cost. ACKNOWLEDGMENT 
+
+This work has been supported by the Portuguese Founda-tion for Science and Technology (FCT) through grant ISR-UC UID/00048/2025 (DOI: 10.54499/UID/00048/2025) and by Agenda “GreenAuto: Green innovation for the Automotive Industry”, with reference 02/C05-i01.01/2022.PC644867037-00000013. Eduardo Borges is being supported by the FCT Ph.D. grant 2025.01736.BD. REFERENCES [1] S. Grigorescu, B. Trasnea, T. Cocias, and G. Macesanu, “A survey of deep learning techniques for autonomous driving,” Journal of Field Robotics , vol. 37, no. 3, pp. 362–386, 2020. 8 IEEE RO-MAN 2026. PREPRINT VERSION. ACCEPTED MAY 2026. [2] S. Shi, X. Wang, and H. Li, “PointRCNN: 3D object proposal generation and detection from point cloud,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019, pp. 770–779. [3] X. Weng, J. Wang, D. Held, and K. Kitani, “3D multi-object tracking: A baseline and new evaluation metrics,” in 2020 IEEE/RSJ Interna-tional Conference on Intelligent Robots and Systems (IROS) , 2020. [4] H. Rezatofighi, N. Tsoi, J. Gwak, A. Sadeghian, I. Reid, and S. Savarese, “Generalized intersection over union: A metric and a loss for bounding box regression,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,2019, pp. 658–666. [5] R. E. Kalman, “A new approach to linear filtering and prediction problems,” Journal of Basic Engineering , vol. 82, no. 1, pp. 35–45, 03 1960. [Online]. Available: https://doi.org/10.1115/1.3662552 [6] A. H. Lang, S. Vora, H. Caesar, L. Zhou, J. Yang, and O. Beijbom, “PointPillars: Fast encoders for object detection from point clouds,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019, pp. 12 697–12 705. [7] S. Hassan, G. Mujtaba, A. Rajput, and N. Fatima, “Multi-object track-ing: a systematic literature review,” Multimedia Tools and Applications ,vol. 83, no. 14, pp. 43 439–43 492, 2024. [8] Z. Guan, Z. Wang, G. Zhang, L. Li, M. Zhang, Z. Shi, and N. Jiang, “Multi-object tracking review: retrospective and emerging trend,” Ar-tificial Intelligence Review , vol. 58, no. 8, p. 235, 2025. [9] A. Bewley, Z. Ge, L. Ott, F. Ramos, and B. Upcroft, “Simple online and realtime tracking,” in 2016 IEEE International Conference on Image Processing (ICIP) . IEEE, 2016. [10] H. W. Kuhn, “The Hungarian method for the assignment problem,” 
+
+Naval Research Logistics Quarterly , vol. 2, no. 1-2, pp. 83–97, 1955. [Online]. Available: https://onlinelibrary.wiley.com/doi/abs/10. 1002/nav.3800020109 [11] Y. Zhang, P. Sun, Y. Jiang, D. Yu, F. Weng, Z. Yuan, P. Luo, W. Liu, and X. Wang, “ByteTrack: Multi-object tracking by associating every detection box,” in European Conference on Computer Vision (ECCV) .Springer, 2022. [12] J. Cao, J. Pang, X. Weng, R. Khirodkar, and K. Kitani, “Observation-Centric SORT: Rethinking SORT for robust multi-object tracking,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 9686–9696. [13] N. Wojke, A. Bewley, and D. Paulus, “Simple online and realtime tracking with a deep association metric,” in 2017 IEEE International Conference on Image Processing (ICIP) . IEEE, 2017. [14] A. Shenoi, M. Patel, J. Gwak, P. Goebel, A. Sadeghian, H. Rezatofighi, R. Martin-Martin, and S. Savarese, “JRMOT: A real-time 3D multi-object tracker and a new large-scale dataset,” in 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) .IEEE, 2020. [15] X. Zhang, X. Wang, and C. Gu, “Online multi-object tracking with pedestrian re-identification and occlusion processing,” The Visual Com-puter , vol. 37, no. 5, pp. 1089–1099, 2021. [16] Y. Du, Z. Zhao, Y. Song, Y. Zhao, F. Su, T. Gong, and H. Meng, “Strongsort: Make DeepSORT great again,” IEEE Transactions on Multimedia , vol. 25, pp. 8725–8737, 2023. [17] G. Maggiolino, A. Ahmad, J. Cao, and K. Kitani, “Deep OC-SORT: Multi-pedestrian tracking by adaptive re-identification,” in 2023 IEEE International Conference on Image Processing (ICIP) . IEEE, 2023. [18] M. Y. Lee, C. D. W. Lee, J. Li, and M. H. Ang, “DINO-MOT: 3D multi-object tracking with visual foundation model for pedestrian re-identification using visual memory mechanism,” IEEE Robotics and Automation Letters , vol. 10, no. 2, pp. 1202–1208, 2024. [19] S. Chan, Y. Jia, X. Zhou, C. Bai, S. Chen, and X. Zhang, “Online multiple object tracking using joint detection and embedding network,” 
+
+Pattern Recognition , vol. 130, p. 108793, 2022. [20] Y. Zhang, C. Wang, X. Wang, W. Zeng, and W. Liu, “FairMOT: On the fairness of detection and re-identification in multiple object tracking,” 
+
+International Journal of Computer Vision , vol. 129, no. 11, pp. 3069– 3087, 2021. [21] T. Liang, B. Li, M. Wang, H. Tan, and Z. Luo, “A closer look at the joint training of object detection and re-identification in multi-object tracking,” IEEE Transactions on Image Processing , vol. 32, pp. 267– 280, 2022. [22] C. Liang, Z. Zhang, X. Zhou, B. Li, S. Zhu, and W. Hu, “Rethinking the competition between detection and reid in multiobject tracking,” 
+
+IEEE Transactions on Image Processing , vol. 31, pp. 3182–3196, 2022. [23] J. Li, Y. Ding, H.-L. Wei, Y. Zhang, and W. Lin, “SimpleTrack: Rethinking and improving the jde approach for multi-object tracking,” 
+
+Sensors , vol. 22, no. 15, p. 5863, 2022. [24] P. Yang, X. Luo, and J. Sun, “A simple but effective method for balancing detection and re-identification in multi-object tracking,” 
+
+IEEE Transactions on Multimedia , vol. 25, pp. 7456–7468, 2022. [25] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on Computer Vision and Pattern Recognition (CVPR) , 2016, pp. 770–778. [26] A. G. Howard, “MobileNets: Efficient convolutional neural networks for mobile vision applications,” arXiv preprint arXiv:1704.04861 ,2017. [27] G. Wang, Y. Yuan, X. Chen, J. Li, and X. Zhou, “Learning discrimina-tive features with multiple granularities for person re-identification,” in 
+
+Proceedings of the 26th ACM International Conference on Multimedia ,2018, pp. 274–282. [28] S. He, H. Luo, P. Wang, F. Wang, H. Li, and W. Jiang, “Tran-sReID: Transformer-based object re-identification,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) ,2021, pp. 15 013–15 022. [29] F. Schroff, D. Kalenichenko, and J. Philbin, “FaceNet: A unified embedding for face recognition and clustering,” in Proceedings of the IEEE conference on Computer Vision and Pattern Recognition (CVPR) ,2015, pp. 815–823. [30] H. Luo, W. Jiang, Y. Gu, F. Liu, X. Liao, S. Lai, and J. Gu, “A strong baseline and batch normalization neck for deep person re-identification,” IEEE Transactions on Multimedia , vol. 22, no. 10, pp. 2597–2609, 2019. [31] A. Kim, A. Oˇ sep, and L. Leal-Taix´ e, “Eagermot: 3d multi-object tracking via sensor fusion,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2021. [32] X. Wang, C. Fu, Z. Li, Y. Lai, and J. He, “DeepFusionMOT: A 3D multi-object tracking framework based on camera-LiDAR fusion with deep association,” IEEE Robotics and Automation Letters , vol. 7, no. 3, pp. 8260–8267, 2022. [33] K. Bernardin and R. Stiefelhagen, “Evaluating multiple object tracking performance: the clear mot metrics,” EURASIP Journal on Image and Video Processing , vol. 2008, no. 1, p. 246309, 2008. [34] E. Ristani, F. Solera, R. Zou, R. Cucchiara, and C. Tomasi, “Perfor-mance measures and a data set for multi-target, multi-camera tracking,” in European Conference on Computer Vision (ECCV) . Springer, 2016. [35] J. Luiten, A. Osep, P. Dendorfer, P. Torr, A. Geiger, L. Leal-Taix´ e, and B. Leibe, “HOTA: A higher order metric for evaluating multi-object tracking,” International Journal of Computer Vision , vol. 129, no. 2, pp. 548–578, 2021. [36] A. Dosovitskiy, “An image is worth 16x16 words: Transformers for image recognition at scale,” arXiv preprint arXiv:2010.11929 , 2020. [37] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo, “Swin transformer: Hierarchical vision transformer using shifted win-dows,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2021, pp. 10 012–10 022. [38] L. Zheng, L. Shen, L. Tian, S. Wang, J. Wang, and Q. Tian, “Scalable person re-identification: A benchmark,” in 2015 IEEE International Conference on Computer Vision (ICCV) , 2015. [39] A. Geiger, P. Lenz, and R. Urtasun, “Are we ready for autonomous driving? the KITTI vision benchmark suite,” in IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2012.
