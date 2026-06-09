@@ -1,0 +1,313 @@
+Title: Geometry-Aware Fisheye-LiDAR Fusion for Robust 3D Object Detection in Low-Overlap Setups
+
+URL Source: https://arxiv.org/pdf/2606.08844v1
+
+Published Time: Tue, 09 Jun 2026 01:55:07 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+> 1
+
+# Geometry-Aware Fisheye-LiDAR Fusion for Robust 3D Object Detection in Low-Overlap Setups 
+
+Xiangzhong Liu, Xihao Wang, and Hao Shen 
+
+Abstract —As autonomous systems expand from capital-intensive robotaxis to cost-sensitive logistics, sensor configura-tions are increasingly optimized for coverage-per-cost. A preva-lent sparse-view setup utilizes omnidirectional dual-fisheye cam-eras with a roof-mounted LiDAR, introducing severe geometric challenges: extreme radial distortion, minimal overlap, and misalignment between spherical projections and rectilinear grids. BEV fusion algorithms typically force image and point cloud modalities into unified Cartesian or polar grids early in the pipeline, causing significant feature distortion and information loss for wide-view fisheye cameras. To address this, we propose a Geometry-Aware Hybrid Fusion (GA-HF) framework that ex-plicitly accounts for fisheye geometry and BEV feature distortion, where fisheye features are lifted into a polar BEV grid via a Distortion-Aware Lift-Splat-Shoot (LSS) module to preserve native angular density, while LiDAR features are processed in native Cartesian space for metric fidelity of bounding box regression. To bridge these heterogeneous streams, we introduce a Dual-Attention Warping Correction module that applies spatial and channel attention to the warped camera features before fusion, explicitly suppressing artifacts in low-quality peripheral regions while enhancing high-quality semantic cues. GA-HF is evaluated on three benchmarks: KITTI-360, Dur360BEV, and the synthetic Fisheye3DOD datasets. To the best of our knowledge, it is the first approach to explore LiDAR–fisheye camera fusion. On KITTI-360, GA-HF improves NDS by 4.2% over Cartesian baselines; on Dur360BEV, it surpasses both LiDAR-only and BEVFusion, while significantly reducing orientation error despite the geometric distortions; and on Fisheye3DOD, it attains the highest detection score among all fusion methods. These results validate the necessity and generalizability of geometry-aware fusion for sparse sensor setups. 
+
+Index Terms —Sensor Fusion, Fisheye Cameras, 3D Object Detection, Bird’s-Eye View, Attention Mechanisms 
+
+I. I NTRODUCTION 
+
+# THE commercial deployment of autonomous ground vehi-cles (AGVs) in logistics, mining, and last-mile delivery requires perception systems that strike a balance between re-dundancy and hardware cost. While Level 4 robotaxi fleets uti-lize dense sensor suites, e.g., 6+ overlapping pinhole cameras and multiple LiDARs, to create a seamless 360 ◦ perception field, cost-sensitive platforms often adopt sparse configura-tions. A typical setup involves a single top-mounted LiDAR and dual fisheye cameras, a configuration mirrored in multiple real-world datasets, such as KITTI-360 [1], Dur360BEV [2], and Oxford Spires [3], among others. This sparse multi-view setup introduces unique geometric challenges. The Cartesian BEV representation of standard fusion frameworks [4]–[6] fundamentally mismatches the non-uniform distribution of image information, where nearby re-    
+
+> Xiangzhong Liu, Xihao Wang, and Hao Shen are with Technical University of Munich, 80333 Munich, Germany (e-mail: xiangzhong.liu@tum.de).
+> Fig. 1. Sparse sensor configuration on KITTI-360. The lateral dual fisheye cameras (orange and blue sectors) cover ≈190 ◦FOV each, leaving minimal overlap in the front and rear. Fisheye lenses introduce severe radial distortion compared to pinhole cameras, resulting in non-uniform angular resolution that compresses features at the periphery.
+
+gions possess significantly denser visual evidence yet receive the same spatial resolution as distant ones. While this inef-ficiency is tolerable in dense camera setups, it becomes a critical bottleneck in sparse-view settings where each wide-FOV camera must cover vast areas with limited redundancy. Recent works like PolarFormer [7] and PolarBEVDet [8] adopt polar BEV grids, which better align sampling resolution with the radial distribution of image data to mitigate perspective-induced information imbalance. In the sparse sensor setting, this motivation is further ampli-fied due to severe radial distortion of fisheye cameras, where non-uniformity arises not only along the radial dimension but also across viewing angles. Fisheye projections exhibit highly non-uniform angular pixel sampling, with angularly dense ob-servations near the optical center but compressed and heavily warped toward the image periphery. Consequently, a polar BEV representation aligns naturally with the fisheye sensor’s angular geometry, ensuring high-fidelity feature preservation during the lifting process. However, operating purely in the polar domain introduces intrinsic challenges for object detection. As highlighted in LiDAR-based studies such as PARTNER [9] and PolarStream [10], rigid objects with rectangular shapes become severely distorted and rotation-variant in polar coordinates, appearing as angle- and range-dependent warped shapes. This geometric inconsistency significantly complicates bounding box regres-sion, forcing prior LiDAR-centric works to rely on complex re-alignment modules and geometry-aware adaptations to com-pensate for polar grid deformations. To resolve this dilemma without introducing such archi-tectural complexity, we propose a Geometry-Aware Hybrid Fusion (GA-HF) framework. The key insight is to leverage 
+
+> arXiv:2606.08844v1 [cs.CV] 7 Jun 2026 2
+
+the strengths of both coordinate representations by decoupling feature extraction from object detection: fisheye features are processed in the polar domain to maximize angular fidelity, while multi-modal fusion and bounding box regression are performed in the Cartesian field. To bridge these represen-tations effectively, we incorporate a Dual-Attention fusion mechanism based on the CBAM [11]. This module adaptively weights the warped camera features, suppressing artifacts in high-distortion or low-overlap regions before they are fused with the LiDAR stream. This hybrid design leverages the inherent advantages of both coordinate systems, ensuring high-fidelity feature preservation alongside robust, translation-invariant detection. Our main contributions are: 1) Distortion-Aware Polar LSS. We introduce a polar lifting scheme for fisheye cameras that projects image features into a polar BEV grid using the MEI fisheye camera model, preserving the native angular resolution and radial density of fisheye lenses. 2) Hybrid Coordinate Architecture. We propose a dual-stream framework that decouples polar camera fea-tures from Cartesian LiDAR features. By performing object regression in the Cartesian domain, we ensure translation-invariant detection and avoid the geometric instabilities common in pure-polar detection heads. 3) Dual-Attention Warping Correction Module. We in-tegrate a Dual-Attention Warping Correction Module based on CBAM to resolve the cross-modal quality imbalance. The module learns a spatial reliability map to adaptively suppress camera artifacts in high-distortion and low-overlap regions. 4) Cross-Dataset Validation. We evaluate GA-HF on three benchmarks: the real-world KITTI-360 and Dur360BEV datasets and the synthetic Fisheye3DOD benchmark, demonstrating consistent improvements across diverse domains and class distributions. II. R ELATED WORK 
+
+A. BEV Representations for 3D Object Detection 
+
+Contemporary 3D object detection has largely converged on the BEV representation to provide a unified space for multi-sensor fusion. Cartesian-based methods, such as BEVFusion [4] and TransFusion [5], project features onto uniform grids, which struggle with the non-uniform information density of radial lenses but are still tolerable for dense surrounding camera configurations. To address this, PolarFormer [7] and PolarBEVDet [8] introduced polar grids to pinhole camera models to better align with the depth-dependent distribution of image pixels. In the LiDAR segmentation domain, works like PC-BEV [12] and Cylinder3d [13] explore cylindrical or polar partitions to handle the inherent sparsity of point clouds. However, as noted in PARTNER [9] and PolarStream [10], per-forming bounding box regression directly in polar coordinates introduces significant geometric instability due to rotation variance and shape distortion. Consequently, these polar-based methods require extra complex feature re-alignment modules and geometry-aware adaptations to compensate for the fea-ture distortions induced by polar coordinate transformations, adding computational overhead and architectural complexity. Beyond single-modal methods, PolarFusion [14] unifies Li-DAR and camera features in a polar coordinate system to reduce misalignment and enable effective BEV fusion. Po-larGFusion3D [15] extends this idea with graph attention over polar structures to fuse LiDAR, camera, and radar data while alleviating distortion and inefficiency. OccCylindrical [16] in-stead operates in cylindrical coordinates, improving geometric fidelity for 3D semantic occupancy prediction. However, these fully polar-centric architectures often inherit the regression difficulties of polar grids and are primarily designed for multi-view pinhole cameras. As the first framework to fuse fisheye cameras and LiDAR, our GA-HF framework strate-gically leverages polar coordinates only for feature lifting, while transitioning to Cartesian coordinates for detection. This approach avoids the regression instabilities of purely polar-based methods while preserving metric consistency. 
+
+B. Fisheye Camera for 3D Perception 
+
+Traditional fisheye processing relies on rectification to pin-hole models, which introduces artifacts and discards wide-FOV information at the image periphery. Distortion-aware 2D methods such as RectConv [17], DarSwin [18], and Calibrated Convolutions [19] demonstrate that incorporating fisheye mod-els improves feature preservation. However, extending to 3D perception presents distinct challenges that exceed the scope of per-view distortion modeling, which fails to guarantee con-sistent cross-camera feature extraction required by multi-view object detection. Recent works target BEV segmentation with surrounding-view cameras (FishBEV [20], FisheyeBEVSeg [21]), while 3D detection methods such as F2BEV [22] and Fisheye3DOD [23] inject fisheye projection models into view transformation modules. While these works establish strong baselines for fisheye 3D detection and segmentation, they re-main confined to camera-only, synthetic evaluation and do not address the challenges of LiDAR fusion under sparse sensor configurations. FisheyeDepth [24] conducted depth estimation with distortion modeling on real-world data. EquivFisheye [25] uses a rotation-equivariant spherical framework to fix distor-tion and improve consistency, though spherical convolutions increase computational costs. Our work bridges this gap by utilizing a Polar LSS module specifically designed for fisheye geometry and fusing with LiDAR data. 
+
+C. Cross-Modal Attention Fusion 
+
+Effective fusion requires managing the feature quality im-balance among different sensor modalities. Early BEV-based fusion strategies, such as BEVFusion [4], adopt straightfor-ward feature concatenation or summation, implicitly assuming comparable reliability across modalities. TransFusion [5] and CMT [6] utilize transformer-based cross-attention to selec-tively aggregate cross-modal features. DAL [26] emphasizes the importance of modality-aware reliability modeling over symmetric fusion, proposing that camera features contribute only to classification and confidence estimation while geo-metric regression remains grounded in LiDAR’s metric pre-cision. To further refine feature reliability, SElayer [27] and 3  
+
+> Fig. 2. Overview of the proposed Geometry-Aware Hybrid Fusion (GA-HF) framework for 3D object detection. Visual features are lifted to polar BEV grid using the MEI camera model ( PM EI ) to handle distortion, then warped and refined via DA-WCM to fuse with Cartesian LiDAR features derived directly from point cloud.
+
+CBAM [11] have been employed to provide channel and spatial weighting. In the context of fisheye-LiDAR fusion, this imbalance is amplified by extreme radial distortion and non-uniform sensor overlap. While DAL can manage this by dropping camera features for regression tasks, it simply discards the necessary dense visual and semantic cues in wide-FOV settings. We propose an alternative DA-WCM that deploys CBAM-based weighting to explicitly refine warped fisheye features, ensuring that the dense but potentially noisy fisheye features do not degrade the high-precision LiDAR representation. III. M ETHODOLOGY 
+
+We propose the Geometry-Aware Hybrid Fusion (GA-HF) framework, which decouples feature extraction from object detection. As illustrated in Fig. 2, it consists of two parallel streams: a polar fisheye stream and a Cartesian LiDAR stream, bridged by the DA-WCM for feature fusion in the Cartesian domain, with CenterPoint or TransFusion [5] heads for 3D regression. 
+
+A. Distortion-Aware Polar LSS 
+
+Standard LSS assumes a pinhole camera model, lifting features via uniform depth bins along Z. This fails for fisheye lenses with non-linear distortion and non-uniform angular resolution. We formulate a model-agnostic polar lift-ing module that abstracts the camera-specific projection into a generic unprojection interface Π−1, decoupling geometric back-projection from downstream polar BEV construction and enabling seamless adaptation across heterogeneous fisheye camera models. Instead of a Cartesian frustum, we define a cylindrical frus-tum Vpolar ∈ RR×Θ×Z in the vehicle ego coordinate, where 
+
+R and Θ denote radial distance and azimuth, respectively. 
+
+Generic Unprojection Interface. The lifting operation requires an accurate unprojection from pixel coordinates u =(u, v )⊤ to unit-norm 3D ray directions X′ ∈ S2:
+
+X′ = Π −1(u; θcalib ) (1) where θcalib denotes camera-specific calibration parameters. Given predicted depth bins D, the 3D point in the camera frame is Pcam = D · X′, transformed to the LiDAR frame via extrinsics. The unprojection map is precomputed and cached per camera, so the ray lookup table is computed once and reused across all frames sharing the same intrinsics. We instantiate Π−1 for the fisheye models used in this work. 
+
+(i) MEI Unified Model (KITTI-360 [1]). Pixel coordinates are first converted to distorted normalized coordinates xd =(u − u0)/γ 1, yd = ( v − v0)/γ 2, where γ1,2 are focal lengths and (u0, v 0) is the principal point. The undistorted radius r
+
+is recovered by inverting the radial distortion model xd =
+
+x(1 + k1r2 + k2r4) via Newton-Raphson iteration: 
+
+rn+1 = rn − rn(1 + k1r2 
+
+> n
+
++ k2r4
+
+> n
+
+) − px2 
+
+> d
+
++ y2
+
+> d
+
+1 + 3 k1r2 
+
+> n
+
++ 5 k2r4
+
+> n
+
+(2) The undistorted coordinates (x, y ) = ( xd, y d)/(1 + k1r2 +
+
+k2r4) are then back-projected onto the unit sphere following the MEI model [28]: 
+
+Z′ = ξ + p1 + (1 − ξ2)( x2 + y2)
+
+x2 + y2 + 1 ,X′ = x (Z′ + ξ), Y ′ = y (Z′ + ξ).
+
+(3) where ξ is the mirror parameter. 
+
+(ii) Polynomial Fisheye Model (Fisheye3DOD [23] and Dur360BEV [2]). Fisheye3DOD uses a polynomial angular fisheye projection, and for Dur360BEV we fit the same OCam-style polynomial family to the dual-fisheye imagery for a unified implementation. For the OCam unprojection, image coordinates are first corrected by the affine parameters and principal point to obtain (xp, y p), from which the image radius is computed as r =
+
+q
+
+x2 
+
+> p
+
++ y2 
+
+> p
+
+. The axial component is then recovered by the direct polynomial 
+
+zp = −
+
+> 4
+
+X
+
+> i=0
+
+airi (4) where {ai}4 
+
+> i=0
+
+are calibration coefficients. The 3D ray is obtained by normalizing the lifted point, X′ =[yp, x p, z p]⊤/∥[yp, x p, z p]∥2. Because Dur360BEV provides a single dual-fisheye image covering 360 ◦, we split the frame into front and rear hemispheres and apply the unprojection 4
+
+independently for each before mapping the rays to the ego frame. 
+
+Polar BEV Construction. Regardless of the camera model, once X′ is obtained, a Cartesian-to-polar mapping populates the cylindrical BEV grid (ρ, ϕ ) as ρ = √X2 + Y 2 and 
+
+ϕ = arctan( Y /X ). The mapping normalizes the fisheye lens’s non-linear distortion into a regular grid with linear radial and angular relationships, avoiding interpolation artifacts of Cartesian resampling. 
+
+B. Hybrid Coordinate Alignment 
+
+While the polar fisheye stream Fpolar preserves the sensor’s native angular fidelity, the LiDAR stream provides absolute metric precision essential for bounding box regression. The LiDAR point cloud is processed by a sparse voxel encoder (VoxelNet) to produce Cartesian features Flidar ∈ RH×W ×C .Since Fpolar and Flidar reside in topologically distinct mani-folds, we perform differentiable coordinate warping for spatial alignment. A sampling grid Gxy in the Cartesian LiDAR feature space is converted to polar coordinates via M with normalization to polar BEV ranges. The warped fisheye feature is obtained by bilinear interpolation: 
+
+Ff ish = GridSample (Fpolar , Gxy →ρϕ ) (5) While this aligns modalities in Euclidean space, the resulting 
+
+Ff ish contains anisotropic stretching and noise in regions corresponding to the fisheye periphery or low-overlap sectors, necessitating targeted refinement before fusion. 
+
+C. Dual-Attention Warping Correction Module 
+
+The DA-WCM resolves the inherent quality imbalance between the high-precision LiDAR stream and the distortion-prone fisheye stream. In sparse-view configurations, polar-to-Cartesian warping induces non-linear stretching artifacts in low-overlap regions. The DA-WCM utilizes a modified CBAM [11] to explicitly refine the warped visual features before integration with the LiDAR stream. 
+
+Spatial Reliability Modeling: Given the warped camera feature Ff ish ∈ RH×W ×Ccam , we compute a spatial reliability map by aggregating channel-wise information: 
+
+Ms(·) = σ  f 7×7 ([AvgPool c(·); MaxPool c(·)])  (6) where f 7×7 is a 7×7 convolution. This map Ms ∈ [0 , 1] H×W
+
+adaptively downweights unreliable regions, including blind sectors and areas affected by severe peripheral distortion. 
+
+Channel-Wise Feature Selection: A channel attention module with shared MLP (reduction ratio r = 16 ) computes 
+
+Mc ∈ RC :
+
+Mc(·) = σ(MLP(AvgPool s(·)) + MLP(MaxPool s(·))) 
+
+(7) These weights are applied exclusively to the warped camera stream to generate a corrected feature map F∗
+
+> cam
+
+:
+
+F∗ 
+
+> cam
+
+= Mc ⊗ (Ms ⊗ Fwarp ) (8)    
+
+> Fig. 3. Visualization of the spatial attention map Msaveraged over 50 samples on KITTI-360 and Fisheye3DOD, with left-right fisheye cameras: the stable black fan-shape in front and rear area, proving DA-WCM learns a scene-independent geometric prior purely from data.
+
+The corrected camera features are concatenated with Flidar 
+
+and passed through a convolution-based fusion block to pro-duce the final BEV feature Ff used . This asymmetric refine-ment preserves LiDAR metric integrity while the camera stream contributes high-density semantic context only where deemed reliable by the attention modules. IV. E XPERIMENTS 
+
+A. Datasets and Setup 
+
+We evaluate our framework on three benchmarks that span real-world and synthetic domains with distinct fisheye-LiDAR configurations. 
+
+KITTI-360 [1] provides a Velodyne HDL-64E LiDAR and dual lateral fisheye cameras with MEI calibration. Follow-ing the nuScenes-format conversion pipeline from [29], we evaluate 10 classes, car, truck, trailer, bus, bicycle, motor-cycle, pedestrian, pole, object, and traffic sign , across ∼11k uniformly sampled training frames (from 56k total, reducing 10 Hz temporal redundancy) and 8,500 full validation frames. 
+
+Fisheye3DOD [23] is a synthetic benchmark generated via the CARLA simulator, providing four surround-view fisheye cameras (FoV > 220 ◦) and LiDAR with 3D bounding box annotations across 6 classes: bus, car, cyclist, pedestrian, truck ,and van . As a synthetic dataset with controlled conditions, it serves as a complementary testbed to verify cross-domain generalizability. 
+
+Dur360BEV [2] is a real-world dataset with a dual-fisheye camera (front and rear) and roof-mounted LiDAR, repurposed from BEV segmentation for 3D object detection across 3 classes: car, cyclist , and pedestrian . Notably, sensor calibration parameters for camera model and extrinsics are not officially provided and were estimated through calibration fitting, which may limit the achievable camera-LiDAR alignment quality for fusion methods on this benchmark. 
+
+Evaluation Protocol. Since KITTI-360 lacks attribute an-notations, NDS is computed excluding mAAE, following [29]. For cross-dataset comparison we additionally report NDS −v ,which further excludes mAVE following the Fisheye Detection Score (FDS) protocol of Fisheye3DOD [23]: 
+
+NDS −v = 16
+
+h
+
+3 mAP + X
+
+> mTP ∈TP −v
+
+(1 − min (1 , mTP)) 
+
+i
+
+(9) 5                                                                                                                                                                                          
+
+> TABLE I EVALUATION ON KITTI-360 VALIDATION SET . NDS EXCLUDES M AAE ( UNAVAILABLE ); NDS −vFURTHER EXCLUDES M AVE FOLLOWING [23]. B OLD :
+> BEST ;UNDERLINE :SECOND BEST . ( ∗:OUR RE -IMPLEMENTATION ,†:TRAINED WITH FULL 56 K DATA FRAMES ,(C): C ENTER POINT HEAD ,(T):TRANS FUSION HEAD )
+> Model Modality Coord. mAP ↑NDS ↑NDS −v↑mATE ↓mASE ↓mAOE ↓mAVE ↓AP car ↑AP bus ↑
+> BEVDet Fcart. 0.035 0.056 0.069 0.945 0.745 1.127 1.366 0.192 0.0 DAP-BEVDet (ours) Fpolar 0.096 0.160 0.191 0.735 0.406 1.118 0.960 0.427 0.033 CenterPoint Lcart. 0.417 0.404 0.469 0.333 0.340 0.764 1.150 0.760 0.166 TransFusion-L [5] Lcart. 0.454 0.424 0.487 0.308 0.323 0.811 0.979 0.770 0.185 Cylinder3d [13] ∗Lpolar 0.378 0.396 0.423 0.358 0.342 0.897 0.744 0.755 0.148 CMT-L [6] Lcart. 0.364 0.378 0.406 0.395 0.347 0.911 0.779 0.750 0.096 BEVFusion(C) L+F cart. 0.424 0.405 0.469 0.313 0.342 0.801 1.173 0.785 0.179 PolarBEVFusion(C) ∗L+F polar 0.360 0.397 0.404 0.349 0.350 0.960 0.606 0.766 0.148 CMT [6] L+F cart. 0.368 0.376 0.413 0.408 0.348 0.871 0.834 0.767 0.058 DAL [26] L+F cart. 0.402 0.418 0.418 0.329 0.367 1.018 0.569 0.778 0.165
+> GA-HF (C) L+F hybrid 0.431 0.435 0.476 0.309 0.343 0.785 0.805 0.793 0.183
+> GA-HF (T) L+F hybrid 0.456 0.447 0.492 0.302 0.333 0.783 0.829 0.782 0.204
+> CenterPoint †Lcart. 0.419 0.403 0.458 0.308 0.330 0.872 0.945 0.785 0.207 GA-HF (T) †L+F hybrid 0.470 0.429 0.493 0.241 0.331 0.878 1.698 0.824 0.171
+
+where TP −v = {mATE , mASE , mAOE }. NDS −v is the primary metric on Fisheye3DOD and Dur360BEV (which lack velocity annotations), while KITTI-360 as our primary benchmark retains both NDS and mAVE for completeness. 
+
+B. Implementation Details 
+
+We implement GA-HF using the MMDetection3D [30] codebase. The image backbone is ResNet-50 initialized with ImageNet weights and a VoxelNet-style architecture for the LiDAR stream. Fisheye images are pre-cropped to 256 ×704 (KITTI-360), 384 ×800 (Fisheye3DOD) and 320 ×640 (Dur360BEV) to exclude irrelevant regions (ego-vehicle body and sky), eliminating the need for explicit validity masking during splatting. We train for 20 epochs with AdamW (lr= 1 × 10 −4, weight decay 0.01) on 2 NVIDIA A5000 GPUs with batch size 16, without CBGS. To minimize inference latency, we cache the polar frustum geometry during testing with consistent camera intrinsics, bypassing the online Newton-Raphson iteration in unprojection. Our GA-HF adds negligible complexity (35.8M parameters) compared to the BEVFusion baseline (35.6M), ensuring efficient deployment. 
+
+C. Main Results 
+
+As shown in Table I, our GA-HF framework establishes a new state-of-the-art for fisheye-LiDAR fusion methods on the KITTI-360 real-world dataset. 
+
+Comparison with Single Modality: Our DAP-BEVDet nearly triples BEVDet’s mAP and NDS, confirming that polar processing natively handles fisheye distortion. Among LiDAR-only methods, TransFusion-L [5] is the strongest baseline (0.454 mAP), though LiDAR methods lack semantic richness for orientation estimation (mAOE: 0.811). 
+
+Performance of Fusion Methods: Existing fusion baselines struggle to outperform LiDAR-only on KITTI-360 because standard projection introduces feature artifacts in sparse-view setups. DAL achieves the best mAVE (0.569) by excluding camera features from regression, but suffers the highest mAOE (1.018) and sub-baseline mAP (0.402). Our GA-HF (C) signif-icantly outperforms DAL in mAP (0.431 vs. 0.402) and mAOE (0.785 vs. 1.018), demonstrating that camera features are indispensable for orientation estimation but require targeted refinement to avoid degrading regression stability. GA-HF (T) achieves state-of-the-art performance (0.456 mAP, 0.447 NDS), notably outperforming TransFusion-L in AP bus , where semantic-geometric synergy is most critical. Scaling to the full 56k dataset ( †) boosts mAP to 0.470 and NDS −v to 0.493, though mAVE degrades (1.698) due to extreme class imbalance (Cars: 430K vs. Bus+Tram: 1K) and annotation inconsistency destabilizing velocity regression. As none of the compared methods employ temporal modeling, velocity estimation remains inherently noisy across all single-frame approaches. 
+
+D. Cross-Dataset Evaluation 
+
+To assess generalizability beyond KITTI-360, we evaluate GA-HF on two additional benchmarks with distinct sensor configurations. Table II summarizes the results. 
+
+Fisheye3DOD. GA-HF achieves the highest NDS −v of 0.925, surpassing both TransFusion-L (0.916) and BEVFusion (0.900), driven by a substantial mAOE reduction (0.178 vs. 0.321 for BEVFusion). Our camera-only DAP-BEVDet (0.540 NDS −v ) also outperforms FisheyeBEVDet [23] (0.485), val-idating the polar lifting module independently. While all fusion methods achieve high mAP ( >0.96) under synthetic conditions, BEVFusion exhibits the worst orientation artifacts, reinforcing the motivation for our hybrid coordinate design. 
+
+Dur360BEV. Under imperfect sensor calibration, BEVFu-sion fails catastrophically in orientation estimation (mAOE: 1.022, effectively random orientation), causing its NDS −v
+
+(0.573) to fall far below the LiDAR-only TransFusion-L baseline (0.742). In contrast, GA-HF surpasses both LiDAR-only and BEVFusion performance, achieving the best mAP (0.706), NDS −v (0.751), and mAOE (0.354). These results show that the hybrid design and DA-WCM not only mitigate orientation degradation under imprecise calibration, but also 6
+
+TABLE II CROSS -DATASET EVALUATION ON FISHEYE 3DOD ( SYNTHETIC ,
+
+> LEFT
+
+-RIGHT FISHEYE CAMERAS USED + L IDAR, 6 CLASSES ) AND 
+
+DUR 360BEV ( REAL -WORLD , FRONT -REAR FISHEYE SPHERICAL CAMERA 
+
++ L IDAR, 3 CLASSES ). NDS −v FOLLOWS EQ. 9. B OLD INDICATES THE BEST . ‡ : USING A RES NET -18 BACKBONE AND 4 FISHEYE CAMERAS , 
+
+> CONSISTENT WITH
+
+[23]. 
+
+Dataset Model mAP ↑ NDS −v ↑ mAOE ↓
+
+Fisheye3DOD FisheyeBEVDet ‡ (F) 0.382 0.485 0.480 DAP-BEVDet ‡ (F) 0.459 0.540 0.441 TransFusion-L (L) 0.960 0.916 0.207 BEVFusion (L+F) 0.967 0.900 0.321 
+
+GA-HF (L+F) 0.963 0.925 0.178 
+
+Dur360BEV BEVDet (F) 0.173 0.201 0.981 DAP-BEVDet (F) 0.191 0.216 0.986 TransFusion-L (L) 0.694 0.742 0.404 BEVFusion (L+F) 0.599 0.573 1.022 
+
+GA-HF (L+F) 0.706 0.751 0.354 
+
+TABLE III ABLATION OF THE DISTORTION -A WARE POLAR LSS MODULE 
+
+(C AMERA -O NLY ). 
+
+Model Config D.A. Polar mAP ↑ NDS ↑ AP car ↑
+
+BEVDet - - 0.035 0.056 0.192 DA-BEVDet ✓ - 0.060 0.096 0.344 
+
+DAP-BEVDet ✓ ✓ 0.096 0.160 0.427 
+
+DAP-BEVDet (Large) ✓ ✓ 0.139 0.187 0.490 
+
+recover useful fusion gains on this challenging real-world benchmark. 
+
+E. Ablation Studies 1) Impact of Distortion-Aware Polar LSS: Table III shows that baseline BEVDet fails on fisheye data due to recti-linear grid misalignment. Enabling distortion-aware (D.A.) view transformation improves mAP by 71%, while our full DAP-BEVDet (D.A. + Polar) reaches 0.160 NDS, a two-fold increase over the baseline. This confirms that processing fisheye features in polar space natively preserves geometric density and mitigates perspective smearing. Doubling the input image resolution ( Large ) further boosts overall performance, demonstrating that our polar representation scales effectively with higher pixel density to capture finer semantic details in distorted regions. 
+
+2) Analysis of Fusion Mechanisms: We compare DA-WCM against standard fusion strategies in Table IV. Compared to naive concatenation, channel attention (SELayer) improves the NDS to 0.431 but fails to address spatial misalignments. Cross-Attention (as used in TransFusion) improves metric scores (0.435 NDS) but results in a lower mAP (0.418), likely due to the difficulty of learning attention maps on sparse, distorted inputs. Our DA-WCM achieves the best overall performance, indicating that explicitly modeling spatial reli-ability and channel modulation are necessary to refine fisheye distorted features to avoid corrupting LiDAR representations. 
+
+TABLE IV COMPARISON OF DIFFERENT FUSION MECHANISMS WITHIN THE GA-HF  
+
+> FRAMEWORK
+
+(USING CENTER HEAD ). 
+
+Fusion Strategy mAP ↑ NDS ↑ mAOE ↓
+
+Concat. 0.424 0.405 0.801 SELayer 0.424 0.431 0.801 Gated-Attn. 0.426 0.416 0.823 Cross-Attn. 0.418 0.435 0.817 
+
+DA-WCM 0.431 0.435 0.785 
+
+TABLE V ANGULAR -STRATIFIED NDS (%) ON KITTI-360 VALIDATION DATASET .Method Right Front Left Back DAP-BEVDet 22.04 14.32 17.54 16.29 TransFusion-L 47.67 46.01 44.20 41.92 GA-HF 48.71(1.04 ↑) 45.97(0.04 ↓) 48.26(4.06 ↑) 41.49(0.43 ↓)
+
+Fig. 4. Qualitative detection results on KITTI-360. Top row: the camera-only model fails to detect a nearby truck, while GA-HF fusion correctly localizes it with accurate 3D bounding boxes. Bottom row (BEV): a bicycle leaning on a wall (yellow circle) is missed by LiDAR-only detection but is visible in the camera view and recovered by GA-HF, which leverages dense fisheye semantic cues to complement the sparse point cloud. Crosses mark the ego-vehicle position. 
+
+F. Angular Stratified Analysis 
+
+Table V breaks down performance across different angular sectors ( 90 ◦ each) regarding the coverage of dual side-mounted fisheye cameras. GA-HF shows significant NDS gains in the lateral Left (+4.06%) and Right (+1.04%) sectors where fisheye coverage is primary. Conversely, in the Front and Back 
+
+sectors, corresponding to the visual blind spots or extreme periphery, GA-HF maintains LiDAR-level performance. This validates that our attention mechanism successfully leverages visual semantics where available while safely relying on Li-DAR in sensor gaps, consistent with the qualitative inspections of the learned attention maps shown in Figure 3. 
+
+G. Qualitative Results 
+
+Figure 4 illustrates two representative failure modes of single-modality detection that GA-HF resolves through 7
+
+geometry-aware fusion. In the top row, a nearby truck occupy-ing a large portion of the fisheye FOV is missed by the camera-only model due to severe close-range distortion, yet GA-HF correctly localizes it by anchoring to LiDAR geometry. In the bottom row,a bicycle adjacent to a wall, which returns very thin, insufficient LiDAR points mixed entirely with the wall point cloud, is missed entirely in LiDAR-only detection but recovered through complementary fisheye evidence, with DA-WCM ensuring reliable integration without degrading the fused representation. These cases confirm that single-modality approaches are fundamentally limited in sparse sensor setups and that targeted multi-modal fusion is essential for robust perception across diverse scene geometries. V. C ONCLUSION 
+
+This work introduces a geometry-aware hybrid fusion (GA-HF) framework, the first to address the challenges of sparse fisheye-LiDAR fusion for cost-effective autonomous systems. By decoupling visual feature extraction from metric object detection, processing fisheye data in a native polar grid to mitigate distortion and LiDAR in Cartesian space for metric accuracy, we preserve critical spatial density often lost in Cartesian representations. Our DA-WCM effectively bridges the cross-modal quality gap, explicitly refining features to suppress distortion artifacts in low-overlap regions. Extensive experiments across three benchmarks, KITTI-360, Dur360BEV and Fisheye3DOD, demonstrate that GA-HF con-sistently achieves state-of-the-art detection quality. The cross-dataset evaluation reveals that Cartesian BEV fusion suffers catastrophic orientation degradation (mAOE > 1.0) on real-world fisheye data, while our hybrid design maintains robust performance even under imprecise calibration. These results confirm that camera features are essential for semantic and orientation estimation but require targeted geometric refine-ment to maintain regression stability. Future work will explore temporal fusion mechanisms to address velocity estimation and investigate end-to-end calibration refinement to further improve fusion under uncertain extrinsics. REFERENCES [1] Y. Liao, J. Xie, and A. Geiger, “Kitti-360: A novel dataset and bench-marks for urban scene understanding in 2d and 3d,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 3, pp. 3292– 3310, 2022. [2] E. Wenke, C. Yuan, L. Li, Y. Sun, Y. F. A. Gaus, A. Atapour-Abarghouei, and T. P. Breckon, “Dur360bev: A real-world 360-degree single camera dataset and benchmark for bird-eye view mapping in autonomous driving,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 3737–3744. [3] Y. Tao, M. ´ A. Mu˜ noz-Ba˜ n´ on, L. Zhang, J. Wang, L. F. T. Fu, and M. Fal-lon, “The oxford spires dataset: Benchmarking large-scale lidar-visual localisation, reconstruction and radiance field methods,” International Journal of Robotics Research , 2025. [4] Z. Liu, H. Tang, A. Amini, X. Yang, H. Mao, D. Rus, and S. Han, “Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view representation,” in IEEE International Conference on Robotics and Automation (ICRA) , 2023. [5] X. Bai, Z. Hu, X. Zhu, Q. Huang, Y. Chen, H. Fu, and C.-L. Tai, “Transfusion: Robust lidar-camera fusion for 3d object detection with transformers,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 1090–1099. [6] J. Yan, Y. Liu, J. Sun, F. Jia, S. Li, T. Wang, and X. Zhang, “Cross modal transformer: Towards fast and robust 3d object detection,” in 
+
+Proceedings of the IEEE/CVF international conference on computer vision , 2023, pp. 18 268–18 278. [7] Y. Jiang, L. Zhang, Z. Miao, X. Zhu, J. Gao, W. Hu, and Y.-G. Jiang, “Polarformer: Multi-camera 3d object detection with polar transformer,” in Proceedings of the AAAI conference on Artificial Intelligence , vol. 37, no. 1, 2023, pp. 1042–1050. [8] Z. Yu, Q. Liu, W. Wang, L. Zhang, and X. Zhao, “Polarbevdet: Exploring polar representation for multi-view 3d object detection in bird’s-eye-view,” arXiv preprint arXiv:2408.16200 , 2024. [9] M. Nie, Y. Xue, C. Wang, C. Ye, H. Xu, X. Zhu, Q. Huang, M. B. Mi, X. Wang, and L. Zhang, “Partner: Level up the polar representation for lidar 3d object detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 3801–3813. [10] Q. Chen, S. Vora, and O. Beijbom, “Polarstream: Streaming object detection and segmentation with polar pillars,” Advances in Neural Information Processing Systems , vol. 34, pp. 26 871–26 883, 2021. [11] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, “Cbam: Convolutional block attention module,” in Proceedings of the European conference on computer vision (ECCV) , 2018, pp. 3–19. [12] S. Qiu, X. Li, X. Xue, and J. Pu, “Pc-bev: An efficient polar-cartesian bev fusion framework for lidar semantic segmentation,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 6, 2025, pp. 6612–6620. [13] H. Zhou, X. Zhu, X. Song, Y. Ma, Z. Wang, H. Li, and D. Lin, “Cylinder3d: An effective 3d framework for driving-scene lidar semantic segmentation,” arXiv preprint arXiv:2008.01550 , 2020. [14] P. Shi, R. Ge, X. Dong, C. Chakir, T. Liang, and A. Yang, “Polarfusion: A multi-modal fusion algorithm for 3d object detection based on polar coordinates,” Neural Networks , p. 107704, 2025. [15] L. Li and C. Wei, “Polargfusion3d: Polar graph fusion network for enhanced multimodal 3d perception in intelligent vehicles,” IEEE Trans-actions on Intelligent Vehicles , 2024. [16] Z. Ming, J. S. Berrio, M. Shan, Y. Huang, H. Lyu, N. H. K. Tran, T.-Y. Tseng, and S. Worrall, “Occcylindrical: Multi-modal fusion with cylindrical representation for 3d semantic occupancy prediction,” arXiv preprint arXiv:2505.03284 , 2025. [17] R. Griffiths and D. G. Dansereau, “Adapting cnns for fisheye cameras without retraining,” in 2025 International Joint Conference on Neural Networks (IJCNN) . IEEE, 2025, pp. 1–7. [18] A. Athwale, A. Afrasiyabi, J. Lag¨ ue, I. Shili, O. Ahmad, and J.-F. Lalonde, “Darswin: Distortion aware radial swin transformer,” in 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 5929–5938. [19] B. Berenguel-Baeta, M. Santos-Villafranca, J. Bermudez-Cameo, A. P. Yus, and J. Guerrero, “Convolution kernel adaptation to calibrated fisheye,” in 34th British Machine Vision Conference 2023, BMVC 2023, Aberdeen, UK, November 20-24, 2023 . BMVA, 2023. [20] H. Li, D. Sheng, Q. Dong, Z. Wang, Z. Xu, and T. Li, “Fishbev: Distortion-resilient bird’s eye view segmentation with surround-view fisheye cameras,” arXiv preprint arXiv:2509.13681 , 2025. [21] S. Yogamani, D. Unger, V. Narayanan, and V. R. Kumar, “Fisheye-bevseg: Surround view fisheye cameras based bird’s-eye view seg-mentation for autonomous driving,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 1331–1334. [22] E. U. Samani, F. Tao, H. R. Dasari, S. Ding, and A. G. Banerjee, “F2bev: Bird’s eye view generation from surround-view fisheye camera images for automated driving,” in 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2023, pp. 9367–9374. [23] C. Li, W. Lin, Z. Hou, G. Chen, W. Zhang, H. Zhou, and W. Zheng, “Exploring surround-view fisheye camera 3d object detection,” in Pro-ceedings of the AAAI Conference on Artificial Intelligence , vol. 40, no. 8, 2026, pp. 6019–6027. [24] G. Zhao, Y. Liu, W. Qi, F. Ma, M. Liu, and J. Ma, “Fisheyedepth: A real scale self-supervised depth estimation model for fisheye camera,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 3780–3787. [25] Z. Yang, X. Pu, W. Xu, Z. Qian, K. Ke, H. Zhang, and L. Liu, “Equiv-fisheye: A spherical fusion framework for panoramic 3d perception with surround-view fisheye cameras,” Information Fusion , p. 104024, 2025. [26] J. Huang, Y. Ye, Z. Liang, Y. Shan, and D. Du, “Detecting as labeling: Rethinking lidar-camera fusion in 3d object detection,” in European Conference on Computer Vision . Springer, 2024, pp. 439–455. 8
+
+[27] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , 2018, pp. 7132–7141. [28] C. Mei and P. Rives, “Single view point omnidirectional camera cal-ibration from planar grids,” in Proceedings 2007 IEEE International Conference on Robotics and Automation . IEEE, 2007, pp. 3945–3950. [29] X. Liu and H. Shen, “Benchmarking multi-view bev object de-tection with mixed pinhole and fisheye cameras,” arXiv preprint arXiv:2603.27818 , 2026. [30] M. Contributors, “MMDetection3D: OpenMMLab next-generation plat-form for general 3D object detection,” https://github.com/open-mmlab/ mmdetection3d, 2020.
