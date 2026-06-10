@@ -1,0 +1,54 @@
+{
+  "label": "2026-06-10",
+  "date": "2026-06-10",
+  "generated_at": "2026-06-10T21:55:04",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202606/10/2606.10395v1-efficient-rwkv-based-representation-learning-for-3d-point-clouds",
+      "section": "quick",
+      "title_en": "Efficient RWKV-based Representation Learning for 3D Point Clouds",
+      "authors": "Yun Liu, Xuefeng Yan, Liangliang Nan, Xianzhi Li, Peng Li, Zhe Zhu, Honghua Chen, Mingqiang Wei",
+      "date": "2026-06-09",
+      "pdf": "https://arxiv.org/pdf/2606.10395v1",
+      "score": "7.0",
+      "evidence": "P-RWKV块为三维点云提供类注意力特征聚合",
+      "tldr": "针对RWKV模型直接处理点云时难以捕获局部几何结构和空间依赖的问题，提出P-RWKV模块，通过局部感知扩展和空间上下文增强组件，将序列建模能力适配于不规则3D几何。基于此构建的单模态自监督框架PointER，在多种任务上以更低的计算开销和推理延迟取得了竞争性能。该方法还支持跨模态扩展和即插即用，展现了架构通用性。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "The recent receptance weighted key value (RWKV) model combines RNN-style recurrence, offering a linear-complexity alternative to Transformers' quadratic self-attention for modeling global dependencies. However, when directly applied to point clouds, RWKV, originally developed for sequential text, struggles to capture local geometric structures and model spatial dependencies effectively. To address this, we propose the \\textbf{P-RWKV} block, which bridges the gap between sequence modeling and irregular 3D geometry while preserving the efficiency advantages of RWKV. It consists of a Local Perception Expansion (LPE) component to expand contextual perception along the spatio-temporal sequence and a Spatial Context Enhancement (SCE) component to strengthen spatial awareness. To validate the effectiveness of P-RWKV for point cloud understanding, we construct PointER, a single-modality self-supervised representation learning framework whose encoder is composed of stacked P-RWKV blocks. Furthermore, we extend P-RWKV to a cross-modality setting and integrate the proposed core sub-modules into multiple architectures, demonstrating strong plug-and-play flexibility and architectural generality. Extensive experiments show that the P-RWKV block and its key sub-modules achieve competitive performance across various tasks with lower computational cost and inference latency. Code will be released upon acceptance.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/10/2606.10541v1-grar-glass-induced-reflection-artifact-removal-in-lidar-point-clouds",
+      "section": "quick",
+      "title_en": "GRAR: Glass-induced Reflection Artifact Removal in LiDAR Point Clouds",
+      "authors": "Wanpeng Shao, Zeyi Guo, Bo Zhang, Yifei Xue, Tie Ji, Yizhen Lao",
+      "date": "2026-06-09",
+      "pdf": "https://arxiv.org/pdf/2606.10541v1",
+      "score": "7.0",
+      "evidence": "利用多模态视觉基础模型去除LiDAR点云中的玻璃反射伪影",
+      "tldr": "地面激光扫描(TLS)点云在城市场景中常因玻璃表面产生反射伪影，严重干扰后续三维任务。现有方法依赖理想反射对称假设，受限于玻璃估计不准确和几何表征不足。本文提出GRAR框架，分两阶段实现鲁棒去除：先利用多模态视觉基础模型与几何线索精准分割并补全玻璃区域，再设计物理驱动的RE-LGGS描述符捕获多尺度反射几何相似性。在公开数据集上，GRAR一致超越现有方法，有效消除伪影，为城市点云处理提供可靠预处理，推动自动驾驶与数字孪生应用。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Terrestrial Laser Scanning (TLS) point clouds captured in urban environments frequently suffer from glass-induced reflection artifacts, severely degrading downstream applications. Existing reflection artifact removal methods generally rely on ideal reflection symmetry assumptions, yet their performance is limited by inaccurate glass estimation and insufficient geometric representations. To address these issues, we propose a novel unified framework aimed at robust reflection artifact removal: In the first stage, we leverage a multi-modal vision foundation model to produce initial glass masks, which are then refined using geometric cues to achieve high-precision glass regions, followed by glass completion to recover missing regions caused by no-return measurements on transparent surfaces; In the second stage, we propose a physics-driven descriptor, termed Reflection-aware Local-Global Geometric Similarity (RE-LGGS), which is grounded in actual laser reflection geometry and jointly encodes multi-scale geometric structures and orientation consistency using PCA-based local shape representations, thereby significantly improving robustness against imperfect observations. Extensive experiments on multiple public TLS datasets demonstrate that our framework consistently outperforms state-of-the-art methods in reflection artifacts removal.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/10/2606.09882v1-whu-infra3d-a-full-stack-multi-modal-dataset-and-benchmark-for-3d-roadside-infrastructure-inventory",
+      "section": "quick",
+      "title_en": "WHU-Infra3D: A Full-stack Multi-modal Dataset and Benchmark for 3D Roadside Infrastructure Inventory",
+      "authors": "Chong Liu, Luxuan Fu, Xuyu Feng, Zhen Dong, Bisheng Yang",
+      "date": "2026-06-03",
+      "pdf": "https://arxiv.org/pdf/2606.09882v1",
+      "score": "6.0",
+      "evidence": "融合全景图像和LiDAR点云的多模态数据集",
+      "tldr": "本文提出了一个大规模多模态数据集，用于路边基础设施的3D清查，融合全景图像和LiDAR点云，并提供严格的2D-3D实例关联和跨帧跟踪。该数据集覆盖53.8公里，包含超过175k多视角2D边界框，为自动化基础设施维护提供了精准的多模态对齐基准。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "The paradigm of digital twin cities is shifting from coarse visual mapping toward more precise and actionable digitization of urban assets. However, existing datasets predominantly focus on coarse visual perception, lacking the strict multi-modal alignment and attribute and status diagnosis required for automated infrastructure maintenance. To bridge this gap, we introduce WHU-Infra3D, a large-scale, multi-modal benchmark dataset dedicated to roadside infrastructure inventory. Covering 53.8 km across three cities, WHU-Infra3D uniquely integrates panoramic imagery and LiDAR point clouds with rigorous 2D-3D instance association and cross-frame tracking. Comprising over 175k multi-view 2D bounding boxes alongside thousands of 3D infrastructure instances, the dataset provides over 181k detailed attribute and status annotations (e.g., rust, occlusion) to empower operational health assessment. We establish comprehensive baselines across five core tasks: 2D detection, 2D cross-view matching, 3D geo-identification, 3D point cloud segmentation, and attribute recognition. Extensive evaluations expose significant cross-city domain gaps and inherent vulnerabilities of current models on long-tailed defective statuses, establishing WHU-Infra3D as an essential testbed for advancing scalable, AI-driven urban infrastructure inventory and lifecycle management. The WHU-Infra3D dataset is available at https://github.com/WHU-USI3DV/WHU-Infra3D.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

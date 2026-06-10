@@ -1,0 +1,620 @@
+Title: GRAR: Glass-induced Reflection Artifact Removal in LiDAR Point Clouds
+
+URL Source: https://arxiv.org/pdf/2606.10541v1
+
+Published Time: Wed, 10 Jun 2026 00:50:33 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# Highlights 
+
+## GRAR: Glass-induced Reflection Artifact Removal in LiDAR Point Clouds 
+
+Wanpeng Shao, Zeyi Guo, Bo Zhang, Yifei Xue, Tie Ji, Yizhen Lao 
+
+• Develops a vision foundation model-guided glass extraction and completion strategy that combines multimodal observations with geometric constraints to recover incomplete glass surfaces under severe measurement voids. 
+
+• Develops the Reflection-aware Local-Global Geometric Similarity (RE-LGGS) descriptor, which jointly exploits multi-scale geometric structures and orientation consistency for robust virtual point detection under imperfect reflections. 
+
+• Achieves better performance on multiple public TLS datasets, including dominant glass scenes, grid-like glass scenes, and subway scenes, demonstrating superior robustness against incomplete and distorted reflection observations. 
+
+> arXiv:2606.10541v1 [cs.CV] 9 Jun 2026
+
+# GRAR: Glass-induced Reflection Artifact Removal in LiDAR Point Clouds 
+
+## Wanpeng Shao a, Zeyi Guo a, Bo Zhang c, Yifei Xue b, Tie Ji b and Yizhen Lao b,∗
+
+> a
+
+College of Computer Science and Electronic Engineering, Hunan University, Changsha, 410012, China 
+
+> b
+
+School of Design, Hunan University, Pailou Road, South Campus, Taozihu, Changsha, 410082, Hunan, China 
+
+> c
+
+School of Finance and Statistics, Hunan University, 109 Shijiachong Road, Financial & Economic Campus, Yuelu District, Changsha, 410079, Hunan, China, Changsha, 410012, China 
+
+A R T I C L E I N F O 
+
+Keywords :Terrestrial Laser Scanning Glass Reflection Artifact Removal 
+
+A B S T R A C T 
+
+Terrestrial Laser Scanning (TLS) point clouds captured in urban environments frequently suffer from glass-induced reflection artifacts, severely degrading downstream applications. Existing reflec-tion artifact removal methods generally rely on ideal reflection symmetry assumptions, yet their performance is limited by inaccurate glass estimation and insufficient geometric representations. To address these issues, we propose a novel unified framework aimed at robust reflection artifact removal: In the first stage, we leverage a multi-modal vision foundation model to produce initial glass masks, which are then refined using geometric cues to achieve high-precision glass regions, followed by glass completion to recover missing regions caused by no-return measurements on transparent surfaces; In the second stage, we propose a physics-driven descriptor, termed Reflection-aware Local-Global Geometric Similarity (RE-LGGS), which is grounded in actual laser reflection geometry and jointly encodes multi-scale geometric structures and orientation consistency using PCA-based local shape representations, thereby significantly improving robustness against imperfect observations. Extensive experiments on multiple public TLS datasets demonstrate that our framework consistently outperforms state-of-the-art methods in reflection artifacts removal. 
+
+## 1. Introduction 
+
+Digital twins are the product of the deep integration of cutting-edge information technology with complex urban systems, increasingly becoming a core engine for advancing urban governance modernization and sustainable develop-ment. Their essence lies in constructing a digital mirror that synchronizes with the real city, enabling virtual-real interaction and intelligent intervention (Ying et al., 2023). Realizing this objective strictly demands large-scale, high-precision 3D geospatial data. Currently, mainstream 3D data acquisition techniques can be broadly categorized into image-based reconstruction and LiDAR sensing. Al-though image-based (Snavely et al., 2006; Furukawa and Ponce, 2010) and neural rendering approaches (Mildenhall et al., 2021; Kerbl et al., 2023) have achieved impressive visual reconstruction quality, they often struggle to provide the metric-level geometric accuracy required by digital twin applications. In contrast, benefiting from its active sensing mechanism, LiDAR enables the direct acquisition of dense, centimeter-level 3D point clouds and remains the dominant technology for high-precision geospatial data collection in complex urban environments (Liu et al., 2023). 
+
+> ∗
+
+Corresponding authors: Yizhen Lao (yizhenlao@hnu.edu.cn)  
+
+> wpshao@hnu.edu.cn
+
+(W. Shao); gzy@hnu.edu.cn (Z. Guo);  
+
+> zhangbo0720@hnu.edu.cn
+
+(B. Zhang); yifeixue@hnu.edu.cn (Y. Xue);  
+
+> tieji@hnu.edu.cn
+
+(T. Ji) 
+
+> ORCID
+
+(s): 0009-0002-8395-8427 (W. Shao); 0009-0006-5958-2422 (Z. Guo); 0009-0006-5958-2422 (B. Zhang); 0000-0002-4443-4367 (Y. Xue);  
+
+> 0009-0005-0822-0600
+
+(T. Ji); 0000-0002-6284-1724 (Y. Lao) 
+
+However, current LiDAR technology encounters severe limitations when operating in highly urbanized environ-ments. To balance architectural esthetics with energy effi-ciency, modern buildings extensively utilize low-emissivity (low-emission) coated glass. While these advanced mate-rials exhibit high transmittance in the visible spectrum, they demonstrate intense specular reflection characteristics within the near-infrared (NIR) band—the standard operating wavelengths for contemporary LiDAR sensors (e.g., 905 nm or 1550 nm). This discrepant optical behavior introduces severe signal degradation and reflection artifacts, thereby compromising the reliability of LiDAR perception systems that fundamentally rely on NIR backscatter detection (Fong and Yan, 2025). The specific degradation mechanism is illustrated in Fig. 1: when a directional laser pulse strikes a glass surface (e.g., a curtain wall or storefront), it undergoes concur-rent transmission and reflection at the optical interface. Specifically, a fraction of the laser beam penetrates the glass medium to hit the background structures, generating true return points from objects physically located behind the transparent barrier. Conversely, the specularly reflected laser beam is redirected into the foreground scene, subsequently projecting highly geometrically deceptive reflection arti-facts (i.e., virtual points ) that mirror real foreground objects onto the opposite side of the glass. These virtual points intertwine with valid measurements in 3D space, severely compromising the geometric consistency and fidelity of the captured geospatial data. Consequently, the resulting geo-metric corruption propagates to downstream tasks, including point cloud registration (Dong et al., 2020a), 3D Building 
+
+: Preprint submitted to Elsevier Page 1 of 17 Glass   
+
+> pbuilding
+> pvirtual
+> plight
+> pglass
+> (a)
+> (b) Figure 1: Reflection artifact in TLS point clouds. (a) The principle of reflection in TLS measurement. The laser beam hits the glass surface, producing a glass point ( 𝑃 glass ), a virtual point reflected from a building by the glass ( 𝑃 virtual ), and a light point inside the building ( 𝑃 light ). (b) The real building scene captured by TLS where the glass planes are shown in yellow and green, and virtual points are shown in red.
+
+Information Modeling (BIM) reconstruction (Xiong et al., 2023), and semantic scene understanding (Han et al., 2024). Therefore, the reliable identification and elimination of glass-induced reflection artifacts are indispensable to en-suring the fidelity of 3D structural models for digital twin applications. 
+
+1.1. Motivation 
+
+While research on reflection removal in 3D scenarios remains relatively underexplored, existing point cloud de-noising studies primarily focus on stochastic outliers that deviate from the true geometric surfaces of objects (Am-brosino et al., 2024; Barsanti et al., 2024; Zheng et al., 2022; Wang et al., 2024). Such "geometric noise," typically originating from sensor measurement errors, environmental interference, or non-uniform sampling densities, is funda-mentally distinct from glass-induced virtual artifacts. Existing reflection removal methodologies (Yun and Sim, 2018, 2019, 2021; Shao et al., 2023; Fang et al., 2025; Shao et al., 2026) generally adhere to a two-stage framework: glass surface detection followed by virtual point identification via reflection symmetry and geometric simi-larity. Although they have reported promising results, their effectiveness largely depends on two implicit assumptions: (1) glass surfaces can be reliably detected from incom-plete TLS observations, and (2) reflected observations pre-serve sufficiently accurate reflection symmetry with their real counterparts. Unfortunately, both assumptions are fre-quently violated in real-world urban environments, leading （a） （b） 
+
+> Figure 2: Challenges in reflection artifact removal (glass and virtual points are colored in yellow and red, respectively). (a) "Glass void" in TLS measurement. (b) TLS measurements with partial, distorted reflected virtual points.
+
+to substantial performance degradation. Therefore, two crit-ical physical challenges inherent to this paradigm remain inadequately addressed: 
+
+1. The "Measurement Void" problem in TLS mea-surements. 
+
+Unlike conventional objects that produce dense and spa-tially continuous measurements, glass surfaces often gen-erate sparse, fragmented, or even completely missing ob-servations owing to their high transmissivity in Fig. 2(a). Consequently, existing methods typically treat glass detec-tion as a purely geometric problem by exploiting indirect cues such as intensity and multi-echo responses. However, these geometric cues alone often provide insufficient evi-dence for reliable glass localization, making the recovery of complete glass structures from incomplete observations particularly challenging. As a result, virtual points produced from these undetected or fragmented glass regions cannot be accurately mapped, leading to incomplete virtual artifact re-moval. Therefore, the first challenge lies in how to detect and complete the glass structures from incomplete and sparse measurements, which serves as a prerequisite for effective virtual point removal. 
+
+2. The "Imperfect Reflection Symmetry" in virtual point identification: 
+
+Existing virtual point identification methods generally assume strict reflection symmetry, where virtual points are expected to keep geometrically consistent mirrored struc-tures with the real objects. However, real-world glass re-flections rarely satisfy such ideal conditions. Due to in-accurate glass estimation, partial reflections, and internal multi-path reflections within the glass, the captured virtual points are often incomplete and geometrically distorted in Fig. 2(b). As a result, the geometric descriptors adopted by existing methods, which are inherently designed under ideal reflection symmetry assumptions, often experience severe performance degradation when confronted with incomplete and geometrically distorted reflection observations. There-fore, the second challenge lies in how to construct a robust geometric representation that can model imperfect reflection observations for reliable virtual point identification.   
+
+> :Preprint submitted to Elsevier Page 2 of 17
+
+1.2. Contribution and Paper Organization 
+
+To address the aforementioned challenges, we propose a novel unified framework, called GRAR in Fig. 3, for robust glass-induced reflection artifact removal in TLS point clouds. Regarding the first challenge, instead of treating glass detection as a purely geometric problem, we reformulate it as a cross-modal perception task. Specifically, panoramic RGB images captured by TLS-mounted, pre-calibrated camera together with TLS data-derived intensity and multi-count maps are jointly exploited within a vision foundation model to generate high precision glass masks. A subsequent glass extraction and completion strategy is further introduced to recover missing regions caused by no-return measurements on transparent surfaces. Regarding the second challenge, to handle imperfect reflection observations, we propose a robust virtual point identification strategy called Reflection-aware Local-Global Geometric Similarity (RE-LGGS) descriptor. The proposed descriptor jointly models multi-scale geometric structures and orientation consistency using PCA-based representa-tions, enabling reliable virtual point identification under incomplete and geometrically degraded reflections. Our contributions can be summarized as follows: 
+
+• We propose a cross-modal glass detection framework powered by a vision foundation model, which inte-grates panoramic RGB images with LiDAR points-derived modalities to achieve high-completeness glass extraction and glass region completion under no-return measurements. 
+
+• We develop a Reflection-aware Local-Global Geomet-ric Similarity (RE-LGGS) descriptor that jointly en-codes multi-scale geometric structures and orientation consistency, enabling robust virtual point identifica-tion under imperfect reflection conditions. 
+
+• Extensive experiments on multiple public and TLS datasets demonstrate that the proposed framework consistently outperforms existing state-of-the-art meth-ods in reflection artifact removal accuracy and point cloud quality preservation. The rest paper is structured as follows. We first inves-tigate existing denoising methods, including TLS-specific and indoor SLAM-related reflection artifacts removal in section 2. Then, the design and implementation of the GRAR framework is introduced in section. 3. The efficacy of the proposed method is then rigorously validated through com-prehensive experiments (Sec. 4). Finally, we discuss the implications and limitations of our findings and present concluding remarks (Sec. 5 and Sec. 6). 
+
+## 2. Related work 
+
+Current research on glass-induced reflection artifact re-moval can be broadly divided into studies conducted on static terrestrial laser scanning (TLS) data and those de-signed for mobile LiDAR systems. Owing to substantial differences in acquisition geometry, point density, and scene complexity, these two scenarios generally adopt different processing strategies. 
+
+2.1. GRAR in TLS Measurements 
+
+In TLS scenes, reflection artifacts often preserve strong geometric correlations with their corresponding real struc-tures. Consequently, most existing approaches follow a two-stage workflow: (1) glass region estimation and (2) virtual point identification based on the estimated glass surfaces. 
+
+2.1.1. Glass Region Estimation 
+
+Existing glass detection methods can be broadly catego-rized into echo-based and intensity-based approaches. 
+
+• Echo-based methods :When a laser beam interacts with a glass surface, multiple echoes may be gen-erated from the glass interface, transmitted objects, and reflection-induced virtual points. Exploiting this phenomenon, several studies project TLS observa-tions into image space and identify glass regions using echo-count information (Yun and Sim, 2018, 2021). To improve spatial continuity, subsequent works fur-ther employ image segmentation or point cloud clus-tering techniques to aggregate sparse glass observa-tions into larger surface regions (Yun and Sim, 2019; Lee et al., 2023; Shao et al., 2026). Nevertheless, because glass observations are frequently incomplete or entirely missing in real-world environments, accu-rately recovering continuous glass surfaces remains challenging. 
+
+• Intensity-based methods : Another line of research utilizes the relatively weak return intensity commonly observed on transparent glass surfaces (Kashani et al., 2015). Based on this property, potential glass regions are identified through intensity-based screening and subsequent geometric verification (Fang et al., 2025). However, the returned intensity is often influenced by background materials located behind the glass, par-ticularly in the presence of highly reflective objects, reducing the stability of intensity-only cues (Shao et al., 2023). Overall, existing glass detection approaches primarily rely on incomplete LiDAR-derived observations, including echo and intensity cues, to infer glass locations. As a result, recovering complete glass surfaces under severe measure-ment voids remains a challenging problem. 
+
+2.1.2. Virtual Point Identification 
+
+After glass surfaces are estimated, virtual points are commonly detected through reflection symmetry and geo-metric similarity analysis across the glass plane. Existing methods can be roughly grouped into handcrafted feature-based approaches and learning-based approaches.      
+
+> :Preprint submitted to Elsevier Page 3 of 17 Panoramic Image
+> Intensity Map
+> Multi-count Map
+> Glass Extraction & Completion
+> Initial Glass Mask Final Scores of Affected Points
+> Target Point Clouds
+> RE-LGGS Descriptor
+> Input Points
+> Glass Points Completed Glass Points
+> Glass Region Estimation
+> (Vision Foundation Model)
+> Reflection Artifacts Removal
+> (RE-LGGS Descriptor) Reflection Artifacts Removal Results Input TLS Data
+> Multi-scale Geometry
+> (PCA-based)
+> Orientation Consistency
+> Vision
+> Foundation
+> Model
+> (Nano Banana)
+
+Figure 3: Glass-induced Reflection Artifact Removal in LiDAR Point Clouds (GRAR). Given input point clouds, we first project LiDAR data onto a spherical panoramic form. The RGB, intensity, and multi-count maps are then fed into a vision foundation model (e.g., NanoBanana) to generate accurate glass masks. These masks are back-projected into the original 3D space for extraction, refinement, and completion. Finally, the proposed RE-LGGS descriptor is used to identify reflection-affected points as virtual points. 
+
+• Handcrafted feature-based methods. Representa-tive approaches employ local geometric descriptors such as FPFH (Yun and Sim, 2018, 2021; Shao et al., 2023; Yun and Sim, 2019) or local angular statis-tics (Fang et al., 2025) to measure the similarity between reflected observations and their correspond-ing real structures. These methods have demonstrated effectiveness in capturing local geometric character-istics. However, real reflection observations are fre-quently affected by sparsity, structural incomplete-ness, geometric distortion, and many-to-one corre-spondence effects, which substantially degrade the discriminative capability and reliability of these local descriptors. 
+
+• Learning-based methods. Recent studies formulate virtual point identification as a supervised learning problem using voxel-based networks (Lee et al., 2023) or point-based architectures such as KPConv (Thomas et al., 2019; Shao et al., 2026). These approaches are capable of learning complex geometric patterns from large-scale training data. However, constructing real TLS reflection datasets with reliable point-wise annotations is extremely expensive. Consequently, ex-isting training datasets are typically generated using simplified reflection simulation strategies under ide-alized reflection assumptions, where virtual points are obtained through geometric reflection transformations followed by point sub-sampling. Such synthetic obser-vations differ substantially from real reflection mea-surements, which potentially limit the generalization ability of learned models in practical environments. Besides the conventional two-stage framework, several studies have explored multi-view consistency for reflection detection. For example, Gao et al. (2021, 2022) exploit the observation that real points remain geometrically consistent across multiple TLS viewpoints, whereas reflection artifacts vary with scanner positions. Although effective in controlled indoor environments, these methods require multiple regis-tered scans and are therefore less applicable to large-scale urban mapping scenarios. 
+
+2.2. GRAR in Mobile LiDAR Systems 
+
+Unlike TLS-based approaches, these methods are pri-marily designed for low-channel sensors operating in struc-tured indoor environments, where reflections are often lim-ited to mirrors or glass partitions and the scene scale remains relatively small. Koch et al. (2016, 2017a) utilized multi-echo measure-ments to identify reflective surfaces through inter-echo dis-tance analysis and subsequently extended the framework to 3D using mirror back-projection and ICP-based registra-tion (Koch et al., 2017b). Later, Zhao et al. (2020) incor-porated dual-echo observations and intensity peak features to detect reflective surfaces and remove reflection artifacts through geometric consistency checks. Building upon this strategy, Li et al. (2024) further extended the framework to complete indoor mapping scenes. Although these methods have achieved promising per-formance in structured indoor environments, their assump-tions regarding scene geometry, sensor configuration, and re-flection behavior differ substantially from those encountered in large-scale TLS-based urban mapping applications. 
+
+## 3. Methodology 
+
+3.1. Overview 
+
+Fig. 3 shows the workflow of our approach, which mainly consists of two modules: 
+
+• Glass regions estimation module (Section 3.2): First, the TLS point cloud is projected onto a 2D scanning 
+
+: Preprint submitted to Elsevier Page 4 of 17 ωpolar 
+
+> ωazimuth
+> Glass
+> （a）
+> （b）
+> （c）Figure 4: Spherical projection of TLS point clouds to produce intensity and multi-count map.
+
+plane to generate a multi-count map and an intensity map, where each pixel records the echo count and the first-return intensity, respectively. Subsequently, intensity map, multi-count map together the synchro-nized panoramic RGB image, are jointly fed into a vision foundation model to extract a high-quality 2D semantic glass mask. Finally, the 2D glass mask is back-projected into the 3D space to isolate initial glass points, which are subsequently refined by geometric constraints and completed across measurement voids to fully restore continuous 3D glass surfaces. 
+
+• Reflection artifact removal module (Section 3.3): After glass detection, each point is symmetrically projected across the estimated glass plane to es-tablish potential real-virtual correspondences. The Reflection-aware Local-Global Geometric Similarity (RE-LGGS) descriptor is then computed by jointly analyzing multi-scale geometric characteristics of virtual points, searched real points, and complete real structures. Finally, reflection symmetry and geometric similarity are combined to identify reflection-induced virtual points. 
+
+3.2. Glass Regions Estimation Module 
+
+3.2.1. Point Cloud Spherical Projection and Multi-Count Mapping 
+
+To facilitate cross-modal fusion with panoramic im-agery, the raw TLS point cloud is transformed into a spher-ical image representation. As illustrated in Fig. 4, a unit sphere centered at the scanner is discretized according to the scanner’s intrinsic angular sampling intervals in the azimuth and polar directions. Instead of using individual angular bins, neighboring bins are aggregated into local 𝑚 × 𝑚 
+
+patches, each corresponding to a spatial frustum in the 3D scene. For every patch, the first-return intensity values and the total number of recorded echoes are accumulated to gen-erate an intensity map and a multi-count map, respectively. The patch size controls the trade-off between angular resolution and statistical robustness. Very small patches pre-serve fine spatial details but are sensitive to sampling fluc-tuations, whereas excessively large patches may blur struc-tural boundaries. Through empirical evaluation, we found that 𝑚 = 3 provides a suitable balance. For a RIEGL VZ-400 scanner with an angular resolution of 0.06 ◦, this configuration corresponds to an effective patch resolution of 0.18 ◦ × 0 .18 ◦. The resulting spherical representation preserves large-scale scene structures while providing suf-ficiently stable measurements for subsequent glass-region estimation. 
+
+3.2.2. Vision Foundation Model for Cross-Modal Glass Segmentation 
+
+Prior to introducing vision foundation models, we briefly review existing specialized glass segmentation networks. In the field of glass detection, research has evolved from traditional heuristic edge filters to end-to-end semantic seg-mentation networks, pioneered by GDNet (Mei et al., 2020), which treats glass as an independent semantic category. Subsequent studies have progressively enhanced recognition robustness by incorporating explicit edge context (He et al., 2021; Fan et al., 2023), specular reflection cues (Lin et al., 2021; Qi et al., 2024; Liu et al., 2024), and geometry-derived depth or semantic priors (Lin et al., 2022). However, when confronted with static panoramic imagery in large-scale urban settings, these specialized networks exhibit severe vulnerability and frequently deliver unreliable or fragmented predictions due to two concurrent bottlenecks: 
+
+• Spatial-geometric domain gap. Existing networks are inherently optimized for planar pinhole perspec-tives captured in constrained indoor scenes (Mei et al., 2020; Lin et al., 2021, 2022). When applied to wide-field equirectangular projections ( 360 ◦ field-of-view), their limited receptive fields fail to capture long-range contextual dependencies across boundary disconnec-tions, and their distortion-blind convolution kernels cannot adapt to latitude-dependent spherical distor-tions or extreme illumination fluctuations across wide panoramas (Zhang et al., 2024; Tan et al., 2025). 
+
+• Single-modality information bottleneck. Glass-specific networks operating purely on RGB imagery are in-herently challenged by the physical properties of glass surfaces. Transparent glass allows background structures to be directly observed through the surface, while specular reflections introduce visual patterns           
+
+> :Preprint submitted to Elsevier Page 5 of 17 Input
+> panoramic image
+> Intensity map
+> Multi-count map
+> Glass Mask Generation (Key Strategy)
+> Step 1: Multi-Count Glass Candidate
+> Extraction
+> Generate a candidate glass mask from the
+> multi-count map by retaining regions with
+> strong multi-return responses.
+> Step 2: Multimodal Glass Identification
+> Jointly analyze RGB appearance and
+> LiDAR intensity within candidate regions
+> to identify glass surfaces.
+> Output: Final Glass Mask
+> Glass Mask Generation by Nano Banana (AI-powered image generation and editing platform )
+> Prompt Glass Extraction, Refinement and Completion
+> 1. Glass candidate points 2. Surface growing segmentation 3. S urfaces m erging 4. Glass points extraction 5. Glass completion
+
+Figure 5: Overview of the proposed glass mask generation strategy. An initial glass mask is inferred from RGB imagery, LiDAR intensity maps, and multi-count maps using a vision foundation model, and is subsequently refined and completed through geometric constraints to obtain high-completeness glass surfaces. 
+
+that closely resemble real objects, often leading to am-biguous semantic interpretations (Lin et al., 2021; Qi et al., 2024; Liu et al., 2024). Although recent methods have incorporated semantic priors or depth-related cues (Lin et al., 2022), most existing approaches still rely predominantly on image appearance and therefore lack direct geometric observations of the scene. As a result, distinguishing glass from visually similar non-glass structures remains difficult in large-scale urban environments. As a result, distinguishing glass from visually similar non-glass structures remains challenging, highlighting the need for multi-modal approaches. The paradigm shift to multi-modal Vision Foundation Models (VFMs), specifically the lightweight Nano-Banana 
+
+framework, directly addresses these limitations through joint semantic reasoning across heterogeneous visual modalities. The effectiveness of the proposed Nano-Banana -driven module stems from two fundamental capabilities. First, Nano-Banana leverages high-level semantic pri-ors acquired through large-scale cross-modal pre-training (Zuo et al., 2025). Recent studies have shown that foundation models encode not only semantic concepts, but also rich structural information, including object boundaries, scene layouts, and contextual relationships (Rombach et al., 2022). Consequently, when processing panoramic RGB imagery together with LiDAR-derived intensity and multi-count maps, the model can reason about glass as a coherent scene component rather than relying solely on local appearance cues. This capability is particularly beneficial in regions where glass observations are sparse, incomplete, or partially obscured. Second, Nano-Banana provides strong text-guided se-mantic decomposition capabilities (Qian et al., 2025). Glass detection in urban environments is inherently challeng-ing because transparent surfaces, reflections, and back-ground structures are visually intertwined. Through prompt-conditioned reasoning and cross-attention mechanisms, the model can separate glass regions from surrounding scene content while simultaneously exploiting complementary in-formation provided by the intensity and multi-count maps (Yu and Lee, 2025). As a result, the generated masks exhibit improved completeness and boundary consistency com-pared with conventional RGB-based glass segmentation approaches. From a practical geometric engineering perspective, the proposed framework offers two additional advantages: First, it eliminates the need for collecting and annotating large-scale TLS-specific glass datasets. Acquiring reliable ground-truth labels for glass surfaces and reflection artefacts across diverse urban environments is both labor-intensive and economically impractical. By exploiting the zero-shot 
+
+: Preprint submitted to Elsevier Page 6 of 17 generalization capability of foundation models (Zuo et al., 2025), the proposed approach can be directly applied to previously unseen scenes without task-specific retraining or parameter tuning. Second, the proposed framework separates semantic glass identification from geometric reconstruction. The role of Nano-Banana is to provide a high-completeness glass mask in the image domain by jointly reasoning over panoramic RGB imagery, LiDAR intensity maps, and multi-count maps, as illustrated in Fig. 5. The generated mask subse-quently serves as the basis for the geometric refinement and completion procedures in 3D space. This design allows the framework to benefit from the semantic reasoning capabil-ity of foundation models while preserving the metric and structural consistency required for TLS-based surveying and mapping applications. Therefore, rather than developing another task-specific glass segmentation network, we exploit a vision foundation model as a universal semantic prior to bridge the observation gap caused by incomplete TLS measurements. 
+
+3.2.3. Glass Extraction, Refinement and Completion 
+
+Upon acquiring the 2D glass mask, the pixels within the masked regions are back-projected into the 3D spatial do-main as candidate glass points. Due to missing glass regions, even real objects within the projected 3D frustum inside the building may be misidentified as candidate glass points, as illustrated in step 1 of Fig. 5. Under such conditions, iterative RANSAC is unreliable because the high proportion of non-glass points dominates the plane fitting (Xu et al., 2019). We adopt a classical surface growing segmentation method (Vosselman, 2013) to partition candidate glass points into planar structures. Segmentation is initialized from planar seeds detected via a 3D Hough transform (Vos-selman et al., 2004) and subsequently expanded through it-erative surface growing. Points belonging to the same planar region are assigned a unique segment ID, as shown in step 2 of Fig. 5. To filter non-glass artifacts, adjacent coplanar clusters are merged based on normal vector consistency and point-to-plane distance thresholds, forming dominant planar segments (step 3 of the Fig. 5). Invalid segments are then discarded through a two-fold geometric validation: 1. Structural scale constraint: segments with low point counts, high local curvature, or high linearity—typical of vegetation or noise—are removed. 2. Half-space constraint: let the candidate glass plane be Π ∶ 𝑎𝑥 + 𝑏𝑦 + 𝑐𝑧 + 𝑑 = 0 and the scanner position 
+
+𝑜 . For each point 𝑝 , define 
+
+𝑓 (𝑥 ) = 𝑎𝑥 + 𝑏𝑦 + 𝑐𝑧 + 𝑑. (1) Points for which 𝑓 (𝑜 )𝑓 (𝑝 ) < 0 lie on the opposite side of the scanner relative to the plane and are dis-carded. After iterating over all candidates, only the glass points remains in step 4 of Fig. 5.  
+
+> Figure 6: Affected area detection in real scene. Line in blue color is the transmission path from the scan pose to the outline of each glass region. Point fall into the red area are reflection-affected points.
+
+Finally, we perform a geometry-based completion for points that are recognized as belonging to glass regions but are sparsely sampled. Specifically, for each point 𝑝 𝑚 that falls within the es-timated glass mask, we cast a ray from the scanner origin 
+
+𝐨 through 𝑝 𝑚 and compute its intersection with the glass plane Π. The intersection parameter 𝑡 ∗ is obtained by solving 
+
+𝐧 ⋅ (𝐨 + 𝑡 (𝑝 𝑚 − 𝐨 )) + 𝑑 = 0 :
+
+𝑡 ∗ = − 𝐧 ⋅ 𝐨 + 𝑑 
+
+𝐧 ⋅ (𝑝 𝑚 − 𝐨 ) . (2) The completed glass point is then 
+
+𝑝 𝑔 = 𝐨 + 𝑡 ∗(𝑝 𝑚 − 𝐨 ). (3) Only candidate points located inside the projected glass mask are completed, preserving measurement fidelity. The final 3D glass reconstruction is shown in Step 5 of Fig. 5. Once glass surfaces are established, the corresponding reflection-affected point clouds can be extracted by tracing the laser transmission path from the scanner through the four corners of each glass plane in Fig. 6. 
+
+3.3. Reflection artifact removal module 
+
+In this section, we focus on detecting virtual points in af-fected areas estimated in section 3.2.Based on the geometric characteristics of the TLS data, we choose to combine re-flection symmetry and geometric similarity to detect virtual reflection points. 
+
+3.3.1. Reflection symmetry 
+
+For a given point 𝑝 ∈ Ω back , we compute a symmetry score 𝛾 symmetry (𝑝 ) that reflects the proximity between the symmetric position ̂ 𝑝 of 𝑝 and its nearest counterpart in 
+
+Ωfront . The reflected point ̂ 𝑝 across the glass plane Π is obtained via a Householder transformation (Householder, 1958). The Householder matrix 𝐀 is defined as 𝐀 = 𝐈 −2𝐧𝐧 ⊤, where 𝐈 is the identity matrix and 𝐧 is the unit normal vector of the plane. For a plane 𝑎𝑥 + 𝑏𝑦 + 𝑐𝑧 + 𝑑 = 0 , the      
+
+> :Preprint submitted to Elsevier Page 7 of 17 𝐀
+> 𝐀
+> 𝐀 𝐀 Front Surface
+> Back Surface
+> Real Points
+> Virtual Points
+> 𝐀
+> 𝐀
+> 𝐀 𝐀 Front Surface
+> Back Surface
+> Searched Real Points
+> Virtual Points
+> Mirror flip
+> Ωback
+> ΩfrontΩfront
+> Ωback
+
+(a) (b) 
+
+(a) 
+
+(b)  
+
+> Real points Searched real points
+
+Figure 7: Depiction of internal multiple reflections and their im-pacts. (a) Illustration of multiple reflections inside glass struc-tures and the resulting TLS observations, where reflection-induced virtual points become sparse, geometrically distorted, and spatially misaligned. (b) Searched real points retrieved through symmetric re-projection of the virtual points followed by nearest-neighbor search. Owing to reflection imperfections and geometric inconsistencies, many virtual points (gray points in the upper panel) fail to establish valid correspondences. Consequently, the retrieved real points in front of the glass are significantly sparser and more incomplete than the virtual observations. 
+
+transformation matrix in homogeneous coordinates is: 
+
+𝐀 =
+
+⎡⎢⎢⎢⎣
+
+1 − 2 𝑎 2 −2 𝑎𝑏 −2 𝑎𝑐 −2 𝑎𝑑 
+
+−2 𝑎𝑏 1 − 2 𝑏 2 −2 𝑏𝑐 −2 𝑏𝑑 
+
+−2 𝑎𝑐 −2 𝑏𝑐 1 − 2 𝑐 2 −2 𝑐𝑑 
+
+0 0 0 1
+
+⎤⎥⎥⎥⎦
+
+. (4) The Householder matrix is orthogonal. The symmetric coun-terpart of 𝑝 is then ̂𝑝 = 𝐀 Π𝑝 , where 𝐀 Π corresponds to Π,with 𝑝 and ̂𝑝 in homogeneous coordinates. We then use a 𝑘 -d tree to find the nearest point 𝑞 ∈ Ω front to ̂𝑝 . The symmetry score is defined as an exponential decay of this distance: 
+
+𝛾 symmetry (𝑝 ) = exp 
+
+(
+
+− ‖̂𝑝 − 𝑞 ‖
+
+𝛽 1
+
+)
+
+, (5) where 𝛽 1 controls the sensitivity to positional deviations. A larger 𝛽 1 reduces the sensitivity of the symmetry score to positional deviations, making the scoring function more tolerant to misalignments. 
+
+3.3.2. Geometric similarity 
+
+Under ideal conditions, a reflection artifact should per-fectly mirror a real structure across the glass plane. However, as illustrated in Fig. 7(a), real-world glass reflections rarely satisfy this ideal symmetry due to complex physical anoma-lies such as internal multi-path reflections. Consequently, the reflected observations typically exhibit two major degra-dation characteristics: (i) Geometric incompleteness , char-acterized by severe sparsity, structural fragmentation, and (a) 
+
+(b)  
+
+> Real points Searched real points
+
+Figure 8: Overview of the proposed RE-LGGS descriptor for imperfect reflection observations. (a) Visualization of reflection observations between direct real-point correspondence and the searched real points. (b) Illustration of the PCA-based geometric descriptor with orientation consistency constraints at a single neighborhood scale. The descriptor is computed in the same manner at multiple scales. 
+
+substantial loss of fine geometric details; (ii) Spatial dis-tortion , manifested as geometric inconsistencies with their corresponding real structures even after specular projection. Moreover, as illustrated in Fig. 7(b), such imperfect reflec-tions inevitably introduce a many-to-one mapping anomaly, where multiple distorted virtual points may correspond to the same real-world point. To address this issue, we first introduce the concept of searched real points. For each virtual point 𝑝 , its mirrored position ̂𝑝 is projected across the estimated glass plane, and the nearest neighbor in the complete real point cloud is selected as the corresponding searched real point 𝑞 .Unlike complete real structures, searched real points naturally inherit the many-to-one correspondence pattern caused by imperfect reflections. Consequently, they exhibit sparsity and structural degradation characteristics that are more consistent with the virtual observations, providing a geometrically balanced reference for comparison. Neverthe-less, this degradation also leads to the loss of fine-scale geometric details. To simultaneously preserve local geometric fidelity and global structural consistency, the proposed RE-LGGS de-scriptor adopts a dual-scale collaborative strategy with two support radii, namely a local radius 𝑟 1 and a global radius 𝑟 2:
+
+• Small radius neighborhoods extracted from the complete local real points to preserve high-fidelity local geometric details (Fig. 8(a)); 
+
+• Large radius neighborhoods extracted from the searched real points to model robust global structural skeletons under severe sparsity (Fig. 8(b)). Note that for the virtual points, both the small- and large-radius features are computed directly from its own local neighborhoods. 
+
+: Preprint submitted to Elsevier Page 8 of 17 Instead of pursuing highly discriminative but poten-tially unstable high-dimensional descriptors, this work pri-oritizes PCA-based low-order geometric statistics. Unlike histogram-based descriptors such as FPFH, PCA-derived geometric attributes remain relatively stable under severe point sparsity, structural incompleteness, and geometric distortions, which are common characteristics of reflection-induced virtual observations. This robustness makes PCA particularly suitable for modeling imperfect reflections en-countered in real TLS environments, as illustrated in Fig. 8(b) Let  (𝑝 ) be the 𝑟 -radius neighbor set of point 𝑝 . Perform PCA on the covariance matrix 
+
+𝐂 = 1
+
+𝑘 
+
+∑
+
+> 𝑞 ∈
+
+(𝑞 −̄𝑞 )( 𝑞 −̄𝑞 ) ⊤ (6) yielding eigenvalues 𝜆 1 ≥ 𝜆 2 ≥ 𝜆 3 ≥ 0. We define the structural attributes as: 
+
+𝐿 = 𝜆 1 − 𝜆 2
+
+𝜆 1
+
+, 𝑃 = 𝜆 2 − 𝜆 3
+
+𝜆 1
+
+, 𝐶 = 𝜆 3
+
+𝜆 1
+
+, (7) where 𝐿 , 𝑃 , and 𝐶 denote linearity, planarity, and curva-ture (scattering), respectively. By extracting these attributes across the dual neighborhood scales, the geometric profile for each point is formalized as: 
+
+𝐃 = [ 𝐿 1, 𝑃 1, 𝐶 1, 𝐿 2, 𝑃 2, 𝐶 2], (8) where subscripts 1 and 2 indicate the small- and large-radius scales, respectively. Treating these attributes as coordinates in a low-dimensional shape space, the base geometric discrepancies between two descriptors 𝐃 𝑎 and 𝐃 𝑏 are evaluated separately for each scale via Euclidean distance. The Euclidean distance is adopted because the PCA-derived attributes are normalized and reside in a compact low-dimensional shape space. Under this representation, Euclidean distance provides a stable, computationally efficient, and physically interpretable mea-sure of geometric discrepancy while avoiding the sensitiv-ity and parameter dependence often associated with high-dimensional histogram matching: 
+
+𝐷 𝑔 1 =
+
+√
+
+(𝐿 𝑎  
+
+> 1
+
+− 𝐿 𝑏 
+
+> 1
+
+)2 + ( 𝑃 𝑎  
+
+> 1
+
+− 𝑃 𝑏  
+
+> 1
+
+)2 + ( 𝐶 𝑎  
+
+> 1
+
+− 𝐶 𝑏  
+
+> 1
+
+)2,
+
+(9) 
+
+𝐷 𝑔 2 =
+
+√
+
+(𝐿 𝑎  
+
+> 2
+
+− 𝐿 𝑏 
+
+> 2
+
+)2 + ( 𝑃 𝑎  
+
+> 2
+
+− 𝑃 𝑏  
+
+> 2
+
+)2 + ( 𝐶 𝑎  
+
+> 2
+
+− 𝐶 𝑏  
+
+> 2
+
+)2.
+
+(10) Nevertheless, relying solely on shape geometry is still insufficient when encountering distinct semantic structures with similar low-order statistics, such as orthogonal vertical walls and horizontal floors. To robustly resolve this ambi-guity, we incorporate an adaptive orientation consistency constraint. Rather than enforcing a uniform directional align-ment, the dominant orientation vector 𝐞 of a neighborhood is adaptively selected based on its primary geometric tendency: 
+
+𝐞 =
+
+⎧⎪⎨⎪⎩
+
+𝐞 1 if 𝐿 ≥ 𝑃 and 𝐿 ≥ 𝐶 (linear ),
+
+𝐞 3 if 𝑃 ≥ 𝐿 and 𝑃 ≥ 𝐶 (planar ),
+
+𝟎 otherwise (isotropic) .
+
+(11) Here, 𝐞 1 and 𝐞 3 represent the principal eigenvector and the surface normal vector obtained from PCA, respectively. This conditional logic ensures that meaningful directional constraints are preserved for linear and planar geometries, while unreliable orientations are strictly deactivated ( 𝟎 ) for isotropic environments. The spatial orientation consistency between two adap-tively selected orientation vectors 𝐞 𝑎 and 𝐞 𝑏 is measured by their absolute dot product: 
+
+𝑆 ori = |𝐞 ⊤𝑎 𝐞 𝑏 |. (12) The final orientation-aware geometric discrepancy 𝐷 RE-LGGS 
+
+is then formulated as: 
+
+𝐷 RE-LGGS = 𝐷 𝑔 1
+
+(1+ 𝛼 (1− 𝑆 ori ,1))+𝐷 𝑔 2
+
+(1+ 𝛼 (1− 𝑆 ori ,2)),
+
+(13) Where 𝛼 is a weighting parameter governing the sensi-tivity to orientation misalignment. In our implementation, the penalty factor 𝛼 is used to balance the significance of geometric shape and spatial orientation. Under this formula-tion, larger spatial angular differences yield severe numeri-cal penalties, effectively suppressing false correspondences between geometrically similar but directionally inconsistent structures. Ultimately, the reflection-aware structural similarity is mapped via an exponential kernel: 
+
+𝛾 similarity (𝑝 ) = exp 
+
+(
+
+− 𝐷 RE-LGGS 
+
+𝛽 2
+
+)
+
+, (14) where 𝛽 2 controls the sensitivity of the geometric similarity. A larger 𝛽 2 yields a smoother mapping, making the geo-metric similarity less sensitive to variations in 𝐷 RE-LGGS ,while a smaller 𝛽 2 imposes a stricter geometric consistency constraint. Compared with conventional local descriptors, the pro-posed RE-LGGS descriptor prioritizes low-order struc-tural robustness over high-dimensional discriminateness. By seamlessly integrating dual-scale geometric statistics with adaptive orientation penalties, it provides an exceptionally stable and physically interpretable metric for robust virtual point identification under severe glass reflection degrada-tions. 
+
+3.3.3. Virtual points detection 
+
+We combine the symmetry score in Eq. (5) and the similarity score in Eq. (14) to compute a final point-wise score 𝛾 (𝑝 ). A multiplicative formulation is adopted because reflection symmetry and geometric similarity represent two complementary necessary conditions for virtual point iden-tification. A point exhibiting strong symmetry but poor geometric consistency, or vice versa, should not be regarded as a reliable virtual point. The product formulation naturally suppresses such ambiguous cases while emphasizing points that simultaneously satisfy both criteria: 
+
+𝛾 (𝑝 ) = 𝛾 symmetry (𝑝 ) ⋅ 𝛾 similarity (𝑝 ), (15)    
+
+> :Preprint submitted to Elsevier Page 9 of 17 Figure 9: Overview of virtual points removal process. (a) Reflection-affected points. (b) Point-level final scores of affected points where points differ in the same shape. (c) Segmentation results. (d) Segment-level final scores of affected points where points in the same shape show the same score. (e) Reflections removal results.
+
+By adjusting the parameters 𝛽 1 and 𝛽 2 in Eqs. (5) and (14), respectively, the final scores of affected points can be reasonably distributed. Fig. 9(b) shows the point-level final scores of affected points, where we find that points belonging to the same phys-ical structure often receive varying scores. In such a case, it is challenging to select an appropriate score threshold to filter the reflection artefacts in a complete from the TLS data. To overcome this issue, we formulate an energy function given by: 
+
+arg min 
+
+> 𝑔 ∈
+
+∑
+
+> 𝑖
+
+‖𝑣 𝑖 − 𝑓 𝑖 ‖2 + 𝜇 ∑
+
+> (𝑖,𝑗 )∈ 𝐸
+
+𝑤 𝑖𝑗 [𝑔 𝑖 − 𝑔 𝑗 ≠ 0] (16) Where 𝑉 represents the input set of 𝑁 3D points, and each point is associated with a feature vector 𝑓 𝑖 = [ 𝐿 𝑖 , 𝑃 𝑖 , 𝐶 𝑖 ]
+
+composed of three PCA-derived dimensionality attributes, namely linearity, planarity, and scattering. These features have been widely adopted as effective geometric constraints for point cloud segmentation and urban scene classifica-tion due to their robustness and discriminative capabil-ity (Guinard and Landrieu, 2017). The first term describes the fidelity of resulting segments of corresponding local features 𝑓 𝑖 . The second term 𝑤 𝑖𝑗 [.] is the Iverson bracket, which determines if the neighboring components are merged or not. The factor 𝜇 measures the smoothness of neighboring resulting partitions. The problem can be solved with a few graph-cut iterations (Landrieu and Obozinski, 2017). After segmentation in Fig. 9(c), we compute the average final score for each segment. Consequently, all points within the same segment share an identical score, as illustrated in Fig. 9(d). Finally, we fine-tune the final score threshold ̄ 𝛾 to sep-arate virtual points from real points by assigning a binary label 𝑙 𝑖 to each point 𝑝 𝑖 :
+
+𝑙 𝑖 =
+
+{
+
+1, if 𝛾 (𝑝 𝑖 ) >̄𝛾 (virtual point ),
+
+0, if 𝛾 (𝑝 𝑖 ) ≤̄𝛾 (real point ). (17) Such that 𝑙 𝑖 = 1 when 𝑝 𝑖 is virtual and 𝑙 𝑖 = 0 when 𝑝 𝑖 is real. The reflections removal result is shown in Fig. 9(e). 
+
+## 4. Experiment 
+
+4.1. Experimental Setup 
+
+To evaluate our method’s performance on real-world data in diverse reflection scenarios, we conducted experi-ments using three distinct TLS datasets: UNIST Building Dataset containing annotated six scenes with the dominant glass plane and one additional office building with multiple small glass planes captured by RIEGL VZ-400 (RIEGL LMS GmbH, 2014) ; 3DRN Dataset containing both outdoor urban scenes (two street-view scenarios) captured by RIEGL VZ-2000i (RIEGL LMS GmbH, 2024). Our evaluation consists of two parts: glass plane esti-mation and virtual point detection. For glass estimation, we compare our proposed method with the multi-echoes count method (Yun and Sim, 2021; Shao et al., 2026) and an intensity-based method (Shao et al., 2023) using the domi-nant glass scene data and the multiple small glass scene data. For virtual point detection, we evaluate the performance of the proposed method in comparison with the existing methods (Yun and Sim, 2021, 2019; Lee et al., 2023; Fang et al., 2025; Shao et al., 2026) in outdoor urban scenes. 
+
+4.2. Results of Glass Plane Estimation 
+
+In this section, we first evaluate glass plane estimation in scenes containing multiple small glass planes. Our primary goal is to highlight the limitations of the intensity-based glass filtering method proposed by (Shao et al., 2023), par-ticularly its sensitivity to surface reflectance properties. In real-world settings, small windows are often covered by cur-tains, which effectively exposes the weakness of reflectance-dependent approaches such as (Shao et al., 2023; Fang et al., 2025), as they rely on consistent surface reflectivity. Subsequently, our method focuses on comparing with the multi-return approach for dominant glass plane estima-tion. The intensity-based method is not included in this com-parison. The reason is that, behind large glass surfaces, the points are densely distributed and all exhibit low reflectance due to the energy loss of the laser pulse after transmitting through the glass. Therefore, using intensity alone to detect them becomes inapplicable. 
+
+Multiple small glass plane scenes: Fig. 10 shows that the intensity-based method (Shao et al., 2023) has two limitations: (1) It cannot extract glass objects with curtains drawn behind due to their high intensities returned; as a   
+
+> :Preprint submitted to Elsevier Page 10 of 17
+
+(a) (b) (c) (d) (e) Figure 10: Comparision of the glass region estimation results on TLS data with multiple small glass planes. (a) The panoramic images of input TLS point clouds: The red rectangles are glass objects with curtains drawn behind; green circles indicate glass component with no virtual points. (b) Intensity map; the color from dark blue to bright yellow represents the intensity values, ranging from low to high. (c) Glass regions estimation results based on intensity-based method (Shao et al., 2023), where the detected windows are coded in yellow and other points are coded in purple. (d) Glass components estimation based on the multi-echo count method, the red rectangle highlights the sparse pattern (Yun and Sim, 2018). (e) Glass region estimation results by the segment-level multi-echo count method (Shao et al., 2026). (f) Glass region estimation results by the proposed algorithm. Results are shown from top to bottom for the scenes: “Shopping mall” and “Office building”. (f) (c) (d) (e) (b) 
+
+(a) 
+
+(a)  
+
+> Figure 11: Comparison of the dominant glass region estimation. First row: panoramic images of input point clouds. Second row: multi-return method (Yun and Sim, 2018). Third row: segment-level multi-count method (Shao et al., 2026). Bottom row: our proposed method. Scenes from left to right: (a) “Architecture building”, (b) “International hall”, (c) “Botanical garden”, (d) “Terrace”, (e) “Engineering building”, (f) “Gymnasium”.
+
+result, even the points behind these glass objects are all virtual points, but cannot be removed. (2) It will detect all glass with low intensities, even some of them do not generate reflection-induced virtual points due to scanning geometry (e.g., boundary-of-FOV or no-intersection cases), which will increase the computational load of subsequent processing. By contrast, the multi-return method (Yun and Sim, 2018), the segment-level multi-count method (Shao et al., 2023), and our method can all detect high-intensity glass regions. Nevertheless, our method extracts glass objects that are significantly cleaner and more complete than the other two. 
+
+Dominant glass plane scene : As clearly shown in Fig. 11, the method of (Yun and Sim, 2018), which re-lies solely on multi-count information, fails to capture the entire glass areas completely. In such cases, virtual points returned in the missing regions are not considered in the subsequent virtual point removal process. The segment-level multi-count method (Shao et al., 2023) performs better: it can extract sparse and fragmented glass points to fill in some local missing glass regions. However, there are still numerous holes that cannot be filled due to the absence of a large portion of glass points. In contrast, only our method is capable of completing these large glass holes. This capability can significantly enhance the effectiveness of virtual point filtering. To highlight our method’s performance, we also select four scenes with severe glass points missing and show their 3D results in Fig. 12. The results show that our method significantly fills a large portion of glass voids. 
+
+4.3. Results of Virtual Point Removal 
+
+After extracting the glass, we then focus on virtual point removal. After extracting the glass components, virtual point removal is performed. The parameters 𝛽 1 and 𝛽 2 in Eqs. (5) and (14), respectively, together with the local and global support radii 𝑟 1 and 𝑟 2 of the RE-LGGS descriptor, are empirically adjusted according to scene complexity. For scenes dominated by man-made structures, we use 𝛽 1 = 2 ,
+
+𝛽 2 = 1 , 𝑟 1 = 0 .25 m, and 𝑟 2 = 0 .5 m to emphasize fine-scale geometric details. For vegetation-rich environments, larger support radii ( 𝑟 1 = 0 .5 m and 𝑟 2 = 1 .0 m) together with 
+
+𝛽 1 = 𝛽 2 = 0 .5 are adopted to improve robustness against irregular local structures and sparse observations. 
+
+Results on UNIST dataset: In Table 1, we compare the proposed algorithm with other methods based on the F 1
+
+score, given by the following: F1 = 2 × Precision × Recall Precision + Recall (18)   
+
+> :Preprint submitted to Elsevier Page 11 of 17
+
+# (a) (b) (c) (d) Figure 12: Comparison of glass detection results in several TLS data scenes with severe glass points missing. Detected glass points are shown in yellow in 3D form. It is noted that points close to the glass are not shown to improve the visualization of glass points. (a) Input glass points. (b) Segment-level multi-count results (Shao et al., 2026). (c) Our proposed method (d) Target glass points. Results are shown from top to bottom for the scenes: "Architecture building", "Engineering building" , "Terrace", "Gymnasium". 
+
+Table 1 
+
+Quantitative performance comparison in terms of the overall 𝐹 1 score evaluated on the UNIST dataset (a–e) and an additional multiple small glass building scene (f). Specifically, (a)–(e) correspond to "Architecture building", "Botanical garden", "Engineering building", "Natural science building", and "Terrace", while (f) corresponds to "Office building". The best and second-best values are highlighted in red and blue, respectively. 
+
+Method (a) (b) (c) (d) (e) (f) Average 
+
+Yun and Sim (2019) 0.615 0.585 0.729 0.880 0.520 0.709 0.673 Yun and Sim (2021) 0.694 0.822 0.627 0.777 0.379 – 0.659 Lee et al. (2023) 0.766 0.862 0.781 0.924 0.862 – 0.839 Shao et al. (2026) 0.822 0.846 0.923 0.976 0.875 0.811 0.876 Proposed 0.926 0.857 0.889 0.964 0.895 0.816 0.891 
+
+> “-”: indicates that the corresponding method is not applicable to the office "building scene" or cannot be faithfully reproduced under the original method assumptions.
+
+where recall and precision are defined as Recall = TP ∕( TP +
+
+FN ) and Precision = TP ∕( TP + FP ), where TP, FP, and FN denote the number of correctly detected virtual points, the number of incorrectly detected virtual points, and number of incorrectly detected valid points, separately. Overall, the proposed method achieves optimal or near-optimal perfor-mance in most cases. As shown in Fig. 13, our method achieves superior performance on building virtual points, outperforming Yun and Sim (2018) and slightly outper-forming Shao et al. (2023). Conversely, our method exhibits variable performance in unstructured natural scenarios, particularly within dense vegetation and foliage, as further discussed in sec. 5. Due to its segmentation-based removal strategy, the proposed method also performs well on tree trunk virtual points and avoids misclassifying ground-near or virtual-point-near real indoor objects. Despite relying 
+
+: Preprint submitted to Elsevier Page 12 of 17 (p) (3) (q) (e) 
+
+# ```markdown ``` #想
+
+(1) 
+
+#
+
+# ```markdown ``` 心1
+
+# 44 Figure 13: Comparison of the virtual point detection results on UNIST building dataset and a multiple-glass dataset. (a) Input ground truth points. (b) Yun and Sim (2018). (c) GRASS (Shao et al., 2026). (d) Our proposed method. Scenes from top to bottom: “Architecture building”, “Botanical garden”, “Engineering building”, “Natural science building”, “Terrace”, “Office building”. : Preprint submitted to Elsevier Page 13 of 17 Table 2                                                                   
+
+> Comparison of different methods on 3DRN datasets. “Yun”, “Fang”, and “Shao” denote the methods proposed by (Yun and Sim, 2021), (Fang et al., 2025), and (Shao et al., 2026), respectively. The best and second-best values are highlighted in red and blue, respectively.
+> ODR (%) IDR (%) Accuracy (%) SNR (dB) Yun Fang Shao Ours Yun Fang Shao Ours Yun Fang Shao Ours Yun Fang Shao Ours
+> Scan 04 75.12 87.30 89.72 90.57 99.28 98.68 98.78 95.72 91.42 95.00 95.83 95.97 8.96 11.28 12.09 12.41 Scan 05 50.24 88.53 90.52 94.15 97.49 97.48 97.55 98.57 88.32 95.74 96.18 96.56 8.39 12.77 13.25 13.63 average 67.65 72.71 85.07 92.36 87.45 93.75 94.74 97.14 82.08 89.66 93.05 96.27 6.98 10.03 11.14 13.02
+
+only on lightweight PCA-derived geometric features, the proposed method achieves competitive performance com-pared with both computationally intensive handcrafted geo-metric descriptors descriptors and learning-based approaches. 
+
+Results on 3DRN dataset: To ensure direct compara-bility with previously reported results on the 3DRN bench-mark, we follow the evaluation protocol adopted by Fang et al. (2025), which reports four metrics: outlier detection rate (ODR), inlier detection rate (IDR), accuracy, and signal-to-noise ratio (SNR): ODR = TN FP + TN (19) IDR = TP TP + FN (20) Accuracy = TP + TN TP + FN + FP + TN (21) SNR = 10 ⋅ lg TP + FN FP + FN (22) In these metrics, TN represents the number of correctly re-moved virtual points, while FN describes the number of real-world points incorrectly detected as virtual points. TP refers to the number of preserved real points, and FP is the number of undetected virtual points. In these evaluation metrics, the ODR function corresponds to recall in the F 1 score metric system, measuring the proportion of detected virtual reflec-tion points out of all virtual points. The IDR denotes the ratio of preserved real-world points to all ground-truth real points. The accuracy reflects the overall efficacy of the proposed method in eliminating virtual points; SNR quantifies the denoised output quality in decibels: A higher SNR indicates superior signal quality with negligible noise interference. As shown in Table 2, our method achieves the best performance. From Fig. 14, it can be observed that in Scan 04, our method successfully identifies virtual points building facades even when they exhibit significant misalignment distortion, and incompleteness. In Scan 05, due to our segmentation-based virtual point removal strategy, indoor walls partially covered by vegetation virtual points and stair bottoms close to the ground are not erroneously classified as virtual points. Finally, we also apply the proposed method on a subway dataset, as shown in Fig. 15. Due to measurement voids, the raw point cloud contains almost no return points from the glass surfaces (Fig. 15(a)). This scarcity makes it exception-ally challenging to detect glass using geometry information alone, let alone eliminate the resulting reflection artifacts. In contrast, by combining image and LiDAR information with geometric constraints, the missing glass surfaces can be recovered, and most reflection-induced virtual points can be identified and removed (Fig. 15(b)). 
+
+## 5. Discussion 
+
+∙ Why employ a vision foundation model for glass detec-tion? 
+
+The adoption of a vision foundation model (i.e., Nano Banana) is not intended to demonstrate the superiority of a particular foundation model, but rather to exploit the emerging capability of vision foundation models to bridge the observation gap between image semantics and TLS ge-ometry. In glass-rich TLS scenes, the major challenge is not geometric reconstruction itself, but the reliable localization of glass regions under severe measurement incompleteness. Traditional geometry-based methods often fail because glass surfaces produce sparse, fragmented, or even missing re-turns. By jointly reasoning over panoramic RGB imagery, in-tensity maps, and multi-count maps, Nano Banana provides a high-completeness semantic glass prior that is difficult to obtain from point clouds alone. Therefore, the contribution of this work lies less in the foundation model itself and more in demonstrating how vision foundation models can be integrated into geometric surveying workflows for robust glass-region estimation. 
+
+∙ Why does RE-LGGS can describe imperfect reflections? 
+
+Existing reflection artifact removal methods typically as-sume ideal reflection symmetry, where virtual points remain geometrically consistent with their real counterparts. In practice, however, glass reflections are often affected by geo-metric incompleteness, spatial distortions, and many-to-one correspondence ambiguities. To address these challenges, the proposed RE-LGGS descriptor emphasizes structural robustness under imperfect reflection observations. Specif-ically, a dual-scale collaborative mechanism is adopted, where small-radius neighborhoods extracted from complete real points preserve fine-scale geometric characteristics, while large-radius neighborhoods extracted from searched real points capture more stable structural tendencies. The descriptor further characterizes local geometry using PCA-derived linearity, planarity, and curvature, which remain relatively stable under sparse and degraded observations.   
+
+> :Preprint submitted to Elsevier Page 14 of 17
+
+(a) (b) (c) (d) Figure 14: Result of proposed method on two "street view" 3DRN dataset. The red points denote virtual points. (a) Input ground truth points. (b) Our implementation of the method from Fang et al. (2025) (provided for reference). (c) GRASS (Shao et al., 2026). (d) Our proposed method. Scenes from top to bottom: "Scan 04", "Scan 05". (a) (b)  
+
+> Figure 15: Reflection artifact removal in a subway scene (Dong et al., 2020b), where virtual points appear on the tracks. (a) Manually annotated reference data; glass points are shown in yellow and virtual points in red. (b) Virtual point removal results produced by the proposed method.
+
+In addition, an adaptive orientation consistency constraint is introduced to distinguish structures with similar ge-ometric statistics but different spatial organizations. By jointly integrating multi-scale geometric information and orientation consistency, RE-LGGS provides a robust and physically interpretable similarity measure for virtual point identification. The experimental results demonstrate that the descriptor remains effective even when ideal reflection symmetry is severely violated, highlighting its suitability for real-world TLS reflection artifacts rather than idealized mirror-reflection assumptions. 
+
+∙ Why does our method perform unstable in dense vegeta-tion scenes? 
+
+Although the proposed framework achieves strong per-formance in structured man-made environments, minor per-formance degradation can be observed in dense vegetation regions. This limitation mainly originates from the intrinsic structural inconsistency between virtual and real vegeta-tion observations. Unlike architectural objects with stable geometric primitives, vegetation exhibits highly irregular and heterogeneous spatial distributions. Due to laser energy attenuation, partial reflections, and incomplete sampling, virtual vegetation points often preserve only sparse outer-surface structures, whereas their corresponding real obser-vations remain volumetrically distributed. Consequently, the two point sets may exhibit substantially different covari-ance statistics and PCA-derived shape attributes. For exam-ple, a virtual vegetation patch may appear locally planar, while its real counterpart exhibits a highly scattered or isotropic distribution. Such structural discrepancies reduce the consistency of the RE-LGGS descriptor and occasion-ally lead to ambiguous similarity measurements. Neverthe-less, the proposed method still maintains competitive perfor-mance in these challenging scenarios while relying only on lightweight geometric representations and without requiring any training data. 
+
+Future work: (1) Non-planar glass modeling : Future re-search will extend the current plane-based detection frame-work to handle curved, irregular, or discontinuous glass surfaces (e.g., cylindrical storefronts and complex architec-tural facades), thereby broadening the applicability of the proposed method. (2) Multiple-reflection reasoning : Future research will investigate more challenging scenarios involv-ing multiple reflective glasses, where repeated reflections between glass surfaces generate complex virtual structures. Such situations frequently occur in large indoor spaces con-taining multiple glass partitions, commercial streets with opposing shopfronts, and large glass curtain-wall systems.   
+
+> :Preprint submitted to Elsevier Page 15 of 17
+
+Developing robust mechanisms for modeling and disentan-gling these higher-order reflections remains an important research direction.(3) Generalization across sensing plat-forms : Future algorithms should possess stronger adapt-ability to open-world environments and diverse acquisition platforms. Beyond static TLS systems, reflection artifact re-moval should be extended to mobile mapping platforms, in-cluding vehicle-mounted, backpack, and UAV-based LiDAR systems. Achieving a favorable balance between computa-tional efficiency and geometric accuracy will be essential for processing large-scale point clouds while maintaining the centimeter-level precision required by digital twin appli-cations. (4) Foundation-model adaptation and automation :Although Nano Banana is adopted in this work, the proposed framework is not restricted to a specific foundation model. Future research will investigate the integration of emerging open-source and domain-adapted vision foundation models, as well as automated prompt generation strategies, to fur-ther improve robustness and reproducibility in large-scale surveying applications. 
+
+## 6. Conclusion 
+
+In this paper, we presented a unified framework for glass-induced reflection artifact removal in TLS point clouds. The proposed framework addresses two fundamental challenges in glass-rich TLS environments: incomplete glass obser-vations and imperfect reflection-induced virtual points. To recover missing glass surfaces, we integrate a vision founda-tion model with geometric refinement and completion strate-gies, enabling reliable glass-region estimation even under severe measurement voids. To identify reflection artifacts, we introduce a Reflection-aware Local-Global Geometric Similarity (RE-LGGS) descriptor, which combines dual-scale geometric statistics and adaptive orientation consis-tency to achieve robust virtual point detection under ge-ometric incompleteness, spatial distortions, and many-to-one correspondence effects caused by real-world reflections. Extensive experiments on multiple public datasets demon-strate that the proposed framework consistently outperforms existing state-of-the-art methods in both glass estimation and reflection artifact removal tasks. The results further indi-cate that combining foundation-model semantic perception with physically interpretable geometric reasoning provides a practical and effective solution for improving TLS data quality in complex urban environments. We believe that this paradigm offers a promising direction for integrating vision foundation models into future surveying and mapping workflows. 
+
+## 7. Acknowledge 
+
+This work is supported by the National Key R&D Program of China (No.2022ZD0119000), Hunan Provin-cial Key R&D Program of China (No.2024JK2020 and 2024JK2021), Hunan Provincial Natural Science Founda-tion of China (No.2024JJ10027), Young Talents of Huxiang (No.Z202433000575), and Changsha Science Fund for Dis-tinguished Young Scholars (kq2306002). 
+
+## References 
+
+Ambrosino, A., Benedetto, A.D., Fiani, M., 2024. Hybrid denoising algorithm for architectural point clouds acquired with slam systems. Remote Sens. 16, 4559. doi: 10.3390/rs16234559 .Barsanti, S.G., Marini, M.R., Malatesta, S.G., Rossi, A., 2024. Evaluation of denoising and voxelization algorithms on 3d point clouds. Remote Sens. 16, 2632. doi: 10.3390/rs16142632 .Dong, Z., Liang, F., Yang, B., Xu, Y., Zang, Y., Li, J., Wang, Y., Dai, W., Fan, H., Hyyppä, J., et al., 2020a. Registration of large-scale terrestrial laser scanner point clouds: A review and benchmark. ISPRS Journal of Photogrammetry and Remote Sensing 163, 327–342. Dong, Z., Liang, F., Yang, B., Xu, Y., Zang, Y., Li, J., Wang, Y., Dai, W., Fan, H., Hyyppä, J., Stilla, U., 2020b. Registration of large-scale terrestrial laser scanner point clouds: A review and bench-mark. ISPRS Journal of Photogrammetry and Remote Sensing 163, 327–342. URL: https://www.sciencedirect.com/science/article/ pii/S0924271620300836 , doi: https://doi.org/10.1016/j.isprsjprs.2020. 03.013 .Fan, K., Wang, C., Wang, Y., Wang, C., Yi, R., Ma, L., 2023. Rfenet: Towards reciprocal feature evolution for glass segmentation. Proceed-ings of the Thirty-Second International Joint Conference on Artificial Intelligence, IJCAI 2023, 19th-25th August 2023, Macao, SAR, China , 717–725doi: 10.24963/ijcai.2023/80 .Fang, L., Li, T., Lin, Y., Zhou, S., Yao, W., 2025. A coupled optical– radiometric modeling approach to removing reflection noise in tls data of urban areas. ISPRS J. Photogramm. Remote Sens. 220, 217–231. doi: 10.1016/j.isprsjprs.2024.12.005 .Fong, T.S., Yan, W.Y., 2025. Signs on glasses: Lidar data voids, hotspot effect, and reflection artifacts. Autom. Constr. 169, 105877. doi: 10. 1016/j.autcon.2024.105877 .Furukawa, Y., Ponce, J., 2010. Accurate, dense, and robust multiview stereopsis. IEEE Trans. Pattern Anal. Mach. Intell. 32, 1362–1376. Gao, R., Li, M., Yang, S.J., Cho, K., 2022. Reflective noise filtering of large-scale point cloud using transformer. Remote Sens. 14, 577. doi: 10.3390/rs14030577 .Gao, R., Park, J., Hu, X., Yang, S., Cho, K., 2021. Reflective noise filtering of large-scale point cloud using multi-position lidar sensing data. Remote Sens. 13, 3058. doi: 10.3390/rs13163058 .Guinard, S., Landrieu, L., 2017. Weakly supervised segmentation-aided classification of urban scenes from 3d lidar point clouds. The International Archives of the Photogrammetry, Remote Sensing and Spatial Information Sciences XLII-1/W1, 151–157. URL: https:// isprs-archives.copernicus.org/articles/XLII-1-W1/151/2017/ , doi: 10. 5194/isprs-archives-XLII-1-W1-151-2017 .Han, X., Liu, C., Zhou, Y., Tan, K., Dong, Z., Yang, B., 2024. Whu-urban3d: An urban scene lidar point cloud dataset for semantic instance segmentation. ISPRS Journal of Photogrammetry and Remote Sensing 209, 500–513. doi: https://doi.org/10.1016/j.isprsjprs.2024.02.007 .He, H., Li, X., Cheng, G., Shi, J., Tong, Y., Meng, G., Prinet, V., Weng, L., 2021. Enhanced boundary learning for glass-like object segmentation. Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 15859–15868. Householder, A.S., 1958. Unitary triangularization of a nonsymmetric matrix. J. ACM 5, 339–342. URL: https://doi.org/10.1145/320941. 320947 , doi: 10.1145/320941.320947 .Kashani, A.G., Olsen, M.J., Parrish, C.E., Wilson, N., 2015. A review of lidar radiometric processing: From ad hoc intensity correction to rigorous radiometric calibration. Sensors 15, 28099–28128. doi: https: //doi.org/10.3390/s151128099 .Kerbl, B., Kopanas, G., Leimkühler, T., et al., 2023. 3d gaussian splatting for real-time radiance field rendering. ACM Trans. Graph. 42, 139:1– 139:14. doi: 10.1145/3592436 .Koch, R., May, S., Koch, P., Kühn, M., Nüchter, A., 2016. Detection of specular reflections in range measurements for faultless robotic slam, 
+
+: Preprint submitted to Elsevier Page 16 of 17 in: Robot 2015: Second Iberian Robotics Conference, Springer Interna-tional Publishing, Lisbon, Portugal. pp. 133–145. Koch, R., May, S., Murmann, P., Nüchter, A., 2017a. Identification of transparent and specular reflective material in laser scans to discriminate affected measurements for faultless robotic slam. Robot. Auton. Syst. 87, 296–312. doi: 10.1016/j.robot.2016.10.14 .Koch, R., May, S., Nüchter, A., 2017b. Detection and purging of specular reflective and transparent object influences in 3d range measurements, in: Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., Guilin, China. pp. 377–384. Landrieu, L., Obozinski, G., 2017. Cut pursuit: Fast algorithms to learn piecewise constant functions on general weighted graphs. SIAM J. Imaging Sci. 10, 1724–1766. doi: 10.1137/17M1113436 .Lee, O., Joo, K., Sim, J.Y., 2023. Learning-based reflection-aware virtual point removal for large-scale 3d point clouds. IEEE Robot. Autom. Lett. 8, 8510–8517. doi: 10.1109/LRA.2023.3329365 .Li, Y., Zhao, X., Schwertfeger, S., 2024. Detection and utilization of reflections in lidar scans through plane optimization and plane slam. Sensors 24, 4794. doi: 10.3390/s24154794 .Lin, J., He, Z., Lau, R.W., 2021. Rich context aggregation with reflection prior for glass surface detection. Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) , 13415– 13424. Lin, J., Yeung, Y.H., Lau, R., 2022. Exploiting semantic relations for glass surface detection. Advances in Neural Information Processing Systems 35, 22490–22504. Liu, C., Zhang, P., Xu, X., 2023. Literature review of digital twin tech-nologies for civil infrastructure. J. Infrastruct. Intell. Resil. 2, 100050. doi: 10.1016/j.iintel.2023.100050 .Liu, F., Liu, Y., Lin, J., Xu, K., Lau, R.W., 2024. Multi-view dynamic reflection prior for video glass surface detection. Proceedings of the AAAI Conference on Artificial Intelligence 38, 3594–3602. Mei, H., Yang, X., Wang, Y., Liu, Y., He, S., Zhang, Q., Wei, X., Lau, R.W., 2020. Don’t hit me! glass detection in real-world scenes. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 3687–3696. Mildenhall, B., Srinivasan, P.P., Tancik, M., Barron, J.T., Ramamoorthi, R., Ng, R., 2021. Nerf: representing scenes as neural radiance fields for view synthesis. Commun. ACM 65, 99–106. URL: https://doi.org/10.1145/ 3503250 , doi: 10.1145/3503250 .Qi, F., Tan, X., Zhang, Z., Chen, M., Xie, Y., Ma, L., 2024. Glass makes blurs: Learning the visual blurriness for glass surface detection. IEEE Transactions on Industrial Informatics 20, 6631–6641. Qian, Y., Bocek-Rivele, E., Song, L., Tong, J., Yang, Y., Lu, J., Hu, W., Gan, Z., 2025. Pico-banana-400k: A large-scale dataset for text-guided image editing. URL: https://arxiv.org/abs/2510.19808 , arXiv:2510.19808 .RIEGL LMS GmbH, 2014. Riegl vz-400 3d terrestrial laser scan-ner. RIEGL Laser Measurement Systems. Data Sheet. [Online]. Available: https://www.laser-3d.pl/wp-content/uploads/10_DataSheet_ VZ-400_2014-09-19.pdf (Accessed: 28 May 2026). RIEGL LMS GmbH, 2024. Riegl vz-2000i long range 3d laser scanning system. RIEGL Laser Measurement Systems. Product page. [Online]. Available: https://www.riegl.com/en-austria/products/ detail/riegl-vz-2000i (Accessed: 28 May 2026). Rombach, R., Blattmann, A., Lorenz, D., Esser, P., Ommer, B., 2022. High-resolution image synthesis with latent diffusion models, in: 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 10674–10685. doi: 10.1109/CVPR52688.2022.01042 .Shao, W., Kakizaki, K., Araki, S., Mukai, T., 2023. Reflections removal produced by multiple transparent and reflective glass objects in tls mea-surements, in: Proc. IEEE Annu. Comput. Softw. Appl. Conf. (COMP-SAC), Torino, Italy. pp. 370–379. doi: 10.1109/COMPSAC57700.2023.00057 .Shao, W., Zhang, Y., Xue, Y., Ji, T., Lao, Y., 2026. Grass: Glass reflection artifact suppression strategy via virtual point removal in lidar point clouds. Remote Sens. 18, 332. doi: 10.3390/rs18020332 .Snavely, N., Seitz, S.M., Szeliski, R., 2006. Photo tourism: Exploring photo collections in 3d. ACM Trans. Graph. 25, 835–846. doi: 10.1145/ 1141911.1141964 .Tan, T., Chen, B., Cao, H., Yan, C., Ma, Y., Dai, F., 2025. DASC-SPT: Towards Self-Supervised Panoramic Semantic Segmentation , in: 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV), IEEE Computer Society, Los Alamitos, CA, USA. pp. 8796– 8805. URL: https://doi.ieeecomputersociety.org/10.1109/WACV61041. 2025.00852 , doi: 10.1109/WACV61041.2025.00852 .Thomas, H., Qi, C.R., Deschaud, J.E., Marcotegui, B., Goulette, F., Guibas, L., 2019. Kpconv: Flexible and deformable convolution for point clouds, in: Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), Seoul, Republic of Korea. pp. 6410–6419. doi: 10.1109/ICCV.2019.00651 .Vosselman, G., 2013. Point cloud segmentation for urban scene classification, in: Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., Enschede, the Netherlands. pp. 257–262. doi: 10.5194/ isprsarchives-XL-7-W2-257-2013 .Vosselman, G., Gorte, B.G.H., Sithole, G., Rabbani, T., 2004. Recognising structure in laser scanner point clouds, in: Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., Freiburg, Germany. pp. 33–38. Wang, L., Chen, Y., Xu, H., 2024. Point cloud denoising in outdoor real-world scenes based on measurable segmentation. Remote Sens. 16, 2347. doi: 10.3390/rs16132347 .Xiong, B., Jin, Y., Li, F., Chen, Y., Zou, Y., Zhou, Z., 2023. Knowledge-driven inference for automatic reconstruction of indoor detailed as-built bims from laser scanning data. Autom. Constr. 156, 105097. doi: 10.1016/j.autcon.2023.105097 .Xu, Y., Boerner, R., Yao, W., Hoegner, L., Stilla, U., 2019. Pairwise coarse registration of point clouds in urban scenes using voxel-based 4-planes congruent sets. ISPRS Journal of Photogrammetry and Remote Sensing 151, 106–123. doi: 10.1016/j.isprsjprs.2019.02.015 .Ying, S., Oosterom, P.V., Fan, H., 2023. New techniques and methods for modelling, visualization, and analysis of a 3d city. J. Geovis. Spat. Anal. 7, 26. doi: 10.1007/s41651-023-00157-x .Yu, Z., Lee, Y.J., 2025. How multimodal LLMs solve image tasks: A lens on visual grounding, task reasoning, and answer decoding, in: Second Conference on Language Modeling. URL: https://openreview.net/ forum?id=kjNJYWvfPA .Yun, J.S., Sim, J.Y., 2018. Reflection removal for large-scale 3d point clouds, in: Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Salt Lake City, UT, USA. pp. 4597–4605. doi: 10.1109/CVPR. 2018.00483 .Yun, J.S., Sim, J.Y., 2019. Cluster-wise removal of reflection artifacts in large-scale 3d point clouds using superpixel-based glass region estima-tion, in: Proc. IEEE Int. Conf. Image Process. (ICIP), Taipei, Taiwan. pp. 1780–1784. doi: 10.1109/ICIP.2019.8803126 .Yun, J.S., Sim, J.Y., 2021. Virtual point removal for large-scale 3d point clouds with multiple glass planes. IEEE Trans. Pattern Anal. Mach. Intell. 43, 729–744. doi: 10.1109/TPAMI.2019.2933818 .Zhang, J., Yang, K., Shi, H., Reiß, S., Peng, K., Ma, C., Fu, H., Torr, P.H.S., Wang, K., Stiefelhagen, R., 2024. Behind every domain there is a shift: Adapting distortion-aware vision transformers for panoramic semantic segmentation. IEEE Transactions on Pattern Analysis and Machine Intelligence 46, 8549–8567. doi: 10.1109/TPAMI.2024.3408642 .Zhao, X., Yang, Z., Schwertfeger, S., 2020. Mapping with reflection— detection and utilization of reflection in 3d lidar scans, in: Proc. IEEE Int. Symp. Safety, Secur. Rescue Robot. (SSRR), Abu Dhabi, UAE. pp. 27–33. doi: 10.1109/SSRR50563.2020.9292530 .Zheng, Z., Zha, B., Zhou, Y., Huang, J., Xuchen, Y., Zhang, H., 2022. Single-stage adaptive multi-scale point cloud noise filtering algorithm based on feature information. Remote Sens. 14, 367. doi: 10.3390/ rs14020367 .Zuo, J., Deng, H., Zhou, H., Zhu, J., Zhang, Y., Zhang, Y., Yan, Y., Huang, K., Chen, W., Deng, Y., Jin, R., Sang, N., Gao, C., 2025. Is nano banana pro a low-level vision all-rounder? a comprehensive evaluation on 14 tasks and 40 datasets. URL: https://arxiv.org/abs/2512.15110 ,
+
+> arXiv:2512.15110
+
+.
+
+: Preprint submitted to Elsevier Page 17 of 17
