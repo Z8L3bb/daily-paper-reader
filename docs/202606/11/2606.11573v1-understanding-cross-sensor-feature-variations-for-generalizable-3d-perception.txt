@@ -1,0 +1,533 @@
+Title: Understanding Cross-Sensor Feature Variations for Generalizable 3D Perception
+
+URL Source: https://arxiv.org/pdf/2606.11573v1
+
+Published Time: Thu, 11 Jun 2026 00:30:10 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Understanding Cross-Sensor Feature Variations for Generalizable 3D Perception 
+
+Xin Qiu , Wenjie Liu , Fuyuan Ai , Yuchen Tan , Zhiwei Xu , Chunyi Song* 
+
+Zhejiang University qiuxinzju@zju.edu.cn 
+
+Abstract —Radar-camera BEV perception often suffers from degraded performance when evaluated across datasets, as changes in driving scenes, sensor configurations, and environ-mental conditions can alter both the input observations and the internal fused representations. This work studies this issue from the perspective of source-domain variation modeling, aiming to improve the robustness of BEV-based 3D detectors without relying on target-domain samples. We introduce a framework that characterizes visual scene variations in the frequency domain and uses them to synthesize diverse source-domain views. By comparing the resulting fused BEV representations, the frame-work further captures how image-level variations influence multi-modal BEV features. These variation patterns are then used to regularize the detector, encouraging the learned fusion space to remain stable under latent scene changes. The proposed method is applied only during training and leaves the infer-ence pipeline unchanged. Experiments on cross-dataset radar-camera 3D detection between View-of-Delft and TJ4DRadSet demonstrate consistent improvements over multiple BEV fusion backbones, and the gains remain effective when a small amount of target-domain data is available. 
+
+Index Terms —Multi-modal 3D perception, Robust BEV detec-tion, Source-domain variation modeling 
+
+I. I NTRODUCTION 
+
+Real-world multi-sensor perception data are inherently non-stationary, as changes in acquisition scenarios and environ-mental conditions induce shifts in both sensor observations and learned feature distributions [1]–[4]. These shifts severely hinder transfer from source datasets to unseen target do-mains, making it crucial to mine latent sensor feature shifts from source data and learn domain-generalizable represen-tations [5]–[7]. Autonomous driving perception is a repre-sentative case, where data from different cities, road struc-tures, weather conditions, sensor configurations, and plat-forms exhibit substantial cross-scenario discrepancies [8]– [10]. Compared with single-sensor tasks, multi-sensor percep-tion must further handle modality-specific statistics, spatial correspondence, and fusion-induced feature shifts, making cross-scenario generalization more challenging. This challenge becomes more concrete in radar-camera BEV 3D detection [11]–[13]. Camera images provide semantic and texture cues, while radar point clouds offer physical measure-ments such as range, velocity, and geometry. After encoding, projection, and fusion, these modalities form BEV representa-tions for 3D object detection. However, cross-dataset scenario variations first alter image-level visual statistics, including 
+
+> ∗Corresponding author.
+
+illumination, texture, contrast, and high-frequency details, and these changes are propagated through image encoding, BEV projection, and radar-camera fusion [7], [14], [15]. Therefore, cross-dataset generalization is not merely an input-level style transfer problem, but a propagation modeling problem from sensor observation shifts to fused BEV feature shifts. Existing domain generalization methods improve robustness through data augmentation, domain-invariant constraints, or ar-chitectural design [16]–[19]. However, for radar-camera BEV detection, addressing domain shifts only at the input or final feature level is insufficient: the former does not reveal whether visual variations affect fused BEV representations, while the latter ignores the source of the shift [7], [14], [20]. Cross-dataset generalization requires modeling how sensor observa-tion shifts propagate into BEV feature shifts. Based on the above analysis, we studies cross-dataset domain generalization from the perspective of sensor-to-feature shift mining. Cross-scenario variations propagate through image encoding, BEV projection, and cross-modal fusion, eventually manifesting as feature shifts in the fused BEV space. Since image spectral statistics capture visual-side differences such as illumination, texture, contrast, and imaging style, we mine latent visual shift patterns from source domains and model their propagation to BEV features, thereby constructing more cross-scenario representative training constraints to improve generalization to unseen datasets without accessing target-domain data. To this end, we propose a Visual-to-BEV Scene Shift Min-ing ( VBS 2M) framework. First, we mine scene-level spectral prototypes from whole-image frequency statistics in source-domain images and generate scene-shifted views to simulate latent visual scenario variations. Then, the original and scene-shifted images are separately paired with the same radar input and fed into the BEV detector, where their fused BEV rep-resentations are compared to explicitly model the propagation from visual scene shifts to BEV feature shifts. Furthermore, we mine BEV scene shift prototypes from BEV shift descriptors and introduce prototype-guided BEV scene regularization, encouraging the detector to learn fusion representations that are more stable under cross-dataset scenario changes. To the best of our knowledge, VBS 2M is the first framework to study domain generalization for radar-camera BEV 3D detection from the perspective of visual-to-BEV scene shift mining. Extensive experiments on bidirectional transfer between View-of-Delft [21] and TJ4DRadSet [22] demonstrate the effectiveness of VBS 2M. Across BEVFusion [23], RaC-
+
+> arXiv:2606.11573v1 [cs.CV] 10 Jun 2026
+
+Former [24], and RCBEVDet [13], our method improves OOD detection performance over source-only training and domain generalization baselines. It also provides stable gains under few-shot target-domain settings with 10%, 20%, and 30% labeled target data. Ablation studies and visualization analyses further show that the improvements are driven by data-driven spectral scene mining, BEV shift prototype modeling, and more stable visual-to-BEV feature propagation. The main contributions are summarized as follows:  
+
+> •
+
+First, we recast cross-dataset radar-camera BEV detection as a sensor-to-feature shift mining problem.  
+
+> •
+
+Second, we mine scene-level spectral prototypes from source-domain image frequency statistics to generate data-driven scene-shifted views.  
+
+> •
+
+Third, we discover BEV scene shift prototypes to model how visual shifts propagate through radar-camera fusion.  
+
+> •
+
+Fourth, we introduce prototype-guided BEV regulariza-tion to learn scenario-stable fusion representations with-out target-domain data. II. R ELATED WORK 
+
+A. Domain Generalization under Distribution Shift 
+
+Domain generalization aims to train models using only source-domain data while maintaining stable performance on target domains [15], [17], [18], [25]. Unlike domain adap-tation, it cannot access target-domain data during training, requiring models to learn transferable representations from source domains [14], [26]. Existing studies mitigate dis-tribution shifts through data augmentation, domain-invariant representation learning, feature regularization, and risk bal-ancing, achieving progress in image classification, semantic segmentation, and object detection [27]–[31]. However, most methods focus on unimodal visual data and model distribution shift as either input appearance variation or high-level feature statistic changes. For multi-sensor perception, cross-dataset discrepancies arise not only from individual sensor observa-tions, but also propagate through cross-modal encoding, spatial projection, and feature fusion, leading to shifts in the fused representation space. Therefore, constraining only the input space or final feature space is insufficient to characterize the propagation mechanism of multi-sensor domain shifts, limiting generalization in cross-dataset scenarios [32], [33]. 
+
+B. Autonomous Driving Radar-Camera BEV Perception 
+
+Radar-camera BEV perception is an important direction for 3D object detection in autonomous driving [34]–[38]. Cameras provide dense semantic, texture, and appearance cues, while radar offers range, velocity, and geometric measurements, showing advantages under low-light and adverse weather conditions. By projecting and fusing both modalities into a unified BEV space, models can jointly exploit visual seman-tics and radar geometry for more robust object localization and recognition [11], [12], [24], [35], [38]. However, radar-camera BEV perception suffers from data scarcity [39], [40]. High-quality data collection requires synchronized and cali-brated multi-sensor platforms, while 3D annotation demands accurate spatial boxes and cross-sensor alignment, making dataset construction costly. Existing public datasets remain limited in scale, scene diversity, and sensor configurations, and thus cannot fully cover cross-scenario variations in real deployment [21], [22]. Under this condition, improving cross-dataset generalization is crucial: models must not only fuse radar and camera information effectively, but also learn BEV representations that remain stable under scenario changes from limited source-domain data. III. P RELIMINARY 
+
+A. Radar-Camera BEV Detection System 
+
+Radar-camera BEV 3D detection takes camera images I
+
+and radar point clouds P as inputs, and performs multi-modal fusion and object detection in a unified bird’s-eye-view (BEV) space. Given the input pair (I, P ), the model first extracts visual and radar features using an image encoder and a radar encoder: FI = EI (I), F R = ER(P ), where FI contains semantic, texture, and appearance information from images, while FR encodes radar measurements such as spatial location, range, velocity, and reflection intensity. Since cameras and radar sensors operate in different ob-servation spaces, their features need to be transformed into a unified BEV space [7], [13], [15]. Image features are usually mapped to the BEV plane through depth estimation, view transformation, or query-based projection, while radar features can be converted into BEV representations via voxelization, pillar encoding, or point scattering [13], [23], [24]. This process can be formulated as: BI = TI (FI ), B R =
+
+TR(FR), where TI (·) and TR(·) denote the image-to-BEV and radar-to-BEV transformation modules, respectively. The model then integrates image BEV features and radar BEV features into a unified multi-modal BEV representation: 
+
+fB = F(BI , B R), ˆy = hθ (fB ), (1) where F(·) denotes the cross-modal fusion function, and 
+
+hθ (·) is the detection head. The prediction ˆy includes object categories, 3D locations, sizes, orientations, and velocities. Therefore, the overall radar-camera BEV detection pipeline can be summarized as: 
+
+ˆy = hθ (F (TI (EI (I)) , T R(ER(P )))) . (2) This formulation shows that the final detection results depend not only on camera and radar observations at the input level, but also on image encoding, radar encoding, BEV projection, and cross-modal fusion. 
+
+B. Domain Generalization for 3D Object Detection 
+
+Domain generalization aims to train a model using only source-domain data such that it can maintain stable perfor-mance on unseen target domains [27], [29]–[31]. Let d ∈ D 
+
+denote a data domain, where different domains correspond to different data-generating distributions. For radar-camera BEV detection, each sample consists of a camera image, a radar point cloud, and 3D detection annotations, denoted as (I, P, y ) ∼ pd(I, P, y ). Given a detection model Fθ , its expected risk on domain d is defined as: 
+
+Rd(θ) = E(I,P,y )∼pd [ℓ (Fθ (I, P ), y )] , (3) where ℓ(·) denotes the detection loss. Assume that the training data are drawn from a set of source domains Ds, while the target domains belong to an unseen domain set Dt. The ideal objective of domain generalization is to minimize the expected risk on unseen target domains: min θ Ed∼D t [Rd(θ)] .
+
+However, target-domain data are inaccessible during train-ing, making the target risk impossible to optimize directly. In practice, the model can only learn transferable representations from source-domain data by optimizing the source risk, with the goal of improving target-domain generalization: 
+
+θ∗ = arg min  
+
+> θ
+
+Ed∼D s [Rd(θ)] , G(θ∗) = Ed∼D t [Rd(θ∗)] , (4) In cross-dataset radar-camera BEV detection, the source and target domains usually satisfy: 
+
+ps(I, P, y )̸ = pt(I, P, y ), f B = gθ (I, P ), p s(fB )̸ = pt(fB ),
+
+(5) where gθ (·) denotes the feature extraction and fusion process that maps multi-sensor inputs to the fused BEV representation 
+
+fB . Therefore, the key challenge of cross-dataset domain generalization is to learn BEV representations that remain stable under potential scenario shifts from source domains alone, thereby reducing the risk on unseen target domains. IV. M ETHOD 
+
+A. Image Spectral Scene Prototype Mining 
+
+Cross-dataset scenario variations often induce changes in image statistics [3], [8], [9]. To capture global scene infor-mation, we operate in the frequency domain. Given an input image I, we compute its 2D Fourier transform: F (I) =
+
+A(I)ejΦ( I), where A(I) and Φ( I) denote the amplitude and phase spectra, respectively. From the log-amplitude spectrum, we extract a spectral descriptor: 
+
+zI = ψ(log( A(I) + ϵ)) , (6) where ψ(·) is a spectral pooling function that compresses statistics over the frequency plane. We maintain a set of K
+
+learnable spectral scene prototypes: CI = {cI
+
+> 1
+
+, c I
+
+> 2
+
+, . . . , c IK }.
+
+The soft assignment of the descriptor zI to each prototype is: 
+
+qIk = exp(sim( zI , c Ik)/τ I )
+
+PKj=1 exp(sim( zI , c Ij )/τ I ) , (7) where sim( ·, ·) denotes cosine similarity and τI is a temper-ature. Based on these assignments, the spectral modulation mask is computed as: 
+
+MI =
+
+> K
+
+X
+
+> k=1
+
+qIk · Reshape( WI cIk), (8) with WI a lightweight mapping network. The amplitude spectrum is modulated via: 
+
+ˆA(I) = A(I) ⊙ exp( λI MI ), (9) 
+
+Algorithm 1: VBS 2M: Visual-to-BEV Sensor Shift Mining 
+
+Input: Source dataset Ds = {(Ii, P i, y i)}Ni=1 , image prototypes CI , BEV prototypes CB , detector 
+
+hθ ◦ gθ
+
+Output: Trained detector hθ ◦ gθ
+
+Initialize detector parameters θ and prototypes CI , C B ;
+
+foreach training step do 
+
+Sample a minibatch {(I, P, y )} from Ds;Extract image spectral descriptor zI from the amplitude spectrum of I;Assign zI to image scene prototypes CI and generate scene-shifted image ˆI;Compute BEV features: fB = gθ (I, P ) and 
+
+ˆfB = gθ ( ˆI, P );Construct BEV shift descriptor 
+
+zB = ϕ( ˆfB − fB , f B , ˆfB );Assign zB to BEV scene prototypes CB and obtain BEV shift direction dB ;Compute sensitivity ρ = 1 − Cos( fB , ˆfB );Construct prototype-guided BEV feature: 
+
+˜fB = fB + λB ρ · Broadcast( dB );Predict ˆy = hθ ( ˜fB );Update θ with standard detection loss: 
+
+L = Ldet (ˆ y, y );
+
+return hθ ◦ gθ ;where λI controls the strength of scene variation. Finally, the scene-shifted image is reconstructed while keeping the phase spectrum unchanged: ˆI = F−1( ˆA(I)ejΦ( I)).
+
+The resulting ˆI provides a source-domain image under a latent visual scene, effectively expanding the source-domain scene distribution. 
+
+B. Propagation from Image Scene Shifts to BEV Shifts 
+
+Generating scene-shifted views only at the image level is insufficient to characterize cross-domain shifts in radar-camera BEV detection [32]. Since the final predictions of a BEV detector are determined by the fused BEV representation, it is necessary to further analyze how image-level scene variations affect the BEV representation space after image encoding, BEV projection, and cross-modal fusion. Given the original image I, the scene-shifted image ˆI, and the radar point cloud P , we feed the original and scene-shifted inputs into the same radar-camera BEV detector: 
+
+fB = gθ (I, P ), ˆfB = gθ ( ˆI, P ), (10) where the radar point cloud P is kept unchanged. Here, 
+
+fB denotes the fused BEV representation obtained from the original image-radar pair, while ˆfB denotes the fused BEV representation after image scene variation. The difference between the two representations indicates how the image scene shift propagates into the BEV space: 
+
+∆fB = ˆfB −fB . To model this propagated shift, we compress 𝐀 𝐀 
+
+𝐀 𝐀    
+
+> RGB Image IAmplitude Spec
+
+ IA 
+
+> Spectral Prototype
+> Soft A lignment
+> Scene-shifted Image Iˆ
+
+I
+
+Iˆ
+
+P
+
+P
+
+> B
+
+f
+
+> B
+
+fˆ 
+
+> BBB
+
+fff ˆ
+
+> BEV
+> Prototype
+> Soft A lignment
+> Regularized BEV
+> Features
+> Detection Head Modulation Mask
+
+1. Image Spectral Scene Mining 2. Propagation to BEV Shift 
+
+3. BEV Regularization 
+
+4. 3D Detection Task Fig. 1. Overview of VBS 2M. The framework includes image spectral scene mining, propagation to BEV shift, BEV regularization, and the final 3D detection task. It mines spectral scene prototypes from source-domain images, models how visual shifts propagate into fused BEV features, and regularizes BEV representations to improve cross-dataset radar-camera BEV detection. 
+
+the high-dimensional BEV difference into a BEV scene shift descriptor: zB = ϕ(∆ fB , f B , ˆfB ), where ϕ(·) is a lightweight statistical mapping function. In this work, we adopt a simple yet effective implementation: 
+
+zB =
+
+h
+
+GAP(∆ fB ), GAP( |∆fB |), 1 − Cos( fB , ˆfB )
+
+i
+
+, (11) where GAP(∆ fB ) describes the average direction of the BEV representation shift, GAP( |∆fB |) measures its overall mag-nitude, and 1 − Cos( fB , ˆfB ) quantifies the global discrepancy between the original and scene-shifted BEV representations. 
+
+C. Prototype-Guided BEV Scene Regularization 
+
+To encourage the detector to learn stable fused BEV rep-resentations, we construct a scene-regularized BEV feature based on the mined BEV scene shift directions. Given the original BEV feature fB , the BEV scene shift direction dB ,and the current sample’s sensitivity to image-level scene variation, the prototype-guided BEV feature is formulated as: 
+
+˜fB = fB + λB ρ · Broadcast( dB ), (12) where λB controls the intensity of the BEV scene shift, and 
+
+Broadcast( ·) expands dB to match the spatial dimensions of the BEV feature. The coefficient ρ measures the sensitivity of the BEV representation to image-level scene variation: 
+
+ρ = 1 − Cos( fB , ˆfB ), (13) where ˆfB denotes the BEV feature extracted from the image scene-shifted input. A larger ρ indicates that the current sample is more sensitive to visual scene changes, requiring stronger BEV scene regularization. During training, the detector uses a single BEV feature for prediction. Specifically, the BEV feature is selected as: 
+
+f train  
+
+> B
+
+=
+
+(
+
+fB , without scene regularization ,
+
+˜fB , with prototype-guided scene regularization .
+
+(14) The final detection output is then obtained by ˆy = hθ (f train  
+
+> B
+
+). In this way, the proposed module regularizes the BEV represen-tation during training while keeping the optimization objective identical to the standard detection loss. 
+
+D. Training and Inference 
+
+During training, the model is optimized with the standard detection loss: L = ℓ(ˆ y, y ), where ˆy = hθ (f train B ). The proposed spectral scene mining and prototype-guided BEV regularization are only used to construct f train B during training. During inference, we directly use the original BEV feature 
+
+fB = gθ (I, P ) and predict ˆy = hθ (fB ). No spectral modula-tion, BEV shift mining, or prototype-guided regularization is performed, so the inference pipeline remains unchanged. V. E XPERIMENT 
+
+A. Experimental Setup a) Models: We consider three representative radar-camera BEV fusion models, including RCBEVDet [13], BEV-Fusion [23], and RaCFormer [24], all of which have demon-strated strong and competitive performance in 3D object detection. Our method is designed as a plug-and-play training framework and can be directly integrated into these detec-tors without modifying their backbone architectures, detection heads, or inference pipelines. 
+
+b) Baselines: We compare our method with both domain generalization baselines and radar-camera fusion baselines. The domain generalization methods include DG-GCD [41], CPerb [42], SPG [43], and VL2V-ADiP [44], which improve out-of-domain performance. However, most of these methods are designed from a general visual domain generalization perspective, mainly focusing on distribution alignment in the input space or high-level feature space. They lack modeling of how sensor observation shifts propagate into fused BEV representation shifts in radar-camera BEV detection. 
+
+c) Evaluation Setup: To evaluate cross-dataset gener-alization, we conduct bidirectional transfer experiments on View-of-Delft (VoD) [21] and TJ4DRadSet [22]. Specifically, we consider two transfer directions, VoD → TJ4DRadSet and TJ4DRadSet → VoD, where the model is trained on one dataset and directly tested on the other. This setting reflects the model’s transferability across different acquisition platforms, road scenarios, object distributions, and sensor configurations. Since both datasets contain radar-camera perception data and share similar 3D detection categories, we evaluate on the common classes, including Car, Pedestrian, and Cyclist, and report class-wise AP and overall mAP. We also evaluate cross-dataset adaptation under different target-domain ratios. When limited labeled target-domain data are available, we use 10%, 20%, and 30% of the target training set together with the full source training set for training, and then evaluate the model on the full target test set. 
+
+d) Implementation Details: For all baseline detectors, we keep the original network architecture, detection head, and inference pipeline unchanged, and introduce VBS 2M only during training. The number of image spectral prototypes is set to K = 8, the temperature is set to τI = 0.2, and the spectral modulation strength is set to λI = 0.1, with a probability of 0.5 for each mini-batch. For BEV scene shift modeling, the number of BEV prototypes is set to 
+
+L = 8 , the temperature is set to τB = 0 .2, and the BEV regularization strength is set to λB = 0 .05 . During inference, image spectral modulation, prototype assignment, and BEV scene regularization are disabled, so the inference pipeline remains identical to that of the base detector. 
+
+B. Zero-Shot Target-Domain Results 
+
+In this setting, the model is trained only on the source dataset and directly evaluated on the unseen target dataset without using any target-domain samples during training. From the source-domain results, VBS 2M consistently im-proves the performance of all three BEV fusion detectors, indi-cating that our method enhances cross-scenario generalization without degrading the detection ability on the source dataset. As shown in Tables I, II, and III, when trained on VoD and evaluated on the VoD source domain, VBS 2M improves the mAP of BEVFusion, RaCFormer, and RCBEVDet to 50.30%, 55.50%, and 50.58%, respectively, outperforming Source Only and other domain generalization baselines. Similarly, on the TJ4DRadSet source domain, VBS 2M also achieves the highest source-domain mAP, reaching 36.08%, 41.40%, and 38.31% for the three detectors. These results suggest that mining visual scene shifts and BEV representation shifts within the source domain does not introduce destructive perturbations. Instead, it provides structured training constraints that help the model learn more stable and effective fused BEV representations. The improvements are more pronounced on unseen target domains, demonstrating that VBS 2M effectively alleviates BEV representation shifts caused by cross-scenario discrep-ancies. In the VoD → TJ4DRadSet direction, VBS 2M im-proves the target-domain mAP of BEVFusion, RaCFormer, and RCBEVDet to 27.38%, 29.70%, and 27.12%, respectively, yielding gains of 5.36, 4.65, and 4.41 percentage points over Source Only. It also clearly outperforms the strongest domain generalization baseline. In the reverse TJ4DRadSet → VoD direction, VBS 2M again achieves the best results, with mAP values of 37.67%, 38.19%, and 37.13%, corresponding to improvements of 5.62, 5.54, and 5.57 percentage points over Source Only. The gains in both transfer directions indicate that cross-dataset performance degradation is not only caused by input-level distribution shifts, but also by the propagation of image scene shifts into the fused BEV representation space. By modeling this process through visual-to-BEV scene shift mining, our method achieves robust generalization improve-ments across different detectors and transfer directions. 
+
+C. Few-Shot Target-Domain Results 
+
+To further evaluate the adaptation ability of VBS 2M when limited target-domain annotations are available, we con-duct few-shot target-domain experiments in both VoD →
+
+TJ4DRadSet and TJ4DRadSet → VoD directions. The model is trained with the full source training set together with 10%, 20%, or 30% labeled samples from the target training set, and is evaluated on the full target test set. This setting examines whether our method can further improve cross-domain adaptation under limited target supervision. As shown in Table IV, in the VoD → TJ4DRadSet direc-tion, the target-domain performance of all models gradually improves as the target-domain annotation ratio increases from 0% to 30%, indicating that limited target data can effectively complement the scenario coverage of source-domain training. With VBS 2M, all three detectors achieve higher performance under all target-domain ratios. For example, under the 30% tar-get setting, BEVFusion, RaCFormer, and RCBEVDet achieve mAP values of 32.51%, 35.44%, and 32.34%, respectively, clearly outperforming their counterparts without VBS 2M. Table V reports the few-shot target-domain results in the TJ4DRadSet → VoD direction. VBS 2M also maintains ad-vantages in the reverse transfer setting. Under the 10%, 20%, and 30% target-domain settings, all three detectors obtain steady improvements after introducing VBS 2M. For instance, under the 30% target setting, the mAP values of BEVFusion, RaCFormer, and RCBEVDet increase to 42.47%, 43.27%, and TABLE I CROSS -DATASET GENERALIZATION RESULTS OF BEVF USION IN TERMS OF M AP (%). O RACLE DENOTES TRAINING AND EVALUATION ON THE SAME TARGET DATASET AND SERVES AS THE UPPER -BOUND REFERENCE .
+
+BEVFusion VoD → TJ4DRadSet TJ4DRadSet → VoD VoD (Source) TJ4DRadSet (Target) TJ4DRadSet (Source) VoD (Target) 
+
+Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Oracle - - - - 27.51 25.48 53.61 35.53 - - - - 37.85 40.96 68.95 49.25 Source Only 37.85 40.96 68.95 49.25 16.52 14.37 35.18 22.02 27.51 25.48 53.61 35.53 23.63 28.15 44.36 32.05 DG-GCD 36.91 40.52 66.84 48.09 15.94 14.82 35.73 22.16 26.83 24.37 52.18 34.46 24.12 28.34 45.07 32.51 CPerb 37.24 40.71 67.32 48.42 16.08 14.95 35.96 22.33 26.95 24.61 52.46 34.67 24.45 28.57 45.39 32.80 SPG 37.46 40.88 67.71 48.68 16.21 15.12 36.14 22.49 27.12 24.84 52.73 34.90 24.76 28.73 45.72 33.07 VL2V-ADiP 36.52 41.15 65.39 47.69 16.35 15.47 36.50 22.77 27.05 23.88 52.47 34.47 25.11 28.92 46.18 33.40 VBS 2M (Ours) 38.32 42.18 70.41 50.30 22.36 19.21 40.57 27.38 27.62 26.37 54.26 36.08 30.12 31.86 51.04 37.67 
+
+TABLE II CROSS -DATASET GENERALIZATION RESULTS OF RACF ORMER IN TERMS OF M AP (%). O RACLE DENOTES TRAINING AND EVALUATION ON THE SAME TARGET DATASET AND SERVES AS THE UPPER -BOUND REFERENCE .
+
+RaCFormer VoD → TJ4DRadSet TJ4DRadSet → VoD VoD (Source) TJ4DRadSet (Target) TJ4DRadSet (Source) VoD (Target) 
+
+Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Oracle - - - - 53.36 27.08 40.56 40.33 - - - - 47.30 46.21 69.80 54.44 Source Only 47.30 46.21 69.80 54.44 34.28 15.70 25.16 25.05 53.36 27.08 40.56 40.33 29.31 31.15 37.48 32.65 DG-GCD 46.74 44.86 69.12 53.57 33.72 15.38 25.41 24.84 51.92 26.64 39.75 39.44 27.85 29.84 38.16 31.95 CPerb 46.95 45.18 69.43 53.85 33.96 15.52 25.57 25.02 52.16 26.89 39.92 39.66 28.42 30.26 38.37 32.35 SPG 47.08 45.63 69.68 54.13 34.07 15.75 25.69 25.17 52.53 27.12 40.08 39.91 28.96 30.73 38.61 32.77 VL2V-ADiP 47.14 44.23 70.10 53.82 34.19 15.96 25.83 25.33 51.47 27.58 39.32 39.46 26.50 29.53 38.95 31.66 VBS 2M (Ours) 48.46 46.81 71.22 55.50 39.04 18.71 31.36 29.70 54.12 28.67 41.42 41.40 36.08 35.02 43.47 38.19 
+
+TABLE III CROSS -DATASET GENERALIZATION RESULTS OF RCBEVD ET IN TERMS OF M AP (%). O RACLE DENOTES TRAINING AND EVALUATION ON THE SAME TARGET DATASET AND SERVES AS THE UPPER -BOUND REFERENCE .
+
+RCBEVDet VoD → TJ4DRadSet TJ4DRadSet → VoD VoD (Source) TJ4DRadSet (Target) TJ4DRadSet (Source) VoD (Target) 
+
+Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Oracle - - - - 48.72 24.63 38.91 37.42 - - - - 40.63 38.86 70.48 49.99 Source Only 40.63 38.86 70.48 49.99 29.84 13.92 24.36 22.71 48.72 24.63 38.91 37.42 24.56 26.84 43.27 31.56 DG-GCD 39.72 37.94 68.76 48.81 29.37 14.18 24.71 22.75 47.31 23.82 37.64 36.26 25.02 27.16 44.05 32.08 CPerb 40.05 38.21 69.34 49.20 29.55 14.37 24.96 22.96 47.68 24.05 38.02 36.58 25.38 27.42 44.38 32.39 SPG 40.28 38.47 69.72 49.49 29.76 14.58 25.18 23.17 48.05 24.31 38.37 36.91 25.77 27.81 44.72 32.77 VL2V-ADiP 39.86 38.55 69.91 49.44 30.12 14.86 25.74 23.57 47.92 24.18 38.25 36.78 26.31 28.24 45.36 33.30 VBS 2M (Ours) 41.12 39.35 71.26 50.58 34.08 17.42 29.86 27.12 49.35 25.42 40.17 38.31 30.14 31.53 49.72 37.13 
+
+41.99%, respectively. These bidirectional results show that VBS 2M is effective not only for pure source-only generaliza-tion, but also for cross-dataset adaptation with limited target-domain annotations. This is because limited target annotations provide partial real target-domain distribution information, while VBS 2M further supplements richer latent scene-shift constraints through source-domain shift mining, improving the model’s ability to exploit target-domain scenario variations. 
+
+D. Ablation Study 
+
+To understand the contribution of each design in VBS 2M, we conduct three groups of ablation studies. All ablations are performed using RaCFormer as the base detector, and we report OOD mAP under the bidirectional cross-dataset transfer settings. Specifically, we evaluate the cumulative contribution of each component, compare spectral prototype mining with common image and frequency-domain perturbations, and ex-amine whether prototype-guided BEV shifts provide stronger feature-level constraints than unstructured BEV perturbations. 
+
+a) Main Ablations: To verify the effectiveness of each component, we use RaCFormer as the base detector and evaluate the OOD mAP in both VoD → TJ4DRadSet and TJ4DRadSet → VoD directions. As shown in Table VI, the random spectral mask brings only limited improvement, indicating that simple frequency-domain perturbation is insuf-ficient to model cross-scenario variations. Introducing image spectral scene prototypes leads to clear performance gains, suggesting that latent scene patterns mined from source-domain frequency statistics are beneficial for cross-domain generalization. Further incorporating BEV scene shift pro-totypes improves the results consistently, demonstrating the necessity of modeling the propagation from visual shifts to BEV feature shifts. The full VBS 2M achieves the best OOD mAP of 29.70% and 38.19% in the two transfer directions, TABLE IV FEW -SHOT TARGET -DOMAIN GENERALIZATION ON VOD → TJ4DR AD SET IN TERMS OF AP/ MAP (%). T HE MODEL IS TRAINED ON THE FULL VOD
+
+SOURCE DATASET AND ADDITIONALLY USES DIFFERENT PROPORTIONS OF LABELED TJ4DR AD SET TARGET -DOMAIN TRAINING DATA .
+
+Model Setting 0% Target 10% Target 20% Target 30% Target Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP 
+
+BEVFusion w/o VBS 2M 16.52 14.37 35.18 22.02 19.85 17.42 39.26 25.51 22.03 19.34 42.15 27.84 24.16 21.08 44.37 29.87 w/ VBS 2M 22.36 19.21 40.57 27.38 24.18 21.06 43.51 29.58 25.73 22.54 45.32 31.20 26.84 23.63 47.05 32.51 
+
+RaCFormer w/o VBS 2M 34.28 15.70 25.16 25.05 37.24 18.06 29.17 28.16 39.18 19.84 32.06 30.36 41.06 21.31 34.25 32.21 w/ VBS 2M 39.04 18.71 31.36 29.70 41.36 20.42 34.08 31.95 43.25 22.03 36.17 33.82 44.91 23.34 38.06 35.44 
+
+RCBEVDet w/o VBS 2M 29.84 13.92 24.36 22.71 32.47 16.24 28.12 25.61 34.35 18.05 30.83 27.74 36.18 19.46 33.02 29.55 w/ VBS 2M 34.08 17.42 29.86 27.12 36.12 19.05 32.41 29.19 37.85 20.47 34.26 30.86 39.21 21.76 36.05 32.34 
+
+TABLE V FEW -SHOT TARGET -DOMAIN GENERALIZATION ON TJ4DR AD SET → VOD IN TERMS OF AP/ MAP (%). T HE MODEL IS TRAINED ON THE FULL 
+
+TJ4DR AD SET SOURCE DATASET AND ADDITIONALLY USES DIFFERENT PROPORTIONS OF LABELED VOD TARGET -DOMAIN TRAINING DATA .
+
+Model Setting 0% Target 10% Target 20% Target 30% Target Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP Car Ped Cyc mAP 
+
+BEVFusion w/o VBS 2M 23.63 28.15 44.36 32.05 26.54 30.76 48.05 35.12 28.71 32.88 51.26 37.62 30.84 34.71 53.95 39.83 w/ VBS 2M 30.12 31.86 51.04 37.67 32.04 33.57 53.26 39.62 33.46 35.02 55.13 41.20 34.82 36.11 56.47 42.47 
+
+RaCFormer w/o VBS 2M 29.31 31.15 37.48 32.65 32.64 33.58 40.92 35.71 34.86 35.42 43.73 38.00 36.91 37.18 46.25 40.11 w/ VBS 2M 36.08 35.02 43.47 38.19 38.23 36.84 45.72 40.26 39.75 38.21 47.58 41.85 41.12 39.67 49.03 43.27 
+
+RCBEVDet w/o VBS 2M 24.56 26.84 43.27 31.56 27.72 29.38 47.06 34.72 29.83 31.44 50.12 37.13 31.96 33.18 52.67 39.27 w/ VBS 2M 30.14 31.53 49.72 37.13 32.06 33.14 51.83 39.01 33.54 34.62 53.57 40.58 34.88 35.91 55.18 41.99 
+
+respectively, validating the effects of spectral scene mining, BEV shift modeling, and prototype-guided regularization. 
+
+b) Ablation on Image Spectral Scene Modeling: We further analyze the design of the image spectral scene mod-eling module. As shown in Figure 2(a), color jitter brings only limited gains, indicating that pixel-space appearance perturbation is insufficient to capture cross-dataset scene gaps. Random spectral masking performs slightly better, showing that frequency-domain variation is more relevant to cross-scene generalization. However, fixed frequency-band pertur-bation still relies on manually predefined frequency ranges and cannot adapt to the source-domain scene distribution. In contrast, spectral prototype mining achieves the best OOD mAP in both transfer directions, demonstrating the benefit of data-driven spectral scene mining. Figure 2(b) further shows that amplitude-only modulation outperforms perturbing both amplitude and phase, suggesting that preserving phase helps maintain spatial geometry during image scene modulation. 
+
+c) Ablation on BEV Scene Regularization: We compare different BEV feature regularization strategies on top of spectral prototype mining. As shown in Table VII, random Gaussian noise and channel-wise shift bring only marginal improvements, indicating that unstructured feature perturba-tions are insufficient to model cross-scenario BEV shifts. Statistic perturbation performs better by modifying feature distributions, but it still ignores how image-level scene changes propagate into BEV space. In contrast, prototype-guided BEV shift achieves the best performance in both transfer directions, demonstrating that the mined BEV scene shift prototypes provide more structured and effective regularization for cross-dataset generalization. 
+
+TABLE VI MAIN ABLATION OF VBS 2 M ON RACF ORMER .                                
+
+> Setting Spectral BEV BEV VoD →TJ4DRadSet →
+> Prototype Prototype Reg. TJ4DRadSet VoD
+> Baseline 25.05 32.65 Random Spectral Mask 26.12 33.48 Spectral Prototype Only ✓27.63 35.21 Spectral + BEV Prototype ✓✓28.52 36.74 Full VBS 2M✓✓✓29.70 38.19 None Color
+> Jitter
+> Random
+> Spectral
+> Fixed
+> Bands
+> Spectral
+> Prototype
+> 24
+> 26
+> 28
+> 30
+> 32
+> 34
+> 36
+> OOD mAP (%)
+> 25.05
+> 25.74 26.12
+> 26.85
+> 27.63
+> 32.65 33.12 33.48
+> 34.27
+> 35.21
+> (a) Image scene modeling strategies
+> Amplitude
+> Only
+> Amplitude+
+> Phase
+> 26
+> 28
+> 30
+> 32
+> 34
+> 36
+> OOD mAP (%)
+> 27.63
+> 26.41
+> 35.21
+> 33.96
+> (b) Phase preservation
+> VoD → TJ4DRadSet TJ4DRadSet → VoD
+
+Fig. 2. Ablation on image spectral scene modeling. (a) Comparison of image scene modeling. (b) Comparison of spectral reconstruction strategies. 
+
+E. Sensitivity Analysis 
+
+We analyze the sensitivity of VBS 2M to four key hy-perparameters: the number of image spectral prototypes K,the number of BEV scene shift prototypes L, the image spectral modulation strength λI , and the BEV regulariza-tion strength λB . All experiments use RaCFormer as the base detector and report OOD mAP under the two transfer directions, VoD → TJ4DRadSet and TJ4DRadSet → VoD. For prototype numbers, we vary K, L ∈ { 2, 4, 8, 16 }. For shift strengths, we vary λI ∈ {0.05 , 0.10 , 0.20 , 0.30 } and TABLE VII ABLATION ON BEV SCENE REGULARIZATION STRATEGIES USING 
+
+RACF ORMER . A LL SETTINGS ARE BUILT ON SPECTRAL PROTOTYPE MINING . M ETRIC : OOD MAP (%). 
+
+BEV Regularization Strategy VoD → TJ4DRadSet TJ4DRadSet → VoD 
+
+None 27.63 35.21 Gaussian Noise 27.91 35.48 Channel-wise Shift 28.14 35.86 Statistic Perturbation 28.37 36.22 Prototype-guided BEV Shift 29.70 38.19 2 4 8 16                          
+
+> 28
+> 30
+> 32
+> 34
+> 36
+> 38
+> OOD mAP (%)
+> 28.54
+> 29.18
+> 29.70 29.43
+> 36.42
+> 37.36
+> 38.19 37.86
+> (a) Sensitivity to K
+> 24816
+> 28
+> 30
+> 32
+> 34
+> 36
+> 38
+> OOD mAP (%)
+> 28.67
+> 29.24 29.70 29.51
+> 36.58
+> 37.51
+> 38.19 37.94
+> (b) Sensitivity to L
+> 0.05 0.10 0.20 0.30
+> 28
+> 30
+> 32
+> 34
+> 36
+> 38
+> OOD mAP (%)
+> 28.92
+> 29.70 29.31 28.84
+> 37.08
+> 38.19
+> 37.63
+> 37.12
+> (c) Sensitivity to λI
+> 0.01 0.03 0.05 0.10 0.20
+> 28
+> 30
+> 32
+> 34
+> 36
+> 38
+> OOD mAP (%)
+> 28.91 29.34 29.70 29.28
+> 28.62
+> 37.01
+> 37.65
+> 38.19
+> 37.54
+> 36.83
+> (d) Sensitivity to λB
+> VoD → TJ4DRadSet TJ4DRadSet → VoD
+
+Fig. 3. Sensitivity analysis of VBS 2M. (a) Sensitivity to the image spectral prototype number K. (b) Sensitivity to the BEV scene shift prototype number 
+
+L. (c) Sensitivity to the image spectral modulation strength λI . (d) Sensitivity to the BEV regularization strength λB .
+
+λB ∈ { 0.01 , 0.03 , 0.05 , 0.10 , 0.20 }, while keeping other hy-perparameters fixed. As shown in Figure 3, increasing K and L from 2 to 8 consistently improves OOD mAP in both transfer directions, indicating that multiple prototypes help capture diverse source-domain scene shift patterns. However, further increasing the prototype number to 16 brings no additional gains and slightly degrades performance, likely because excessive prototypes in-troduce redundant or fragmented shift modes. For λI and λB ,moderate values achieve the best results: overly small values provide insufficient scene variation or BEV regularization, while overly large values may distort image statistics or BEV representations. Based on these results, we set K = 8 , L = 8 ,
+
+λI = 0 .10 , and λB = 0 .05 as the default configuration. VI. A DDITIONAL ANALYSIS 
+
+A. Visual-to-BEV Shift Magnitude Analysis 
+
+To examine whether VBS 2M stabilizes the feature propa-gation from visual observations to fused BEV representations, we measure how much the BEV feature changes when the input image is replaced by its scene-shifted view. Specifically, for each sample, we extract the BEV feature fB from the original radar-camera input and the BEV feature ˆfB from the corresponding scene-shifted image with the same radar input. We then compute the visual-to-BEV shift magnitude as Source Only VBS 2M Source Only VBS 2M     
+
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> Visual-to-BEV Shift Magnitude  mB
+> 0.264
+> 0.184
+> 0.241
+> 0.168
+> (i) VoD →TJ4DRadSet (ii) TJ4DRadSet →VoD
+
+Fig. 4. Visual-to-BEV shift magnitude analysis. Lower values indicate more stable BEV representations under visual scene shifts. 
+
+mB = 1 − Cos( fB , ˆfB ), where a larger value indicates that image-level scene variation causes stronger fluctuations. As shown in Fig. 4, the Source Only model exhibits larger and more dispersed BEV shift magnitudes in both transfer directions, suggesting that its fused BEV features are highly sensitive to visual scene changes and may amplify image-level distribution gaps during BEV fusion. In contrast, VBS 2Mclearly reduces the shift magnitude and produces a more concentrated distribution. This indicates that the proposed spectral scene mining and prototype-guided BEV regulariza-tion help constrain how visual scene variations propagate into BEV space, making the fused representation less sensitive to source-specific visual statistics. They provide mechanistic evidence that VBS 2M does not merely improve detection performance, but also learns more stable visual-to-BEV feature transformations for cross-dataset generalization. 
+
+B. Visualization of Spectral Scene Prototypes 
+
+To examine whether VBS 2M learns meaningful image-level scene patterns, we visualize the spectral modulation masks generated by the learned image spectral prototypes. Specifically, for each spectral prototype cIk, we obtain its corresponding frequency modulation mask through M Ik =Reshape( WI cIk). We visualize these masks in the shifted frequency plane, where the center corresponds to low-frequency components and the outer regions correspond to high-frequency components. Different spatial regions in the frequency plane therefore reflect different types of image scene statistics, such as illumination, contrast, texture, edge details, and directional frequency patterns. As shown in Fig. 5, the learned prototypes exhibit diverse and structured frequency responses rather than random noise patterns. Some prototypes mainly modulate low-frequency re-gions, indicating that they capture global appearance variations such as illumination and exposure style. Some prototypes show clear mid-frequency or high-frequency responses, cor-responding to texture complexity, local contrast, edge details, and blur-related changes. Other prototypes contain directional frequency structures, suggesting that the model also captures orientation-dependent scene patterns. Fig. 5. Visualization of learned spectral scene prototypes. Each prototype is shown as a frequency modulation mask, with low-frequency components at the center and high-frequency components in the outer regions. S1 S2 S3 S4 S5 S6 S7 S8         
+
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> Mean assignment probability  JSD=0.044
+> (a) Spectral prototype assignment
+> B1 B2 B3 B4 B5 B6 B7 B8
+> 0.000
+> 0.025
+> 0.050
+> 0.075
+> 0.100
+> 0.125
+> 0.150
+> 0.175
+> 0.200
+> Mean assignment probability  JSD=0.002
+> (b) BEV prototype assignment
+> Source Target
+
+Fig. 6. Prototype assignment analysis. (a) Mean assignment distributions over image spectral prototypes. (b) Mean assignment distributions over BEV scene shift prototypes. 
+
+C. Prototype assignment analysis 
+
+We analyze the average assignment distributions of source-domain and target-domain samples over the image spectral prototypes and BEV scene shift prototypes, in order to verify whether the learned prototypes capture meaningful cross-scenario shift patterns. For each sample, we compute its soft assignment weights over the spectral prototypes and BEV prototypes, and then average them over source and target samples separately. As shown in Fig. 6, source and target samples exhibit clear differences in the image spectral prototype assignments, indicating that the spectral prototypes can reflect visual statistical discrepancies. In contrast, the assignment distributions become closer in the BEV prototype space, suggesting that VBS 2M transforms input-level visual scene differences into more stable BEV-level shift patterns. 
+
+D. Efficiency Analysis 
+
+We evaluate the inference efficiency of VBS 2M on three representative BEV fusion detectors. As shown in Fig. 7, we report the relative increase in inference time after equipping each detector with VBS 2M. The results show that the pro-posed method introduces only minor overhead, with inference time increasing by 5.1%, 7.8%, and 2.3% for BEVFusion, RaCFormer, and RCBEVDet, respectively. They indicate that VBS 2M improves cross-dataset generalization while maintain-ing good deployment efficiency. BEVFusion RaCFormer RCBEVDet 
+
+> 0
+> 2
+> 4
+> 6
+> 8
+> Inference Time Increase (%)
+> +5.1%
+> +7.8%
+> +2.3%
+
+Fig. 7. Efficiency analysis of VBS 2M. It shows the inference time increase after equipping three representative BEV fusion detectors with VBS 2M. 
+
+VII. C ONCLUSION 
+
+a) Conclusion: We present VBS 2M, a visual-to-BEV sensor shift mining framework for cross-dataset domain gener-alization in radar-camera BEV detection. Unlike conventional domain generalization methods that rely on generic input augmentation or feature-level regularization, VBS 2M models how scene-level sensor shifts propagate from image obser-vations to fused BEV representations. Specifically, VBS 2Mmines spectral scene prototypes from source-domain image frequency statistics, generates scene-shifted visual views, dis-covers the corresponding BEV scene shift prototypes, and applies prototype-guided BEV regularization during train-ing. Experiments on bidirectional transfer between VoD and TJ4DRadSet show that VBS 2M consistently improves OOD detection performance across multiple radar-camera BEV de-tectors. Additional ablations and analyses further demonstrate that the gains come not merely from stronger augmentation, but from structured sensor-to-feature shift mining and more stable visual-to-BEV feature propagation. 
+
+b) Future Work: Future work will explore two directions. First, VBS 2M mainly models image-induced scene shifts and their propagation into fused BEV representations; more radar-aware shift mining can be studied without relying on hand-crafted radar perturbations. Second, richer scene context, temporal cues, and uncertainty estimation can be incorporated to discover more fine-grained cross-scenario shift patterns. 
+
+c) Limitation: This work has several limitations. VBS 2Mrelies on source-domain spectral statistics, so its effectiveness may decrease when the source data lack sufficient scene diversity. Moreover, the learned spectral and BEV prototypes provide structured but coarse shift patterns, whose semantic meanings are not directly tied to specific objects or physical factors. Finally, although inference remains unchanged, the method introduces extra training-time computation for scene-shifted image generation and BEV shift mining. REFERENCES [1] D. Feng, C. Haase-Sch¨ utz, L. Rosenbaum, H. Hertlein, C. Glaeser, F. Timm, W. Wiesbeck, and K. Dietmayer, “Deep multi-modal object detection and semantic segmentation for autonomous driving: Datasets, methods, and challenges,” IEEE Transactions on Intelligent Transporta-tion Systems , vol. 22, no. 3, pp. 1341–1360, 2020. [2] M. Bijelic, T. Gruber, F. Mannan, F. Kraus, W. Ritter, K. Dietmayer, and F. Heide, “Seeing through fog without seeing fog: Deep multi-modal sensor fusion in unseen adverse weather,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 11682–11692, 2020. [3] T. Sun, M. Segu, J. Postels, Y. Wang, L. Van Gool, B. Schiele, F. Tombari, and F. Yu, “Shift: a synthetic driving dataset for continuous multi-task domain adaptation,” in Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , pp. 21371–21382, 2022. [4] Z. Li, X. Xu, S. Lim, and H. Zhao, “Unimode: Unified monocular 3d object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 16561–16570, 2024. [5] M. Li, Y. Zhang, X. Ma, Y. Qu, and Y. Fu, “Bev-dg: Cross-modal learning under bird’s-eye view for domain generalization of 3d semantic segmentation,” in Proceedings of the IEEE/CVF International Confer-ence on Computer Vision , pp. 11632–11642, 2023. [6] Z. Li, Z. Chen, A. Li, L. Fang, Q. Jiang, X. Liu, and J. Jiang, “Unsupervised domain adaptation for monocular 3d object detection via self-training,” in European conference on computer vision , pp. 245–262, Springer, 2022. [7] K. Jiang, J. Huang, W. Xie, J. Lei, Y. Li, L. Shao, and S. Lu, “Da-bev: Unsupervised domain adaptation for bird’s eye view perception,” in European Conference on Computer Vision , pp. 322–341, Springer, 2024. [8] L. Zheng, Y. Liu, Y. Wang, and H. Zhao, “Cross-dataset sensor align-ment: Making visual 3d object detector generalizable,” in Conference on Robot Learning , pp. 1903–1929, PMLR, 2023. [9] P. Wenzel, R. Wang, N. Yang, Q. Cheng, Q. Khan, L. Von Stumberg, N. Zeller, and D. Cremers, “4seasons: A cross-season dataset for multi-weather slam in autonomous driving,” in DAGM German Conference on Pattern Recognition , pp. 404–417, Springer, 2020. [10] S. Li, L. Ma, and X. Li, “Domain generalization of 3d object detection by density-resampling,” in European Conference on Computer Vision ,pp. 456–473, Springer, 2024. [11] J. Yue, Z. Lin, X. Lin, X. Zhou, X. Li, L. Qi, Y. Wang, and M.-H. Yang, “Roburcdet: Enhancing robustness of radar-camera fusion in bird's eye view for 3d object detection,” in International Conference on Learning Representations , vol. 2025, pp. 12726–12741, 2025. [12] L. St¨ acker, S. Mishra, P. Heidenreich, J. Rambach, and D. Stricker, “Rc-bevfusion: A plug-in module for radar-camera bird’s eye view feature fusion,” in DAGM German Conference on Pattern Recognition , pp. 178– 194, Springer, 2023. [13] Z. Lin, Z. Liu, Z. Xia, X. Wang, Y. Wang, S. Qi, Y. Dong, N. Dong, L. Zhang, and C. Zhu, “Rcbevdet: Radar-camera fusion in bird’s eye view for 3d object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 14928– 14937, 2024. [14] J. Liu, R. Zhang, X. Li, X. Chi, Z. Chen, M. Lu, Y. Guo, and S. Zhang, “Bevuda: Multi-geometric space alignments for domain adaptive bev 3d object detection,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , pp. 9487–9494, IEEE, 2024. [15] R. Zhang, J. Liu, X. Li, X. Chi, D. Wang, L. Du, Y. Du, and S. Zhang, “Bevuda++: geometric-aware unsupervised domain adaptation for multi-view 3d object detection,” IEEE Transactions on Circuits and Systems for Video Technology , vol. 35, no. 5, pp. 5109–5122, 2024. [16] J. Mai, C. Gao, and J. Bao, “Domain generalization through data augmentation: A survey of methods, applications, and challenges,” 
+
+Mathematics , vol. 13, no. 5, p. 824, 2025. [17] K. Muandet, D. Balduzzi, and B. Sch¨ olkopf, “Domain generalization via invariant feature representation,” in International conference on machine learning , pp. 10–18, PMLR, 2013. [18] J. Wang, C. Lan, C. Liu, Y. Ouyang, T. Qin, W. Lu, Y. Chen, W. Zeng, and P. S. Yu, “Generalizing to unseen domains: A survey on domain generalization,” IEEE transactions on knowledge and data engineering ,vol. 35, no. 8, pp. 8052–8072, 2022. [19] C. Shui, B. Wang, and C. Gagn´ e, “On the benefits of representation regularization in invariance based domain generalization,” Machine Learning , vol. 111, no. 3, pp. 895–915, 2022. [20] H. Lu, Y. Zhang, G. Wang, Q. Lian, D. Du, and Y.-C. Chen, “Towards generalizable multi-camera 3d object detection via perspective render-ing,” in Proceedings of the AAAI Conference on Artificial Intelligence ,vol. 39, pp. 5811–5819, 2025. [21] A. Palffy, E. Pool, S. Baratam, J. F. Kooij, and D. M. Gavrila, “Multi-class road user detection with 3+ 1d radar in the view-of-delft dataset,” 
+
+IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 4961–4968, 2022. [22] L. Zheng, Z. Ma, X. Zhu, B. Tan, S. Li, K. Long, W. Sun, S. Chen, L. Zhang, M. Wan, et al. , “Tj4dradset: A 4d radar dataset for au-tonomous driving,” in 2022 IEEE 25th international conference on intelligent transportation systems (ITSC) , pp. 493–498, IEEE, 2022. [23] Z. Liu, H. Tang, A. Amini, X. Yang, H. Mao, D. L. Rus, and S. Han, “Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view representation,” in 2023 IEEE international conference on robotics and automation (ICRA) , pp. 2774–2781, ieee, 2023. [24] X. Chu, J. Deng, G. You, Y. Duan, H. Li, and Y. Zhang, “Racformer: Towards high-quality 3d object detection via query-based radar-camera fusion,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 17081–17091, 2025. [25] H. Huang, Y. Xia, S. Zhou, H. Wang, S. Wang, and Z. Zhao, “Bridging domain generalization to multimodal domain generalization via unified representations,” in Proceedings of the IEEE/CVF International Confer-ence on Computer Vision , pp. 22488–22498, 2025. [26] Y. Shu, Z. Cao, C. Wang, J. Wang, and M. Long, “Open domain generalization with domain-augmented meta-learning,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 9624–9633, 2021. [27] M. Schwonberg, F. El Bouazati, N. M. Schmidt, and H. Gottschalk, “Augmentation-based domain generalization for semantic segmentation,” in 2023 IEEE Intelligent Vehicles Symposium (IV) , pp. 1–8, IEEE, 2023. [28] W. Lee, D. Hong, H. Lim, and H. Myung, “Object-aware domain gen-eralization for object detection,” in proceedings of the AAAI conference on artificial intelligence , vol. 38, pp. 2947–2955, 2024. [29] D. Krueger, E. Caballero, J.-H. Jacobsen, A. Zhang, J. Binas, D. Zhang, R. Le Priol, and A. Courville, “Out-of-distribution generalization via risk extrapolation (rex),” in International conference on machine learning ,pp. 5815–5826, PMLR, 2021. [30] B. He, Y. Ji, Z. Tan, and L. Wu, “Boosting domain generalized and adaptive detection with diffusion models: Fitness, generalization, and transferability,” in Proceedings of the IEEE/CVF International Confer-ence on Computer Vision , pp. 1912–1923, 2025. [31] C. Li, H. Xu, C. Gao, Z. Wang, Y. Liu, and X. Zhu, “Towards single-source domain generalized object detection via causal visual prompts,” Advances in Neural Information Processing Systems , vol. 38, pp. 104893–104921, 2026. [32] S. Li, J. Shen, L. Ma, and X. Li, “From dataset to real-world: general 3d object detection via generalized cross-domain few-shot learning,” in 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , vol. 40, pp. 6415–6423, 2026. [33] X. Feng, W. Zhang, L. Zhang, Y. Zhuge, H. Lu, and Y. He, “Towards cross-platform generalization: Domain adaptive 3d detection with aug-mentation and pseudo-labeling,” arXiv preprint arXiv:2601.08174 , 2026. [34] X. Qiu and W. Liu, “Rpgfusion: 4d radar prior-guided multi-modal fusion for 3d detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 284–294, 2026. [35] H. Zhong, Z. Xiang, R. Xu, J. Fu, P. Xu, S. Wang, Z. Yang, T. Pu, and E. Liu, “Cvfusion: Cross-view fusion of 4d radar and camera for 3d object detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 28188–28197, 2025. [36] Y. Li, Y. Yang, and Z. Lei, “Rctrans: Radar-camera transformer via radar densifier and sequential decoder for 3d object detection,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, pp. 5048– 5056, 2025. [37] Z. Xia, Y. Tang, Y. Wang, Z. Wang, and W. Qin, “R4det: 4d radar-camera fusion for high-performance 3d object detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pp. 18766–18775, 2026. [38] J. Li, X. Bai, Q. Liu, S. Xiong, and H. Wang, “Sdef-bev: spatial-aware dual-expert radar-camera fusion for robust bev 3d object detection,” 
+
+Scientific Reports , 2026. [39] M. Sheeny, E. De Pellegrin, S. Mukherjee, A. Ahrabian, S. Wang, and A. Wallace, “Radiate: A radar dataset for automotive perception in bad weather,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) , pp. 1–7, IEEE, 2021. [40] D. Wu, F. Yang, B. Xu, P. Liao, and B. Liu, “A survey of deep learning based radar and vision fusion for 3d object detection in autonomous driving,” arXiv preprint arXiv:2406.00714 , 2024. [41] V. Rathore, S. Dutta, S. Mehrotra, Z. Kira, B. Banerjee, et al. , “When domain generalization meets generalized category discovery: An adap-tive task-arithmetic driven approach,” in Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 4905–4915, 2025. [42] D. Zhao, L. Qi, X. Shi, Y. Shi, and X. Geng, “A novel cross-perturbation for single domain generalization,” IEEE Transactions on Circuits and Systems for Video Technology , vol. 34, no. 11, pp. 10903–10916, 2024. [43] Q. Xu, Y. Zhou, W. Wang, C. R. Qi, and D. Anguelov, “Spg: Unsu-pervised domain adaptation for 3d object detection via semantic point generation,” in Proceedings of the IEEE/CVF international conference on computer vision , pp. 15446–15456, 2021. [44] S. Addepalli, A. R. Asokan, L. Sharma, and R. V. Babu, “Leveraging vision-language models for improving domain generalization in image classification,” in Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pp. 23922–23932, 2024.

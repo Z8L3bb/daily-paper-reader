@@ -1,0 +1,351 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-11T22:33:12.553784+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2606.11326v1",
+      "source": "arxiv",
+      "title": "DarkVGGT: Seeing Through Darkness Using Thermal Geometry without Daylight Tax",
+      "abstract": "Recent feed-forward 3D reconstruction methods have demonstrated strong performance and flexibility in efficient end-to-end scene geometry estimation from image streams. However, their reliance on visible-light appearance makes them vulnerable in dark and low-visibility environments, where RGB cues are severely degraded and geometric evidence becomes ambiguous. To address this challenge, we propose DarkVGGT, an RGB-T feed-forward geometry framework that uses physics-aware thermal modeling for robust 3D estimation in low-light scenes. DarkVGGT introduces two complementary modules. First, physics-inspired thermal factorization extracts emissive-dominant, geometry-consistent thermal cues while isolating sparse reflective residuals that may introduce geometric ambiguity. Second, geometry-shared thermal routing isolates modality-invariant geometric structures from thermal-specific patterns, selectively injecting reliability-aware structural guidance into the RGB stream. Together, these components enable accurate thermal-informed geometry estimation under degraded RGB conditions while largely preserving performance in well-lit environments. Experiments on low-visibility RGB-T benchmarks demonstrate consistent improvements in both depth and camera pose estimation over existing feed-forward geometry baselines.",
+      "authors": [
+        "Minseong Kweon",
+        "Wenyuan Zhao",
+        "Nuo Chen",
+        "Lulin Liu",
+        "Huiwen Han",
+        "Zihao Zhu",
+        "Srinivas Shakkottai",
+        "Chao Tian",
+        "Zhiwen Fan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-09T18:08:51+00:00",
+      "link": "https://arxiv.org/pdf/2606.11326v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Combines RGB and thermal modalities for robust 3D reconstruction in dark environments",
+      "llm_evidence_cn": "结合RGB和热成像模态，在黑暗环境中实现鲁棒的三维重建",
+      "llm_evidence": "结合RGB和热成像模态，在黑暗环境中实现鲁棒的三维重建",
+      "canonical_evidence": "结合RGB和热成像模态，在黑暗环境中实现鲁棒的三维重建",
+      "llm_tldr_en": "DarkVGGT is an RGB-T feed-forward 3D reconstruction framework using physics-aware thermal factorization for robust geometry estimation in low-light scenes.",
+      "llm_tldr_cn": "针对低光照环境下RGB几何重建失效难题，提出RGB-T前馈框架DarkVGGT，通过物理驱动的热辐射分解提取几何一致热线索，实现黑暗场景中鲁棒的三维重建，为多模态三维感知提供新途径。",
+      "llm_tldr": "针对低光照环境下RGB几何重建失效难题，提出RGB-T前馈框架DarkVGGT，通过物理驱动的热辐射分解提取几何一致热线索，实现黑暗场景中鲁棒的三维重建，为多模态三维感知提供新途径。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.11573v1",
+      "source": "arxiv",
+      "title": "Understanding Cross-Sensor Feature Variations for Generalizable 3D Perception",
+      "abstract": "Radar-camera BEV perception often suffers from degraded performance when evaluated across datasets, as changes in driving scenes, sensor configurations, and environmental conditions can alter both the input observations and the internal fused representations. This work studies this issue from the perspective of source-domain variation modeling, aiming to improve the robustness of BEV-based 3D detectors without relying on target-domain samples. We introduce a framework that characterizes visual scene variations in the frequency domain and uses them to synthesize diverse source-domain views. By comparing the resulting fused BEV representations, the framework further captures how image-level variations influence multi-modal BEV features. These variation patterns are then used to regularize the detector, encouraging the learned fusion space to remain stable under latent scene changes. The proposed method is applied only during training and leaves the inference pipeline unchanged. Experiments on cross-dataset radar-camera 3D detection between View-of-Delft and TJ4DRadSet demonstrate consistent improvements over multiple BEV fusion backbones, and the gains remain effective when a small amount of target-domain data is available.",
+      "authors": [
+        "Xin Qiu",
+        "Wenjie Liu",
+        "Fuyuan Ai",
+        "YuChen Tan",
+        "Zhiwei Xu",
+        "Chunyi Song"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-10T01:57:24+00:00",
+      "link": "https://arxiv.org/pdf/2606.11573v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Studies cross-sensor feature variation for radar-camera BEV 3D detection, enhancing multi-modal fusion robustness.",
+      "llm_evidence_cn": "研究雷达-相机BEV三维检测中的跨传感器特征变化，提升多模态融合鲁棒性。",
+      "llm_evidence": "研究雷达-相机BEV三维检测中的跨传感器特征变化，提升多模态融合鲁棒性。",
+      "canonical_evidence": "研究雷达-相机BEV三维检测中的跨传感器特征变化，提升多模态融合鲁棒性。",
+      "llm_tldr_en": "The paper presents a framework that models source-domain visual variations in the frequency spectrum to synthesize diverse training views, and captures their influence on fused BEV features, thereby improving the cross-dataset generalization of radar-camera 3D detectors without target-domain data.",
+      "llm_tldr_cn": "雷达-相机BEV检测在跨域时性能下降。本文从源域变化建模角度，在频域刻画场景视觉变化并合成多样训练视图，进一步分析其对融合BEV特征的影响，从而无需目标域数据即可提升检测器的跨数据集泛化能力。实验表明该方法有效增强了多模态三维检测的鲁棒性。",
+      "llm_tldr": "雷达-相机BEV检测在跨域时性能下降。本文从源域变化建模角度，在频域刻画场景视觉变化并合成多样训练视图，进一步分析其对融合BEV特征的影响，从而无需目标域数据即可提升检测器的跨数据集泛化能力。实验表明该方法有效增强了多模态三维检测的鲁棒性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.08206v1",
+      "source": "arxiv",
+      "title": "SegmentAnyTreeV2: Scaling Transformer-Based Tree Instance Segmentation Across Sensors, Platforms, and Forests",
+      "abstract": "We present SegmentAnyTreeV2, a sensor- and platform-agnostic framework for semantic and instance segmentation of forest point clouds. The model combines a serialization-based Point Transformer v3 backbone with a lightweight semantic head and a tree-focused cross-attention mask decoder. Semantic predictions restrict instance decoding to tree-class voxels, while instance-aware query initialization, one-to-many seed supervision, and asymmetric mask scoring improve separation in dense and structurally complex stands. We further introduce FOR-instance v3, an expanded benchmark comprising 427 scenes and 26,496 annotated trees across diverse biomes, forest structures, and LiDAR platforms. On the FOR-instanceV2 test split, SegmentAnyTreeV2 achieves 90.5% precision, 80.2% recall, 85.0% F1, 90.7% coverage, and 87.6% semantic mIoU, outperforming previous learning-based methods in both instance detection and mask completeness. Zero-shot evaluation on independent sites further demonstrates strong cross-domain generalization.",
+      "authors": [
+        "Maciej Wielgosz",
+        "Stefano Puliti",
+        "Rasmus Astrup"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-06-06T14:48:25+00:00",
+      "link": "https://arxiv.org/pdf/2606.08206v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Uses cross-attention mask decoder for 3D point cloud tree instance segmentation",
+      "llm_evidence_cn": "使用交叉注意力掩码解码器进行三维点云树木实例分割",
+      "llm_evidence": "使用交叉注意力掩码解码器进行三维点云树木实例分割",
+      "canonical_evidence": "使用交叉注意力掩码解码器进行三维点云树木实例分割",
+      "llm_tldr_en": "SegmentAnyTreeV2 uses Point Transformer v3 and a cross-attention mask decoder for sensor-agnostic tree instance segmentation on LiDAR point clouds, improving dense forest separation.",
+      "llm_tldr_cn": "该工作提出跨传感器、平台的树木实例分割框架，采用Point Transformer v3骨干和交叉注意力掩码解码器，在多种森林环境和LiDAR平台上实现准确点云实例分割，通过实例感知查询初始化提升密集林区分离能力。",
+      "llm_tldr": "该工作提出跨传感器、平台的树木实例分割框架，采用Point Transformer v3骨干和交叉注意力掩码解码器，在多种森林环境和LiDAR平台上实现准确点云实例分割，通过实例感知查询初始化提升密集林区分离能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.10019v1",
+      "source": "arxiv",
+      "title": "Generalized-CVO: Fast and Correspondence-Free Local Point Cloud Registration with Second Order Riemannian Optimization",
+      "abstract": "We propose a fast and correspondence-free local point cloud registration method that leverages geometric surface structure and reproducing kernel Hilbert space (RKHS) embeddings. The method represents point clouds as continuous functions with point-wise anisotropic kernels that encode local geometry. This formulation improves alignment along surface normals while relaxing alignment along tangential directions. To solve the resulting registration problem, we propose a second-order on-manifold optimization scheme with approximate Riemannian Hessians, achieving a speedup of up to 10x over the first-order solvers used in prior correspondence-free RKHS-based methods. We demonstrate improved frame-to-frame LiDAR and RGB-D tracking accuracy across diverse indoor and outdoor datasets. On a LiDAR tracking registration task in the driving domain, we achieve a reduction of $>55\\%$ in both translational and rotational drift in challenging feature-sparse environments. On object registration benchmarks, we show improved robustness over ICP-based methods and further gains when refining global initialization, particularly under moderate misalignment.",
+      "authors": [
+        "Ray Zhang",
+        "Marcus Greiff",
+        "Thomas Lew",
+        "John Subosits"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-06-08T18:07:11+00:00",
+      "link": "https://arxiv.org/pdf/2606.10019v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Proposes fast LiDAR point cloud registration method using RKHS embeddings",
+      "llm_evidence_cn": "提出基于RKHS嵌入的快速LiDAR点云配准方法",
+      "llm_evidence": "提出基于RKHS嵌入的快速LiDAR点云配准方法",
+      "canonical_evidence": "提出基于RKHS嵌入的快速LiDAR点云配准方法",
+      "llm_tldr_en": "Generalized-CVO is a correspondence-free LiDAR point cloud registration method using RKHS embeddings with anisotropic kernels, achieving up to 10x speedup via second-order Riemannian optimization.",
+      "llm_tldr_cn": "本文针对LiDAR点云配准问题，提出一种基于再生核希尔伯特空间嵌入的无对应配准方法，通过各向异性核编码局部几何，并采用二阶黎曼优化快速对齐，速度较一阶方法提升高达10倍，为实时三维感知提供高效前端。",
+      "llm_tldr": "本文针对LiDAR点云配准问题，提出一种基于再生核希尔伯特空间嵌入的无对应配准方法，通过各向异性核编码局部几何，并采用二阶黎曼优化快速对齐，速度较一阶方法提升高达10倍，为实时三维感知提供高效前端。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.05506v1",
+      "source": "arxiv",
+      "title": "Robust Scene Transfer for PointGoal Navigation via Privileged Sensor Guided Contrastive Learning",
+      "abstract": "We propose a sensor-guided adaptive contrastive learning framework for visual representation learning in PointGoal navigation. During training, privileged LiDAR sensing guides the contrastive objective through a geometry-aware similarity metric and adaptive temperature scaling, encouraging visual embeddings to capture navigation-relevant structure rather than scene-specific appearance. The resulting encoder is pretrained independently, frozen, and used as the perceptual backbone for reinforcement learning, decoupling representation learning from policy optimization. We further introduce a cross-stage domain mismatch between representation pretraining and policy learning to suppress environment-specific shortcuts and promote reliance on task-relevant features.   Extensive experiments in high-fidelity simulation demonstrate that our approach significantly improves policy-level scene transfer across diverse indoor and outdoor environments. At deployment, the agent relies only on monocular RGB observations together with standard task-related inputs such as goal position and proprioceptive signals, without access to LiDAR or other privileged sensors. Our method outperforms large pretrained vision models and standard contrastive baselines under severe appearance and semantic shifts. We also release a multimodal dataset to support future research on privileged-guided visual representation learning for navigation. The code is available at:",
+      "authors": [
+        "Amirhossein Zhalehmehrabi",
+        "Tiziano Tezze",
+        "Alberto Castelini",
+        "Alessandro Farinelli"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-03T23:15:50+00:00",
+      "link": "https://arxiv.org/pdf/2606.05506v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LiDAR-guided contrastive learning for navigation",
+      "llm_evidence_cn": "激光雷达引导的对比学习用于导航",
+      "llm_evidence": "激光雷达引导的对比学习用于导航",
+      "canonical_evidence": "激光雷达引导的对比学习用于导航",
+      "llm_tldr_en": "Proposes a contrastive learning framework where privileged LiDAR sensing guides visual representation learning for robust PointGoal navigation across scenes.",
+      "llm_tldr_cn": "为解决视觉导航在场景迁移时的脆弱性，提出通过特权激光雷达传感器引导对比学习，利用几何感知相似度与自适应温度，使视觉编码器学习导航相关结构，提升跨场景泛化能力。",
+      "llm_tldr": "为解决视觉导航在场景迁移时的脆弱性，提出通过特权激光雷达传感器引导对比学习，利用几何感知相似度与自适应温度，使视觉编码器学习导航相关结构，提升跨场景泛化能力。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.11466v1",
+      "source": "arxiv",
+      "title": "PT-WNO: Point Transformer with Wavelet Neural Operator for 3D Point Cloud Semantic Segmentation",
+      "abstract": "Point cloud semantic segmentation requires architectures that capture both fine-grained local geometry and broad global scene structure. Transformer-based networks have demonstrated strong performance by focusing on detailed local feature aggregation; however, global context is conveyed primarily through skip connections across encoder-decoder stages, which we argue is insufficient for full scene understanding. We hypothesize that augmenting skip connections with a learnable global feature extraction module allows the network to acquire scene-level knowledge before descending into local detail, leading to richer and more contextually grounded representations. To this end, we propose Point Transformer with Wavelet Neural Operato (PT-WNO), which integrates a shared Wavelet Neural Operator (WNO) branch alongside the skip connections of a point cloud transformer backbone. At each encoder-decoder transition, point features are projected onto a dense 3D volumetric grid where the WNO captures multi-scale global spectral context through learnable wavelet decomposition and reconstruction. These global features are fused back into the network via lightweight adapters, complementing rather than replacing the existing skip connections. Experiments on four large-scale 3D point cloud benchmarks demonstrate the effectiveness of PT-WNO. On S3DIS (Area 5), PT-WNO achieves 71.59% mIoU, outperforming the Point Transformer v3 (PTv3) baseline by +1.03 points. On DALES it achieves 81.05% mIoU (+1.47 over the baseline). On ScanNet~v2, PT-WNO obtains 76.19% mIoU, remaining competitive with the baseline (76.36%).",
+      "authors": [
+        "Nhut Le",
+        "Maryam Rahnemoonfar"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-09T21:41:18+00:00",
+      "link": "https://arxiv.org/pdf/2606.11466v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "attention-based point cloud feature aggregation",
+      "llm_evidence_cn": "基于注意力的点云特征聚合",
+      "llm_evidence": "基于注意力的点云特征聚合",
+      "canonical_evidence": "基于注意力的点云特征聚合",
+      "llm_tldr_en": "Proposes a Point Transformer with a Wavelet Neural Operator to enhance global context in point cloud semantic segmentation, improving scene understanding.",
+      "llm_tldr_cn": "针对点云语义分割中全局上下文不足的问题，提出将点变换器与小波神经算子相结合，通过在跳跃连接中引入可学习的全局特征提取模块，以获取更丰富的场景级知识，提升分割精度。",
+      "llm_tldr": "针对点云语义分割中全局上下文不足的问题，提出将点变换器与小波神经算子相结合，通过在跳跃连接中引入可学习的全局特征提取模块，以获取更丰富的场景级知识，提升分割精度。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.11708v1",
+      "source": "arxiv",
+      "title": "Explore From Sketch: Accelerating UAV Exploration in Large-scale Environments with Prior Maps",
+      "abstract": "Autonomous exploration with UAVs in large-scale, topologically complex environments often suffers from low efficiency due to suboptimal scheduling and detours. Prior maps (e.g., construction drawings), although usually imprecise and flawed, are readily available in many scenarios and have the potential to provide global structural guidance. This paper presents a novel exploration framework that leverages sparse, unaligned, and even discrepant 2D prior maps for LiDAR-based UAV exploration. First, a robust 2D-3D point cloud registration pipeline is proposed to align LiDAR observations with prior maps. The registration pipeline combines a GeoContext descriptor for single-frame candidate retrieval, a multi-frame verification mechanism for coarse transformation estimation with outlier rejection, and a Scale-ICP algorithm for refinement. The registration module can handle map discrepancies and provide multiple hypotheses when geometric ambiguities arise. To effectively utilize the registration results for exploration planning, we further develop a hierarchical viewpoint planning strategy under localization uncertainties. The hierarchical strategy first spatially attaches local viewpoints to prior guidepoints and adopts a Monte Carlo Tree Search solver to determine their traversal sequence under each registration hypothesis. To mitigate registration uncertainty, a risk-aware selector evaluates prior sequences using confidence-weighted travel risk, and a fixed-endpoint traveling salesman problem is formulated to generate an efficient local coverage path under the selected prior guidance. Benchmark evaluations reveal up to 34.2% improvement in exploration efficiency and 37.9% reduction in flight distance compared to state-of-the-art methods, while extensive simulations and field experiments further demonstrate robustness to prior map incompleteness and deformations.",
+      "authors": [
+        "Tiancheng Lai",
+        "Yuman Gao",
+        "Xiangyu Li",
+        "Ruitian Pang",
+        "Xingpeng Wang",
+        "Siqi Shen",
+        "Mengke Zhang",
+        "Yin He",
+        "Fei Gao",
+        "Chao Xu",
+        "Yanjun Cao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-10T06:30:29+00:00",
+      "link": "https://arxiv.org/pdf/2606.11708v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LiDAR point cloud registration for UAV exploration",
+      "llm_evidence_cn": "基于LiDAR点云配准的无人机探索",
+      "llm_evidence": "基于LiDAR点云配准的无人机探索",
+      "canonical_evidence": "基于LiDAR点云配准的无人机探索",
+      "llm_tldr_en": "Proposes a UAV exploration framework leveraging 2D prior maps and LiDAR, with a robust 2D-3D point cloud registration pipeline to accelerate exploration in complex environments.",
+      "llm_tldr_cn": "针对无人机在复杂环境探索效率低的问题，提出利用粗略的二维先验地图与激光雷达点云配准的框架，通过GeoContext描述子和多帧验证实现鲁棒的二维-三维对齐，从而加速无人机自主探索。",
+      "llm_tldr": "针对无人机在复杂环境探索效率低的问题，提出利用粗略的二维先验地图与激光雷达点云配准的框架，通过GeoContext描述子和多帧验证实现鲁棒的二维-三维对齐，从而加速无人机自主探索。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.12189v1",
+      "source": "arxiv",
+      "title": "DynaTok: Token-Based 4D Reconstruction from Partial Point Clouds",
+      "abstract": "We address 4D reconstruction from partial point cloud sequences, where depth-sensor observations are incomplete, unordered, and lack explicit temporal correspondences. This geometry-only setting is challenging due to missing observations and ambiguous dynamics. While recent progress has largely relied on image-based methods, existing point-based approaches typically focus on single objects, assume relatively complete inputs, or require explicit correspondences. To address these limitations, we propose DynaTok, a point-based framework for correspondence-free 4D reconstruction from partial point cloud sequences without images. DynaTok encodes frames into compact latent tokens, aggregates incomplete observations over time with a Transformer-based spatiotemporal encoder, and decouples geometry and motion through residual tokens in a unified model. A flow-matching decoder then reconstructs complete, temporally consistent 4D point-cloud sequences conditioned on the latent tokens. Experiments on object- and scene-level benchmarks demonstrate improved reconstruction quality and temporal coherence from partial point cloud observations. Project page: https://wrchen530.github.io/dynatok/.",
+      "authors": [
+        "Weirong Chen",
+        "Keisuke Tateno",
+        "Hidenobu Matsuki",
+        "Michael Niemeyer",
+        "Daniel Cremers",
+        "Federico Tombari"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-10T15:13:14+00:00",
+      "link": "https://arxiv.org/pdf/2606.12189v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Transformer-based spatiotemporal aggregation on point cloud tokens for feature learning",
+      "llm_evidence_cn": "基于Transformer的点云标记时空聚合进行特征学习",
+      "llm_evidence": "基于Transformer的点云标记时空聚合进行特征学习",
+      "canonical_evidence": "基于Transformer的点云标记时空聚合进行特征学习",
+      "llm_tldr_en": "Proposes DynaTok, a point-based framework using transformers to aggregate partial point cloud sequences for 4D reconstruction, enabling correspondence-free spatiotemporal feature aggregation.",
+      "llm_tldr_cn": "针对部分点云序列的四维重建问题，本文提出DynaTok框架，将点云帧编码为紧凑的潜在标记，并利用Transformer进行时空聚合，无需显式时间对应。该方法以纯几何方式处理不完整、无序的点云，在多项重建任务上展现了有效性，为稀疏点云的特征学习提供了新思路。",
+      "llm_tldr": "针对部分点云序列的四维重建问题，本文提出DynaTok框架，将点云帧编码为紧凑的潜在标记，并利用Transformer进行时空聚合，无需显式时间对应。该方法以纯几何方式处理不完整、无序的点云，在多项重建任务上展现了有效性，为稀疏点云的特征学习提供了新思路。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "attention mechanisms for sparse point cloud feature aggregation",
+      "matched_requirement_id": "req-18",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
