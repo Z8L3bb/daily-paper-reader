@@ -1,0 +1,293 @@
+Title: Multi-View In-Cabin Monitoring System for Public Transport Vehicles
+
+URL Source: https://arxiv.org/pdf/2606.11739v1
+
+Published Time: Thu, 11 Jun 2026 00:46:26 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Multi-View In-Cabin Monitoring System for Public Transport Vehicles 
+
+1st Evgeny Gorelik 
+
+GT-ARC, TU Berlin 
+
+Berlin, Germany evgeny.gorelik@campus.tu-berlin.de 
+
+2nd Kenny Dean Karrow 
+
+GT-ARC, TU Berlin 
+
+Berlin, Germany karrow@tu-berlin.de 
+
+3rd Dr. Fikret Sivrikaya 
+
+GT-ARC, TU Berlin 
+
+Berlin, Germany fikret.sivrikaya@tu-berlin.de 
+
+4th Prof. Sahin Albayrak 
+
+GT-ARC, TU Berlin 
+
+Berlin, Germany sahin.albayrak@tu-berlin.de 
+
+5th Christian Baumann 
+
+MAN Truck & Bus SE 
+
+Munich, Germany christian.baumann@man.eu 
+
+Abstract —We introduce a multi-view in-cabin monitoring dataset for public transportation with synchronized RGB and depth images from four inward-facing cameras and a rotat-ing LiDAR covering the vehicle interior of a digitalized and partly automated German city bus. The dataset contains 9,136 synchronized samples with annotations and is accompanied by a calibration and pseudo-labeling pipeline that generates 3D human pose estimates and oriented 3D bounding boxes for occupants. We further provide a nuScenes-format conversion and benchmark representative multi-view 3D detection mod-els (e.g., Lift-Splat-Shoot and BEVFusion), supporting com-parative evaluation and small-scale training of multi-view in-cabin perception models. The dataset and tools are available at https://github.com/EvgenyGorelik/multiview incabin dataset. 
+
+I. I NTRODUCTION 
+
+In recent years, autonomous driving has seen rapid progress in perception, planning, and control. In contrast, understanding what happens inside the vehicle—who is present, where they are located, and how they move—has received comparatively less attention. In-cabin monitoring addresses this gap by en-abling scene understanding within the passenger compartment. In public transportation, in-cabin perception can support occupant counting and localization, monitoring of boarding and alighting, assistance systems for passengers with reduced mobility, and early detection of hazardous or emergency situations. These applications benefit from robust 3D under-standing, but are challenging in practice due to crowding, severe occlusions, reflective surfaces, and limited viewpoints. A key bottleneck is data. Existing in-cabin datasets are often limited in scale and typically provide only a single camera view [1]–[5]. Moreover, multi-sensor calibration in buses is difficult because inward-facing cameras have only limited overlap. Covering the full cabin while reducing blind spots and handling occlusions therefore calls for a calibrated multi-view setup and synchronized multi-modal measurements. In this work, we present a multi-view in-cabin monitoring dataset for public transportation, captured inside a digitized German city bus with synchronized RGB, stereo depth, and LiDAR. The dataset is designed as a controlled testbed for multi-view in-cabin perception under strong occlusion. Specif-ically, we contribute:  
+
+> •
+
+a multi-view, multi-modal in-cabin dataset captured in a full-scale city-bus interior, released in the nuScenes format;  
+
+> •
+
+a practical calibration and pseudo-labeling pipeline that produces 3D pose estimates, cross-view tracks, and ori-ented 3D bounding boxes for occupants;  
+
+> •
+
+baseline results for representative state-of-the-art multi-view 3D detection models on the proposed benchmark. II. R ELATED WORK 
+
+This section reviews prior work on in-cabin datasets, multi-view and multi-modal sensing, 3D object detection, 3D hu-man pose estimation, and pseudo-labeling for semi-supervised learning. 
+
+A. In-Cabin Datasets 
+
+Publicly available datasets are essential for training and benchmarking in-cabin monitoring systems, yet existing re-sources remain comparatively limited in scale and scope. Although some datasets target specific tasks such as action recognition [5], others provide more general in-cabin annota-tions [1]. Mishra et al. [2] target FAV (Level 5) safety , where no human driver is present to manage the cabin, and empha-size irregular behavior recognition. Tsiktsiris et al. [6] focus on autonomous shuttle security via abnormal event/action monitoring. Mishra et al. [1] highlight a privacy–forensic balance using anonymization while maintaining evidential utility during abnormal events. Poon et al. [3] target driver and occupant status understanding using in-cabin action and object cues. Ciampi et al. [7] emphasize domain generalization 
+
+by evaluating violence detection “in-the-wild” across varied public-transport conditions. Lin et al. [5] study dangerous driver behavior with RGB-D sensing and multi-task super-vision. Lin & Tseng [8] focus on an overhead (top-down) perspective for crowded buses to reduce occlusions, which 
+
+> arXiv:2606.11739v1 [cs.CV] 10 Jun 2026
+
+complicates pose-based reasoning. Finally, Tsiktsiris et al. [4], [9] stress multimodal sensor fusion (RGB, depth, audio) to capture events that may be visually occluded. Table I summarizes representative datasets by sensing modality and supported tasks and annotations. 
+
+B. Multi-View Datasets 
+
+Most of the above in-cabin datasets rely on a single camera view, which restricts their applicability to larger vehicles and limits robustness under occlusion. In contrast, a multi-camera setup can increase coverage of the passenger compartment and reduce blind spots. In autonomous driving, multi-modal datasets are a standard foundation for perception research. They typically provide synchronized measurements from multiple cameras, LiDAR, RADAR, and localization sensors such as GPS and IMU. Representative examples include KITTI [10], nuScenes [11], the Waymo Open Dataset [12], and Argoverse/Argoverse 2 [13], [14]. However, these benchmarks are built around outward-facing, environment-centric sensor configurations and are therefore not directly transferable to in-cabin monitoring. Multi-sensor capture is also relatively uncommon in human pose estimation, where many benchmarks focus on monocular images, such as MPII [15] and COCO [16]. Multi-view datasets such as CMU Panoptic Studio [17] and Human3.6M [18] provide high-quality supervision, but are collected in controlled environments and do not reflect the geometry, viewpoints, and occlusions found in vehicle cabins. To the best of our knowledge there are no publicly available multi-view, multi-modal in-cabin datasets with 3D human pose annotations. 
+
+C. 3D Object Detection 
+
+3D object detection focuses on localizing and classifying objects directly in 3D space, typically by estimating an ori-ented 3D bounding box for each instance [19]. In autonomous driving, the dominant inputs are cameras and LiDAR: camera-based methods benefit from rich appearance cues but must infer depth, while LiDAR-based methods provide more direct geometric structure at the cost of sparse point measurements and higher sensor cost. Many modern approaches are designed to bridge these trade-offs through improved depth reasoning, multi-view geometry, or multi-modal fusion [20]–[23]. 
+
+1) Camera-based 3D Object Detection: Camera-only 3D detection is challenging because depth is not observed directly and must be inferred, for example via monocular depth cues or explicit depth estimation [20]. Due to this inherent ambiguity, monocular methods often lag behind LiDAR-based approaches in accuracy [24], but remain attractive because cameras are inexpensive and widely deployed. 
+
+2) Multi-View 3D Object Detection: Multi-view methods reduce depth ambiguity by aggregating information across camera views, often improving performance toward LiDAR-based baselines [20]. Approaches such as Lift-Splat-Shoot (LSS) [21] and BEVFormer [22] lift and project image features into a common BEV representation using calibrated camera geometry. Working in BEV also enables multi-modal fusion; for instance, BEVFusion [23] combines camera and LiDAR features in a shared representation. 
+
+D. 3D Human Pose Estimation 
+
+While 2D pose estimation has matured substantially (e.g., YOLO-Pose [25]), 3D pose estimation remains limited by depth ambiguity and by the availability of large-scale datasets with accurate 3D supervision. Methods such as SelfPose3D [26] and PoseFormer [27] are often trained and evaluated on CMU Panoptic Studio [17], but transferring to in-cabin setups is non-trivial due to different viewpoints and sensing configurations. Recent work such as SAM 3 Body 3D [28] explores monocular inference based on SAM 3 [29]. 
+
+E. Pseudo-Labeling and Semi-Supervised Learning 
+
+Pseudo-labeling is widely used to exploit unlabeled data in semi-supervised settings. A common strategy is to use a computationally expensive teacher model trained on labeled data to generate predictions on unlabeled data, and then train a smaller student model on these pseudo labels [30]. This idea is closely related to knowledge distillation [31] and has been applied to large-scale image classification [32], [33] and domain adaptation [34]. III. D ATASET 
+
+We present a multi-view in-cabin monitoring dataset cap-tured inside a digitized German city bus. The dataset consists of synchronized RGB and depth images from four inward-facing cameras and a rotating LiDAR, recorded in a stationary vehicle. 
+
+a) Scene content: The dataset contains scenes with 1–2 occupants performing a range of in-cabin activities, including entering or alighting the vehicle, walking through the cabin, and sitting or standing, as well as behaviors such as drinking (alcoholic or non-alcoholic) beverages and smoking. It further covers safety- and security-critical events such as vandalism, aggression, fighting, and armed robbery, and includes acces-sibility scenarios such as wheelchair entry. 
+
+b) Sensors and synchronization: Each camera is an Intel RealSense D435i connected to a Raspberry Pi. RGB streams run at 15 Hz and the LiDAR (Ouster OS0-128) runs at 10 Hz. We form one sample by pairing each LiDAR frame with the temporally closest frames from all cameras using timestamps. 
+
+c) Scale: Overall, we collect 10,034 synchronized sam-ples (LiDAR-timed), with corresponding multi-view images, with 9,136 of them containing valid annotations. We addition-ally store stereo depth from the RealSense devices from all cameras. 
+
+d) Calibration: We estimate the multi-camera extrinsics by reconstructing the cabin with COLMAP with scattered ArUco markers present in the scene, scaling and orient-ing the reconstruction into a metric frame from the known origin-marker size, and registering each camera against its ArUco corner correspondences. We then align LiDAR to the COLMAP frame via ICP registration. Dataset RGB Depth LiDAR Audio Action Pose Obj. Pub. Av.                                                                                                 
+
+> Mishra et al. (2020) [2] ✓–––✓–✓–Tsiktsiris et al. (2020) [6] ✓–––✓✓✓–Mishra et al. (2022) [1] ✓–––✓–✓–Poon et al. (2022) [3] ✓–––✓–✓–Ciampi et al. (2022) [7] ✓–––✓––✓
+> Lin et al. (2021/2023) [5] ✓✓––✓✓✓–Lin & Tseng (2024) [8] ✓–––✓–✓–Tsiktsiris et al. (2024) [9] ✓✓–✓✓–––Tsiktsiris et al. (2025) [4] ✓✓–✓✓✓✓–
+> Ours (this work) ✓✓✓–✓✓✓✓
+
+TABLE I: Comparison of representative in-cabin datasets by sensing modality and supported tasks/annotations. “Action” includes action/activity recognition; “Pose” includes 2D keypoints; “Obj.” includes object detection. The last column denotes whether the dataset is publicly available. 
+
+e) Annotations and tasks: We provide pseudo-labels for people in the cabin: 2D masks and boxes per view, recon-structed 3D meshes/skeletons per view, cross-view aggregated tracks, and derived oriented 3D bounding boxes. In addition, we provide hand-labeled action annotations for the occupants, covering both state categories ( sit , stand , hold on ) and action categories (e.g., drinking , smoking , punching , vandalizing ). The dataset is intended for benchmarking multi-view, camera-based 3D detection and for small-scale training. 
+
+f) Public release: The dataset and codebase (including the nuScenes-format conversion used in our experiments) will be released publicly upon publication. IV. M ETHODOLOGY 
+
+This section describes our pipeline for collecting and pro-cessing the proposed multi-view in-cabin dataset, including data acquisition, sensor calibration, pseudo-label generation, and 3D bounding-box extraction. The dataset is created using the following steps: 1) Data capture: Record calibrated and synchronized cam-era and LiDAR data. 2) 2D box extraction: Run a 2D detector to obtain candi-date person bounding boxes. 3) Manual filtering: Remove obvious false positives and inconsistent detections. 4) 3D pose estimation: Estimate a 3D human mesh and skeleton for each detection. 5) Multi-view track aggregation: Associate tracks across views and time. 6) 3D box extraction: Derive oriented 3D bounding boxes from the aggregated poses. The resulting dataset contains synchronized multi-view im-ages, LiDAR measurements, and pseudo-labels for people in the vehicle cabin, enabling training and evaluation of multi-view 3D perception methods. Figure 1 provides an overview of the pipeline. 
+
+A. Data Collection 
+
+We use a distributed capture setup based on Raspberry Pi devices, each connected to an Intel RealSense D435i camera, 
+
+Fig. 1: In-cabin monitoring dataset creation pipeline to record multi-view video inside the vehicle cabin. The devices are powered via a Power over Ethernet (PoE) switch and stream data to an NUC 11 running ROS 2. Camera clocks are synchronized via NTP with the NUC 11 acting as the central time server. We use Cyclone DDS as middleware to enable reliable, low-latency data transfer. The PoE switch provides 1 Gbps bandwidth, which is sufficient to stream compressed high-resolution images from each Raspberry Pi to the NUC 11. Figure 2 illustrates the overall setup. 
+
+Fig. 2: Data collection setup with Raspberry Pi devices and RealSense D435i camera. The cameras are positioned to capture complementary views of the passenger compartment, providing broad coverage for subsequent in-cabin analysis. Figure 3 shows the resulting sensor layout. We intentionally do not cover the driver cabin in order to focus on passenger monitoring. Figure 4 shows example frames from the four cameras. 
+
+Fig. 3: Sensor positions within the vehicle cabin. 
+
+Fig. 4: Sample frames from the four cameras showing different views of the vehicle interior. The Intel RealSense D435i provides a stereo-based depth estimation module that outputs metric depth measurements, with best performance at distances of approximately 0.3 m to 3.0 m. Example depth maps produced by this module are shown in Figure 5. 
+
+Fig. 5: Samples from RealSense D435i depth estimation Additionally, we mount an Ouster OS0-128 LiDAR inside the vehicle (black cylinder in Figure 3) to provide depth measurements. Figure 6 shows an example depth visualization. During data collection, we record synchronized RGB im-ages from all cameras together with the LiDAR point cloud. For the cameras we also store the stereo depth produced by the 
+
+Fig. 6: Sample depth image from the Ouster OS0-128 LiDAR. RealSense D435i. Table II summarizes the recorded modalities and the number of frames per sensor.                               
+
+> Device / Sensor Location Datatype Num. samples Camera 1 Center Left RGB 12862 Camera 1 Center Left Depth 13747 Camera 2 Front Right RGB 12992 Camera 2 Front Right Depth 13062 Camera 3 Front Left RGB 12890 Camera 3 Front Left Depth 12404 Camera 4 Back Right RGB 11821 Camera 4 Back Right Depth 12414 LiDAR Front Center Point cloud 10034
+
+TABLE II: Recorded data modalities by device and number of synchronized samples. The LiDAR operates at 10 Hz, whereas the cameras run at 15 Hz. We temporally align modalities by pairing each LiDAR frame with the closest camera frames in time using timestamps. We refer to one such aligned set (multi-view im-ages plus the corresponding LiDAR frame) as a data sample .This terminology matches other multi-modal datasets such as Waymo and KITTI [10], [12]; in contrast, nuScenes [11] uses a 2 Hz annotated sample rate and represents intermediate frames as sweeps. Overall, we collect 10,034 synchronized samples consisting of multi-view camera images and LiDAR depth data. 
+
+B. Sensor Calibration 
+
+To enable accurate sensor fusion, we require both intrinsic and extrinsic calibration for the cameras and the LiDAR. For intrinsics (focal length, principal point, and distortion), we use the manufacturer-provided parameters of the RealSense D435i, which we found sufficient in practice. Extrinsic calibration aligns all sensors into a common coordinate system. While multi-camera and camera–LiDAR calibration are well studied in autonomous driving, many established methods assume outward-facing sensors with over-lapping fields of view. In our setting, the cameras face inward and their views overlap only minimally (Figure 3), which makes standard target-based [35] and targetless [36], [37] approaches difficult to apply. We therefore perform extrinsic calibration in two stages. We scatter ArUco markers of known size throughout the scene, ensuring that each camera to be calibrated observes several markers. One additional marker is deliberately placed at the vehicle’s lateral centerline, aligned with the longitudinal axis, and is used as the origin (base link) for all coordinate transformations. Because this marker is mounted level with the bus floor, it provides a ground-aligned reference frame and removes the need for explicit ground-plane estimation. M-ID Avg M-ID Avg M-ID Avg 0 0.17000 5 0.17561 10 0.18732 1 0.17583 6 0.17262 11 † 0.19836 2 0.17569 7 0.17365 12 0.17192 3 0.17755 8 0.17448 13 0.17789 4 0.17694 9 0.17699 14 0.17526 
+
+> Mean edge length (excl. 11): 0.17584
+
+TABLE III: Average edge length for each marker ID (in meters). †Marker 11 is excluded from calibration due to insufficient visibility in the cameras. The mean is computed over the remaining markers. In the first stage, we reconstruct the cabin geometry. We record a handheld video of the interior, extract its frames, bin them temporally, and keep the sharpest frame per bin according to a Laplacian-variance sharpness measure. We then run COLMAP Structure from Motion (SfM) with a sequential feature matcher to obtain a sparse reconstruction of the cabin, which we densify with COLMAP Multi-View Stereo (MVS) [38], [39]. In the second stage, we bring this reconstruction into the metric reference frame. We detect the corners of every marker in the reconstruction and, using the known side length of the origin marker, estimate a similarity transform that maps the middle of the marker to the origin, fixing both the metric scale and the orientation of the scene [40]. Applying this transform to the full reconstruction yields a metric model. We then register each camera by minimizing a Huber loss on the distance between its detected ArUco corners and the corresponding reconstructed corners. Finally, we crop and statistically clean the dense point cloud. We measure the edge length of the marker to be 0.1700 m and validate the metric consistency of the reconstruction by computing the average reconstructed edge length for each marker. As shown in Table III, the edge lengths are recovered accurately for most markers, with an overall mean recon-structed edge length of 0.17584 m and a fitted mean residual of 0.67 mm at the four corners of the origin marker. 
+
+Fig. 7: Densified and downsampled 3D point cloud recon-structed using COLMAP Finally, we estimate the LiDAR extrinsics by aligning the LiDAR point cloud with the COLMAP reconstruction using an ICP-based registration [41], achieving a fitness score of 0.0869 and a RMSE of 0.0071. This provides the LiDAR pose in the same coordinate system as the cameras. Figure 8 visualizes the COLMAP reconstruction and Fig-ure 9 visualizes the LiDAR point cloud after alignment. 
+
+Fig. 8: Reconstructed point cloud from COLMAP reprojected into camera views 
+
+Fig. 9: LiDAR scan after ICP reprojected into camera views 
+
+C. 3D Human Pose Estimation 
+
+We implement a pseudo-labeling pipeline that produces 3D bounding boxes for people inside vehicles. Specifically, we use SAM 3 [29] to obtain segmentation masks and 2D bounding boxes, and SAM 3 Body 3D [28] to estimate 3D human meshes and poses. Figure 10 illustrates the per-camera pseudo-label generation process. We apply the same procedure to all four cameras, yielding a set of per-view 3D poses for each time step. 
+
+Fig. 10: Overview of the pseudo-label generation process for a single camera. Table IV reports the number of manually filtered 2D bounding boxes for each camera. Most rejected detections correspond to symbols or pictures of humans that are falsely labeled as real people; since these artifacts are stationary, we automatically remove them using a fixed region-of-interest crop. As a result, only a small subset of cases—primarily reflections and duplicate detections—required manual filtering. Camera Valid boxes Filtered boxes         
+
+> Back right 14645 366 Front left 15688 486 Front right 13824 1345 Center left 8475 14265
+
+TABLE IV: Per-camera statistics of 2D bounding boxes used for 3D pose estimation. SAM 3 Body 3D follows a three-stage procedure: it (i) detects 2D bounding boxes, (ii) estimates camera intrinsics, and (iii) reconstructs a 3D human mesh (and corresponding 3D skeleton) for each detection. In our pipeline, we bypass the first two stages by providing the image, the manually filtered 2D boxes, and the known camera intrinsics as input to the final stage. The output is a 3D mesh and skeleton in the camera coordinate system (Figure 11). 
+
+Fig. 11: Joints (blue) and 3D mesh generated (red) from SAM 3 Body 3D inference 
+
+D. Multi-View Track Aggregation 
+
+The above pipeline produces at most one 3D mesh per per-son and time step per view . Since views overlap, the SAM 3 Body 3D model can generate multiple meshes for the same individual from different cameras (see Figure 12). To enable quality control and consistent association, we first construct per-camera temporal tracks by applying ByteTrack [42] to the SAM 3 2D bounding boxes. For each camera c, this yields a set of tracks 
+
+T c = {T c 
+
+> 1
+
+, T c 
+
+> 2
+
+, . . . , T cn | T ci = ( c, s, id, τ )} . (1) Here, T ci is the i-th track in camera c with bounding-box center 
+
+c and size s, a unique track identifier id , and timestamp τ .We treat these per-camera track IDs as the atomic units to be associated across views. We then associate each tracked detection with its SAM 3 Body 3D output, representing the resulting 3D pose (in the global base frame) as a matrix of J = 70 joints: 
+
+Hc = (T ci , Pci ) T ci ∈ T c, Pci ∈ R3×J . (2) These pairings provide an estimated pose for each tracked detection from each camera, which is then used for multi-view pose aggregation. 
+
+Fig. 12: Example of the generated 3D meshes from Camera 1, Camera 2, Camera 3 and Camera 4 for all people in the scene We observe that, for a single person, the SAM3 Body 3D outputs from different cameras can disagree by up to ≈ 1 m 
+
+in the BEV plane (Figure 13). We therefore use the following three-step multi-view pose aggregation:  
+
+> •
+
+Camera-constrained clustering: cluster the per-view pose hypotheses while enforcing that a cluster contains at most one detection per camera.  
+
+> •
+
+Median pose selection: reduce each cluster to a single robust representative by selecting the hypothesis closest to the cluster centroid.  
+
+> •
+
+Multi-view pose refinement: translate the selected 3D pose to minimize multi-view reprojection error across all cameras. For camera-constrained clustering we implement the follow-ing logic: 1) Calculate H as Hc for all cameras c
+
+2) Create tuples t = ( id, c, P)
+
+3) Start with a random tuple t1 and assign it to cluster 1 4) For all other tuples ti ∈ { t2, . . . , t N } and all clusters Cj
+
+with cluster centroid kj : if || Pi − kj || < ϵ and not ci
+
+in Cj add ti to Cj else assign it to a new cluster The camera constraint is crucial because, in crowded scenes, the intra-cluster variation can exceed the physical distance be-tween nearby people (e.g., during physical contact). A purely distance-based clustering threshold would therefore either (i) be too small and split the same person into multiple clusters or (ii) be too large and merge two different people. By preventing two detections from the same camera from entering the same cluster, we can use a more permissive spatial threshold while substantially reducing the risk of merging distinct individuals. After clustering, we must select a single pose per person. Since pose estimation can produce outliers, directly averaging all hypotheses may degrade quality. We instead compute the centroid of each cluster and choose the pose with minimal ℓ2
+
+distance to this centroid (Figure 13, right). Once a representative pose is selected, we refine its 3D translation so that its joint projections agree with the 2D observations in all cameras. While absolute metric depth Fig. 13: BEV projection of poses (left) and median pose selection (right) from a single view is less reliable (especially at long range), the 2D joint projections are accurate in most frames. We therefore minimize the multi-view reprojection error between the selected 3D pose and the per-camera SAM3 Body 3D outputs reprojected into the images, optimizing only the global translation using Nelder–Mead [43]. 
+
+Fig. 14: Refinement for projected poses from multiple views (before and after) 
+
+Fig. 15: LiDAR points with refined poses We qualitatively validate metric accuracy of the refined 3D poses by transforming the according meshes into the LiDAR reference frame. As shown in Figure 15, the meshes align well with the LiDAR point cloud. Finally, we convert each refined pose to a BEV bounding box and use these boxes as detections for a second ByteTrack pass, yielding a temporally consistent identity for each person. As a final quality-control step, we manually curate the resulting tracks: we select the set of track identifiers cor-responding to the instances we want to keep and remove remaining faulty detections that persist despite the multi-view aggregation. A visual review identified 48 cases across the dataset in which a pose wrongly assigned to cluster using the aforementioned aggregation procedure with ϵ = 1 m. 
+
+E. 3D Bounding Box Extraction 
+
+We next derive a 3D bounding box for every tracked person at each time step from the reconstructed body geometry. In line with standard autonomous-driving representations, each instance is encoded as an oriented 3D cuboid specified by its center (x, y, z ), side lengths (l, w, h ), and a yaw angle θ.Given a refined pose Piτ at timestamp τ , we compute the box by first expressing the pose points in a person-centric coordinate frame and then taking the axis-aligned bounds in that frame: 
+
+Bi = AABB 3
+
+ 
+
+T−1
+
+p
+
+1
+
+
+
+p ∈ P iτ
+
+ 
+
+. (3) To obtain a canonical orientation, we define T ∈ R4×4
+
+as the rigid transform from the world origin to a pelvis-centered frame whose origin is the midpoint between the left and right hip joints, and whose heading is given by the forward yaw direction at this point. Computing the bounds in this normalized frame yields a tight box whose orientation follows the subject’s hip rotation. Figure 16 shows an example of the resulting 3D boxes. 
+
+Fig. 16: Example of 3D bounding box extraction from the generated 3D mesh. 
+
+F. Action Recognition 
+
+In addition to the pseudo-labels for 3D pose and 3D bound-ing boxes, we provide an action label for each visible person at every timestamp. We distinguish between state labels that describe the occupant’s posture or locomotion ( sit , sit down ,
+
+stand up , stand , walk , enter vehicle , exit vehicle , hold on )Drinking Alcohol Smoking Vandalism     
+
+> Defacement Littering Lost Item
+> Armed Mugging Violence Wheelchair Assistance
+
+TABLE V: Action recognition qualitative examples. and action labels that capture semantically meaningful inter-actions or abnormal events ( drinking non-/alcoholic beverages ,
+
+smoking , defacement , vandalism , lost item , mugging , pushing ,
+
+littering , punching ). The resulting taxonomy is inspired by prior in-cabin datasets [1], [4], [6], [7].  
+
+> (a) Frame count for actions (b) Frame count for states
+
+Fig. 17: Frame distribution for actions and states Although these labels are not used in the experiments presented in this work, they support future Human Action Recognition (HAR) studies in the proposed in-cabin setting [44]. In contrast to large-scale HAR benchmarks such as Kinetics-400 [45], we intentionally keep the label set compact: our primary goal is accurate occupant localization, and the action annotations are provided as auxiliary supervision and for downstream analysis. Figure 17 summarizes the label distribution, and qualitative examples are shown in Table V. V. E XPERIMENTS 
+
+In this section, we evaluate state-of-the-art multi-view 3D object detection methods on the proposed in-cabin dataset. Although the dataset provides synchronized RGB and LiDAR, our primary focus is on camera-based, multi-view models that do not require LiDAR at inference time. To ensure compatibility with existing codebases, we convert the data to the nuScenes format [11]. Because the vehicle remains stationary during data collection, we use a constant ego pose across frames. We evaluate Lift-Splat-Shoot (LSS) [21] with two back-bones: ResNet 50 [46] and SwinT [47] as well as two variants of the VTransform module: LSS-Transform and AwareBEVDepth-Transform (ABD-Transform). In LSS-Transform, each camera image is resized and encoded into per-pixel features, and each pixel is “lifted” into a discrete set of depth bins, yielding a stack of frustum features that are then geometrically projected and aggregated into the BEV grid. ABD-Transform augments this lift step with explicit depth supervision: LiDAR points are projected into each image to form sparse depth labels, and an additional depth loss is minimized during training to encourage accurate per-pixel depth distributions while still performing camera-only inference at test time.                         
+
+> Model AP 0.2m AP 0.5m AP 1.0m AP 1.5m
+> ResNet 0.7341 0.9630 0.9879 0.9880 ResNet-ABD 0.6759 0.9397 0.9850 0.9853 SwinT 0.3482 0.7563 0.8594 0.9218 SwinT-ABD 0.3600 0.7334 0.8698 0.9391 BEVFusion 0.1870 0.7337 0.7549 0.7550
+
+TABLE VI: Average precision (AP ↑) at different distance thresholds on the multi-view in-cabin dataset. 
+
+Fig. 18: mAP values on validation set Table VI summarizes the performance of the evaluated models on our multi-view in-cabin dataset. We remove sam-ples without annotations and split the data into 80%/20% training/validation sets, resulting in 7,128 training samples and 2,008 validation samples. We report standard nuScenes-style detection metrics: Aver-age Precision (AP) at distance thresholds of 0.2 m, 0.5 m, 1.0 m, and 1.5 m, as well as Average Translation Error (ATE), Average Scale Error (ASE), and Average Orientation Error (AOE). We adapt the default nuScenes point-cloud range from [-51.2, -51.2, -10, 51.2, 51.2, 10] m to 
+
+[-12.8, -12.8, -3, 12.8, 12.8, 3] m to match the in-cabin scale. All remaining hyperparameters follow the default configurations of the respective implementations. All LSS models were trained for 64 epochs, and the evolution of mAP on the validation set is shown in Figure 18. We additionally train BEVFusion [23], a multi-modal fu-sion architecture that stacks LiDAR and image features in BEV space. Although the original BEVFusion design is expected to outperform camera-only baselines, in our experiments the camera-only branch achieves higher performance than the multimodal variant. We attribute this discrepancy to the strong reliance of BEVFusion on the LiDAR stream and to limitations Item Value       
+
+> Samples ( sample )9,136 Sample data ( sample_data )45,680 Sample annotations ( sample_annotation )13,484 Total scenes 10 Train / Val scenes 8 / 2 Train / Val samples 7,128 / 2,008 n
+
+TABLE VII: nuScenes dataset statistics for in-cabin dataset of the SECOND [48] backbone in the constrained vehicle-interior setting. To characterize viewpoint-specific difficulty, we measure a missed-detection rate per-camera using Ultralytics YOLO26x [49] in the complete evaluated dataset ( N = 13484 detec-tions). Here, a miss is counted when a person is present in the scene but is not detected in a given camera view. 
+
+Camera Miss rate Misses/Total 
+
+Back right 24.28% 3274/13484 Center left 60.69% 8183/13484 Front left 18.78% 2532/13484 Front right 31.20% 4207/13484 
+
+TABLE VIII: Per-camera missed-detection rates on the com-plete evaluated dataset measured with Ultralytics YOLO26x [49]. Table VIII summarizes the resulting miss rates. Even at its best, a miss rate of 18 .78% implies that single-view detection is insufficient for vehicles at this scale, motivating a multi-view setup. VI. C ONCLUSION 
+
+We introduced a multi-view, multi-modal in-cabin moni-toring dataset captured in a digitized city bus, together with a calibration and pseudo-labeling pipeline that generates 3D human pose estimates and oriented 3D bounding boxes for occupants. We also benchmarked representative multi-view 3D detection models on the resulting annotations to establish baselines for future work. 
+
+a) Calibration.: We assess calibration quality at three levels. (i) The reconstructed cabin geometry is metrically consistent, as reflected by the marker edge-length statistics in Table III. (ii) Camera extrinsics remain stable under a PnP-based alignment, supporting consistent multi-view association. (iii) The LiDAR frame can be aligned to the COLMAP reconstruction via ICP, enabling cross-modal registration and reliable LiDAR-to-image reprojection. 
+
+b) Pseudo-label quality.: Our multi-view aggregation strategy can separate multiple occupants while favoring tem-porally consistent tracks, but it is not failure-free: identities can still be merged or split, and the selected representative pose can be suboptimal under heavy occlusion. The subsequent multi-view refinement improves positional consistency across cameras. 
+
+c) Limitations and future work.: Although the trained de-tectors achieve strong performance at larger matching thresh-olds (Table VI), performance at tight thresholds highlights remaining label noise and calibration sensitivity. Increasing dataset size and diversity (vehicles, sensor placements, il-lumination, and passenger demographics) is a key direction to improve generalization. Finally, while we provide per-frame action/state labels, training and benchmarking dedicated action-recognition models in this setting is left for future work. ACKNOWLEDGMENT 
+
+This work was conducted within the project “Automation of Non-Driving Functions”, a PhD research collaboration between GT-ARC gemeinn¨ utzige GmbH, MAN Truck & Bus SE, and TU Berlin. The project is funded and supervised by MAN and builds on resources developed in the government-funded BeIntelli project. In particular, we use the BeIntelli bus, which was procured and digitalized by GT-ARC and the DAI-Laboratory of TU Berlin with funding from the German Federal Ministry of Digital and Transport in the context of BeIntelli project. REFERENCES [1] A. Mishra, S. Lee, D. Kim, and S. Kim, “In-cabin monitoring system for autonomous vehicles,” Sensors , vol. 22, no. 12, p. 4360, 2022. [2] A. Mishra, J. Kim, D. Kim, J. Cha, and S. Kim, “An intelligent in-cabin monitoring system in fully autonomous vehicles,” in 2020 International SoC Design Conference (ISOCC) . IEEE, 2020, pp. 61–62. [3] Y.-S. Poon, C.-C. Lin, Y.-H. Liu, and C.-P. Fan, “Yolo-based deep learn-ing design for in-cabin monitoring system with fisheye-lens camera,” in                                                 
+
+> 2022 IEEE International Conference on Consumer Electronics (ICCE) .IEEE, 2022, pp. 1–4. [4] D. Tsiktsiris, A. Lalas, M. Dasygenis, and K. Votis, “A complete in-cabin monitoring framework for autonomous vehicles in public transportation,”
+> IET Intelligent Transport Systems , vol. 19, no. 1, p. e12612, 2025. [5] D. Lin, P. H. Y. Lee, Y. Li, R. Wang, K.-H. Yap, B. Li, and Y. S. Ngim, “Multi-modality action recognition based on dual feature shift in vehicle cabin monitoring,” in ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) .IEEE, 2024, pp. 6480–6484. [6] D. Tsiktsiris, N. Dimitriou, A. Lalas, M. Dasygenis, K. Votis, and D. Tzovaras, “Real-time abnormal event detection for enhanced security in autonomous shuttles mobility infrastructures,” Sensors ,vol. 20, no. 17, 2020. [Online]. Available: https://www.mdpi.com/ 1424-8220/20/17/4943 [7] L. Ciampi, P. Foszner, N. Messina, M. Staniszewski, C. Gennaro, F. Falchi, G. Serao, M. Cogiel, D. Golba, A. Szczesna et al. , “Bus violence: An open benchmark for video violence detection on public transport,” Sensors , vol. 22, no. 21, p. 8345, 2022. [8] H.-Y. Lin and C.-H. Tseng, “Abnormal activity detection and classifi-cation of bus passengers with in-vehicle image sensing,” IEEE Access ,2024. [9] D. Tsiktsiris, A. Lalas, M. Dasygenis, and K. Votis, “Improving passen-ger detection with overhead fisheye imaging,” IEEE Access , vol. 12, pp. 66 237–66 247, 2024. [10] A. Geiger, P. Lenz, C. Stiller, and R. Urtasun, “Vision meets robotics: The kitti dataset,” The international journal of robotics research , vol. 32, no. 11, pp. 1231–1237, 2013. [11] H. Caesar, V. Bankiti, A. H. Lang, S. Vora, V. E. Liong, Q. Xu, A. Krishnan, Y. Pan, G. Baldan, and O. Beijbom, “nuscenes: Amultimodal dataset for autonomous driving,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2020, pp. 11 621–11 631.
+
+[12] P. Sun, H. Kretzschmar, X. Dotiwalla, A. Chouard, V. Patnaik, P. Tsui, J. Guo, Y. Zhou, Y. Chai, B. Caine et al. , “Scalability in perception for autonomous driving: Waymo open dataset,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2020, pp. 2446–2454. [13] M.-F. Chang, J. Lambert, P. Sangkloy, J. Singh, S. Bak, A. Hartnett, D. Wang, P. Carr, S. Lucey, D. Ramanan et al. , “Argoverse: 3d tracking and forecasting with rich maps,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019, pp. 8748– 8757. [14] B. Wilson, W. Qi, T. Agarwal, J. Lambert, J. Singh, S. Khandelwal, B. Pan, R. Kumar, A. Hartnett, J. K. Pontes et al. , “Argoverse 2: Next generation datasets for self-driving perception and forecasting,” arXiv preprint arXiv:2301.00493 , 2023. [15] M. Andriluka, L. Pishchulin, P. Gehler, and B. Schiele, “2d human pose estimation: New benchmark and state of the art analysis,” in Proceedings of the IEEE Conference on computer Vision and Pattern Recognition ,2014, pp. 3686–3693. [16] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Doll´ ar, and C. L. Zitnick, “Microsoft coco: Common objects in context,” in European conference on computer vision . Springer, 2014, pp. 740–755. [17] H. Joo, H. Liu, L. Tan, L. Gui, B. Nabbe, I. Matthews, T. Kanade, S. Nobuhara, and Y. Sheikh, “Panoptic studio: A massively multiview system for social motion capture,” in Proceedings of the IEEE interna-tional conference on computer vision , 2015, pp. 3334–3342. [18] C. Ionescu, D. Papava, V. Olaru, and C. Sminchisescu, “Human3. 6m: Large scale datasets and predictive methods for 3d human sensing in natural environments,” IEEE transactions on pattern analysis and machine intelligence , vol. 36, no. 7, pp. 1325–1339, 2013. [19] J. Mao, S. Shi, X. Wang, and H. Li, “3d object detection for autonomous driving: A comprehensive survey,” International Journal of Computer Vision , vol. 131, no. 8, pp. 1909–1963, 2023. [20] Y. Ming, X. Meng, C. Fan, and H. Yu, “Deep learning for monocular depth estimation: A review,” Neurocomputing , vol. 438, pp. 14–33, 2021. [21] J. Philion and S. Fidler, “Lift, splat, shoot: Encoding images from arbitrary camera rigs by implicitly unprojecting to 3d,” in European conference on computer vision . Springer, 2020, pp. 194–210. [22] Z. Li, W. Wang, H. Li, E. Xie, C. Sima, T. Lu, Q. Yu, and J. Dai, “Bevformer: learning bird’s-eye-view representation from lidar-camera via spatiotemporal transformers,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 47, no. 3, pp. 2020–2036, 2024. [23] Z. Liu, H. Tang, A. Amini, X. Yang, H. Mao, D. L. Rus, and S. Han, “Bevfusion: Multi-task multi-sensor fusion with unified bird’s-eye view representation,” in 2023 IEEE international conference on robotics and automation (ICRA) . IEEE, 2023, pp. 2774–2781. [24] M. Valverde, A. Moutinho, and J.-V. Zacchi, “A survey of deep learning-based 3d object detection methods for autonomous driving across dif-ferent sensor modalities,” Sensors (Basel, Switzerland) , vol. 25, no. 17, p. 5264, 2025. [25] D. Maji, S. Nagori, M. Mathew, and D. Poddar, “Yolo-pose: Enhancing yolo for multi person pose estimation using object keypoint similarity loss,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 2637–2646. [26] V. Srivastav, K. Chen, and N. Padoy, “Selfpose3d: Self-supervised multi-person multi-view 3d pose estimation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2024, pp. 2502–2512. [27] C. Zheng, S. Zhu, M. Mendieta, T. Yang, C. Chen, and Z. Ding, “3d human pose estimation with spatial and temporal transformers,” 
+
+Proceedings of the IEEE International Conference on Computer Vision (ICCV) , 2021. [28] X. Yang, D. Kukreja, D. Pinkus, A. Sagar, T. Fan, J. Park, S. Shin, J. Cao, J. Liu, N. Ugrinovic et al. , “Sam 3d body: Robust full-body human mesh recovery,” arXiv preprint arXiv:2602.15989 , 2026. [29] N. Carion, L. Gustafson, Y.-T. Hu, S. Debnath, R. Hu, D. Suris, C. Ryali, K. V. Alwala, H. Khedr, A. Huang et al. , “Sam 3: Segment anything with concepts,” arXiv preprint arXiv:2511.16719 , 2025. [30] D.-H. Lee et al. , “Pseudo-label: The simple and efficient semi-supervised learning method for deep neural networks,” in Workshop on challenges in representation learning, ICML , vol. 3. Atlanta, 2013, p. 896. [31] G. Hinton, O. Vinyals, and J. Dean, “Distilling the knowledge in a neural network,” arXiv preprint arXiv:1503.02531 , 2015. [32] I. Z. Yalniz, H. J´ egou, K. Chen, M. Paluri, and D. Mahajan, “Billion-scale semi-supervised learning for image classification,” arXiv preprint arXiv:1905.00546 , 2019. [33] Q. Xie, M.-T. Luong, E. Hovy, and Q. V. Le, “Self-training with noisy student improves imagenet classification,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2020, pp. 10 687–10 698. [34] G. French, M. Mackiewicz, and M. Fisher, “Self-ensembling for visual domain adaptation,” arXiv preprint arXiv:1706.05208 , 2017. [35] J.-K. Huang and J. W. Grizzle, “Improvements to target-based 3d lidar to camera calibration,” IEEE Access , vol. 8, pp. 134 101–134 110, 2020. [36] K. Koide, S. Oishi, M. Yokozuka, and A. Banno, “General, single-shot, target-less, and automatic lidar-camera extrinsic calibration toolbox,” 
+
+arXiv preprint arXiv:2302.05094 , 2023. [37] G. Yan, Z. Liu, C. Wang, C. Shi, P. Wei, X. Cai, T. Ma, Z. Liu, Z. Zhong, Y. Liu et al. , “Opencalib: A multi-sensor calibration toolbox for autonomous driving,” Software Impacts , vol. 14, p. 100393, 2022. [38] J. L. Sch¨ onberger and J.-M. Frahm, “Structure-from-motion revisited,” in Conference on Computer Vision and Pattern Recognition (CVPR) ,2016. [39] B. Leibe et al. , “Pixelwise instance segmentation with a dynamically instantiated network,” in Proceedings of the IEEE Conference on Com-puter Vision and Pattern Recognition , 2016, pp. 123–132. [40] L. Meyer, A. Gilson, O. Scholz, and M. Stamminger, “Cherrypicker: Semantic skeletonization and topological reconstruction of cherry trees,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, pp. 6244–6253. [41] Y. Chen and G. Medioni, “Object modelling by registration of multiple range images,” Image and vision computing , vol. 10, no. 3, pp. 145–155, 1992. [42] Y. Zhang, P. Sun, Y. Jiang, D. Yu, F. Weng, Z. Yuan, P. Luo, W. Liu, and X. Wang, “Bytetrack: Multi-object tracking by associating every detection box,” in European conference on computer vision . Springer, 2022, pp. 1–21. [43] J. A. Nelder and R. Mead, “A simplex method for function minimiza-tion,” The computer journal , vol. 7, no. 4, pp. 308–313, 1965. [44] Z. Sun, Q. Ke, H. Rahmani, M. Bennamoun, G. Wang, and J. Liu, “Human action recognition from various data modalities: A review,” 
+
+IEEE transactions on pattern analysis and machine intelligence , vol. 45, no. 3, pp. 3200–3225, 2022. [45] W. Kay, J. Carreira, K. Simonyan, B. Zhang, C. Hillier, S. Vijaya-narasimhan, F. Viola, T. Green, T. Back, P. Natsev et al. , “The kinetics human action video dataset,” arXiv preprint arXiv:1705.06950 , 2017. [46] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2016, pp. 770–778. [47] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo, “Swin transformer: Hierarchical vision transformer using shifted windows,” in Proceedings of the IEEE/CVF international conference on computer vision , 2021, pp. 10 012–10 022. [48] Y. Yan, Y. Mao, and B. Li, “Second: Sparsely embedded convolutional detection,” Sensors , vol. 18, no. 10, p. 3337, 2018. [49] G. Jocher, J. Qiu, and A. Chaurasia, “Ultralytics YOLO,” Jan. 2023. [Online]. Available: https://github.com/ultralytics/ultralytics

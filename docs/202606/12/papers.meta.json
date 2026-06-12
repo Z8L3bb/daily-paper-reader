@@ -1,0 +1,24 @@
+{
+  "label": "2026-06-12",
+  "date": "2026-06-12",
+  "generated_at": "2026-06-12T22:01:26",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202606/12/2606.11739v1-multi-view-in-cabin-monitoring-system-for-public-transport-vehicles",
+      "section": "quick",
+      "title_en": "Multi-View In-Cabin Monitoring System for Public Transport Vehicles",
+      "authors": "Evgeny Gorelik, Kenny Dean Karrow, Fikret Sivrikaya, Sahin Albayrak, Christian Baumann",
+      "date": "2026-06-10",
+      "pdf": "https://arxiv.org/pdf/2606.11739v1",
+      "score": "6.0",
+      "evidence": "发布包含LiDAR和RGB-D的多视角车内数据集，提供3D边界框标注并基准评测3D检测模型",
+      "tldr": "本文发布一个公共交通车内监测数据集，同步采集四路相机、深度和旋转LiDAR数据，提供9000余样本的三维人体边界框与姿态标注，并转换nuScenes格式以基准评测多视角三维检测模型，填补了车内多模态感知数据集的空白，为公共交通场景的3D感知研究提供支撑。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "We introduce a multi-view in-cabin monitoring dataset for public transportation with synchronized RGB and depth images from four inward-facing cameras and a rotating LiDAR covering the vehicle interior of a digitalized and partly automated German city bus. The dataset contains 9.136 synchronized samples with annotations and is accompanied by a calibration and pseudo-labeling pipeline that generates 3D human pose estimates and oriented 3D bounding boxes for occupants. We further provide a nuScenes-format conversion and benchmark representative multi-view 3D detection models (e.g., Lift-Splat-Shoot and BEVFusion), supporting comparative evaluation and small-scale training of multi-view in-cabin perception models. The dataset and tools are available at https://github.com/EvgenyGorelik/multiview_incabin_dataset.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
