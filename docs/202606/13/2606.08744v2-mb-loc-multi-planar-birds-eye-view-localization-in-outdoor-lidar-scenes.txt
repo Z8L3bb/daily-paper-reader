@@ -1,0 +1,523 @@
+Title: MB-Loc: Multi-planar Bird's-eye-view Localization in outdoor LiDAR scenes
+
+URL Source: https://arxiv.org/pdf/2606.08744v2
+
+Published Time: Thu, 11 Jun 2026 00:38:43 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# MB-Loc: Multi-planar Bird’s-eye-view Localization in outdoor LiDAR scenes 
+
+Ayaan Choudhury Preet Savalia Anirudh Pydah Avinash Sharma 
+
+Indian Institute of Technology Jodhpur, India 
+
+{b23me1013, b22ai036, anirudhp, avinashsharma }@iitj.ac.in 
+
+Abstract: Global LiDAR localization is a fundamental task for autonomous nav-igation systems. Recent methods perform Scene Coordinate Regression (SCR) and achieve superior accuracy over Absolute Pose Regression (APR) solutions by predicting dense 3D world coordinates. However, SCR approaches intro-duce two major bottlenecks: severe computational inefficiency from processing raw 3D geometries and significant performance degradation under varying sensor viewpoints. To address these limitations, we present MB-Loc, a lightweight and viewpoint-robust SCR framework. Instead of relying on heavy 3D convolutions, we project the input LiDAR scan into a 2.5D Multi-planar Bird’s-Eye View (BEV) representation. By slicing the point-cloud along the Z-axis and mapping signed depths into discrete 2D planes, MB-Loc retains essential 3D geometric structures while exploiting the computational tractability of standard 2D CNNs. To han-dle the inherent sparsity of outdoor LiDAR, we introduce a KL-regularized latent bottleneck that explicitly models spatial uncertainty without injecting stochastic noise. Finally, to ensure rotation robustness, we apply 3D spatial augmenta-tions prior to planar projection, forcing the network to implicitly learn viewpoint-invariant features. We perform extensive experiments on the publicly available NCLT dataset and demonstrate that our proposed method outperforms the current state-of-the-art. Operating at real-time inference speeds, MB-Loc significantly outperforms traditional 3D-SCR architectures in computational efficiency. 
+
+Keywords: Autonomous driving and flight, Learning representations for robotic perception and control, Scene Coordinate Regression, Multi-plane BEV 
+
+# 1 Introduction 
+
+A robust localization task enables a robot to find its 6-Degree-of-Freedom (DoF) pose given a query (local) observation and a pre-built global reference map, thus serving as the critical anchor for any autonomous navigation system. In the context of LiDAR-based sensing, the objective is to estimate a precise 6-DoF robot pose in a 3D reference (global) point-cloud map using an input (local) point-cloud captured at a specific time. There are multiple challenges associated with the aforementioned task, namely, under-sampling of smaller 3D structures in the scene, LiDAR sensor noise and beam divergence behavior, dynamic nature of scenes, severe view-specific occlusions in sensing and often redundant sampling in certain areas like ground points. Additionally, faster inference is critical in real-time navigation scenarios. Traditionally, global LiDAR localization methods [1, 2] relied on handcrafted or learned local fea-ture descriptors to establish 3D correspondences between query scans and pre-built reference maps, followed by RANSAC-based [3] pose estimation. However, these methods are highly susceptible to sensor noise, occlusions and often have slow inference time. Recently, learning-based method-ologies have dominated this domain, where the two key directions are Absolute Pose Regression (APR) [4, 5, 6, 7, 8, 9] and Scene Coordinate Regression (SCR) [10, 11, 12]. The former attempts to directly map the high-dimensional point-clouds to a low-dimensional global pose vector through 
+
+> arXiv:2606.08744v2 [cs.CV] 10 Jun 2026
+
+Figure 1: LiDAR localization performance vs. inference trade-off on NCLT [13] dataset. a deep neural network. While favored for their compact architectures and low-latency inference, the APR approach is fundamentally ill-posed as it attempts to memorize point-cloud coordinates. Conversely, the latter (i.e., SCR) directly regresses the 3D world coordinates for input query scans and subsequently establishes explicit 3D-to-3D geometric correspondences between the current ob-servation scan and the global reference map. However, contemporary SCR methods introduce a major operational challenge: computational inefficiency. To preserve the complex geometric struc-tures of outdoor environments, SCR networks rely heavily on 3D sparse convolutions or heavy point-based architectures. A common alternative to reduce dimensionality is to project the 3D point-clouds into 2D planes. However, standard 2D Bird’s-Eye-View (BEV) projections suffer from severe top-down occlusion, where higher structures like tree canopies overwrite crucial ground-level features like curbs, resulting in catastrophic geometric information loss and degraded localization accuracy. In this work, we propose MB-Loc , a novel and lightweight SCR framework that bridges the gap between computational efficiency and geometric fidelity. First, we propose a novel efficient repre-sentation for LiDAR point-cloud scan. Instead of relying on expensive 3D architectures or using a single 2D BEV representation (with significant quantization), we encode the input LiDAR scan into a 2.5D Multi-planar BEV representation. This is achieved by slicing the point-cloud along the Z-axis into multiple (discrete horizontal) planes (named as Z-slicing ) and then mapping 3D points to these planes by storing the respective signed depths into associated 2D grids, yielding a sparse set of projected LiDAR points. This multi-planar BEV representation helps to address the challenge of top-down occlusion to retain the essential 3D geometric structures of the environment while attaining the computational efficiency using the standard 2D CNN architecture to encode them. Thereafter, by integrating dual spatial and channel attention mechanisms, our method explicitly learns to isolate and leverage the most distinctive geometric features across the Z-slicing planes. Subsequently, we introduce a latent bottleneck inspired by Information Bottleneck principles [14, 15] where instead of propagating raw, fragmented feature maps, the network learns a representation of structural uncertainty parameterized by μ and σ. While leveraging a KL-divergence [16] penalty commonly associated with stochastic VAEs [17], we bypass stochastic sampling entirely, opting in-stead for a deterministic projection modulated by an adaptively learned scale factor. By regularizing this latent space and dynamically scaling the encoded uncertainty, we prevent the architecture from overfitting to discrete, noisy point returns. Next, the network predicts 3D coordinate offsets that are added to the projected LiDAR points in Z-sliced Multi-planar BEV 2D grids to reconstruct the dense 3D world coordinates. Finally, these explicit correspondences are then passed to a closed-form Singular Value Decomposition (SVD) RANSAC backend, which effectively rejects residual quanti-zation noise to recover a highly precise global pose. Figure 1 shows that our MB-Loc achieves the lowest error with a competitive inference latency. 22 Related Work 
+
+Global LiDAR localization fundamentally bifurcates into Absolute Pose Regression (APR) and Scene Coordinate Regression (SCR). APR methods [8, 5, 4] directly estimate 6-DoF poses; while theoretically compact, they often lack the explicit geometric priors necessary for centimeter-level precision, and iterative variants [7] introduce severe inference latency. Conversely, SCR methods reframe localization as a dense correspondence task: SGLoc [10] decouples correspondence re-gression from pose calculation via RANSAC [3], LiSA [11] enriches geometric manifolds through semantic distillation, and LightLoc [12] targets improved efficiency, yet all remain bottlenecked by heavy 3D sparse convolutions or complex point-based structures. Spatial representation heavily dictates this accuracy-latency trade-off. 3D methods preserve geo-metric detail at high computational cost, whereas standard 2D BEV or range image projections [18] unlock 2D CNN efficiency but suffer from severe Z-axis occlusion. Attention mechanisms [19] partially mitigate this projection loss by selectively emphasizing informative structural regions, but cannot recover discarded vertical geometry. Descriptor-based methods like DiSCO [20] and Scan Context++ [21] utilize polar or layered Cartesian representations, but are engineered exclusively for place recognition; their spatial pooling mechanisms irreparably destroy the exact metric point identi-ties required for dense 3D-to-3D correspondences in SCR. Alternatively, layered 2D representations have demonstrated effective geometric preservation without 3D convolutions in adjacent domains: [22] represent scenes as depth-discretized fronto-parallel RGBA plane stacks for novel view syn-thesis, while [23] encode clothed human geometry as successive ray-traced depth peel maps for monocular 3D reconstruction, both motivating our Z-sliced Multi-planar design. 
+
+# 3 Proposed MB-Loc Method 
+
+Figure 2 depicts an overview of the proposed MB-Loc method, where the input 3D point-cloud is sliced along the Z-axis to recover a 2.5D Multi-planar BEV representation. Next, a 2D CNN (ResNet) Encoder with CBAM [24] extracts geometric features across the Z-slicing planes. The feature map x then enters a regularized deterministic bottleneck where parallel projection heads yield mean ( μ), standard deviation ( σ), and scale factor ( s), combined via z = μ + σ · s. Thereafter, a 2D CNN Decoder inflates z to native resolution, regressing dense coordinate deltas ( ˆ∆x, ˆ∆y, ˆ∆z)
+
+per plane. Finally, adding these offsets to the input coordinates reconstructs the dense 3D world points, establishing dense 3D-to-3D correspondences for the RANSAC solver to recover the global 6-DoF pose. 
+
+Figure 2: Overview of the proposed MB-Loc during inference. 
+
+3.1 2.5D Multi-planar BEV Representation 
+
+Let the input point-cloud be P = {pi ∈ R3 | i = 1 . . . N }, where pi = ( xi, y i, z i). We bound the spatial extent of the point-cloud based on the dynamic minimum and maximum extents along each axis: [xmin , x max ], [ymin , y max ], and [zmin , z max ].3We partition the Z-axis into P discrete horizontal Z-slicing planes of uniform thickness wz = 
+
+> zmax −zmin
+> P
+
+. Each point pi is assigned a plane index k ∈ { 0, . . . , P − 1}, computed sequentially from the maximum Z-elevation downward: 
+
+k = clamp 
+
+ zmax − zi
+
+wz
+
+
+
+, 0, P − 1
+
+
+
+(1) Simultaneously, we map the (xi, y i) spatial coordinates to a dense 2D grid (ui, v i) of spatial resolu-tion G × G where u is defined as: 
+
+u = clamp 
+
+ xi − xmin 
+
+xmax − xmin 
+
+· (G − 1) 
+
+
+
+, 0, G − 1
+
+
+
+. (2) Similarly, the vi coordinate is defined along the Y-axis. Within each Z-slicing plane k, we define a local depth reference z(k) 
+
+> start
+
+corresponding to the lower bound of the slice: z(k) 
+
+> start
+
+= zmax − (k + 1) ·
+
+wz . The signed relative depth for each point is then calculated as: δz i = zi − z(k) 
+
+> start
+
++ ϵ, where ϵ is a small constant added for numerical stability. Because multiple points from the sparse point-cloud may project into the same (k, u, v ) grid point, we handle spatial collisions through a scatter-reduce operation, retaining the point that minimizes the absolute relative depth ( |δz i|). This projection process yields the primary input tensor V, which contains the projected LiDAR points and encodes the scene’s vertical geometry. Next, we generate three additional dense repre-sentations based on the retained points. First, a binary validity mask M is created to distinguish oc-cupied pixels from empty space: M(k, u, v ) = 1 if occupied, and 0 otherwise. Second, the original spatial coordinates of the retained points are cached into a local coordinate tensor, CLiDAR . Third, the corresponding ground-truth global map coordinates for these specific points are stored in Cworld .The ultimate regression target for our network is the tensor of spatial offset, ∆, formulated as the difference between the global world frame and the local LiDAR frame: Cworld = CLiDAR + ∆ . By framing the objective around the prediction of bounded ∆ offsets rather than absolute world coordi-nates, we significantly constrain the regression space, allowing the network to learn local structural alignments efficiently. 
+
+3.2 Network Architecture 
+
+Our network translates the 2.5D Multi-planar BEV representation into dense 3D coordinate offsets via a fully-convolutional encoder-decoder. The encoder utilizes residual blocks and Convolutional Block Attention Modules (CBAM) [24] to isolate informative Z-slicing planes, prioritizing structural details over empty space. However, outdoor LiDAR data inherently suffers from physical constraints such as range-dependent sparsity and beam divergence; these issues are further compounded by the geometric quantization artifacts introduced by our Z-slicing. To overcome these challenges, we introduce a deterministic latent bottleneck. Finally, the decoder upsamples this regularized latent state to predict dense point-wise 3D spatial offsets ( ˆ∆) (Eq. 13), providing the exact 3D-to-3D correspondences required by the RANSAC backend for global pose estimation. Please refer to the appendix A for more details. 
+
+3.3 Training Objectives 
+
+During training, the network parameters are optimized by minimizing a composite loss function comprising a masked coordinate regression loss and a latent regularization term. To penalize geo-metric misalignment, we employ an L1 coordinate loss due to inherent sparsity in the representation. Additionally, the loss is strictly gated by the binary validity mask M to exclude the empty regions. The loss computes the mean absolute error exclusively between the predicted spatial offsets ˆ∆ and the ground-truth offsets ∆ at the occupied grid locations: 
+
+Lcoord = 1
+
+P 
+
+> k,u,v
+
+M(k, u, v )
+
+X
+
+> k,u,v
+
+M(k, u, v ) ∆( k, u, v ) − ˆ∆( k, u, v ) 1
+
+(3) 4Simultaneously, to enforce structural generalization within the latent bottleneck, we apply a KL [16] divergence penalty. This term coerces the predicted spatial distribution parameters ( μ and σ) to-wards a standard normal prior N (0 , I). For the latent feature maps possessing C channels and spatial dimensions H′ and W ′, the regularization is formulated as: 
+
+LKL = 12CH ′W ′
+
+> C
+
+X
+
+> c=1
+> H′
+
+X 
+
+> h=1
+> W′
+
+X
+
+> w=1
+
+ μ2 
+
+> c,h,w
+
++ σ2 
+
+> c,h,w
+
+− 1 − log( σ2 
+
+> c,h,w
+
++ γ) (4) where γ is a small constant preventing logarithmic instability. Rather than treating the bottleneck as a stochastic channel, the KL term acts purely as a feature-smoothing regularizer, explicitly prevent-ing σ from collapsing to zero and preserving the uncertainty-aware structure of the latent space. By penalising sharp, high-variance deviations from a unit normal prior, we compress the feature repre-sentation without requiring any sampling operation, preventing the network from memorizing tran-sient noise or quantization artifacts. Thus, the final training objective is: Ltotal = Lcoord + λL KL ,where λ is a hyperparameter scaling the influence of the latent regularization relative to the geomet-ric coordinate regression. 
+
+3.4 Pose Optimization using RANSAC 
+
+Once the network infers ˆ∆, we extract occupied source points CLiDAR via the validity mask M
+
+and construct predicted global target points as ˆCworld = CLiDAR + ˆ∆, maintaining strict one-to-one correspondences for all retained structural points. We employ a RANSAC-based [3] estimator to re-cover the rigid transformation while filtering regression outliers and quantization noise. Each itera-tion samples N = 3 correspondences and solves for the optimal rotation R (Eq. 16) and translation t
+
+(Eq. 17) via closed-form SVD using Kabsch’s algorithm [25], computed from the sampled centroids and cross-covariance matrix (Eqs. 14, 15). To maximize efficiency, iterations terminate early once the minimum count k, required to guarantee confidence p, is reached: k = log (1 − p)/log (1 − w3),where w is the dynamically estimated inlier ratio under a predefined distance threshold τ . The transformation with the maximum inlier consensus is selected, followed by a final least-squares SVD refinement over all inliers to recover the 6-DoF pose. We use p = 0 .95 in our experiments. 
+
+# 4 Experiments & Results 
+
+4.1 Experimental Settings Benchmark Dataset: We evaluate the proposed MB-Loc framework on the NCLT dataset [13]. Following the standard evaluation protocol established by existing methods, we utilize the data from 2012-01-22, 2012-02-02, 2012-02-18, and 2012-05-11 as our training set. For evaluation, we test on the trajectories from 2012-02-12, 2012-02-19, 2012-03-31, and 2012-05-26. While the Oxford Radar RobotCar [26] dataset is another common benchmark in this domain, we were unable to secure the necessary data access permissions prior to publication. Consequently, our extensive eval-uations focus primarily on the highly challenging, long-term NCLT [13] benchmark. Nevertheless, to broaden our comparison, we additionally conduct experiments on a heavily subsampled variant of the Oxford [26] dataset, which we report in the supplementary material (Section S4). 
+
+Implementation Details: All experiments are implemented in PyTorch [27] and executed on a sin-gle NVIDIA A30 GPU. The network is trained using the Adam optimizer with an initial learning rate of 3×10 −3 and a weight decay of 1×10 −6. We employ a step learning rate scheduler, decaying the learning rate by a factor of 0.85 every 20 epochs. Furthermore, the KL regularization weight for the deterministic latent bottleneck is set to 1 × 10 −4. We apply random spatial augmentations during training. We rotate 80% of the input LiDAR scans by a random yaw angle between -180 ◦
+
+and 180 ◦. Additionally, 50% of the scans are randomly shifted in the xy -plane by up to ±2m in both the x and y directions. By applying these augmentations before the projection, we force the network to implicitly learn viewpoint-invariant structural representations. The core augmentation pipeline is adapted from the official open-source implementation of DiffLoc [4]. We use the following config-5(a) NIDALoc (4.47m/3.53 ◦)
+
+> (b) HypLiLoc (1.95m/3.16 ◦)
+> (c) SGLoc (1.83m/3.54 ◦)
+> (d) DiffLoc (1.19m/2.31 ◦)
+> (e) LightLoc (1.46m/2.80 ◦)
+> (f) MB-Loc (0.91m/2.30 ◦)
+
+Figure 3: Plot of predicted (red) vs. ground truth (black) trajectories. ⋆ denotes the first frame. uration: P = 15 Z-slicing planes, spatial resolution G = 512 , RANSAC threshold τ = 4 .0 m, and maximum correspondence subset size Nmax = 2000 .
+
+4.2 Localization Results 
+
+The quantitative localization accuracy, measured by mean translation error (in meters) and mean ro-tation error (in degrees), is presented in Table 1. “S” denotes SCR methods while “A” denotes APR methods. MB-Loc achieves state-of-the-art performance with an average error of 0.91m and 2.30 ◦,demonstrating superior translation accuracy and highly competitive rotational precision compared to existing baselines. Notably, MB-Loc consistently achieves sub-meter translation accuracy across all evaluation sequences, demonstrating robust generalization across seasonal variations in contrast to competing baselines, which exhibit substantially degraded performance on the 2012-05-26 sequence relative to their results on other sequences. Figure 4 shows the position error and position variance of LightLoc and MB-Loc on the 2012-05-26 sequence. LightLoc exhibits frequent high-magnitude er-ror spikes throughout the trajectory, with several outliers exceeding 500 m, alongside large variance spikes that are poorly correlated with the actual errors. In contrast, MB-Loc produces substantially fewer outliers with significantly lower peak magnitudes, demonstrating more stable and reliable lo-calization across the full trajectory. In Figure 3, we show a comparison of predicted trajectories against ground truth on the 2012-02-12 sequence. MB-Loc produces the closest alignment to the ground truth path, with no visible large-scale deviations, in contrast to competing methods which exhibit varying degrees of trajectory drift and localization outliers. Table 1: Quantitative results on the NCLT [13] dataset. We highlight the best and second best results.                                                                                                 
+
+> Method Type 2012-02-12 2012-02-19 2012-03-31 2012-05-26 Avg [m/ ◦]
+> PNVLAD [28] S7.75/6.49 7.47/5.49 6.98/5.67 14.34/7.93 9.14/6.40 DCP [29] S9.84/6.84 8.27/5.16 8.94/5.96 15.62/7.99 10.67/6.49 SGLoc [10] S1.20/3.08 1.20/3.05 1.12/3.28 3.81/4.74 1.83/3.54 LightLoc [12] S0.98/2.76 0.89/2.51 0.86/2.67 3.10/3.26 1.46/2.80 LiSA [11] S0.97/2.23 0.91/2.09 0.87/2.21 3.30/2.84 1.51/2.34 PointLoc [8] A7.23/4.88 6.31/3.89 6.71/4.32 10.02/5.32 7.57/4.60 PosePN [9] A9.45/7.47 6.15/5.05 5.79/5.28 13.47/7.77 8.72/6.39 PosePN++ [9] A4.97/3.75 3.68/2.65 4.35/3.38 9.59/4.49 5.65/3.57 PoseMinkLoc [9] A6.24/5.03 4.87/3.94 4.23/4.03 10.32/6.52 6.42/4.88 PoseSOE [9] A13.09/8.05 6.16/4.51 5.24/4.56 12.60/7.67 9.27/6.20 STCLoc [6] A4.91/4.34 3.25/3.10 3.75/4.04 8.67/5.23 5.15/4.18 NIDALoc [7] A4.48/3.59 3.14/2.52 3.67/3.46 6.60/4.56 4.47/3.53 HypLiLoc [5] A1.71/3.56 1.68/2.69 1.52/2.90 2.90/3.47 1.95/3.16 DiffLoc [4] A0.99/2.40 0.92/2.14 0.98/2.27 1.88/2.43 1.19/2.31 MB-Loc (Ours) S0.96/2.37 0.88/2.22 0.89/2.40 0.93/2.23 0.91/2.30
+
+To rigorously evaluate computational efficiency, we compare the runtime latency and memory foot-print of MB-Loc against leading baselines in Table 2 (where the batch size was set to 1 for each case). As reported in Table 2, MB-Loc completes its network forward pass in just 6.8 ms. This dras-tically outperforms competing 3D-SCR architectures like SGLoc [10] (48.48 ms) and LiSA [11] (32.9 ms), while also edging out the fastest APR baseline, HypLiLoc [5] (11.04 ms), and remain-ing highly competitive with lightweight SCR variants like LightLoc [12] (10.69 ms). Furthermore, our RANSAC backend resolves the global pose in a mere 1.8 ms. Ultimately, MB-Loc registers 6(a) LightLoc (b) MB-Loc (Ours) 
+
+Figure 4: Pose uncertainty evaluation results where we show the relationship between position error and variance on the 2012-05-26 trajectory of the NCLT [13] dataset. Table 2: Algorithmic footprint and single-frame processing latency breakdown. Profiling isolates the neural network forward pass, the backend pose solver (for SCR methods), and the total end-to-end pipeline latency including data transfers and tensor preparation. All are median readings. 
+
+Method (A/S) Network Pass (ms) Backend Solver (ms) End-to-End (ms) Params (M) 
+
+DiffLoc [4] (A) 53.87 N/A 54.05 40 LiSA [11] (S) 32.90 5.40 41.30 105 SGLoc [10] (S) 48.48 86.98 146 105 LightLoc [12] (S) 10.69 6.18 21.79 22 HypLiLoc [5] (A) 11.04 N/A 11.40 52 MB-Loc (Ours) (S) 6.80 1.80 21.13 16 
+
+a total end-to-end pipeline latency of 21.1 ms, achieving a 2.6× speedup over DiffLoc [4] and a 
+
+6.9× speedup over SGLoc [10]. MB-Loc achieves this real-time speed while maintaining a highly compact footprint. At just 16M parameters, it requires 6.5× fewer parameters than SGLoc [10] & LiSA [11] (105M) and 2.5× fewer than DiffLoc [4] (40M), successfully breaking the computational limits that typically stall dense 3D localization pipelines. 
+
+4.3 Ablation Study 
+
+In this section, we conduct extensive ablation experiments to validate our architectural design choices and evaluate system sensitivity. We initially analyse the trade-off between localization precision, runtime latency, and spatial compression by varying the number of Z-slicing planes 
+
+P ∈ { 5, 8, 10 , 15 } and the horizontal grid resolution G ∈ { 256 , 512 } where Nmax = 2 , 000 &
+
+τ = 4 .0 m were used for these ablative experiments. Table 3: Structural ablation where the % of spatial data loss is computed relative to an average raw scan depth of 47,972 points. All time readings are median values.                                                                 
+
+> Configuration Mean Errors Network Pass + RANSAC End-to-End Mean Total No. of Spatial Data
+> (P, G, G )(Trans. [m] / Rot. [ ◦]) (ms) (ms) Points Projected Loss (%)
+> 10 ×256 ×256 1.49 / 2.57 6.47 8.59 7,799 83.74%
+> 15 ×256 ×256 1.11 / 2.31 6.90 8.76 8,554 82.17%
+> 5×512 ×512 1.12 / 2.42 8.35 11.68 12,692 73.54%
+> 8×512 ×512 1.08 / 2.44 8.40 13.31 13,552 71.75%
+> 10 ×512 ×512 1.02 / 2.28 8.48 14.48 13,998 70.82%
+> 15 ×512 ×512 0.91 / 2.30 8.60 21.13 14,870 69.00%
+
+The empirical trends in Table 3 confirm that increasing the horizontal grid resolution from G = 256 
+
+to G = 512 yields a consistent improvement in localization accuracy which stems from a reduction in grid cell quantization collisions, where a finer grid better preserves subtle structural profiles that would otherwise be overwritten during downsampling. Concurrently, increasing the number of Z-slicing planes reduces translation errors across both grid resolutions. Splitting the z-axis into finer 7Z-slicing planes limits depth ambiguity within individual layers, providing more precise target labels for the coordinate regression task. Notably, even at the highest tested complexity ( 15 × 512 × 512 )where spatial data retention is maximized (69% loss), the complete computational core, from the 2D CNN forward pass to the closed-form pose resolution, executes in just 8.60 ms, demonstrating that the projection pipeline scales efficiently across all ablated configurations. We surpass the leading baseline architectures in both 10 × 512 × 512 and 15 × 512 × 512 configurations. To assess how the hyperparameters inside our registration framework affect final pose estimation, we perform two isolated sensitivity tests: (1) varying the spatial inlier distance threshold τ while keeping the maximum correspondence subset size constant, and (2) varying the maximum corre-spondence subset size ( Nmax ) under a fixed inlier threshold. These evaluations are documented in Table 4 and Table 5 and have been performed on the P = 10 , G = 512 configuration. Table 4: RANSAC threshold sensitivity under a fixed point budget ( Nmax = 2 , 000 ).         
+
+> Threshold τ(m) Mean Errors (m / ◦)
+> 11.07 / 2.53 2.5 1.02 / 2.32
+> 4.0 1.02 / 2.28
+> 5.5 1.04 / 2.30
+
+Table 5: Max. correspondence sensitivity under a fixed inlier threshold ( τ = 4 .0 m).        
+
+> Max Corresp. Nmax Mean Errors (m / ◦)
+> 100 1.04 / 2.36
+> 2,000 1.02 / 2.28
+> 6,000 1.1 / 2.37 All Points 1.14 / 2.4
+
+Ablative results on threshold sensitivity are reported in Table 4. A restrictive threshold of τ =1.0 m degrades performance to 1.07 m, as it prematurely rejects valid correspondences from sparsely populated upper planes that exhibit natural coordinate variance due to grid quantization. Conversely, an overly permissive threshold of τ = 5 .5 m offers no meaningful improvement over τ = 4 .0 mwhile retaining more outliers. The optimal τ = 4 .0 m strikes the critical balance between rejecting gross matching outliers while retaining a geometrically diverse inlier pool across all planes, allowing the backend to recover sub-meter global poses from individually noisy per-point predictions. Table 5 reports ablative results on the maximum correspondence subset size sensitivity. The per-formance peaks at Nmax = 2 ,000 correspondences, with both sparser budgets ( Nmax = 100 :1.04 m) and larger budgets ( Nmax = 6 ,000 : 1.1 m) yielding degraded accuracy. Using all avail-able valid correspondences without a budget cap degrades accuracy to 1.14 m, suggesting that an unbounded correspondence set introduces geometrically redundant and weakly-constrained point pairs that destabilize the SVD solution. 
+
+# 5 Limitations and Future Work. 
+
+Our method relies on a fixed horizontal Z-axis slicing mechanism, implicitly assuming relatively planar terrain; in highly non-planar or off-road environments, fixed Z-slicing may fail to capture continuous geometric surfaces across elevation changes. As our method does not exploit multiple temporal frames at a time, severe dynamic occlusion is hard to handle. Additionally, when oper-ating on pre-subsampled point-clouds, grid quantization collisions further compound sparsity, po-tentially reducing valid correspondences below the threshold required for robust RANSAC conver-gence. Finally, the fixed grid resolution G imposes a hard quantization floor on metric precision that is irrecoverable by the SVD-RANSAC backend. Future work will explore adaptive density-driven slicing, temporal fusion across consecutive scans to mitigate dynamic occlusion, and dynamic grid resolution scaling based on local point-cloud density. 
+
+# 6 Conclusion 
+
+We presented MB-Loc, a lightweight Scene Coordinate Regression framework that achieves state-of-the-art outdoor LiDAR localization by operating entirely within the computational envelope of 2D convolutions. The combination of Z-axis slicing, 2.5D Multi-planar BEV projections, and deter-ministic latent regularization yields a system that is simultaneously geometrically faithful, robust to 8quantization noise and deployable in real-time. Extensive experiments on the NCLT dataset confirm that MB-Loc successfully breaks the accuracy-efficiency tradeoff that has historically constrained dense 3D localization pipelines. 
+
+# Appendix 
+
+Figure 5: Visualization of the Projection strategy. Top: Stratified 3D point cloud partitioned along the vertical Z-axis for a single scan. Bottom: Corresponding 2D multi-channel BEV grid projections across P = 10 and G = 512 on the NCLT [13] dataset. 
+
+# A Extended Details on the proposed MB-Loc Method 
+
+Please note that the NCLT dataset [13] uses a North-East-Down (NED) reference frame with the Velodyne HDL-32E mounted invertedly, conflicting with the standard z-up convention. We therefore apply z′ = −z to all raw coordinates prior to processing, ensuring that Z-axis slicing from zmax 
+
+downward and the subsequent 2D grid mapping reflect the true physical scene structure. 
+
+A.1 Network Architecture 
+
+Our proposed network utilizes a fully-convolutional encoder-decoder topology specifically opti-mized to translate multi-planar structural depth representations into dense coordinate offsets. 9A.1.1 Spatial Feature Encoder 
+
+The encoder network sequentially downsamples the structured 2.5D input tensor V ∈ RP ×G×G to extract rich geometric representations. The input first passes through an initial stem layer comprising a 3 × 3 convolution with a stride of 2, projecting the P input channels to a feature depth of 32. This is immediately followed by a 2D Batch Normalization layer, a LeakyReLU activation function, and a 3 × 3 Max Pooling layer with a stride of 2. The spatial dimensions are subsequently reduced by a further factor of 8× through four consecutive stages of Residual blocks (the first stage operating at stride 1 and the remaining three at stride 2), yielding a cumulative downsampling of 32 × relative to the input. These blocks progressively expand the feature representation from 32 to 512 channels. To combat the structural sparsity inherent to outdoor LiDAR point-clouds, we integrate a Convolutional Block Attention Module (CBAM) [24] immediately following each of the four residual stages. It acts as a critical geometric gatekeeper: the channel attention sub-module isolates the most distinct horizontal Z-axis plane, while the spatial attention sub-module forces the network to focus on high-fidelity structural features while completely ignoring empty pixels. Given an intermediate feature map F ∈ RC×H′×W ′
+
+, the sequential attention alignment is mathematically formulated as: 
+
+F′ = Mc(F) ⊗ F (5) 
+
+F′′ = Ms(F′) ⊗ F′ (6) where ⊗ denotes element-wise multiplication. The channel attention map Mc ∈ RC×1×1 and spatial attention map Ms ∈ R1×H′×W ′
+
+are computed via: 
+
+Mc(F) = σ (MLP (AvgPool (F)) + MLP (MaxPool (F))) (7) 
+
+Ms(F′) = σ  f 7×7 ([ AvgPool (F′); MaxPool (F′)])  (8) where σ represents the standard sigmoid activation function, [·; ·] denotes a channel-wise concate-nation operator, and f 7×7 signifies a 2D convolutional operation utilizing a 7 × 7 kernel. The final output of the encoder is a highly condensed latent geometric map F ∈ R512 × G   
+
+> 32 ×G
+> 32
+
+.
+
+A.1.2 Regularized Deterministic Latent Bottleneck 
+
+To prevent the network from over-fitting to transient noise or sparse dynamic artifacts, we pass F
+
+through a specialized latent bottleneck. Rather than executing a direct deterministic mapping or injecting stochastic variation via a probabilistic reparameterization vector, our bottleneck models structural uncertainty deterministically. We employ three parallel two-layer 1 × 1 convolutional projection heads (MLPs) to map F to a tightly bounded latent representation. Each head comprises a 1 × 1 convolution, a 2D Batch Normalization layer, and a LeakyReLU activation, followed by a second 1 × 1 convolution; the heads preserve the input dimensions, yielding tensors μ, σ, s ∈
+
+R512 × G   
+
+> 32 ×G
+> 32
+
+:
+
+μ = MLP μ(F) (9) 
+
+σ = Softplus (MLP σ (F)) (10) 
+
+s = Clamp (ReLU (MLP s(F)) , 0, s max ) (11) The regularized latent state Z ∈ R512 × G   
+
+> 32 ×G
+> 32
+
+passed to the decoder is then constructed through a deterministic scaling function: 
+
+Z = μ + ( s ⊙ σ) (12) where ⊙ represents the Hadamard product. While the network could trivially minimize Lcoord by collapsing σ toward zero and encoding all structure in μ, the KL penalty explicitly prevents this by penalizing deviations of σ from a unit normal prior, preserving the uncertainty-aware struc-ture of the latent space. While the Deterministic Information Bottleneck [14, 15] and disentangled VAE variants such as DIP-VAE [30] also regularize latent representations without full generative objectives, they either require a discrete compression target or impose second-moment matching constraints that are ill-suited to dense metric regression. Stochastic reparameterization, as utilized in standard VAEs [17], introduces sampling variance during training that destabilizes the per-point 10 coordinate offset predictions, and while inference typically uses μ directly, the stochastic training signal still induces suboptimal convergence for dense metric regression targets. By contrast, our deterministic bottleneck retains the KL penalty purely as a feature-smoothing regularizer, enforcing a smooth, continuous spatial manifold over the latent space without injecting any stochastic noise into the inference path, making it directly compatible with the closed-form pose solver downstream. Consequently, by enforcing a Softplus activation on the spatial variance proxy σ and applying a hard upper-bound saturation threshold smax via a clamped ReLU on the learned scaling factor s, the bottleneck effectively dampens the influence of poorly-constrained structural regions (such as open air or reflective surfaces) without introducing stochastic instability into the localization pipeline. 
+
+A.1.3 Coordinate Regression Decoder 
+
+The decoder network takes the regularized latent representation Z and expands it back to the native spatial resolution of the input grid. This spatial inflation is achieved through a sequence of five 4 × 4
+
+transposed convolutional layers, each configured with a stride of 2 and padding of 1 to sequentially double the spatial dimensions ( 32 × total upsampling). Every transposed convolutional layer is followed by a 2D Batch Normalization layer and a LeakyReLU activation function. A terminal 
+
+1 × 1 convolutional layer maps the upsampled features directly to the target regression dimensions without an activation function, yielding the final dense prediction tensor ˆ∆ ∈ R3P ×G×G. This tensor is subsequently reshaped to a dimension of RP ×3×G×G, mapping directly to the individual horizontal Z-slicing planes: 
+
+ˆ∆( k, ·, u, v ) = 
+
+
+
+ˆ∆x
+
+ˆ∆y
+
+ˆ∆z
+
+ (13) This output provides a dense, per-point prediction of the 3D spatial offsets required to map the local coordinate tensor CLiDAR back into the global world coordinates. 
+
+A.2 Pose Optimization using RANSAC 
+
+Once the network infers the dense spatial offsets ˆ∆, estimating the global 6-DoF pose becomes a 3D-to-3D correspondence registration problem. We utilize the validity mask M to extract the occupied physical points from the local coordinate tensor CLiDAR , yielding a set of source points CLiDAR .Concurrently, we construct the predicted global target points as ˆCworld = CLiDAR + ˆ∆. Because the network predicts offsets per grid cell, the source and target point sets maintain a strict one-to-one correspondence for all retained structural points. To compute the rigid transformation matrix from these correspondences while aggressively filtering out regression outliers and quantization noise, we employ a RANSAC-based [3] estimator. In each iteration, we sample a minimal set of N = 3 
+
+point correspondences to compute a candidate rigid transformation via closed-form SVD. First, we compute the centroids of the sampled source and target points: 
+
+¯cLiDAR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+c(i)
+
+> LiDAR
+
+, ¯cworld = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+ˆc(i) 
+
+> world
+
+(14) Next, we construct the cross-covariance matrix H ∈ R3×3:
+
+H =
+
+> N
+
+X
+
+> i=1
+
+
+
+c(i) 
+
+> LiDAR
+
+− ¯cLiDAR 
+
+  
+
+ˆc(i) 
+
+> world
+
+− ¯cworld 
+
+T
+
+(15) We decompose the covariance matrix using SVD such that H = UΣV T . The optimal rotation matrix R is extracted utilizing Kabsch’s algorithm [25]: 
+
+R = V
+
+1 0 00 1 00 0 det( VU T )
+
+ UT (16) The translation vector t is then straightforwardly derived from the aligned centroids: 
+
+t = ¯ cworld − R¯cLiDAR (17) 11 To maximize computational efficiency, we employ standard early termination logic. The minimum required iterations k is updated dynamically to guarantee the desired confidence level, which is given by: 
+
+k = log(1 − p)log(1 − w3) (18) where p is the target confidence probability and w is the dynamically estimated inlier ratio based on a predefined distance threshold. 
+
+# Supplementary Material 
+
+This supplementary material complements the main paper with additional context. We provide a consolidated, layer-wise view of the network (Section S1), collect additional implementation, train-ing, and evaluation details (Section S2), expand on the NCLT [13] benchmark dataset, preprocessing pipeline, and per-sequence results (Section S3), and report an evaluation on the subsampled Oxford Radar RobotCar [26] dataset (Section S4). Our codebase will be made publicly available upon the publication of this work. 
+
+# S1 Network Architecture 
+
+MB-Loc is a fully-convolutional (ResNet) encoder–decoder that maps the multi-planar structural depth representation to dense per-point 3D coordinate offsets. The formal definitions of the atten-tion operator, the latent bottleneck, and the decoder head are provided in the Network Architecture subsection of the main paper’s appendix. A consolidated layer-wise summary is given in Table S1. Table S1: Layer-wise summary of the MB-Loc network. P is the number of Z-slicing planes and G
+
+the horizontal grid resolution; spatial sizes are given for a G × G input grid.                                         
+
+> Stage Output Channels Spatial Resolution
+> Input PG×G
+> Stem (conv + max-pool) 32 G/ 4×G/ 4
+> Encoder Stage 1 64 G/ 4×G/ 4
+> Encoder Stage 2 128 G/ 8×G/ 8
+> Encoder Stage 3 256 G/ 16 ×G/ 16
+> Encoder Stage 4 512 G/ 32 ×G/ 32
+> Latent bottleneck 512 G/ 32 ×G/ 32
+> Decoder 32 G×G
+> Head ( 1×1)3PG×G
+
+# S2 Additional Details 
+
+S2.1 Implementation and Hyperparameters 
+
+The hyperparameters chosen for our optimal configuration are shown in Table S2. 
+
+S2.2 Spatial Augmentation Strategy 
+
+The spatial augmentations detailed in the main paper are applied prior to planar projection. Because the augmentation precedes projection, the regression target (the offsets) stays geometrically consis-tent with the augmented input, so the network is supervised to localize regardless of the sensor’s instantaneous viewpoint. 12 Table S2: Default hyperparameter configuration for MB-Loc on the NCLT [13] dataset.                            
+
+> Hyperparameter Value
+> Z-slicing planes P15 Horizontal grid resolution G512 Optimizer Adam Initial learning rate 3×10 −3
+> Weight decay 1×10 −6
+> LR scheduler Step ( ×0.85 every 20 epochs) KL regularization weight λ1×10 −4
+> RANSAC inlier threshold τ4.0mMax. correspondences Nmax 2000 RANSAC sample size N3RANSAC target confidence p0.95
+
+S2.3 Training Objective and Pose Solver 
+
+The complete training objective (the mask-gated L1 coordinate loss and the KL regularizer balanced by λ) and the step-by-step pose-solver derivation (centroids, cross-covariance, rotation/translation recovery, and the iteration-count update) are provided in the main paper and its appendix. 
+
+# S3 NCLT Dataset and Evaluation 
+
+We evaluate the proposed MB-Loc for LiDAR localization on large-scale outdoor benchmark datasets: the NCLT [13] and Oxford Radar RobotCar [26] datasets. Collected on the University of Michigan’s North Campus, the NCLT dataset is recorded by sensors mounted on a Segway robotic platform. It comprises 27 traversals, each spanning an area of 0.45 km 2, with the point-clouds cap-tured by a single Velodyne HDL-32E LiDAR. 
+
+NCLT Train/Test Split. The NCLT train/test split is summarized in Table S3. The 2012-05-26 session is the most temporally distant from training and is correspondingly the hardest, which is why the competing baselines in the main paper degrade most sharply on it. Table S3: Dataset details on the NCLT [13] dataset.                             
+
+> Sequence Length Tag Training Test
+> 2012-01-22 6.1 km overcast ✓
+> 2012-02-02 6.2 km sunny ✓
+> 2012-02-18 6.2 km sunny ✓
+> 2012-05-11 6.0 km sunny ✓
+> 2012-02-12 5.8 km sunny ✓
+> 2012-02-19 6.2 km overcast ✓
+> 2012-03-31 6.0 km overcast ✓
+> 2012-05-26 6.3 km sunny ✓
+
+Coordinate Frame Handling. The reasoning behind our sign-inversion preprocessing step ( z′ =
+
+−z, which reconciles the inverted NED mounting of the HDL-32E with our z-up Z-slicing conven-tion) is given in the Extended Details appendix of the main paper. 
+
+Projection Statistics. As quantified in the structural ablation of the main paper, our intentionally lossy, collision-aware projection discards roughly 69% –84% of the points in an average raw NCLT scan (depending on the configuration (P, G, G )), while preserving the structural detail that matters for localization. 
+
+S3.1 Per-Sequence Quantitative Results 
+
+To complement the averaged results in the main paper, Table S4 provides a per-sequence breakdown of MB-Loc across the structural configurations (P, G, G ), on each of the four NCLT [13] evaluation 13 sessions. Accuracy improves consistently with finer grids and more Z-slicing planes, and our default 
+
+15 × 512 × 512 configuration attains the best average error. Table S4: Per-sequence localization accuracy of MB-Loc on the NCLT [13] evaluation sessions across structural configurations (P, G, G ). Each entry is the mean translation / rotation error in m / ◦;the last column is the average over the four sessions. RANSAC settings: τ = 4 .0 m, Nmax = 2 ,000 ,
+
+p = 0 .95 . Our default configuration is in italics .                                                            
+
+> Config (P, G, G )2012-02-12 2012-02-19 2012-03-31 2012-05-26 Avg [m/ ◦]
+> 10 ×256 ×256 1.50/2.70 1.38/2.50 1.46/2.50 1.65/2.60 1.49/2.57
+> 15 ×256 ×256 1.13/2.40 1.05/2.24 1.07/2.27 1.21/2.34 1.11/2.31
+> 5×512 ×512 1.16/2.51 1.12/2.34 1.08/2.51 1.15/2.34 1.12/2.42
+> 8×512 ×512 1.17/2.50 1.03/2.35 1.06/2.57 1.06/2.34 1.08/2.44
+> 10 ×512 ×512 1.08/2.38 1.01/2.23 0.99/2.32 1.03/2.21 1.02/2.28
+> 15 ×512 ×512 0.96/2.37 0.88/2.22 0.89/2.40 0.93/2.23 0.91/2.30
+
+S3.2 Effect of the KL Regularizer 
+
+To isolate the contribution of the bottleneck KL term, we retrain the 10 × 256 × 256 configuration on NCLT [13] with the KL regularizer disabled ( λ = 0 ) while holding all other settings fixed (Table S5). Removing it degrades accuracy on every evaluation session, and the loss is largest on the hardest, most temporally distant 2012-05-26 sequence. Without the KL term the bottleneck variance is free to collapse and the latent manifold over-fits the sparse, noisy returns, so the smoothing it provides yields a small but consistent improvement in cross-session generalization, supporting its inclusion in our default objective. Table S5: Effect of the KL regularizer on MB-Loc ( 10 × 256 × 256 , NCLT [13]).                
+
+> Variant 2012-02-12 2012-02-19 2012-03-31 2012-05-26 Avg [m/ ◦]
+> With KL 1.50/2.70 1.38/2.50 1.46/2.50 1.65/2.60 1.49/2.57 Without KL 1.66/3.04 1.50/2.81 1.63/2.87 2.02/3.29 1.70/3.00
+
+S3.3 Reconstruction Fidelity of Predicted Correspondences 
+
+To verify that MB-Loc’s dense predicted correspondences reconstruct the true scene geometry, rather than merely yielding an accurate pose by chance, we directly assess the quality of the regressed world coordinates before they are collapsed into a single pose. Using our default configuration, we run the full inference pipeline on the NCLT [13] 2012-02-12 sequence. For each scan, we recover the rigid transform with our pose estimation backend, apply it to the input LiDAR points to obtain the refined world-cloud ˆCworld , and compare it against the ground-truth world-cloud Cworld using two complementary metrics: (i) the mean per-point L2 error , i.e. the average ∥ ˆCworld − C world ∥2
+
+taken over the matched (strictly one-to-one) correspondences; and (ii) the symmetric Chamfer dis-tance , a nearest-neighbour shape-agreement measure that does not assume a known correspondence. Aggregated over 2,001 scans sampled uniformly at random across the sequence, MB-Loc attains a mean per-point error of 1.18 ± 0.98 m and a Chamfer distance of 1.15 ± 0.46 m. The visualization for a single scan is shown in Figure S1. 
+
+Relationship to the pose error in the main paper. These per-point and Chamfer values are cloud-level reconstruction metrics and should not be conflated with the 6-DoF pose error reported in the main paper, where MB-Loc achieves 0.96 m / 2.37 ◦ on this same 2012-02-12 sequence. The pose translation error measures only the displacement of the single recovered sensor origin, whereas the per-point L2 measures the displacement of every reconstructed point. 
+
+S3.4 Additional Qualitative Trajectories 
+
+Figure S2 compares full predicted trajectories against ground truth across all four NCLT [13] eval-uation sessions and against contemporary APR and SCR baselines. Across every session, including 14 Figure S1: Reconstruction fidelity on a scan from the NCLT [13] 2012-02-12 sequence ( P = 15 ,
+
+G = 512 ; RANSAC τ = 4 .0 m, Nmax = 2 ,000 , p = 0 .95 ). Left: ground-truth world-cloud (gray) overlaid with the MB-Loc RANSAC-refined-cloud (red) in a shared world frame. Right: the same refined cloud colored by per-point L2 error; the error grows with range owing to the rotational lever-arm. Both clouds are the valid projected points retained after Z-slicing and scatter-reduce (not the raw input scan). The annotated per-scan values are 0.77 m mean per-point L2 and 0.98 m Chamfer. the most challenging 2012-05-26 sequence, MB-Loc stays close to the ground-truth path, whereas competing methods exhibit pronounced drift and large-magnitude outlier spikes. 
+
+# S4 Oxford RobotCar (Subsampled) Dataset and Evaluation 
+
+As noted in the main manuscript, access to the full, raw Oxford Radar RobotCar dataset [26] was restricted prior to our initial submission, limiting our primary evaluation to the NCLT [13] bench-mark. However, to ensure a rigorous and comprehensive comparison against recent state-of-the-art methods, we subsequently conducted additional evaluations using a heavily subsampled version of the Oxford dataset. The Oxford Radar RobotCar dataset captures complex urban conditions with severe weather and traffic variations. The specific subsampled variant we utilize was officially processed and publicly released by the authors of HypLiLoc [5] on their GitHub. In this version, every LiDAR scan has been drastically downsampled to exactly 4,096 points. While this removes the vast majority of the dense geometric structure typically relied upon by SCR methods, it serves as an extreme stress test for the robustness of our 2.5D Multi-planar BEV representation under severe spatial sparsity. We evaluated MB-Loc on this subsampled dataset using the train/test split summarized in Table S6. Table S6: Dataset details on the Oxford [26] dataset.                          
+
+> Sequence Length Tag Training Test
+> 11-14-02-26 9.37 km sunny ✓
+> 14-12-05-52 9.22 km overcast ✓
+> 14-14-48-55 9.04 km overcast ✓
+> 18-15-20-12 9.04 km overcast ✓
+> 15-13-06-37 8.85 km overcast ✓
+> 17-14-03-00 9.02 km sunny ✓
+> 18-14-14-42 9.04 km overcast ✓
+
+Localization Results. Table S7 reports the per-sequence localization accuracy of MB-Loc against recent state-of-the-art APR and SCR baselines on the three subsampled Oxford [26] test sequences. 15 The dominant trend we observe is that most state-of-the-art dense 3D architectures degrade sharply under this extreme 4,096 -point subsampling: the dense geometric structure they depend on is largely stripped away, and methods such as SGLoc [10] and LiSA [11] incur errors of several metres. The clear exception is LightLoc [12], which remains robust under severe sparsity. MB-Loc is competitive with the other baselines but, like the other dense-prediction methods, also degrades markedly relative to its NCLT performance and does not match LightLoc here. This is consistent with the limitation noted in the main paper that on pre-subsampled point-clouds, grid-quantization collisions further compound the sparsity and can drive the number of valid correspondences below the threshold re-quired for robust RANSAC convergence. Qualitative predicted-versus-ground-truth trajectories for the dataset are shown in Figure S3. Table S7: Localization accuracy on the subsampled Oxford [26] dataset. Each entry is the mean translation / rotation error in m / ◦; the last column is the average over the three test sequences. We highlight the best and second best results.                          
+
+> Method Mech. 17-14-03-00 15-13-06-37 18-14-14-42 Average [m/ ◦]
+> SGLoc S8.28/2.17 8.53/2.08 7.9/1.98 8.23/2.07 LiSA S6.12/2.36 5.86/2.70 4.84/2.43 5.60/2.49 LightLoc S3.30/1.17 2.33/1.16 2.36/1.14 2.66/1.15 MB-Loc S3.25/1.79 2.44/1.71 2.23/1.61 2.64/1.70
+
+Baseline and MB-Loc Implementation Details. We train the baselines from scratch on the iden-tical subsampled splits ( 4,096 points per scan, stored as 3-channel (x, y, z ) .npy files) using their official public implementation. We train SGLoc [10] and LiSA [11] at a voxel size of 0.3 m. We train LightLoc [12] at a voxel size of 0.25 m; it freezes its scene-agnostic feature backbone and trains only the scene-specific prediction heads, and applies its redundant-sample downsampling (prune ra-tio 0.25 ). DiffLoc [4] is the only APR baseline and follows a markedly different pipeline. It converts each scan into a 32 × 512 spherical range image with five channels (range, x, y, z, intensity) and re-gresses the pose using a DINOv2-pretrained ViT-Small feature extractor paired with a Transformer-based diffusion denoiser, with all values taken from the configuration file provided in its official GitHub repository. However, we could not train DiffLoc on this subsampled dataset, and therefore omit it from Table S7. The reason is that DiffLoc’s static-object-aware pooling is supervised by semantic static/dynamic masks (originally produced by an SPVNAS [31] segmentation network), but because the released subsampled point-clouds carry only (x, y, z ) coordinates, both the intensity channel and the per-point segmentation labels were unavailable and set to zero. As a result, the segmentation branch received no meaningful supervision, the ground-truth masks were identically zero, causing its auxiliary loss to remain at zero and leaving DiffLoc without the static-object cue it normally depends on. For MB-Loc, the configuration reported in Table S7 uses P = 8 Z-slicing planes at G = 512 , optimized with Adam (learning rate 3×10 −3, weight decay 1×10 −6, step decay 
+
+×0.85 every 20 epochs, KL weight 1 × 10 −4) and decoded by the same backend with τ = 5 .0 m, 
+
+Nmax = 2 ,000 , and confidence p = 0 .95 .
+
+S4.1 Per-Sequence Quantitative Results 
+
+We perform this ablation on the configurations 10 × 256 × 256 , 15 × 256 × 256 , and 8 × 512 × 512 ,at RANSAC τ = 5 .0 m, Nmax = 2 ,000 , and confidence p = 0 .95 ; the per-sequence results are reported in Table S8. Table S8: Per-sequence localization accuracy of MB-Loc on the subsampled Oxford [26] test se-quences across structural configurations (P, G, G ). Default configuration in italics .                             
+
+> Config (P, G, G )17-14-03-00 15-13-06-37 18-14-14-42 Avg [m/ ◦]
+> 10 ×256 ×256 3.50/1.85 2.78/1.86 2.41/1.69 2.89/1.80
+> 15 ×256 ×256 3.57/1.63 2.81/1.62 2.34/1.54 2.90/1.59
+> 8×512 ×512 3.25/1.79 2.44/1.71 2.23/1.61 2.64/1.70
+
+16 Figure S2: Predicted (red) vs. ground-truth (black) trajectories on the four NCLT evaluation sessions (columns) for the different baselines (rows). The mean translation / rotation error (m / ◦) is annotated below each plot, and ⋆ marks the first frame. 17 Figure S3: Predicted (red) vs. ground-truth (black) trajectories on the subsampled Oxford dataset. The mean translation / rotation error (m / ◦) is annotated below each plot, and ⋆ marks the first frame. 18 References 
+
+[1] R. B. Rusu, N. Blodow, and M. Beetz. Fast point feature histograms (fpfh) for 3d registration. In 2009 IEEE International Conference on Robotics and Automation , pages 3212–3217, 2009. doi:10.1109/ROBOT.2009.5152473. [2] C. Choy, J. Park, and V. Koltun. Fully convolutional geometric features. In 2019 IEEE/CVF International Conference on Computer Vision (ICCV) , pages 8957–8965, 2019. doi:10.1109/ ICCV.2019.00905. [3] M. A. Fischler and R. C. Bolles. Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography. Commun. ACM , 24(6):381–395, June 1981. ISSN 0001-0782. doi:10.1145/358669.358692. URL https://doi.org/10. 1145/358669.358692 .[4] W. Li, Y. Yang, S. Yu, G. Hu, C. Wen, M. Cheng, and C. Wang. Diffloc: Diffusion model for outdoor lidar localization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 15045–15054, 2024. [5] S. Wang, Q. Kang, R. She, W. Wang, K. Zhao, Y. Song, and W. P. Tay. Hypliloc: Towards effective lidar pose regression with hyperbolic fusion. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 5176–5185, 2023. [6] S. Yu, C. Wang, Y. Lin, C. Wen, M. Cheng, and G. Hu. Stcloc: Deep lidar localization with spatio-temporal constraints. IEEE Transactions on Intelligent Transportation Systems , 24(1): 489–500, 2023. doi:10.1109/TITS.2022.3213311. [7] S. Yu, X. Sun, W. Li, C. Wen, Y. Yang, B. Si, G. Hu, and C. Wang. Nidaloc: Neurobiologically inspired deep lidar localization. IEEE Transactions on Intelligent Transportation Systems , 25 (5):4278–4289, 2024. [8] W. Wang, B. Wang, P. Zhao, C. Chen, R. Clark, B. Yang, A. Markham, and N. Trigoni. Point-loc: Deep pose regressor for lidar point cloud localization, 2021. URL https://arxiv.org/ abs/2003.02392 .[9] S. Yu, C. Wang, C. Wen, M. Cheng, M. Liu, Z. Zhang, and X. Li. Lidar-based localization using universal encoding and memory-aware regression. Pattern Recognition , 128:108685, 2022. ISSN 0031-3203. doi:https://doi.org/10.1016/j.patcog.2022.108685. [10] W. Li, S. Yu, C. Wang, G. Hu, S. Shen, and C. Wen. Sgloc: Scene geometry encoding for outdoor lidar localization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9286–9295, 2023. [11] B. Yang, Z. Li, W. Li, Z. Cai, C. Wen, Y. Zang, M. Muller, and C. Wang. Lisa: Lidar localiza-tion with semantic awareness. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 15271–15280, 2024. doi:10.1109/CVPR52733.2024.01446. [12] W. Li, C. Liu, S. Yu, D. Liu, Y. Zhou, S. Shen, C. Wen, and C. Wang. Lightloc: Learning outdoor lidar localization at light speed. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 6680–6689, 2025. [13] N. Carlevaris-Bianco, A. Ushani, and R. Eustice. University of michigan north campus long-term vision and lidar dataset. The International Journal of Robotics Research , 35, 12 2015. doi:10.1177/0278364915614638. [14] A. A. Alemi, I. Fischer, J. V. Dillon, and K. Murphy. Deep variational information bottleneck, 2019. URL https://arxiv.org/abs/1612.00410 .[15] N. Tishby and N. Zaslavsky. Deep learning and the information bottleneck principle, 2015. URL https://arxiv.org/abs/1503.02406 .19 [16] S. Kullback and R. A. Leibler. On information and sufficiency. The annals of mathematical statistics , 22(1):79–86, 1951. [17] D. P. Kingma and M. Welling. Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114 , 2013. [18] X. Chen, T. L¨ abe, A. Milioto, T. R¨ ohling, O. Vysotska, A. Haag, J. Behley, and C. Stach-niss. Overlapnet: Loop closing for lidar-based slam. In Robotics: Science and Systems XVI ,RSS2020. Robotics: Science and Systems Foundation, 2020. doi:10.15607/rss.2020.xvi.009. URL http://dx.doi.org/10.15607/RSS.2020.XVI.009 .[19] J. Ma, J. Zhang, J. Xu, R. Ai, W. Gu, and X. Chen. Overlaptransformer: An efficient and yaw-angle-invariant transformer network for lidar-based place recognition. IEEE Robotics and Automation Letters , 7(3):6958–6965, July 2022. ISSN 2377-3774. doi:10.1109/lra.2022. 3178797. URL http://dx.doi.org/10.1109/LRA.2022.3178797 .[20] X. Xu, H. Yin, Z. Chen, Y. Li, Y. Wang, and R. Xiong. Disco: Differentiable scan context with orientation. IEEE Robotics and Automation Letters , 6(2):2791–2798, 2021. doi:10.1109/ LRA.2021.3060741. [21] G. Kim, S. Choi, and A. Kim. Scan context++: Structural place recognition robust to rotation and lateral variations in urban environments. IEEE Transactions on Robotics , 38(3):1856– 1874, 2021. [22] R. Tucker and N. Snavely. Single-view view synthesis with multiplane images. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , June 2020. [23] S. S. Jinka, A. Srivastava, C. Pokhariya, A. Sharma, and P. J. Narayanan. Sharp: Shape-aware reconstruction of people in loose clothing, 2022. URL https://arxiv.org/abs/2205. 11948 .[24] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon. Cbam: Convolutional block attention module, 2018. URL https://arxiv.org/abs/1807.06521 .[25] W. Kabsch. A solution for the best rotation to relate two sets of vectors. Acta Crystallographica Section A , 32(5):922–923, Sept. 1976. doi:10.1107/S0567739476001873. [26] D. Barnes, M. Gadd, P. Murcutt, P. Newman, and I. Posner. The oxford radar robotcar dataset: A radar extension to the oxford robotcar dataset. In 2020 IEEE international conference on robotics and automation (ICRA) , pages 6433–6438. IEEE, 2020. [27] A. Paszke, S. Gross, F. Massa, A. Lerer, J. Bradbury, G. Chanan, T. Killeen, Z. Lin, N. Gimelshein, L. Antiga, et al. Pytorch: An imperative style, high-performance deep learning library. Advances in neural information processing systems , 32, 2019. [28] M. A. Uy and G. H. Lee. Pointnetvlad: Deep point cloud based retrieval for large-scale place recognition. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2018. [29] Y. Wang and J. M. Solomon. Deep closest point: Learning representations for point cloud registration. In Proceedings of the IEEE/CVF international conference on computer vision ,pages 3523–3532, 2019. [30] A. Kumar, P. Sattigeri, and A. Balakrishnan. Variational inference of disentangled latent con-cepts from unlabeled observations. arXiv preprint arXiv:1711.00848 , 2017. [31] H. Tang, Z. Liu, S. Zhao, Y. Lin, J. Lin, H. Wang, and S. Han. Searching efficient 3d architec-tures with sparse point-voxel convolution. In European conference on computer vision , pages 685–702. Springer, 2020. 20

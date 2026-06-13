@@ -1,0 +1,56 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-13T21:23:28.241025+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2606.08744v2",
+      "source": "arxiv",
+      "title": "MB-Loc: Multi-planar Bird's-eye-view Localization in outdoor LiDAR scenes",
+      "abstract": "Global LiDAR localization is a fundamental task for autonomous navigation systems. Recent methods perform Scene Coordinate Regression (SCR) and achieve superior accuracy over Absolute Pose Regression (APR) solutions by predicting dense 3D world coordinates. However, SCR approaches introduce two major bottlenecks: severe computational inefficiency from processing raw 3D geometries and significant performance degradation under varying sensor viewpoints. To address these limitations, we present MB-Loc, a lightweight and viewpoint-robust SCR framework. Instead of relying on heavy 3D convolutions, we project the input LiDAR scan into a 2.5D Multi-planar Bird's-Eye View (BEV) representation. By slicing the point-cloud along the Z-axis and mapping signed depths into discrete 2D planes, MB-Loc retains essential 3D geometric structures while exploiting the computational tractability of standard 2D CNNs. To handle the inherent sparsity of outdoor LiDAR, we introduce a KL-regularized latent bottleneck that explicitly models spatial uncertainty without injecting stochastic noise. Finally, to ensure rotation robustness, we apply 3D spatial augmentations prior to planar projection, forcing the network to implicitly learn viewpoint-invariant features. We perform extensive experiments on the publicly available NCLT dataset and demonstrate that our proposed method outperforms the current state-of-the-art. Operating at real-time inference speeds, MB-Loc significantly outperforms traditional 3D-SCR architectures in computational efficiency.",
+      "authors": [
+        "Ayaan Choudhury",
+        "Preet Savalia",
+        "Anirudh Pydah",
+        "Avinash Sharma"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-07T17:25:06+00:00",
+      "link": "https://arxiv.org/pdf/2606.08744v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LiDAR-based global localization via BEV projection for 3D perception.",
+      "llm_evidence_cn": "基于LiDAR的全局定位，通过BEV投影进行3D感知",
+      "llm_evidence": "基于LiDAR的全局定位，通过BEV投影进行3D感知",
+      "canonical_evidence": "基于LiDAR的全局定位，通过BEV投影进行3D感知",
+      "llm_tldr_en": "Proposes MB-Loc, a lightweight and viewpoint-robust LiDAR localization method using Multi-planar BEV representation for scene coordinate regression, achieving efficient and accurate global localization.",
+      "llm_tldr_cn": "针对室外LiDAR全局定位中的计算效率和视角鲁棒性问题，提出了一种基于多平面鸟瞰图（BEV）表示的轻量级场景坐标回归框架MB-Loc。通过将点云沿Z轴切片投影，避免了沉重的3D卷积，实现了高效且视角鲁棒的全局定位，在多个数据集上优于现有方法。",
+      "llm_tldr": "针对室外LiDAR全局定位中的计算效率和视角鲁棒性问题，提出了一种基于多平面鸟瞰图（BEV）表示的轻量级场景坐标回归框架MB-Loc。通过将点云沿Z轴切片投影，避免了沉重的3D卷积，实现了高效且视角鲁棒的全局定位，在多个数据集上优于现有方法。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "LiDAR point cloud data for 3D perception",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

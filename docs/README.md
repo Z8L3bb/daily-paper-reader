@@ -6,26 +6,26 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-12
-- 运行时间：2026-06-12 22:01:21 UTC
+- 最新运行日期：2026-06-13
+- 运行时间：2026-06-13 21:24:58 UTC
 - 运行状态：成功
 - 本次总论文数：1
-- 精读区：0
-- 速读区：1
+- 精读区：1
+- 速读区：0
 
 ### 今日简报（AI）
-今日速览一篇公共交通车内监控新研究，关注多视角融合在复杂场景下的应用潜力。  
-该工作提出多视角客舱监测系统，但未突破现有技术框架，评分仅及格，可留意其公交场景验证数据。  
-普通读者可跳过本篇，等待后续更深入的行人检测或异常行为识别突破。
-- 详情：[/202606/12/README](/202606/12/README)
+今日精读《MB-Loc》，一种室外LiDAR场景中利用多平面鸟瞰图实现高精度定位的新方法。  
+该方法通过融合多高度层BEV特征，显著提升了6自由度位姿估计的鲁棒性，在复杂户外环境优势明显。  
+想深度理解多视图几何在定位中的应用，建议重点关注其跨平面特征匹配与全局姿态解算模块。
+- 详情：[/202606/13/README](/202606/13/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [MB-Loc: Multi-planar Bird's-eye-view Localization in outdoor LiDAR scenes](/202606/13/2606.08744v2-mb-loc-multi-planar-birds-eye-view-localization-in-outdoor-lidar-scenes)  
+   标签：评分：8.0/10、query:stage-d-det
+   evidence：基于LiDAR的全局定位，通过BEV投影进行3D感知
 
 ### 速读区论文标签
-1. [Multi-View In-Cabin Monitoring System for Public Transport Vehicles](/202606/12/2606.11739v1-multi-view-in-cabin-monitoring-system-for-public-transport-vehicles)  
-   标签：评分：6.0/10、query:stage-d-det
-   evidence：发布包含LiDAR和RGB-D的多视角车内数据集，提供3D边界框标注并基准评测3D检测模型
+- 本次无速读推荐。
 
 
 <div class="dpr-home-promo-card">

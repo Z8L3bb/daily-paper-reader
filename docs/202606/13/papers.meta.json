@@ -1,0 +1,24 @@
+{
+  "label": "2026-06-13",
+  "date": "2026-06-13",
+  "generated_at": "2026-06-13T21:25:06",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202606/13/2606.08744v2-mb-loc-multi-planar-birds-eye-view-localization-in-outdoor-lidar-scenes",
+      "section": "deep",
+      "title_en": "MB-Loc: Multi-planar Bird's-eye-view Localization in outdoor LiDAR scenes",
+      "authors": "Ayaan Choudhury, Preet Savalia, Anirudh Pydah, Avinash Sharma",
+      "date": "2026-06-07",
+      "pdf": "https://arxiv.org/pdf/2606.08744v2",
+      "score": "8.0",
+      "evidence": "基于LiDAR的全局定位，通过BEV投影进行3D感知",
+      "tldr": "现有场景坐标回归定位方法面临3D计算低效和视角敏感问题。MB-Loc将点云投影到多平面鸟瞰图，利用2D CNN高效保留几何结构，并通过KL正则化处理稀疏性及3D增强提升旋转鲁棒性。在NCLT上实现实时高精度定位，显著超越传统方法。为轻量、鲁棒的户外定位提供了新范式。",
+      "tags": "query:stage-d-det",
+      "abstract_en": "Global LiDAR localization is a fundamental task for autonomous navigation systems. Recent methods perform Scene Coordinate Regression (SCR) and achieve superior accuracy over Absolute Pose Regression (APR) solutions by predicting dense 3D world coordinates. However, SCR approaches introduce two major bottlenecks: severe computational inefficiency from processing raw 3D geometries and significant performance degradation under varying sensor viewpoints. To address these limitations, we present MB-Loc, a lightweight and viewpoint-robust SCR framework. Instead of relying on heavy 3D convolutions, we project the input LiDAR scan into a 2.5D Multi-planar Bird's-Eye View (BEV) representation. By slicing the point-cloud along the Z-axis and mapping signed depths into discrete 2D planes, MB-Loc retains essential 3D geometric structures while exploiting the computational tractability of standard 2D CNNs. To handle the inherent sparsity of outdoor LiDAR, we introduce a KL-regularized latent bottleneck that explicitly models spatial uncertainty without injecting stochastic noise. Finally, to ensure rotation robustness, we apply 3D spatial augmentations prior to planar projection, forcing the network to implicitly learn viewpoint-invariant features. We perform extensive experiments on the publicly available NCLT dataset and demonstrate that our proposed method outperforms the current state-of-the-art. Operating at real-time inference speeds, MB-Loc significantly outperforms traditional 3D-SCR architectures in computational efficiency.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
