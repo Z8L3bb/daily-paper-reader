@@ -1,0 +1,93 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-14T20:37:46.078561+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2606.12981v1",
+      "source": "arxiv",
+      "title": "Camera and LiDAR BEV Fusion for Cooperative 3D Object Detection on TUMTraf V2X",
+      "abstract": "We describe a Camera and LiDAR fusion detector developed for the TUMTraf V2X cooperative 3D object detection track of the DriveX 2026 challenge. The detector fuses three roadside cameras with a fused infrastructure-plus-vehicle point cloud in a shared bird's-eye-view space and predicts boxes through a CenterPoint-style head with a generalized IoU regression loss and an IoU quality re-ranking head. Trained on the provided train and validation splits, the model reaches a 3D mAP of 0.85 on the public Codabench test split. While iterating on the system, we observed that 44 of the 50 test frames are also present in the released train (40) and validation (4) splits with their labels. We therefore conducted two additional studies to quantify how this overlap affects the final score: (1) a finetuning run that oversamples the 44 overlapping frames, reaching 0.89 mAP, and (2) a post-processing run that replaces predictions on those frames with the released ground truth, reaching 0.99 mAP (uploaded to our Codabench account for testing but not published on the leaderboard). All three configurations and their per-class results are reported.",
+      "authors": [
+        "Muhammad Shahbaz",
+        "Shaurya Agarwal"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-11T07:14:10+00:00",
+      "link": "https://arxiv.org/pdf/2606.12981v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Camera and LiDAR BEV fusion detector for cooperative 3D object detection",
+      "llm_evidence_cn": "相机与LiDAR鸟瞰图融合的合作式3D目标检测器",
+      "llm_evidence": "相机与LiDAR鸟瞰图融合的合作式3D目标检测器",
+      "canonical_evidence": "相机与LiDAR鸟瞰图融合的合作式3D目标检测器",
+      "llm_tldr_en": "Develops a camera-LiDAR fusion detector using a shared BEV space and CenterPoint-style head, achieving 0.85 3D mAP on the TUMTraf V2X challenge.",
+      "llm_tldr_cn": "提出一种融合路边相机与基础设施-车辆点云的3D目标检测器，在共享鸟瞰空间编码多模态特征，通过CenterPoint风格头及GIoU回归损失预测目标框，并采用IoU质量重排序头，在TUMTraf V2X挑战上达到0.85的3D mAP。",
+      "llm_tldr": "提出一种融合路边相机与基础设施-车辆点云的3D目标检测器，在共享鸟瞰空间编码多模态特征，通过CenterPoint风格头及GIoU回归损失预测目标框，并采用IoU质量重排序头，在TUMTraf V2X挑战上达到0.85的3D mAP。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.13488v1",
+      "source": "arxiv",
+      "title": "Point-Wise Geometry-Aware Transformer for Partial-to-Full Point Cloud Registration in Computer-Assisted Surgery",
+      "abstract": "Partial-to-full registration remains challenging due to varying overlap ratios, fluctuating point densities, and the presence of noise. While transformers have shown strong potential for point cloud processing, prior methods typically confine them to global context aggregation, overlooking fine-grained local geometry crucial for accurate correspondence. We propose \\emph{GAPR-Net}, a learning-based point cloud registration framework with a coarse-to-fine architecture that combines convolution and transformer modules, in which local and global information is fused between the partial and full point clouds using a cross-attention mechanism. To achieve this, a transformation-invariant point-wise geometric feature representation is proposed, which can robustly capture relative geometric features for individual points with respect to their neighboring points. To evaluate the effectiveness of the proposed approach, experiments are conducted on four geometrically distinct bones, including the tibia, femur, pelvis, and thoracic cartilage. The overall registration recall reaches 94.2\\%, the method results in a low RMSE of 1.992 mm and $R^2$ values of 0.908 and 0.974 for rotation and translation, respectively. The results demonstrate that the proposed method effectively addresses the partial-to-full point cloud registration problem. The proposed method enables highly accurate 3D point cloud registration using partial observation, providing a critical foundation for precise surgical navigation and robotic interventions in computer-assisted surgery. The code will be accessed after the double-blind review process.",
+      "authors": [
+        "Siyu Zhou",
+        "Zhongliang Jiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-11T15:37:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.13488v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Proposes point-wise geometry-aware Transformer with cross-attention for point cloud feature aggregation in registration.",
+      "llm_evidence_cn": "提出点级几何感知Transformer，利用交叉注意力进行点云特征聚合用于配准。",
+      "llm_evidence": "提出点级几何感知Transformer，利用交叉注意力进行点云特征聚合用于配准。",
+      "canonical_evidence": "提出点级几何感知Transformer，利用交叉注意力进行点云特征聚合用于配准。",
+      "llm_tldr_en": "This paper addresses partial-to-full point cloud registration with varying overlap and noise by proposing GAPR-Net, a coarse-to-fine framework that combines convolution and transformer with cross-attention to fuse local and global geometry. It introduces a transformation-invariant point-wise geometric feature, improving correspondence accuracy and providing a transferable attention mechanism for 3D point cloud feature aggregation.",
+      "llm_tldr_cn": "针对部分到完整点云配准中存在遮挡、密度变化和噪声的挑战，提出GAPR-Net框架，结合卷积与Transformer并通过交叉注意力融合局部和全局几何信息，并设计变换不变的点级几何特征以提高对应准确性。实验证明该方法能有效处理复杂配准场景，为3D点云特征聚合提供了一种可迁移的注意力机制。",
+      "llm_tldr": "针对部分到完整点云配准中存在遮挡、密度变化和噪声的挑战，提出GAPR-Net框架，结合卷积与Transformer并通过交叉注意力融合局部和全局几何信息，并设计变换不变的点级几何特征以提高对应准确性。实验证明该方法能有效处理复杂配准场景，为3D点云特征聚合提供了一种可迁移的注意力机制。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

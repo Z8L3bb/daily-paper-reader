@@ -6,26 +6,28 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-13
-- 运行时间：2026-06-13 21:24:58 UTC
+- 最新运行日期：2026-06-14
+- 运行时间：2026-06-14 20:40:22 UTC
 - 运行状态：成功
-- 本次总论文数：1
+- 本次总论文数：2
 - 精读区：1
-- 速读区：0
+- 速读区：1
 
 ### 今日简报（AI）
-今日精读《MB-Loc》，一种室外LiDAR场景中利用多平面鸟瞰图实现高精度定位的新方法。  
-该方法通过融合多高度层BEV特征，显著提升了6自由度位姿估计的鲁棒性，在复杂户外环境优势明显。  
-想深度理解多视图几何在定位中的应用，建议重点关注其跨平面特征匹配与全局姿态解算模块。
-- 详情：[/202606/13/README](/202606/13/README)
+今聚焦协作感知与手术配准，精读了一篇车路协同BEV融合检测，速览了一篇点云几何配准。  
+协同感知最亮眼的是相机–激光雷达双重融合在V2X场景下大幅提升3D检测稳健性。  
+读者若跟进，可优先消化TUMTraf V2X那篇的融合架构，再了解手术点云配准的局部到全局思路。
+- 详情：[/202606/14/README](/202606/14/README)
 
 ### 精读区论文标签
-1. [MB-Loc: Multi-planar Bird's-eye-view Localization in outdoor LiDAR scenes](/202606/13/2606.08744v2-mb-loc-multi-planar-birds-eye-view-localization-in-outdoor-lidar-scenes)  
-   标签：评分：8.0/10、query:stage-d-det
-   evidence：基于LiDAR的全局定位，通过BEV投影进行3D感知
+1. [Camera and LiDAR BEV Fusion for Cooperative 3D Object Detection on TUMTraf V2X](/202606/14/2606.12981v1-camera-and-lidar-bev-fusion-for-cooperative-3d-object-detection-on-tumtraf-v2x)  
+   标签：评分：9.0/10、query:lidar-d-det
+   evidence：相机与LiDAR鸟瞰图融合的合作式3D目标检测器
 
 ### 速读区论文标签
-- 本次无速读推荐。
+1. [Point-Wise Geometry-Aware Transformer for Partial-to-Full Point Cloud Registration in Computer-Assisted Surgery](/202606/14/2606.13488v1-point-wise-geometry-aware-transformer-for-partial-to-full-point-cloud-registration-in-computer-assisted-surgery)  
+   标签：评分：6.0/10、query:lidar-d-det
+   evidence：提出点级几何感知Transformer，利用交叉注意力进行点云特征聚合用于配准。
 
 
 <div class="dpr-home-promo-card">

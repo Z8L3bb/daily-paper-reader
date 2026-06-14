@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-14",
+  "date": "2026-06-14",
+  "generated_at": "2026-06-14T20:40:29",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/14/2606.12981v1-camera-and-lidar-bev-fusion-for-cooperative-3d-object-detection-on-tumtraf-v2x",
+      "section": "deep",
+      "title_en": "Camera and LiDAR BEV Fusion for Cooperative 3D Object Detection on TUMTraf V2X",
+      "authors": "Muhammad Shahbaz, Shaurya Agarwal",
+      "date": "2026-06-11",
+      "pdf": "https://arxiv.org/pdf/2606.12981v1",
+      "score": "9.0",
+      "evidence": "相机与LiDAR鸟瞰图融合的合作式3D目标检测器",
+      "tldr": "针对车路协同3D目标检测，提出一种相机与激光雷达BEV融合方法。在共享鸟瞰图空间融合三个路边相机与基础设施及车辆点云，采用CenterPoint预测头与广义IoU回归和IoU重排序，在TUMTraf V2X测试集上达0.85 mAP。进一步分析发现测试帧大量重叠训练集，通过过采样微调和帧替换分别提升至0.89和0.99 mAP，为协同感知提供有效方案并提示数据划分问题。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "We describe a Camera and LiDAR fusion detector developed for the TUMTraf V2X cooperative 3D object detection track of the DriveX 2026 challenge. The detector fuses three roadside cameras with a fused infrastructure-plus-vehicle point cloud in a shared bird's-eye-view space and predicts boxes through a CenterPoint-style head with a generalized IoU regression loss and an IoU quality re-ranking head. Trained on the provided train and validation splits, the model reaches a 3D mAP of 0.85 on the public Codabench test split. While iterating on the system, we observed that 44 of the 50 test frames are also present in the released train (40) and validation (4) splits with their labels. We therefore conducted two additional studies to quantify how this overlap affects the final score: (1) a finetuning run that oversamples the 44 overlapping frames, reaching 0.89 mAP, and (2) a post-processing run that replaces predictions on those frames with the released ground truth, reaching 0.99 mAP (uploaded to our Codabench account for testing but not published on the leaderboard). All three configurations and their per-class results are reported.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/14/2606.13488v1-point-wise-geometry-aware-transformer-for-partial-to-full-point-cloud-registration-in-computer-assisted-surgery",
+      "section": "quick",
+      "title_en": "Point-Wise Geometry-Aware Transformer for Partial-to-Full Point Cloud Registration in Computer-Assisted Surgery",
+      "authors": "Siyu Zhou, Zhongliang Jiang",
+      "date": "2026-06-11",
+      "pdf": "https://arxiv.org/pdf/2606.13488v1",
+      "score": "6.0",
+      "evidence": "提出点级几何感知Transformer，利用交叉注意力进行点云特征聚合用于配准。",
+      "tldr": "部分到整体点云配准因重叠率波动、密度不均和噪声干扰仍具挑战。现有Transformer方法局限于全局上下文，忽视细粒度局部几何。提出GAPR-Net，采用粗到细架构融合卷积与Transformer，通过交叉注意力实现局部-全局信息交互，并设计变换不变点级几何特征稳健捕获邻域关系。在胫骨、股骨等四类骨骼上实验，配准召回率达94.2%，RMSE仅1.992mm，旋转和平移R²为0.908和0.974，为手术导航与机器人干预提供高精度基础。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Partial-to-full registration remains challenging due to varying overlap ratios, fluctuating point densities, and the presence of noise. While transformers have shown strong potential for point cloud processing, prior methods typically confine them to global context aggregation, overlooking fine-grained local geometry crucial for accurate correspondence. We propose \\emph{GAPR-Net}, a learning-based point cloud registration framework with a coarse-to-fine architecture that combines convolution and transformer modules, in which local and global information is fused between the partial and full point clouds using a cross-attention mechanism. To achieve this, a transformation-invariant point-wise geometric feature representation is proposed, which can robustly capture relative geometric features for individual points with respect to their neighboring points. To evaluate the effectiveness of the proposed approach, experiments are conducted on four geometrically distinct bones, including the tibia, femur, pelvis, and thoracic cartilage. The overall registration recall reaches 94.2\\%, the method results in a low RMSE of 1.992 mm and $R^2$ values of 0.908 and 0.974 for rotation and translation, respectively. The results demonstrate that the proposed method effectively addresses the partial-to-full point cloud registration problem. The proposed method enables highly accurate 3D point cloud registration using partial observation, providing a critical foundation for precise surgical navigation and robotic interventions in computer-assisted surgery. The code will be accessed after the double-blind review process.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
