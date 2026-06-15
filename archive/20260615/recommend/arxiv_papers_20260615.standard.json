@@ -1,0 +1,104 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-15T22:57:59.056189+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2606.10978v1",
+      "source": "arxiv",
+      "title": "Event-based Scheimpflug LiDAR for Ultra-Fast Laser-Scanned Rangefinding",
+      "abstract": "Frame-based ranging systems are constrained by frame rate and provide no intrinsic mechanism for background rejection, limiting utility in high-throughput or cluttered environments. We present eSCHORTY, a Scheimpflug LiDAR integrating an event-based sensor with a modulated continuous-wave line laser to enable dense 3D point clouds, generated from over one million megaevents per second. We demonstrate that laser modulation provides a trade-off between event-space feature detection and localization, and that logarithmic event encoding suppresses the reflectance-induced centroid artifact demonstrated in intensity-based ranging. Reconstructions of natural scenes confirm spatially coherent depth recovery, with the Scheimpflug geometry supporting adaptation from millimeter- to kilometer-scale applications.",
+      "authors": [
+        "Nathan Meraz",
+        "Alisha Whitehead",
+        "Suet Ying Chan",
+        "Ronan Taneja",
+        "Gabriella Mayrend",
+        "Joseph L. Greene"
+      ],
+      "primary_category": "physics.optics",
+      "categories": [
+        "physics.optics"
+      ],
+      "published": "2026-06-09T15:15:08+00:00",
+      "link": "https://arxiv.org/pdf/2606.10978v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "event-based Scheimpflug LiDAR generates dense 3D point clouds at high speed",
+      "llm_evidence_cn": "基于事件的Scheimpflug激光雷达高速生成密集3D点云",
+      "llm_evidence": "基于事件的Scheimpflug激光雷达高速生成密集3D点云",
+      "canonical_evidence": "基于事件的Scheimpflug激光雷达高速生成密集3D点云",
+      "llm_tldr_en": "Introduces an event-based Scheimpflug LiDAR system that generates dense 3D point clouds over one million megaevents per second, with background rejection and artifact suppression.",
+      "llm_tldr_cn": "针对传统帧式激光雷达帧率受限且无本征背景抑制的问题，提出集成事件传感器与调制连续波线激光的Scheimpflug LiDAR系统(eSCHORTY)，实现每秒超百万兆事件的密集3D点云生成。激光调制平衡了事件特征检测与定位，对数编码抑制了反射率导致的质心伪影。实验重建自然场景证实了空间一致性深度恢复及Scheimpflug几何的自适应性。",
+      "llm_tldr": "针对传统帧式激光雷达帧率受限且无本征背景抑制的问题，提出集成事件传感器与调制连续波线激光的Scheimpflug LiDAR系统(eSCHORTY)，实现每秒超百万兆事件的密集3D点云生成。激光调制平衡了事件特征检测与定位，对数编码抑制了反射率导致的质心伪影。实验重建自然场景证实了空间一致性深度恢复及Scheimpflug几何的自适应性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.14292v1",
+      "source": "arxiv",
+      "title": "A Robust Point Cloud Analysis Framework Inspired By Primary Visual Cortex",
+      "abstract": "Despite significant advancements in point cloud analysis, reducing energy consumption and improving robustness remain understudied, largely due to the inherent limitations of Convolutional Neural Networks (CNNs). To address this issue, we draw inspiration from the primary visual cortex and propose a Dendritic-Connected Continuous-Coupled Neural Network (DC-CCNN), a novel Brain-Inspired Neural Network (BINN) architecture for point cloud analysis. By combining discrete and continuous encoding, our design replaces traditional Multilayer Perceptrons (MLPs) with more efficient and robust BINNs. Building upon this framework, we further propose an extended model, DC-CCNN++, to improve robustness under complex corruption conditions. Specifically, we introduce a Neuro-Inspired Robust Modulation-and-Readout Module (NRMR) to enhance feature stability and decision robustness through global-context gain modulation and dual-code evidence integration. We also design a Cortically Inspired Progressive Variability Training (CPVT) strategy, which progressively exposes the model to structured environmental variability while preserving stable clean-sample anchors during training. Experimental results show that DC-CCNN++ improves the performance of brain-inspired networks on point cloud analysis while maintaining performance comparable to state-of-the-art methods. Compared with the original DC-CCNN, it achieves stronger results on both classification and part segmentation, and exhibits enhanced robustness against sparsity, occlusion, Gaussian noise, salt-and-pepper noise, and spatial transformations. With its efficiency, robustness, and biologically grounded design, DC-CCNN++ provides a promising alternative to traditional deep learning methods for point cloud analysis. Code is available at https://anonymous.4open.science/r/DC-CCNNpp-44E3.",
+      "authors": [
+        "Jisheng Dang",
+        "Dengyue Pan",
+        "Delin Deng",
+        "Yifan Zhang",
+        "Bimei Wang",
+        "Hong Peng",
+        "Bin Hu",
+        "Qi Tian",
+        "Tat-Seng Chua"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-12T09:17:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.14292v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "brain-inspired neural network for robust point cloud analysis",
+      "llm_evidence_cn": "受大脑启发的神经网络用于鲁棒点云分析",
+      "llm_evidence": "受大脑启发的神经网络用于鲁棒点云分析",
+      "canonical_evidence": "受大脑启发的神经网络用于鲁棒点云分析",
+      "llm_tldr_en": "Proposes a brain-inspired neural network (DC-CCNN) for efficient and robust point cloud analysis, with extensions for complex corruption conditions.",
+      "llm_tldr_cn": "针对点云分析中能耗和鲁棒性不足的问题，受初级视觉皮层启发，提出树突连接连续耦合神经网络(DC-CCNN)，替代传统MLP，提升效率和鲁棒性。进一步扩展DC-CCNN++以应对复杂损坏。在多种点云任务上验证了方法的优越性和低功耗特性。",
+      "llm_tldr": "针对点云分析中能耗和鲁棒性不足的问题，受初级视觉皮层启发，提出树突连接连续耦合神经网络(DC-CCNN)，替代传统MLP，提升效率和鲁棒性。进一步扩展DC-CCNN++以应对复杂损坏。在多种点云任务上验证了方法的优越性和低功耗特性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

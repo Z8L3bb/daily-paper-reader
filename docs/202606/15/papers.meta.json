@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-15",
+  "date": "2026-06-15",
+  "generated_at": "2026-06-15T23:00:50",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/15/2606.10978v1-event-based-scheimpflug-lidar-for-ultra-fast-laser-scanned-rangefinding",
+      "section": "deep",
+      "title_en": "Event-based Scheimpflug LiDAR for Ultra-Fast Laser-Scanned Rangefinding",
+      "authors": "Nathan Meraz, Alisha Whitehead, Suet Ying Chan, Ronan Taneja, Gabriella Mayrend, Joseph L. Greene",
+      "date": "2026-06-09",
+      "pdf": "https://arxiv.org/pdf/2606.10978v1",
+      "score": "9.0",
+      "evidence": "基于事件的Scheimpflug激光雷达高速生成密集3D点云",
+      "tldr": "帧基测距系统因帧率和背景抑制的固有缺陷，难以适应高通量或复杂环境。本文提出eSCHORTY，一种融合事件传感器与调制连续波线激光的Scheimpflug LiDAR，通过激光调制实现事件空间特征检测和定位的灵活权衡，并采用对数事件编码有效消除反射率导致的中心点伪影。该系统每秒产生逾百万兆事件，生成密集3D点云。自然场景重建验证了空间相干的深度恢复，Scheimpflug几何结构使其能够覆盖从毫米到公里级别的测距需求，为超快激光扫描测距开辟高鲁棒、可扩展的新路径。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Frame-based ranging systems are constrained by frame rate and provide no intrinsic mechanism for background rejection, limiting utility in high-throughput or cluttered environments. We present eSCHORTY, a Scheimpflug LiDAR integrating an event-based sensor with a modulated continuous-wave line laser to enable dense 3D point clouds, generated from over one million megaevents per second. We demonstrate that laser modulation provides a trade-off between event-space feature detection and localization, and that logarithmic event encoding suppresses the reflectance-induced centroid artifact demonstrated in intensity-based ranging. Reconstructions of natural scenes confirm spatially coherent depth recovery, with the Scheimpflug geometry supporting adaptation from millimeter- to kilometer-scale applications.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/15/2606.14292v1-a-robust-point-cloud-analysis-framework-inspired-by-primary-visual-cortex",
+      "section": "quick",
+      "title_en": "A Robust Point Cloud Analysis Framework Inspired By Primary Visual Cortex",
+      "authors": "Jisheng Dang, Dengyue Pan, Delin Deng, Yifan Zhang, Bimei Wang, Hong Peng, Bin Hu, Qi Tian, Tat-Seng Chua",
+      "date": "2026-06-12",
+      "pdf": "https://arxiv.org/pdf/2606.14292v1",
+      "score": "6.0",
+      "evidence": "受大脑启发的神经网络用于鲁棒点云分析",
+      "tldr": "点云分析面临高能耗和弱鲁棒性挑战，主要源于卷积神经网络的固有局限。受初级视觉皮层启发，提出树突连接连续耦合神经网络DC-CCNN，用脑启发网络替代MLP，并通过离散-连续编码提升效率与鲁棒性。进一步扩展为DC-CCNN++，引入神经启发的鲁棒调制与读出模块和皮层启发的渐进可变性训练策略。实验表明，DC-CCNN++在分类和部件分割上达到先进水平，且对多种噪声和变换具有强鲁棒性，为点云分析提供了高效且生物合理的新范式。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Despite significant advancements in point cloud analysis, reducing energy consumption and improving robustness remain understudied, largely due to the inherent limitations of Convolutional Neural Networks (CNNs). To address this issue, we draw inspiration from the primary visual cortex and propose a Dendritic-Connected Continuous-Coupled Neural Network (DC-CCNN), a novel Brain-Inspired Neural Network (BINN) architecture for point cloud analysis. By combining discrete and continuous encoding, our design replaces traditional Multilayer Perceptrons (MLPs) with more efficient and robust BINNs. Building upon this framework, we further propose an extended model, DC-CCNN++, to improve robustness under complex corruption conditions. Specifically, we introduce a Neuro-Inspired Robust Modulation-and-Readout Module (NRMR) to enhance feature stability and decision robustness through global-context gain modulation and dual-code evidence integration. We also design a Cortically Inspired Progressive Variability Training (CPVT) strategy, which progressively exposes the model to structured environmental variability while preserving stable clean-sample anchors during training. Experimental results show that DC-CCNN++ improves the performance of brain-inspired networks on point cloud analysis while maintaining performance comparable to state-of-the-art methods. Compared with the original DC-CCNN, it achieves stronger results on both classification and part segmentation, and exhibits enhanced robustness against sparsity, occlusion, Gaussian noise, salt-and-pepper noise, and spatial transformations. With its efficiency, robustness, and biologically grounded design, DC-CCNN++ provides a promising alternative to traditional deep learning methods for point cloud analysis. Code is available at https://anonymous.4open.science/r/DC-CCNNpp-44E3.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

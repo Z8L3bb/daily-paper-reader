@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-14T20:37:46.079119+00:00",
-  "updated_date": "20260614",
+  "generated_at": "2026-06-15T22:57:59.056641+00:00",
+  "updated_date": "20260615",
   "carryover_days": 9,
   "tag_states": {
     "lidar-d-det": {
-      "updated_date": "20260614",
+      "updated_date": "20260615",
       "carryover_days": 9,
       "items": []
     },
     "stage-D-det": {
-      "updated_date": "20260614",
+      "updated_date": "20260615",
       "carryover_days": 9,
       "items": []
     }
