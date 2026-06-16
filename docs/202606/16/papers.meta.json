@@ -1,0 +1,39 @@
+{
+  "label": "2026-06-16",
+  "date": "2026-06-16",
+  "generated_at": "2026-06-16T23:06:24",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202606/16/2606.16048v1-pointdiffusion-diffusion-based-scene-completion-in-the-point-cloud-domain",
+      "section": "deep",
+      "title_en": "PointDiffusion: Diffusion-Based Scene Completion in the Point Cloud Domain",
+      "authors": "Chidera Agbasiere, Mikhail Sannikov, Faith Ogunwoye, Erik Shaikhiev, Alex Kozinov, Ilya Mikhalchuk, Iana Zhura, Dzmitry Tsetserukou",
+      "date": "2026-06-14",
+      "pdf": "https://arxiv.org/pdf/2606.16048v1",
+      "score": "9.0",
+      "evidence": "从稀疏激光雷达点云重建密集3D场景",
+      "tldr": "从稀疏LiDAR重建稠密3D场景是自动驾驶关键挑战，现有潜扩散模型因目标级自编码器在室外尺度崩溃、真值受里程计漂移破坏且多步推理延迟高。本文提出多令牌高斯VAE与交叉注意力池化实现稳定场景级压缩，并用锚点ICP流程精修真值以消除漂移。基于此的无脚手架单步扩散补全模型在SemanticKITTI上将平方Chamfer距离由0.396降至0.024 m²，推理速度提升25–143倍。结果表明数据质量主导模型设计，多令牌潜空间为潜扩散场景补全提供稳定基础。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Reconstructing dense 3D scenes from sparse LiDAR point clouds is a fundamental challenge in autonomous driving, where latent diffusion models offer a promising solution. However, existing approaches rely on object-level autoencoders that collapse into unstable global representations at outdoor scale and suffer from ground truth data corrupted by odometry drift that systematically degrades supervision quality. Furthermore, multi-step diffusion inference incurs prohibitive latency for real-time deployment. We propose a novel multi-token Gaussian VAE with cross-attention pooling for stable scene-scale LiDAR compression, combined with an anchor-based ICP ground truth refinement pipeline that eliminates drift-induced noise from training supervision. Together, these components enable a scaffold-free single-step diffusion completion model that achieves an approximately 16x reduction in squared Chamfer distance on SemanticKITTI seq. 08 (0.396 m^2 to 0.024 m^2), surpasses LiDiff and ScoreLiDAR by 17-19% and 10-11%, respectively, and operates at 25-143x lower inference latency. Our results demonstrate that data quality dominates model design in this regime and that multi-token latent spaces provide a stable first stage for latent diffusion-based scene completion.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/16/2606.16354v1-graphbev-multi-modal-feature-alignment-for-autonomous-driving",
+      "section": "deep",
+      "title_en": "GraphBEV++: Multi-Modal Feature Alignment for Autonomous Driving",
+      "authors": "Ziying Song, Caiyan Jia, Lin Liu, Shaoqing Xu, Lei Yang, Yadan Luo",
+      "date": "2026-06-15",
+      "pdf": "https://arxiv.org/pdf/2606.16354v1",
+      "score": "8.0",
+      "evidence": "提出多模态融合框架GraphBEV++解决BEV感知中LiDAR与相机特征错位问题",
+      "tldr": "针对自动驾驶中多模态BEV特征因标定误差而错位的问题，提出GraphBEV++框架。该框架通过LocalAlign-v2图匹配实现局部对齐，并利用GlobalAlign-v2的Deformable和Diffusion变体完成全局对齐，兼容常见BEV范式。在nuScenes、Waymo等数据集上，即便存在标定噪声仍取得最优检测与占用预测，并改善远距感知。同时，在端到端开闭环评测中规划性能超越UniAD等基线，显著增强系统鲁棒性。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Feature misalignment in BEV perception is a critical yet often overlooked challenge in autonomous driving, especially under calibration uncertainties between LiDAR and camera sensors. To address this issue, we propose a robust multi-modal fusion framework, GraphBEV++, which systematically mitigates projection-induced misalignment. The framework consists of two key modules: LocalAlign-v2 and GlobalAlign-v2. LocalAlign-v2 introduces neighborhood-aware depth features via graph matching to correct local misalignment. It supports both LSS-based and query-based BEV representations, making it compatible with BEVFusion and BEVFormer architectures for consistent cross-paradigm alignment. GlobalAlign-v2 encompasses two variants: Deformable and Diffusion. The Deformable variant addresses global misalignment in LSS-based multi-modal BEV by explicitly learning cross-modal feature offsets. In contrast, the Diffusion variant targets implicit misalignment in query-based BEV by injecting noise to simulate misalignment and employing a denoising process to recover aligned features. Experimental results show that GraphBEV++ achieves state-of-the-art performance under misalignment noise on nuScenes and Waymo subset, improves long-range detection on Argoverse2, and generalizes effectively to the 3D occupancy prediction task, consistently improving occupancy estimation accuracy and robustness under both clean and noisy settings. Furthermore, GraphBEV++ effectively alleviates misalignment issues in end-to-end autonomous driving. Compared with five baselines (UniAD, VAD, FusionAD, MomAD, and WoTE), it demonstrates superior performance in both open-loop (nuScenes) and closed-loop (Bench2Drive and NAVSIM) evaluations across perception, prediction, and planning tasks.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

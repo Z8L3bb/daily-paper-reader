@@ -1,0 +1,101 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-16T23:03:42.201859+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2606.16048v1",
+      "source": "arxiv",
+      "title": "PointDiffusion: Diffusion-Based Scene Completion in the Point Cloud Domain",
+      "abstract": "Reconstructing dense 3D scenes from sparse LiDAR point clouds is a fundamental challenge in autonomous driving, where latent diffusion models offer a promising solution. However, existing approaches rely on object-level autoencoders that collapse into unstable global representations at outdoor scale and suffer from ground truth data corrupted by odometry drift that systematically degrades supervision quality. Furthermore, multi-step diffusion inference incurs prohibitive latency for real-time deployment. We propose a novel multi-token Gaussian VAE with cross-attention pooling for stable scene-scale LiDAR compression, combined with an anchor-based ICP ground truth refinement pipeline that eliminates drift-induced noise from training supervision. Together, these components enable a scaffold-free single-step diffusion completion model that achieves an approximately 16x reduction in squared Chamfer distance on SemanticKITTI seq. 08 (0.396 m^2 to 0.024 m^2), surpasses LiDiff and ScoreLiDAR by 17-19% and 10-11%, respectively, and operates at 25-143x lower inference latency. Our results demonstrate that data quality dominates model design in this regime and that multi-token latent spaces provide a stable first stage for latent diffusion-based scene completion.",
+      "authors": [
+        "Chidera Agbasiere",
+        "Mikhail Sannikov",
+        "Faith Ogunwoye",
+        "Erik Shaikhiev",
+        "Alex Kozinov",
+        "Ilya Mikhalchuk",
+        "Iana Zhura",
+        "Dzmitry Tsetserukou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-14T22:36:34+00:00",
+      "link": "https://arxiv.org/pdf/2606.16048v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reconstructs dense 3D scenes from sparse LiDAR point clouds",
+      "llm_evidence_cn": "从稀疏激光雷达点云重建密集3D场景",
+      "llm_evidence": "从稀疏激光雷达点云重建密集3D场景",
+      "canonical_evidence": "从稀疏激光雷达点云重建密集3D场景",
+      "llm_tldr_en": "Proposes PointDiffusion, a diffusion model for dense 3D scene completion from sparse LiDAR, using multi-token VAE and ICP refinement, enabling real-time reconstruction.",
+      "llm_tldr_cn": "针对自动驾驶中稀疏激光雷达点云重建密集3D场景的挑战，本文提出PointDiffusion扩散模型，通过多令牌高斯变分自编码器与交叉注意力池化实现稳定场景级压缩，并结合锚点ICP真值细化消除漂移噪声，最终实现实时场景补全。",
+      "llm_tldr": "针对自动驾驶中稀疏激光雷达点云重建密集3D场景的挑战，本文提出PointDiffusion扩散模型，通过多令牌高斯变分自编码器与交叉注意力池化实现稳定场景级压缩，并结合锚点ICP真值细化消除漂移噪声，最终实现实时场景补全。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.16354v1",
+      "source": "arxiv",
+      "title": "GraphBEV++: Multi-Modal Feature Alignment for Autonomous Driving",
+      "abstract": "Feature misalignment in BEV perception is a critical yet often overlooked challenge in autonomous driving, especially under calibration uncertainties between LiDAR and camera sensors. To address this issue, we propose a robust multi-modal fusion framework, GraphBEV++, which systematically mitigates projection-induced misalignment. The framework consists of two key modules: LocalAlign-v2 and GlobalAlign-v2. LocalAlign-v2 introduces neighborhood-aware depth features via graph matching to correct local misalignment. It supports both LSS-based and query-based BEV representations, making it compatible with BEVFusion and BEVFormer architectures for consistent cross-paradigm alignment. GlobalAlign-v2 encompasses two variants: Deformable and Diffusion. The Deformable variant addresses global misalignment in LSS-based multi-modal BEV by explicitly learning cross-modal feature offsets. In contrast, the Diffusion variant targets implicit misalignment in query-based BEV by injecting noise to simulate misalignment and employing a denoising process to recover aligned features. Experimental results show that GraphBEV++ achieves state-of-the-art performance under misalignment noise on nuScenes and Waymo subset, improves long-range detection on Argoverse2, and generalizes effectively to the 3D occupancy prediction task, consistently improving occupancy estimation accuracy and robustness under both clean and noisy settings. Furthermore, GraphBEV++ effectively alleviates misalignment issues in end-to-end autonomous driving. Compared with five baselines (UniAD, VAD, FusionAD, MomAD, and WoTE), it demonstrates superior performance in both open-loop (nuScenes) and closed-loop (Bench2Drive and NAVSIM) evaluations across perception, prediction, and planning tasks.",
+      "authors": [
+        "Ziying Song",
+        "Caiyan Jia",
+        "Lin Liu",
+        "Shaoqing Xu",
+        "Lei Yang",
+        "Yadan Luo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-15T07:50:33+00:00",
+      "link": "https://arxiv.org/pdf/2606.16354v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes a multi-modal fusion framework GraphBEV++ to address LiDAR-camera feature misalignment in BEV perception",
+      "llm_evidence_cn": "提出多模态融合框架GraphBEV++解决BEV感知中LiDAR与相机特征错位问题",
+      "llm_evidence": "提出多模态融合框架GraphBEV++解决BEV感知中LiDAR与相机特征错位问题",
+      "canonical_evidence": "提出多模态融合框架GraphBEV++解决BEV感知中LiDAR与相机特征错位问题",
+      "llm_tldr_en": "GraphBEV++ addresses feature misalignment in multi-modal BEV perception via LocalAlign-v2 and GlobalAlign-v2 modules, supporting both LSS-based and query-based architectures, and demonstrates robustness against calibration errors.",
+      "llm_tldr_cn": "自动驾驶中，LiDAR与相机之间的特征错位是BEV感知的关键挑战，尤其是在校准不确定的情况下。GraphBEV++提出LocalAlign-v2和GlobalAlign-v2两个模块：LocalAlign-v2通过图匹配引入邻域感知深度特征来校正局部错位，支持LSS和查询式BEV表达；GlobalAlign-v2包含可变形和扩散两种变体，实现全局一致性对齐。该框架与BEVFusion和BEVFormer兼容，有效提升了跨模态特征对齐的鲁棒性，为多模态融合提供了新思路。",
+      "llm_tldr": "自动驾驶中，LiDAR与相机之间的特征错位是BEV感知的关键挑战，尤其是在校准不确定的情况下。GraphBEV++提出LocalAlign-v2和GlobalAlign-v2两个模块：LocalAlign-v2通过图匹配引入邻域感知深度特征来校正局部错位，支持LSS和查询式BEV表达；GlobalAlign-v2包含可变形和扩散两种变体，实现全局一致性对齐。该框架与BEVFusion和BEVFormer兼容，有效提升了跨模态特征对齐的鲁棒性，为多模态融合提供了新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}
