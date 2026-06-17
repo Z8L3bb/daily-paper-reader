@@ -1,0 +1,182 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-17T22:15:56.857836+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.12628v1",
+      "source": "arxiv",
+      "title": "Context-Aware Feature-Fusion for Co-occurring Object Detection in Autonomous Driving",
+      "abstract": "Object detection in autonomous driving requires precise localization and an inherent understanding of the relational context between co-occurring objects. In extremely complex heterogeneous environments rare classes, small-scale objects, and frequently appearing objects are difficult for standard object detection frameworks to handle. In this paper, we propose a novel framework called Context-Centric Feature Fusion (CCFF), which utilizes two attention-based modules, Local Context Fusion Module (LCFM) uses the RoI-to-RoI self-attention mechanism to resolve spatial interactions, mainly considering small and partially obscured objects, while Global Context Attention Module (GCAM) converts the co-occurrence of objects priors by pooling top-K RoI features into a global context attention token, avoiding the computational overhead of pixel-level global pooling. This fusion of local and object-centric global features yields contextualized embeddings that enhance classification results and co-occurring objects detection. Our method is evaluated on two datasets, Cityscapes and BDD100K which demonstrate significant improvement on relational consistency, achieving a Category-level Consistency Strategy (CCS) of 0.973 and 0.969, respectively. Furthermore, our approach produces substantial gains in small object detection (AP_S: 14.1%) and successfully recovers rare classes such as \"Train\" that are typically lost in large distributions. Our efficiency report shows that the framework processes images in real time with a 0.2 FPS overhead. The code is available at https://github.com/BinayKSingh/CCFF.",
+      "authors": [
+        "Binay Kumar Singh",
+        "Niels Da Vitoria Lobo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-10T19:33:16+00:00",
+      "link": "https://arxiv.org/pdf/2606.12628v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Employs RoI-to-RoI self-attention for context-aware feature fusion in object detection",
+      "llm_evidence_cn": "采用RoI间自注意力机制实现上下文感知特征融合的目标检测",
+      "llm_evidence": "采用RoI间自注意力机制实现上下文感知特征融合的目标检测",
+      "canonical_evidence": "采用RoI间自注意力机制实现上下文感知特征融合的目标检测",
+      "llm_tldr_en": "CCFF proposes Local and Global Context Attention modules for object detection in autonomous driving, using RoI-to-RoI self-attention to capture spatial interactions, improving detection of co-occurring and small objects, which can inspire RoI head innovations in 3D detectors.",
+      "llm_tldr_cn": "CCFF针对自动驾驶复杂场景中目标检测面临的小目标、罕见类及目标间关系建模挑战，提出了局部上下文融合模块和全局上下文注意力模块。前者利用RoI间自注意力捕获目标间空间交互，后者聚合top-K共现先验强化类别关系。在自动驾驶数据集上的实验表明，该方法显著提升了多类别的检测精度，其RoI注意力机制为两阶段三维检测器的提案精化提供了可迁移的设计思路。",
+      "llm_tldr": "CCFF针对自动驾驶复杂场景中目标检测面临的小目标、罕见类及目标间关系建模挑战，提出了局部上下文融合模块和全局上下文注意力模块。前者利用RoI间自注意力捕获目标间空间交互，后者聚合top-K共现先验强化类别关系。在自动驾驶数据集上的实验表明，该方法显著提升了多类别的检测精度，其RoI注意力机制为两阶段三维检测器的提案精化提供了可迁移的设计思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "two stage 3D object detection with cascade refinement and RoI head innovations",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.13503v1",
+      "source": "arxiv",
+      "title": "Heterogeneous LiDAR Early Fusion and Learned Re-Ranking Strategy for Robust Long-Term Place Recognition in Unstructured Environments",
+      "abstract": "Robust localization in unstructured environments, such as agricultural fields, is a critical challenge for autonomous systems. LiDAR sensors provide detailed 3D information about the environment and are invariant to lighting conditions. For this reason, LiDAR-based place recognition methods have gained significant attention. In this paper, we propose MinkUNeXt-VINE++, a novel approach that combines early fusion of heterogeneous LiDAR data from two sensors (Livox Mid-360 and Velodyne VLP-16) and a learned re-ranking strategy in inference time. This fusion leverages the strengths of each sensor to provide a more comprehensive representation of the environment. Additionally, the re-ranking approach is particularly important in repetitive environments, such as vineyards, as finding true positives is a major challenge. We evaluated our approach using the TEMPO-VINE dataset, which provides heterogeneous LiDAR data in vineyard environments across different phenological stages. Our results demonstrate that MinkUNeXt-VINE++ significantly improves place recognition performance compared to single-sensor approaches and state-of-the-art methods. MinkUNeXt-VINE++ achieves a 20% improvement in the Recall@1 metric compared to single-sensor approaches, and +30% including re-ranking. The code of our method is publicly available for reproduction.",
+      "authors": [
+        "Judith Vilella-Cantos",
+        "Juan José Cabrera",
+        "Mónica Ballesta",
+        "David Valiente",
+        "Luis Payá"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-06-11T15:52:16+00:00",
+      "link": "https://arxiv.org/pdf/2606.13503v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "early fusion of heterogeneous LiDAR sensors for place recognition",
+      "llm_evidence_cn": "异构LiDAR传感器早期融合用于位置识别",
+      "llm_evidence": "异构LiDAR传感器早期融合用于位置识别",
+      "canonical_evidence": "异构LiDAR传感器早期融合用于位置识别",
+      "llm_tldr_en": "Proposes MinkUNeXt-VINE++ for LiDAR place recognition, fusing heterogeneous LiDAR data (Livox Mid-360 and Velodyne VLP-16) early and applying learned re-ranking to improve robustness in unstructured environments.",
+      "llm_tldr_cn": "在非结构化环境（如农田）中，长期鲁棒定位是自主系统的关键挑战。本文提出MinkUNeXt-VINE++，早期融合Livox Mid-360和Velodyne VLP-16两种异构LiDAR数据，并结合学习重排序策略，提升位置识别的鲁棒性。实验显示，该方法在长时场景中显著优于单传感器方法，为多源LiDAR融合定位提供了有效方案。",
+      "llm_tldr": "在非结构化环境（如农田）中，长期鲁棒定位是自主系统的关键挑战。本文提出MinkUNeXt-VINE++，早期融合Livox Mid-360和Velodyne VLP-16两种异构LiDAR数据，并结合学习重排序策略，提升位置识别的鲁棒性。实验显示，该方法在长时场景中显著优于单传感器方法，为多源LiDAR融合定位提供了有效方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.15328v1",
+      "source": "arxiv",
+      "title": "SGFormer++: Semantic Graph Transformer for Incremental 3D Scene Graph Generation",
+      "abstract": "In this paper, we propose SGFormer++, a novel Semantic Graph Transformer for 3D scene graph generation (SGG), which aims to parse point cloud scenes into semantic structural graphs, where nodes denote detected object instances and edges encode their pairwise relationships, with the core challenge lying in modeling complex global scene structure. While existing graph convolutional network (GCN)-based methods suffer from over-smoothing and limited receptive fields, SGFormer++ leverages Transformer layers as its backbone to enable global message passing. Specifically, we introduce two key components tailored for 3D SGG: (1) a Graph Embedding Layer++ that efficiently integrates edge-aware global context with linear computational complexity, and (2) a Semantic Injection Layer++ that enriches visual features with linguistic priors from large language models (LLMs) and vision-language models (VLMs), boosting semantic representation without introducing extra trainable parameters. To further address the practical challenge of incremental SGG (I-SGG), where new relationship categories arrive sequentially, we equip SGFormer++ with a novel Spatial-guided Feature Adapter, which calibrates predicate features using subject-object spatial geometry to counter scale variation, and a Cascaded Binary Prediction Head that mitigates catastrophic forgetting via task-incremental classifier expansion and logit distillation. Extensive experiments on the 3DSSG benchmark demonstrate that SGFormer++ achieves state-of-the-art performance in both standard and incremental settings: it yields a significant 4.49% absolute improvement in Predicate A@1 under the incremental setting. Code and data are available at: https://github.com/Andy20178/SGFormer.",
+      "authors": [
+        "Mengshi Qi",
+        "Changsheng Lv",
+        "Zijian Fu",
+        "Xianlin Zhang",
+        "Huadong Ma"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-13T14:41:56+00:00",
+      "link": "https://arxiv.org/pdf/2606.15328v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Uses Transformer attention layers as backbone to aggregate features from 3D point clouds for scene graph generation.",
+      "llm_evidence_cn": "使用Transformer注意力层作为骨干网络，从3D点云中聚合特征以生成场景图。",
+      "llm_evidence": "使用Transformer注意力层作为骨干网络，从3D点云中聚合特征以生成场景图。",
+      "canonical_evidence": "使用Transformer注意力层作为骨干网络，从3D点云中聚合特征以生成场景图。",
+      "llm_tldr_en": "SGFormer++ introduces a Semantic Graph Transformer for 3D scene graph generation from point clouds, employing Transformer layers to enable global attention-based feature aggregation, overcoming limitations of GCNs in modeling global scene structure.",
+      "llm_tldr_cn": "SGFormer++针对从点云生成3D场景图时GCN方法过平滑和感受野受限的问题，提出基于Transformer的语义图范式。其核心是使用Transformer层进行全局消息传递，有效聚合点云特征，并引入图嵌入层与可学习相对位置编码，实现高效全局上下文建模与关系推理。",
+      "llm_tldr": "SGFormer++针对从点云生成3D场景图时GCN方法过平滑和感受野受限的问题，提出基于Transformer的语义图范式。其核心是使用Transformer层进行全局消息传递，有效聚合点云特征，并引入图嵌入层与可学习相对位置编码，实现高效全局上下文建模与关系推理。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention modules designed for 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.16881v1",
+      "source": "arxiv",
+      "title": "SGM-SLAM: Scene Graph Matching for Data-Efficient Distributed SLAM",
+      "abstract": "We introduce a data-efficient distributed Simultaneous Localization and Mapping (SLAM) framework designed for a team of robots equipped with LiDAR, cameras, and inertial sensors. Our framework uses scene graph matching to identify inter-robot measurement constraints. Unlike prior approaches that rely on feature-level matching, our framework is the first to perform scene graph matching using only object labels and centroids. Our approach constructs a scene graph by using fused RGB-LiDAR point clouds to generate both a semantically segmented point cloud layer, and a layer of discrete bounded objects, to accompany estimated robot trajectories. Scene graph matching is performed collaboratively through exchanging and matching object data with neighboring robots. To maximize communication efficiency, we utilize a multi-step data exchange and optimization process. We demonstrate the effectiveness and efficiency of our approach using both simulation and real-world datasets collected by legged robots in indoor and outdoor environments.",
+      "authors": [
+        "Yewei Huang",
+        "Tixiao Shan",
+        "Abhinav Rajvanshi",
+        "Niluthpol Chowdhury Mithun",
+        "Yaxuan Li",
+        "Brendan Englot",
+        "Han-Pang Chiu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-15T15:53:59+00:00",
+      "link": "https://arxiv.org/pdf/2606.16881v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "fuses LiDAR, cameras, and inertial sensors for SLAM",
+      "llm_evidence_cn": "融合LiDAR、相机和惯性传感器进行SLAM",
+      "llm_evidence": "融合LiDAR、相机和惯性传感器进行SLAM",
+      "canonical_evidence": "融合LiDAR、相机和惯性传感器进行SLAM",
+      "llm_tldr_en": "Introduces a distributed SLAM framework using scene graph matching with fused RGB-LiDAR point clouds and object labels for data-efficient inter-robot constraints, enhancing multi-robot perception.",
+      "llm_tldr_cn": "在多机器人分布式SLAM中，传统特征匹配通信开销大且效率低。本文提出SGM-SLAM，利用融合RGB-LiDAR点云构建场景图，通过仅匹配物体标签和质心实现轻量级场景图匹配，从而高效建立机器人间约束。实验表明，该方法在保证定位精度的同时大幅降低通信数据量，提升了多机器人系统的数据效率和可扩展性。",
+      "llm_tldr": "在多机器人分布式SLAM中，传统特征匹配通信开销大且效率低。本文提出SGM-SLAM，利用融合RGB-LiDAR点云构建场景图，通过仅匹配物体标签和质心实现轻量级场景图匹配，从而高效建立机器人间约束。实验表明，该方法在保证定位精度的同时大幅降低通信数据量，提升了多机器人系统的数据效率和可扩展性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

@@ -6,29 +6,37 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-16
-- 运行时间：2026-06-16 23:06:18 UTC
+- 最新运行日期：2026-06-17
+- 运行时间：2026-06-17 22:18:20 UTC
 - 运行状态：成功
-- 本次总论文数：2
-- 精读区：2
-- 速读区：0
+- 本次总论文数：4
+- 精读区：0
+- 速读区：4
 
 ### 今日简报（AI）
-今日精研两篇前沿论文：扩散模型攻克点云场景补全，多模态特征对齐推进自动驾驶。
-点云补全用扩散生成式建模，效果惊艳；BEV感知中跨模态对齐是关键，新 GraphBEV++ 带来提升。
-建议关注扩散模型在 3D 场景重建的潜力，以及传感器融合如何让自动驾驶更安全。
-- 详情：[/202606/16/README](/202606/16/README)
+今日速览4篇自动驾驶与3D场景理解论文，涵盖协同感知、长期重定位及语义增量建模。
+
+最值得关注的是：异构LiDAR早期融合从数据层面提升非结构化环境重定位鲁棒性，以及语义图Transformer实现场景图增量生成。
+
+若想降低多传感器对齐复杂度，可以从特征融合或渐进式图学习方向切入，优先复现高泛化性的地点识别方案。
+- 详情：[/202606/17/README](/202606/17/README)
 
 ### 精读区论文标签
-1. [PointDiffusion: Diffusion-Based Scene Completion in the Point Cloud Domain](/202606/16/2606.16048v1-pointdiffusion-diffusion-based-scene-completion-in-the-point-cloud-domain)  
-   标签：评分：9.0/10、query:lidar-d-det
-   evidence：从稀疏激光雷达点云重建密集3D场景
-2. [GraphBEV++: Multi-Modal Feature Alignment for Autonomous Driving](/202606/16/2606.16354v1-graphbev-multi-modal-feature-alignment-for-autonomous-driving)  
-   标签：评分：8.0/10、query:lidar-d-det
-   evidence：提出多模态融合框架GraphBEV++解决BEV感知中LiDAR与相机特征错位问题
+- 本次无精读推荐。
 
 ### 速读区论文标签
-- 本次无速读推荐。
+1. [Context-Aware Feature-Fusion for Co-occurring Object Detection in Autonomous Driving](/202606/17/2606.12628v1-context-aware-feature-fusion-for-co-occurring-object-detection-in-autonomous-driving)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：采用RoI间自注意力机制实现上下文感知特征融合的目标检测
+2. [Heterogeneous LiDAR Early Fusion and Learned Re-Ranking Strategy for Robust Long-Term Place Recognition in Unstructured Environments](/202606/17/2606.13503v1-heterogeneous-lidar-early-fusion-and-learned-re-ranking-strategy-for-robust-long-term-place-recognition-in-unstructured-environments)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：异构LiDAR传感器早期融合用于位置识别
+3. [SGFormer++: Semantic Graph Transformer for Incremental 3D Scene Graph Generation](/202606/17/2606.15328v1-sgformer-semantic-graph-transformer-for-incremental-3d-scene-graph-generation)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：使用Transformer注意力层作为骨干网络，从3D点云中聚合特征以生成场景图。
+4. [SGM-SLAM: Scene Graph Matching for Data-Efficient Distributed SLAM](/202606/17/2606.16881v1-sgm-slam-scene-graph-matching-for-data-efficient-distributed-slam)  
+   标签：评分：7.0/10、query:lidar-d-det
+   evidence：融合LiDAR、相机和惯性传感器进行SLAM
 
 
 <div class="dpr-home-promo-card">
