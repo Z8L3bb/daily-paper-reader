@@ -1,0 +1,134 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-18T22:30:13.623903+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2606.19154v1",
+      "source": "arxiv",
+      "title": "Viking Hill Dataset: A Lidar-Radar-Camera Dataset for Detection and Segmentation in Forest Scenes",
+      "abstract": "Autonomous robots operating under forest canopies need robust perception of trees and surrounding vegetation across varying seasonal conditions. Existing forestry datasets provide lidar or camera data with per-tree annotations, but none include co-registered 4D imaging radar -- a modality of growing interest for its resilience to visual degradation, surface contamination, and vegetation occlusion. We introduce a multi-sensor forest dataset collected by a mobile robot equipped with a high-resolution FMCW imaging radar, lidar, RGB camera, IMU, and RTK-GNSS. The site was recorded in two sessions under contrasting vegetation states, and 3D cuboid annotations -- including per-tree diameter estimates -- provide shared semantic labels across all three perception modalities. Furthermore, we provide baseline results for semantic segmentation of the radar and lidar point clouds using MinkowskiUNet. Radar achieves IoU scores competitive with lidar for dominant classes (ground 91%, canopy 86%) while lagging on geometrically fine structures such as tree trunks (56% vs. 74%). A cross-modality analysis further compares lidar and radar trunk segmentation against an RGB detection model, and a diameter-stratified evaluation reveals how trunk segmentation quality varies with tree size. Beyond segmentation, the co-registered multi-modal data and RTK-GNSS-aided reference positioning support research in mapping, localization, and sensor fusion under canopy. The dataset and annotation tools are publicly available.",
+      "authors": [
+        "Vladimír Kubelka",
+        "Oleksandr Kotlyar",
+        "Unal Artan",
+        "Martin Magnusson"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-17T14:58:00+00:00",
+      "link": "https://arxiv.org/pdf/2606.19154v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "provides LiDAR point cloud data with multi-modal sensors for 3D detection",
+      "llm_evidence_cn": "提供包含激光雷达点云的多模态传感器数据用于三维检测",
+      "llm_evidence": "提供包含激光雷达点云的多模态传感器数据用于三维检测",
+      "canonical_evidence": "提供包含激光雷达点云的多模态传感器数据用于三维检测",
+      "llm_tldr_en": "The Viking Hill dataset offers co-registered LiDAR, radar, and camera data with 3D cuboid annotations for tree detection and segmentation, enabling robust perception for autonomous forestry robots.",
+      "llm_tldr_cn": "该数据集由移动机器人采集，包含高分辨率FMCW成像雷达、激光雷达、RGB相机等多传感器数据，提供带尺度估计的三维边界框标注，用于森林场景中的树木检测与分割。它在不同植被状态下记录，旨在推动自主林业机器人在视觉退化、遮挡等挑战下的鲁棒感知研究。",
+      "llm_tldr": "该数据集由移动机器人采集，包含高分辨率FMCW成像雷达、激光雷达、RGB相机等多传感器数据，提供带尺度估计的三维边界框标注，用于森林场景中的树木检测与分割。它在不同植被状态下记录，旨在推动自主林业机器人在视觉退化、遮挡等挑战下的鲁棒感知研究。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.12939v1",
+      "source": "arxiv",
+      "title": "MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds",
+      "abstract": "3D point cloud models suffer significant performance degradation under distribution shifts caused by sensor noise, occlusions, and environmental changes. Test-time adaptation (TTA) has emerged as a practical paradigm for mitigating this issue during inference. Recently, leveraging multi-view augmentation has shown promise in improving 3D TTA performance. However, existing multi-view approaches are often constrained by sequential optimization that treats each view independently. This sequential optimization leads to substantial inference latency due to repetitive optimization steps, making real-time adaptation impractical. To address this, we propose Masked Multi-View Test-Time Adaptation (MAMVI), which replaces sequential optimization with a unified single-step adaptation. Specifically, MAMVI utilizes a hybrid masking strategy that combines fixed ratios for stability with Beta-distributed sampling for diversity. By aggregating losses across multiple views, MAMVI performs adaptation through a single backward pass based on multi-view consensus. Additionally, a confidence-based adaptive learning rate is used to dynamically adjust the adaptation intensity for each sample. Extensive experiments on ModelNet-40C, ShapeNet-C, and ScanObjectNN-C demonstrate that MAMVI achieves state-of-the-art accuracy on ShapeNet-C and ScanObjectNN-C. Moreover, it remains competitive on ModelNet-40C while delivering 4.9-8.9 times faster inference, making it highly suitable for real-time applications. Our code is available at https://github.com/Inseok-kong/MAMVI",
+      "authors": [
+        "Inseok Kong",
+        "Geunyoung Jung",
+        "Jiyoung Jung"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-11T06:03:59+00:00",
+      "link": "https://arxiv.org/pdf/2606.12939v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Addresses performance degradation of 3D point cloud models under distribution shifts, proposing test-time adaptation using masked multi-view point clouds.",
+      "llm_evidence_cn": "针对3D点云模型在分布偏移下的性能下降，提出基于掩码多视图点云的测试时自适应方法。",
+      "llm_evidence": "针对3D点云模型在分布偏移下的性能下降，提出基于掩码多视图点云的测试时自适应方法。",
+      "canonical_evidence": "针对3D点云模型在分布偏移下的性能下降，提出基于掩码多视图点云的测试时自适应方法。",
+      "llm_tldr_en": "MAMVI tackles the degradation of 3D point cloud models under sensor noise and occlusions by introducing a unified single-step test-time adaptation framework with masked multi-view augmentation, significantly reducing inference latency while improving adaptation performance.",
+      "llm_tldr_cn": "针对3D点云模型在传感器噪声和遮挡等因素导致的分布偏移下性能严重下降的问题，提出了一种基于掩码多视图的测试时自适应方法。通过将序贯优化替换为统一的单步优化，并利用掩码多视图增强，大幅降低了推理延迟，同时提升了域适应效果。实验表明，该方法在点云分类和分割任务上实现了实时高效的自适应，为3D感知模型的鲁棒部署提供了实用方案。",
+      "llm_tldr": "针对3D点云模型在传感器噪声和遮挡等因素导致的分布偏移下性能严重下降的问题，提出了一种基于掩码多视图的测试时自适应方法。通过将序贯优化替换为统一的单步优化，并利用掩码多视图增强，大幅降低了推理延迟，同时提升了域适应效果。实验表明，该方法在点云分类和分割任务上实现了实时高效的自适应，为3D感知模型的鲁棒部署提供了实用方案。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "LiDAR point cloud data for 3D perception",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.18948v1",
+      "source": "arxiv",
+      "title": "C-ARC: Continuous-Adaptive Range Clustering for Non-Repetitive LiDAR Sensors",
+      "abstract": "Real-time LiDAR clustering identifies structures in point clouds, which is an essential prerequisite for many mobile robotics algorithms. Current methods are mostly developed for repetitive mechanical LiDAR sensors. Recently, the use of non-repetitive LiDAR sensors is strongly increasing due to their small cost and form factor. Such non-repetitive Risley prism-based sensors violate two key assumptions of repetitive mechanical sensors: structured scan lines and well-defined frame boundaries. Their Rhodonea-curve trajectories produce non-uniform point distributions, and the absence of a rotation cycle renders conventional scan line indexing inapplicable. To meet such new requirements, we developed C-ARC, a Continuous-Adaptive Range Clustering framework that maintains a persistent dual-graph over a sliding window, decoupling high-frequency point insertion from on-demand cluster retrieval. This is crucial for key functionalities like SLAM or tracking. An adaptive range grid resolution mechanism calibrates grid dimensions at initialization using an exponential control loop, balancing the sparsity-collision trade-off without prior knowledge of the scanning pattern. Implemented as an open-sourced single-threaded C++17 library, C-ARC produces real-time cluster output at 20 Hz on commodity hardware for the Livox Mid-360. Evaluation on the Livox Avia identifies unbounded cell occupancy as the primary limitation for sensors with strongly concentrated scan patterns. The adaptive resolution mechanism additionally improves clustering quality for existing grid-based methods on non-repetitive data.",
+      "authors": [
+        "Nick B. Schroeder",
+        "Jonathan Lichtenfeld",
+        "Oskar von Stryk"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-17T11:30:40+00:00",
+      "link": "https://arxiv.org/pdf/2606.18948v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Real-time LiDAR point cloud clustering for non-repetitive sensors",
+      "llm_evidence_cn": "面向非重复式LiDAR传感器的实时点云聚类",
+      "llm_evidence": "面向非重复式LiDAR传感器的实时点云聚类",
+      "canonical_evidence": "面向非重复式LiDAR传感器的实时点云聚类",
+      "llm_tldr_en": "C-ARC addresses the challenges of non-uniform point distributions and absent frame boundaries in non-repetitive LiDAR sensors, proposing a continuous-adaptive range clustering framework for real-time structure identification.",
+      "llm_tldr_cn": "C-ARC针对非重复式LiDAR传感器非均匀点分布和无固定帧边界的挑战，提出连续自适应距离聚类框架，无需预设扫描线索引即可在移动机器人平台上实时分割点云结构，为后续感知算法提供稳健的前处理模块，推动低成本LiDAR在机器人中的实用化。",
+      "llm_tldr": "C-ARC针对非重复式LiDAR传感器非均匀点分布和无固定帧边界的挑战，提出连续自适应距离聚类框架，无需预设扫描线索引即可在移动机器人平台上实时分割点云结构，为后续感知算法提供稳健的前处理模块，推动低成本LiDAR在机器人中的实用化。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

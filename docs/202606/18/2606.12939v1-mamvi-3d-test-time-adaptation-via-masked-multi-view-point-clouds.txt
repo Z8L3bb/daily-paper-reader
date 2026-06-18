@@ -1,0 +1,251 @@
+Title: MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds
+
+URL Source: https://arxiv.org/pdf/2606.12939v1
+
+Published Time: Fri, 12 Jun 2026 00:32:51 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 
+
+Inseok Kong 1, Geunyoung Jung 2, and Jiyoung Jung 2,∗ 
+
+> 1
+
+Department of Geo Informatics, University of Seoul  
+
+> 2
+
+Department of Artificial Intelligence, University of Seoul 
+
+{kong7963,gyjung975,jyjung}@uos.ac.kr 
+
+Abstract. 3D point cloud models suffer significant performance degra-dation under distribution shifts caused by sensor noise, occlusions, and environmental changes. Test-time adaptation (TTA) has emerged as a practical paradigm for mitigating this issue during inference. Recently, leveraging multi-view augmentation has shown promise in improving 3D TTA performance. However, existing multi-view approaches are often constrained by sequential optimization that treats each view indepen-dently. This sequential optimization leads to substantial inference la-tency due to repetitive optimization steps, making real-time adaptation impractical. To address this, we propose Masked Multi-View Test-Time Adaptation (MAMVI), which replaces sequential optimization with a unified single-step adaptation. Specifically, MAMVI utilizes a hybrid masking strategy that combines fixed ratios for stability with Beta-distributed sampling for diversity. By aggregating losses across multi-ple views, MAMVI performs adaptation through a single backward pass based on multi-view consensus. Additionally, a confidence-based adap-tive learning rate is used to dynamically adjust the adaptation intensity for each sample. Extensive experiments on ModelNet-40C, ShapeNet-C, and ScanObjectNN-C demonstrate that MAMVI achieves state-of-the-art accuracy on ShapeNet-C and ScanObjectNN-C. Moreover, it remains competitive on ModelNet-40C while delivering 4.9–8.9 × faster inference, making it highly suitable for real-time applications. The code is available at https://github.com/Inseok-kong/MAMVI .
+
+Keywords: Test-Time Adaptation · 3D point cloud classification 
+
+1 Introduction 
+
+Deep learning has enabled remarkable progress in 3D point cloud classifica-tion [18,19,26,17,29]. However, model performance can degrade significantly [21] when the test (target) distribution differs from the training (source) distribu-tion. These distribution shifts in 3D data vary widely due to sensor differences (RGB-D, LiDAR), environmental changes (lighting, weather), and occlusions.  
+
+> *
+
+Corresponding author  
+
+> arXiv:2606.12939v1 [cs.CV] 11 Jun 2026 2I. Kong et al.
+
+Given the vast range of possible distribution shifts, pre-training a model for ev-ery potential scenario is impractical. It is thus essential to develop methods that can adapt to these distribution shifts at test time without supervision. Test-Time Adaptation (TTA) has emerged as a practical paradigm for allevi-ating performance degradation induced by distribution shifts at inference time. Without requiring additional labeled data or full retraining, TTA enables pre-trained models to adapt on-the-fly using unlabeled test samples, allowing them to effectively handle previously unseen target distributions during inference. While TTA has been extensively studied in the 2D domain [24,12,11,10,3,14,28,16], most existing methods are designed for regular grid-structured images and there-fore cannot be generalized to sparse and irregular 3D point clouds. Conse-quently, extending TTA to the 3D domain remains a non-trivial challenge. To address this, recent works have made initial efforts to explore TTA for 3D point cloud classification. Inspired by Test-Time Training (TTT) [22,13,7], MATE [15] and SMART-PC [1] incorporate auxiliary self-supervised tasks during the pre-training stage. However, these approaches require modifying network architec-tures and retraining models with additional losses on source data, which sig-nificantly limits their practicality and applicability in real-world applications. CloudFixer [20] and 3DD-TTA [5] perform input-level TTA by leveraging diffu-sion models to transform input data to the source distribution. Although they do not involve any modification to the pre-training stage, they still rely on source data and incur substantial computational overhead due to the training and in-ference of diffusion models. For more efficient approaches, BFTT3D [25] and Purge-Gate [27] introduce backpropagation-free adaptation, but their perfor-mance relies heavily on feature prototypes extracted from source data. Recently, model-level TTA has attracted increasing attention as it directly adapts pre-trained models at inference time, thereby resolving the source data dependency. SVWA [2] achieves strong performance through multi-view augmentation and weight averaging. However, it assigns a separate model instance to each aug-mented view and optimizes them independently via sequential optimization, leading to significant inference latency. To improve inference efficiency without source data dependency, we propose Masked Multi-View Test-Time Adaptation (MAMVI), which eliminates the la-tency of sequential optimization by enabling a unified single-step adaptation. Specifically, MAMVI employs a hybrid masking strategy that combines fixed ratios for stability with Beta-distributed sampling for diversity. By aggregating losses across multiple masked observations, our framework facilitates reliable consensus-based adaptation with only one backward pass, independent of the number of views. Furthermore, by generating these views through efficient mask-ing instead of repeating Farthest Point Sampling (FPS), MAMVI significantly improves inference throughput. The framework adapts normalization parameters using confidence-based adaptive learning rates, ensuring effective distribution alignment while preserving inherent source knowledge. We conduct extensive experiments on three widely-used 3D point cloud cor-ruption benchmarks: ModelNet-40C, ShapeNet-C, and ScanObjectNN-C. The MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 3
+
+results demonstrate that our approach, MAMVI, achieves competitive perfor-mance gains over comparable methods. Our contributions are as follows: 
+
+• We introduce MAMVI, which generates multiple masked views using a hy-brid sampling strategy that incorporates a Beta distribution. 
+
+• We enable efficient multi-view TTA by performing a single-step adaptation with a unified backward pass on a single model weight. 
+
+• MAMVI achieves state-of-the-art accuracy on ScanObjectNN-C and ShapeNet-C and competitive results on ModelNet-40C, while delivering 4.9–8.9 × faster inference speed compared to prior multi-view methods. 
+
+2 Related Work 
+
+2.1 Test-Time Adaptation 
+
+Test-Time Adaptation (TTA) has been extensively studied in 2D vision through various approaches including entropy minimization [24,12,16], pseudo-labeling [11], test-time augmentation [28], classifier adjustment [10], Laplacian regulariza-tion [3], batch normalization calibration [14], and diffusion-based adaptation [8] for input restoration. However, these methods are primarily designed for regular grid structures and do not readily generalize to sparse and irregular 3D point clouds. For 3D point cloud classification, TTA is an emerging research area with distinct challenges. Early efforts in 3D TTA often rely on the Test-Time Train-ing (TTT) paradigm [22], where MATE [15] utilizes masked reconstruction and SMART-PC [1] employs skeleton learning as auxiliary self-supervised tasks dur-ing pre-training. Although these methods enhance robustness, the need for task-specific pre-training and architectural modifications limits their applicability to generic, off-the-shelf pre-trained models. In contrast, fully TTA methods oper-ate on frozen pre-trained models. Recent fully TTA methods attempt to resolve these issues: CloudFixer [20] and 3DD-TTA [5] use diffusion models for restora-tion but incur high latency, while BFTT3D [25] and PG-SP [27] rely on source prototypes. Although source-free variants like PG-SF exist, they often deliver limited performance gains. More recently, SVWA [2] has achieved strong results via multi-view weight averaging. However, its reliance on sequential optimization for each view results in significant inference latency. Our approach, MAMVI, addresses these limitations by utilizing efficient masking to enable source-free adaptation on a single model through a unified backward pass. 
+
+2.2 Masked Self-Supervised Learning 
+
+Masked modeling has demonstrated remarkable success in learning robust rep-resentations across various modalities. BERT [6] pioneered masked language modeling, while MAE [9] subsequently extended this paradigm to 2D image domains. For 3D point clouds, recent approaches [17,29] learn robust geomet-ric representations by reconstructing masked point patches during pre-training. 4 I. Kong et al.  
+
+> Fig. 1. Overview of the MAMVI framework. Masked multi-views are generated from patchified point clouds and processed through a single model. A consensus target is formed to guide unified loss aggregation and adaptive learning rate (ALR) modulation. We update only the normalization layers (NL) via a single backward pass, ensuring high inference efficiency.
+
+These methods, however, apply masking only during pre-training and rely on complete point clouds at inference time. MATE [15] utilizes masking as a self-supervised reconstruction task to align distribution shifts during adaptation. In contrast, we utilize masking to generate multiple views by masking various subsets of patches at varying ratios. Unlike reconstruction-based methods, our strategy focuses on consensus formation and normalization parameter updates during inference, eliminating the need for aux-iliary pre-training tasks. 
+
+3 Method 
+
+We propose MAMVI, a source-free test-time adaptation framework for 3D point cloud classification that enhances model robustness under distribution shifts. Our method generates various perspectives of the input data through masking at varying ratios, averages these predictions to obtain a unified target, and adapts normalization parameters using adaptive learning rates. The overview of our method is presented in fig. 1. 
+
+3.1 Masked Multi-View Consensus 
+
+Given a source-trained point cloud classifier fθ and unlabeled test samples {xt}
+
+from a shifted target domain, we adapt the model at test time without source MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 5
+
+data access. To maintain inference efficiency, we perform a single optimization step per batch. Formally, an input 3D point cloud is represented as P ∈ RNp×3, where Np
+
+is the number of points. To structure this irregular point cloud, we first parti-tion it into a collection of patches. We employ Farthest Point Sampling (FPS) to select N center points {ci}Ni=1 , ensuring uniform geometric coverage of the overall structure. For each center, we determine its K neighboring points us-ing K-Nearest Neighbors (KNN) to group them into a patch Pi ∈ RK×3. This process converts the point cloud into a set of patches {Pi}Ni=1 .To generate various views, we apply a hybrid masking strategy. For each input, we produce M masked observations {˜xm}Mm=1 , where each ˜xm repre-sents a partial view consisting of the patches that remain visible after masking. Specifically, we determine the masking ratios rm for these views by combining pre-defined fixed ratios with stochastic ratios sampled from a Beta distribution: 
+
+R = {rfixed } ∪ { r ∼ Beta( α, β )}. (1) For each ratio rm ∈ R , we randomly mask ⌊rm · N ⌋ patches among the N
+
+generated patches. By varying the visible patches, we obtain multiple views that allow the model to reach a more stable prediction across different masking patterns. For each of the M masked observations, the model predicts a class probability distribution: 
+
+pm = σ(fθ (˜ xm)) ∈ RC , (2) where pm represents the predicted class probabilities for the m-th masked ob-servation. We then average these predictions to form a consensus target ¯y:
+
+¯y = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+pm. (3) By averaging predictions from various masked views, we mitigate the impact of outliers. Since predictions based on partial information can be naturally unsta-ble, aggregating multiple perspectives allows these individual inconsistencies to balance each other out. This provides a more stable and accurate target for adap-tation, consistent with our experimental findings that show better performance as more views are integrated. 
+
+3.2 Unified Loss Aggregation 
+
+To achieve efficient single-step adaptation, we integrate the losses from all M
+
+masked observations into a single optimization step. The loss for each observa-tion incorporates both entropy minimization to increase certainty and Kullback-Leibler (KL) divergence to align individual predictions with the consensus ¯y.The total loss is formulated as: 
+
+L = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+(λent H(pm) + λcons DKL (pm∥¯y)) . (4) 6 I. Kong et al. 
+
+Here, λent and λcons are weighting hyperparameters that balance the two objec-tives. The consensus ¯y is treated as a fixed target during optimization, ensuring stable gradient flow. The entropy term encourages each view to produce con-fident predictions, while the KL divergence term aligns individual predictions with the collective consensus. This dual mechanism prevents the model from being misled by noisy patterns in any single masked view while maintaining overall prediction stability. By aggregating all view-specific losses into a single objective, this formulation allows the model to update its parameters through one backward pass for all M views simultaneously. This eliminates the redun-dant optimization steps of sequential per-view methods, directly addressing the inference latency bottleneck inherent in prior multi-view adaptation methods. 
+
+3.3 Adaptive Learning Rate Modulation 
+
+To further enhance adaptation stability, we dynamically modulate the learning rate based on the consensus confidence. We first define the consensus confidence 
+
+ϕ as the maximum probability of the aggregated multi-view prediction: 
+
+ϕ = max(¯ y). (5) The base learning rate ηbase is then modulated by a function g(ϕ) as follows: 
+
+η = ηbase × g(ϕ). (6) The modulation function g(ϕ) is a piecewise constant function that adjusts the adaptation step size according to the consensus confidence: 
+
+g(ϕ) = 
+
+
+
+m0 if ϕ ≤ τ1,m1 if τ1 < ϕ ≤ τ2,m2 if ϕ > τ 2,
+
+(7) where τ1, τ 2 are confidence thresholds, and m0, m 1, m 2 are scaling factors. This modulation function addresses a key limitation of using fixed learning rates in single-step adaptation. Test samples exhibit varying levels of adaptation diffi-culty, where a uniform learning rate may result in insufficient updates for com-plex samples or unnecessary distortion for already accurate ones. While the fixed loss coefficients λent and λcons provide a static balance between the two objectives, they cannot account for the varying adaptation needs of individual samples. To address this, we dynamically modulate the learning rate based on consensus confidence. This approach directly controls the update magnitude per sample and maintains more stable gradients. The strategy assigns higher learning rates to samples with low consensus con-fidence. This design is motivated by the strong correlation between consensus confidence and prediction accuracy, as demonstrated in fig. 4. When confidence is low, the model’s prediction is likely incorrect and requires larger updates to correct its parameters. On the other hand, when confidence is high, the pre-diction is likely correct, and smaller updates help maintain stability without MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 7
+
+over-fitting to noise. We implement this strategy through the piecewise function 
+
+g(ϕ), which scales the base learning rate according to confidence thresholds τ1, τ 2
+
+and corresponding factors m0, m 1, m 2.
+
+4 Experiments 
+
+This section provides a comprehensive evaluation of the MAMVI method across multiple 3D point cloud classification tasks. To assess its robustness under distri-bution shifts, we conduct experiments on three benchmark datasets: ModelNet-40C [21], ShapeNet-C [4], and ScanObjectNN-C [23]. These datasets incorporate a range of corruption types and diverse object categories, allowing us to demon-strate the effectiveness of our approach under varied conditions. 
+
+4.1 Implementation Details 
+
+During adaptation, we use Point-MAE [17] as our backbone model, initialized with pre-trained weights from MATE [15] to ensure a fair and consistent com-parison. Following the experimental protocol of SVWA [2], we update only the affine parameters ( γ, β) of the BatchNorm and LayerNorm layers. Furthermore, the running statistics of BatchNorm are kept frozen, focusing the adaptation ex-clusively on the learnable affine parameters. We conduct all experiments with a batch size of 32. We optimize MAMVI using the AdamW optimizer with a learn-ing rate of 0.005. The configuration employs M = 12 masked views, combining fixed ratios of {0, 0.2, 0.7} with stochastic sampling based on a Beta distribu-tion where α = 3 .0 and β = 10 .0. All experiments are conducted on a single NVIDIA GeForce RTX 3090 GPU. Detailed hyperparameter configurations for both MAMVI and the compared baselines are provided in the supplementary material. 
+
+4.2 Datasets ModelNet-40C. ModelNet-40C [21] evaluates the robustness of point cloud classification models under real-world distribution shifts. By extending the orig-inal ModelNet-40 test set with 15 distinct corruption types—spanning transfor-mation, noise, and density perturbations—it provides a comprehensive evalua-tion of model performance. These corruptions emulate practical challenges such as sensor malfunctions and LiDAR noise, offering valuable insights into model behavior under authentic deployment conditions. 
+
+ShapeNet-C. Built upon ShapeNetCore-v2 [4], a large-scale repository com-prising 51,127 shapes across 55 categories, ShapeNet-C is generated by applying the 15 corruption types established in [21] to the original test set. This extension follows the standard protocol to ensure consistency across benchmarks, utilizing the open-source implementation provided by [21]. 
+
+ScanObjectNN-C. ScanObjectNN [23] consists of 15 categories with 2,309 training samples and 581 test samples. To evaluate robustness under domain 8 I. Kong et al. 
+
+Table 1. Top-1 classification accuracy (%) for all corruption types in the ModelNet-40C dataset. Method uni gauss backg impul upsam rbf rbf-inv den-dec dens-inc shear rot cut distort oclsion lidar Mean Source Only 66.53 59.12 7.21 31.69 74.22 67.71 69.77 62.28 75.08 74.35 38.13 58.63 70.02 38.53 18.62 54.13 
+
+TTT Methods 
+
+TTT-Rot [22] 61.30 58.30 34.50 48.90 66.70 63.60 63.90 59.80 68.60 55.20 27.30 54.60 64.00 40.00 29.10 53.00 MATE [15] 69.80 61.80 18.90 63.90 72.50 64.00 66.00 74.00 80.80 71.00 36.70 69.20 66.30 38.40 29.90 58.90 SMART-PC [1] 82.40 80.10 12.00 67.10 84.50 76.00 78.60 67.30 72.90 73.30 43.90 72.60 73.50 37.40 24.80 63.10 
+
+Source-Dependent Methods 
+
+BFTT3D [25] 66.53 59.20 7.01 31.85 65.60 67.79 69.81 77.96 85.25 74.35 38.17 74.80 70.02 38.61 30.51 57.16 PG-SP [27] 77.92 73.83 28.12 69.00 80.88 72.93 76.09 81.40 83.59 77.43 56.94 79.58 74.60 48.99 52.67 68.93 
+
+Source-Free Methods 
+
+PL [11] 74.11 69.61 19.25 61.71 68.44 70.10 70.58 77.55 81.48 73.50 53.12 74.68 70.66 43.35 39.47 63.17 TENT [24] 74.96 71.07 20.26 61.75 69.57 70.14 72.08 77.84 81.89 73.95 53.12 75.08 70.34 44.69 38.01 63.65 SHOT [12] 62.52 55.83 19.53 54.74 58.51 57.58 62.07 58.91 69.37 58.75 45.18 63.78 58.91 39.38 37.88 53.52 T3A [10] 65.67 61.40 21.14 51.66 67.17 63.27 65.87 66.36 69.77 66.36 50.61 63.43 62.91 44.89 43.59 60.24 LAME [3] 72.16 59.76 4.34 33.51 67.26 67.95 69.94 78.04 85.82 74.51 40.32 74.47 70.91 37.88 28.32 57.67 DUA [14] 65.00 58.50 14.70 48.50 68.80 62.80 63.20 62.10 66.20 68.80 46.20 53.80 64.70 41.20 36.50 54.73 MEMO [28] 80.79 75.28 23.99 64.79 73.42 74.88 76.18 83.14 86.10 78.36 58.06 80.79 74.92 48.30 43.72 68.18 SAR [16] 75.20 70.99 24.55 61.22 69.65 70.06 71.47 78.16 81.65 74.47 54.58 76.54 69.89 44.17 39.30 64.12 PG-SF [27] 78.12 74.49 40.88 66.69 81.73 73.58 75.81 79.09 82.37 77.23 58.19 75.49 73.58 47.85 45.14 68.68 SVWA [2] 83.64 83.97 33.08 77.39 86.89 80.40 82.71 84.78 87.95 82.39 67.33 83.73 80.36 55.80 55.11 75.04 MAMVI (Ours) 84.01 82.35 41.48 73.50 85.84 79.42 81.98 84.01 86.40 82.47 66.27 83.12 79.99 53.61 57.55 74.80 
+
+Table 2. Top-1 classification accuracy (%) for all corruption types in the ShapeNet-C dataset. Method uni gauss backg impul upsam rbf rbf-inv den-dec dens-inc shear rot cut distort oclsion lidar Mean Source Only 77.34 71.78 8.64 54.51 77.90 75.50 76.06 85.25 76.42 80.48 57.08 85.12 76.05 10.97 7.13 61.35 
+
+TTT Methods 
+
+TTT-Rot [22] 74.60 72.40 23.10 59.90 74.90 73.80 75.00 81.40 82.00 69.20 49.10 79.90 72.70 14.00 12.00 60.90 MATE [15] 77.80 74.70 4.30 66.20 78.60 76.30 75.30 86.10 86.60 79.20 56.10 84.10 76.10 12.30 13.10 63.10 SMART-PC [1] 80.80 78.90 8.90 60.40 81.80 81.10 81.70 84.80 78.40 80.80 63.70 84.90 79.80 11.50 8.80 64.40 
+
+Source-Dependent Methods 
+
+BFTT3D [25] 72.58 65.91 10.57 60.86 67.78 73.45 74.38 84.55 83.52 78.58 57.96 83.71 75.17 11.95 10.00 60.73 PG-SP [27] 78.63 76.52 15.78 72.70 78.78 76.49 77.18 83.28 81.18 79.05 63.36 83.07 76.33 9.85 10.34 64.17 
+
+Source-Free Methods 
+
+PL [11] 70.30 64.20 7.86 58.00 64.22 72.25 71.61 79.92 79.16 74.90 59.25 78.30 72.19 10.30 10.50 59.41 TENT [24] 71.90 67.48 9.29 63.53 66.87 72.55 73.48 82.09 81.35 76.56 59.82 81.03 72.65 8.52 8.93 61.01 SHOT [12] 27.78 21.97 3.26 22.81 23.24 24.27 31.22 33.86 31.00 27.86 22.57 34.19 28.73 3.48 2.77 22.84 T3A [10] 66.69 64.18 14.00 59.40 67.14 64.32 64.90 71.07 66.69 66.34 54.76 69.42 64.15 9.89 10.46 54.23 LAME [3] 72.88 66.90 4.90 58.43 64.48 73.54 74.63 84.40 83.58 78.45 53.44 83.36 75.25 10.39 8.48 60.85 DUA [14] 76.10 70.10 14.30 60.90 76.20 71.60 72.90 80.00 83.80 77.10 57.50 75.00 72.10 11.90 12.10 60.77 MEMO [28] 75.27 71.58 12.47 68.03 70.86 75.88 76.76 84.40 83.70 79.98 65.63 83.53 76.10 10.63 11.49 64.30 SAR [16] 72.49 67.68 9.65 64.26 67.12 73.14 73.84 82.44 81.62 77.54 59.56 81.60 72.55 9.58 10.52 61.46 PG-SF [27] 79.21 75.43 22.46 68.38 78.95 76.78 77.12 83.52 80.73 79.24 64.91 83.55 76.08 10.15 9.55 64.40 SVWA [2] 82.04 80.31 24.93 70.98 81.39 78.84 79.19 82.84 81.40 78.11 67.86 80.07 75.06 11.35 11.79 65.74 
+
+MAMVI (Ours) 81.70 79.11 21.54 67.25 81.42 79.72 80.26 84.96 83.98 81.27 69.17 84.59 78.75 12.94 14.94 66.77 
+
+shifts, the test set is augmented with 15 corruption types following the pro-tocol of [21], as implemented in [15]. This corrupted benchmark is denoted as ScanObjectNN-C. 
+
+4.3 Main Results ModelNet-40C. As shown in Table 1, MAMVI achieves a mean accuracy of 74.80% on ModelNet-40C, representing a substantial improvement of +20.67% over the Source Only baseline. It significantly outperforms conventional TTA methods such as TENT (63.65%) and SHOT (53.52%), as well as recent 3D-specific approaches including Purge-Gate (PG-SP: 68.93%; PG-SF: 68.68%). MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 9
+
+Table 3. Top-1 classification accuracy (%) for all corruption types in the ScanObjectNN-C dataset. Method uni gauss backg impul upsam rbf rbf-inv den-dec dens-inc shear rot cut distort oclsion lidar Mean Source Only 21.69 18.76 16.70 18.42 22.20 45.96 46.99 71.95 69.36 48.88 35.63 72.98 49.40 6.71 8.78 36.96                                                                                                                                                                                                                                                               
+
+> TTT Methods
+> TTT-Rot [22] 30.20 34.10 16.20 22.60 22.60 32.40 32.10 45.50 45.00 34.50 29.30 47.80 36.20 7.10 8.10 29.58 MATE [15] 27.50 29.40 14.30 22.20 25.60 40.80 42.00 73.70 63.20 45.10 35.30 73.30 45.30 7.10 9.30 36.90 SMART-PC [1] 27.50 39.10 19.30 21.50 29.80 44.20 48.90 68.30 60.20 49.40 45.40 70.10 49.10 8.40 12.20 39.60
+> Source-Dependent Methods
+> BFTT3D [25] 16.35 14.97 14.29 17.04 13.43 38.90 42.00 69.71 70.74 41.14 28.92 69.19 43.20 6.54 8.61 33.00 PG-SP [27] 41.48 55.59 22.89 38.90 42.17 56.80 62.31 76.08 76.42 59.04 49.74 76.76 62.48 7.57 8.78 49.13
+> Source-Free Methods
+> PL [11] 39.76 36.83 19.10 43.55 37.87 57.14 62.31 66.27 66.27 60.59 49.74 67.30 61.79 8.26 9.12 46.51 TENT [24] 39.24 34.42 17.04 44.75 34.77 58.00 59.04 66.95 66.95 60.24 50.26 67.64 61.27 7.06 9.12 45.97 SHOT [12] 25.82 34.25 13.08 54.04 32.53 57.49 58.86 66.44 66.61 54.73 46.99 65.92 63.34 6.02 8.26 44.57 T3A [10] 37.50 46.01 18.92 37.33 37.67 50.69 52.26 63.72 65.97 50.35 46.88 64.41 54.17 9.72 8.68 42.95 LAME [3] 14.46 12.56 10.33 15.83 12.91 48.88 55.59 58.35 61.10 52.32 35.80 58.35 53.36 9.12 9.47 34.91 DUA [14] 30.50 40.10 10.20 23.60 29.90 43.70 46.10 68.30 66.30 48.50 38.90 68.70 48.40 8.60 8.10 38.66 MEMO [28] ----------------SAR [16] 41.65 38.73 18.24 46.47 39.24 57.14 62.65 66.61 65.58 60.41 52.32 68.16 62.48 8.95 9.47 47.26 PG-SF [27] 40.96 54.76 21.86 36.49 39.59 55.25 58.35 75.56 74.04 56.80 48.71 75.56 58.69 7.06 9.47 47.54 SVWA [2] 44.62 60.94 25.17 38.72 46.70 52.60 55.56 72.05 72.40 52.60 44.44 71.18 53.99 9.38 11.46 47.45
+> MAMVI (Ours) 43.06 60.07 22.92 41.15 45.49 56.77 61.81 74.83 74.83 56.77 48.79 77.26 63.72 8.33 10.59 49.76
+
+While SVWA achieves a slightly higher mean accuracy of 75.04%, MAMVI bridges the trade-off between accuracy and inference efficiency with an 8.6 ×
+
+speedup as shown in Table 4. Furthermore, MAMVI achieves the best perfor-mance on several individual corruption types, such as uniform and lidar .
+
+ShapeNet-C. Table 2 demonstrates that on the ShapeNet-C dataset, MAMVI achieves a state-of-the-art mean accuracy of 66.77%, outperforming all com-pared adaptation methods. It shows consistent gains over existing benchmarks, including TENT (61.01%) and MEMO (64.30%), and notably surpasses recent 3D-specific methods such as PG-SP (64.17%), PG-SF (64.40%), and SVWA (65.74%). Notably, MAMVI achieves the best performance on several challeng-ing corruptions, including shear and lidar , demonstrating its effectiveness in handling complex environmental noise and sensor variations. 
+
+ScanObjectNN-C. Table 3 highlights MAMVI’s strong performance on the real-world ScanObjectNN-C benchmark, achieving a state-of-the-art mean accu-racy of 49.76%, representing a +12.80% improvement over the Source Only base-line. It outperforms conventional methods such as TENT (45.97%) and SHOT (44.57%), and demonstrates consistent gains over recent 3D-specific TTA ap-proaches including PG-SP (49.13%), PG-SF (47.54%), and SVWA (47.45%). These results demonstrate MAMVI’s effectiveness across diverse real-world sce-narios. 
+
+4.4 Ablation Study and Analysis Real-Time Adaptation. Table 4 illustrates the inference throughput of MAMVI and SVWA in terms of Frames per Second (FPS) across ModelNet-40C, ShapeNet-C, and ScanObjectNN-C. Both methods are evaluated under identical experi-mental conditions to ensure a fair comparison. MAMVI consistently demon-strates exceptional efficiency, delivering significant speedups of 8.6 ×, 8.9 ×, and 10 I. Kong et al.             
+
+> Table 4. Inference throughput (Frames/Second) comparison between MAMVI and SVWA across datasets.
+> Method ModelNet-40C ShapeNet-C ScanObjectNN-C
+> SVWA (Frames/Second) 8.99 8.63 9.03
+> MAMVI (Frames/Second) 77.10 76.64 44.50 Speedup 8.6 ×8.9 ×4.9 ×
+> Fig. 2. Analysis of masking strategies on ScanObjectNN-C. (a) Classification accuracy across varying constant masking ratios. (b) Comparison of different sampling strategies, where MAMVI yields the best performance.
+
+4.9 × on ModelNet-40C, ShapeNet-C, and ScanObjectNN-C, respectively. This acceleration is achieved by replacing the costly sequential optimization of prior methods with our unified single-step approach. By aggregating losses from mul-tiple masked views into a single optimization objective, MAMVI eliminates re-dundant optimization iterations and resolves the inference latency bottleneck inherent in prior multi-view adaptation frameworks. 
+
+Masking Strategy Ablation. The results in Figure 2 on ScanObjectNN-C re-veal several key insights. As shown in (a), using a constant masking ratio across all M views leads to diminished performance due to a lack of view diversity. In (b), while solely utilizing the Beta(3 , 10) distribution provides better diversity than uniform sampling, its effectiveness is further enhanced when combined with fixed anchors in a hybrid configuration. Notably, incorporating an unmasked view (rm = 0 .0) with proper masking ratios (e.g., {0.0, 0.2, 0.7}) achieves the high-est performance compared to other hybrid setups such as {0.5, 0.5, 0.5}. These findings validate that our hybrid sampling strategy, which leverages the com-plementary strengths of the stochastic Beta distribution and carefully selected fixed ratios, provides a more robust and effective masking approach for test-time adaptation. MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 11                  
+
+> Fig. 3. Impact of batch size on accuracy for two methods. The experiments were conducted on ScanObjectNN-C.
+> Fig. 4. Correlation between consensus confidence and accuracy. The analysis was conducted on ModelNet-40C.
+> Table 5. Impact of the adaptive learning rate (ALR) mechanism across benchmarks. Method ModelNet-40C ShapeNet-C ScanObjectNN-C No ALR 73.86 65.63 49.33 MAMVI (ALR) 74.80 66.77 49.76
+> Gain ( ∆)+0.94 +1.14 +0.43
+
+Batch Size Sensitivity. Figure 3 compares batch size sensitivity of MAMVI against SVWA on ScanObjectNN-C. MAMVI achieves 46.19% accuracy at batch size 8, 47.55% at batch size 16, and 49.76% at batch size 32, while SVWA obtains 35.79%, 43.88%, and 47.45% respectively. The results show that MAMVI main-tains more stable performance across different batch sizes, with a performance gap of +10.40% at batch size 8 that narrows to +2.31% at batch size 32. This demonstrates that our approach is robust across different batch settings, making it effective even in scenarios with limited data. 
+
+Correlation Analysis. Figure 4 validates the key assumption underlying our Adaptive Learning Rate mechanism (section 3.3). We analyze the relationship between consensus confidence and prediction accuracy across 150 intermediate checkpoints during adaptation on ModelNet-40C. The results show a strong positive Pearson correlation ( r = 0 .833 ), confirming that higher consensus confi-dence reliably indicates correct predictions. This empirical evidence justifies our strategy of assigning lower learning rates to high-confidence samples (which are likely correct and require stability) and higher learning rates to low-confidence samples (which are likely incorrect and require larger corrective updates). 
+
+Adaptive Learning Rate Ablation. Table 5 evaluates the impact of the adap-tive learning rate (ALR) mechanism. Incorporating ALR consistently yields per-12 I. Kong et al.  
+
+> Fig. 5. Sensitivity analysis of individual Adaptive Learning Rate (ALR) parameters on ModelNet-40C. We evaluate (a) Multipliers ( m0, m 1, m 2) and (b) Thresholds ( τ1, τ 2). Values in legend denote the sweep range for each parameter.
+
+formance gains, improving mean accuracy by +0.94% on ModelNet-40C, +1.14% on ShapeNet-C, and +0.43% on ScanObjectNN-C. These gains across all three benchmarks demonstrate that the confidence-based modulation effectively bal-ances adaptation aggressiveness and stability within a single optimization step. Figure 5 further analyzes the sensitivity of the Adaptive Learning Rate (ALR) module to its internal parameters on ModelNet-40C. As shown in (a), the uncer-tainty multiplier m0 significantly impacts performance, with accuracy improv-ing as m0 increases from 0.5 to 3.0. This confirms that providing aggressive corrective updates for low-confidence samples is the primary driver of adapta-tion performance. In contrast, the relatively flat lines for m1 (0.2–0.6) and m2
+
+(0.05–0.2) demonstrate the robustness of MAMVI across a wide range of multi-pliers. In (b), the threshold τ1 shows a clear peak at 0.8 within its sweep range (0.2–0.8), validating it as a reliable boundary for identifying samples requiring correction, while the minimal variation across τ2 (0.85–0.95) reflects stable han-dling of high-confidence predictions. Based on these observations, we fix the final hyperparameters as m0 = 2 .0, m1 = 0 .5, m2 = 0 .05 , τ1 = 0 .8, and τ2 = 0 .85 for all benchmarks. 
+
+Hyperparameter Ablation. Figure 6 presents comprehensive hyperparameter ablation studies on ModelNet-40C. As shown in (a), the Beta(3 , 10) distribution (mean ratio ≈ 0.23) proves most effective among various Beta configurations. While more uniform distributions like Beta(1 , 1) or Beta(2 , 2) introduce excessive uncertainty through heavy masking, Beta(3 , 10) maintains the optimal balance between sufficient view diversity and conservation of geometric details. In (b), we evaluate the synergy between entropy minimization and consensus consistency. Without adaptation, the model achieves only 69.22%. While using either loss term alone provides moderate improvements, using both terms with balanced weights ( λent = 700 , λ cons = 900 ) improves performance by up to +1.42% com-pared to the strongest single-loss setting. This confirms that the two objectives are complementary and together yield a significant synergistic effect. Finally, (c) MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 13     
+
+> Fig. 6. Comprehensive hyperparameter ablation studies on ModelNet-40C. We investi-gate (a) Beta distribution parameters (α, β ), (b) Loss weights for entropy and consensus consistency ( λent ,λcons ), and (c) Impact of the number of views ( M).
+
+illustrates that accuracy increases consistently as the number of masked views (M ) grows, starting from 69.73% at M = 2 . Since MAMVI requires only a single backward pass regardless of the number of views, we select M = 12 as our default. This configuration ensures both maximum adaptation stability and high inference efficiency, overcoming the linear computational overhead typical of prior multi-view methods. 
+
+5 Conclusion 
+
+In this paper, we introduced MAMVI, a novel masked multi-view framework for single-step test-time adaptation of 3D point cloud models. By integrating a hy-brid masking strategy with adaptive learning rate modulation, MAMVI achieves highly stable and effective adaptation. Our approach effectively balances view diversity and consensus stability, enabling a single aggregated update that cap-tures robust geometric features under domain shifts. Extensive evaluations on ModelNet-40C, ShapeNet-C, and ScanObjectNN-C demonstrate that MAMVI achieves state-of-the-art performance on ShapeNet-C and ScanObjectNN-C, while maintaining competitive results on ModelNet-40C. Ultimately, MAMVI provides a robust and reliable solution for 3D perception in dynamic environments. 
+
+Acknowledgments and Disclosure of Funding 
+
+This research was supported by the MSIT(Ministry of Science and ICT), Korea, under the National Program for Excellence in SW supervised by the IITP(Institute of Information & Communications Technology Planning & Evaluation) in 2026. Also, this research was supported by the National Research Foundation of Ko-rea(NRF) grant funded by the korea government(MSIT) for Jiyoung Jung (RS-2025-24523036). 14 I. Kong et al. 
+
+References 
+
+1. Bahri, A., Yazdanpanah, M., Dastani, S., Noori, M., Hakim, G.A.V., Osowiechi, D., Desrosiers, C.: Smart-pc: Skeletal model adaptation for robust test-time training in point clouds (2025), arXiv:2505.19546 2. Bahri, A., Yazdanpanah, M., Noori, M., Dastani, S., Cheraghalikhani, M., Os-owiechi, D., Beizaee, F., Hakim, G.A.V., Ayed, I.B., Desrosiers, C.: Test-time adap-tation in point clouds: Leveraging sampling variation with weight averaging. In: 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV). pp. 266–275. IEEE (2025) 3. Boudiaf, M., Mueller, R., Ben Ayed, I., Bertinetto, L.: Parameter-free online test-time adaptation. In: Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition. pp. 8344–8353 (2022) 4. Chang, A.X., Funkhouser, T., Guibas, L., Hanrahan, P., Huang, Q., Li, Z., Savarese, S., Savva, M., Song, S., Su, H., et al.: Shapenet: An information-rich 3d model repository. arXiv preprint arXiv:1512.03012 (2015) 5. Dastmalchi, H., An, A., Cheraghian, A., Rahman, S., Ramasinghe, S.: Test-time adaptation of 3d point clouds via denoising diffusion models. In: 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV). pp. 1566–1576. IEEE (2025) 6. Devlin, J., Chang, M.W., Lee, K., Toutanova, K.: Bert: Pre-training of deep bidi-rectional transformers for language understanding. In: Proceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers). pp. 4171–4186 (2019) 7. Gandelsman, Y., Sun, Y., Chen, X., Efros, A.A.: Test-time training with masked autoencoders. In: Oh, A.H., Agarwal, A., Belgrave, D., Cho, K. (eds.) Advances in Neural Information Processing Systems (2022) 8. Gao, J., Zhang, J., Liu, X., Darrell, T., Shelhamer, E., Wang, D.: Back to the source: Diffusion-driven adaptation to test-time corruption. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 11786– 11796 (2023) 9. He, K., Chen, X., Xie, S., Li, Y., Dollár, P., Girshick, R.: Masked autoencoders are scalable vision learners. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 16000–16009 (2022) 10. Iwasawa, Y., Matsuo, Y.: Test-time classifier adjustment module for model-agnostic domain generalization. Advances in Neural Information Processing Systems 34 ,2427–2440 (2021) 11. Lee, D.H., et al.: Pseudo-label: The simple and efficient semi-supervised learning method for deep neural networks. In: Workshop on challenges in representation learning, ICML (2013) 12. Liang, J., Hu, D., Feng, J.: Do we really need to access the source data? source hy-pothesis transfer for unsupervised domain adaptation. In: International conference on machine learning. pp. 6028–6039. PMLR (2020) 13. Liu, Y., Kothari, P., Van Delft, B., Bellot-Gurlet, B., Mordan, T., Alahi, A.: Ttt++: When does self-supervised test-time training fail or thrive? Advances in Neural Information Processing Systems 34 , 21808–21820 (2021) 14. Mirza, M.J., Micorek, J., Possegger, H., Bischof, H.: The norm must go on: Dy-namic unsupervised domain adaptation by normalization. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 14765– 14775 (2022) MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds 15 15. Mirza, M.J., Shin, I., Lin, W., Schriebl, A., Sun, K., Choe, J., Kozinski, M., Pos-segger, H., Kweon, I.S., Yoon, K.J., et al.: Mate: Masked autoencoders are online 3d test-time learners. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 16709–16718 (2023) 16. Niu, S., Wu, J., Zhang, Y., Wen, Z., Chen, Y., Zhao, P., Tan, M.: Towards sta-ble test-time adaptation in dynamic wild world. arXiv preprint arXiv:2302.12400 (2023) 17. Pang, Y., Tay, E.H.F., Yuan, L., Chen, Z.: Masked autoencoders for 3d point cloud self-supervised learning. World Scientific Annual Review of Artificial Intelligence 
+
+1, 2440001 (2023) 18. Qi, C.R., Su, H., Mo, K., Guibas, L.J.: Pointnet: Deep learning on point sets for 3d classification and segmentation. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 652–660 (2017) 19. Qi, C.R., Yi, L., Su, H., Guibas, L.J.: Pointnet++: Deep hierarchical feature learn-ing on point sets in a metric space. Advances in neural information processing systems 30 (2017) 20. Shim, H., Kim, C., Yang, E.: Cloudfixer: Test-time adaptation for 3d point clouds via diffusion-guided geometric transformation. In: European Conference on Com-puter Vision. pp. 454–471. Springer (2024) 21. Sun, J., Zhang, Q., Kailkhura, B., Yu, Z., Xiao, C., Mao, Z.M.: Benchmarking ro-bustness of 3d point cloud recognition against common corruptions. arXiv preprint arXiv:2201.12296 (2022) 22. Sun, Y., Wang, X., Liu, Z., Miller, J., Efros, A., Hardt, M.: Test-time training with self-supervision for generalization under distribution shifts. In: International conference on machine learning. pp. 9229–9248. PMLR (2020) 23. Uy, M.A., Pham, Q.H., Hua, B.S., Nguyen, T., Yeung, S.K.: Revisiting point cloud classification: A new benchmark dataset and classification model on real-world data. In: Proceedings of the IEEE/CVF international conference on computer vi-sion. pp. 1588–1597 (2019) 24. Wang, D., Shelhamer, E., Liu, S., Olshausen, B., Darrell, T.: Tent: Fully test-time adaptation by entropy minimization. arXiv preprint arXiv:2006.10726 (2020) 25. Wang, Y., Cheraghian, A., Hayder, Z., Hong, J., Ramasinghe, S., Rahman, S., Ahmedt-Aristizabal, D., Li, X., Petersson, L., Harandi, M.: Backpropagation-free network for 3d test-time adaptation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 23231–23241 (2024) 26. Wang, Y., Sun, Y., Liu, Z., Sarma, S.E., Bronstein, M.M., Solomon, J.M.: Dynamic graph cnn for learning on point clouds. ACM Transactions on Graphics (tog) 38 (5), 1–12 (2019) 27. Yazdanpanah, M., Bahri, A., Noori, M., Dastani, S., Hakim, G.A.V., Osowiechi, D., Ben Ayed, I., Desrosiers, C.: Purge-gate: Backpropagation-free test-time adap-tation for point clouds classification via token purging. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 27640–27649 (2025) 28. Zhang, M., Levine, S., Finn, C.: Memo: Test time robustness via adaptation and augmentation. Advances in neural information processing systems 35 , 38629–38642 (2022) 29. Zhang, R., Guo, Z., Gao, P., Fang, R., Zhao, B., Wang, D., Qiao, Y., Li, H.: Point-m2ae: multi-scale masked autoencoders for hierarchical point cloud pre-training. Advances in neural information processing systems 35 , 27061–27074 (2022)

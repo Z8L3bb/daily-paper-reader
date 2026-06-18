@@ -1,0 +1,401 @@
+Title: C-ARC: Continuous-Adaptive Range Clustering for Non-Repetitive LiDAR Sensors
+
+URL Source: https://arxiv.org/pdf/2606.18948v1
+
+Published Time: Thu, 18 Jun 2026 00:49:05 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+> SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 1
+
+# C-ARC: Continuous-Adaptive Range Clustering for Non-Repetitive LiDAR Sensors 
+
+Nick B. Schroeder 1, Jonathan Lichtenfeld 2, and Oskar von Stryk 2
+
+Abstract —Real-time LiDAR clustering identifies structures in point clouds, which is an essential prerequisite for many mobile robotics algorithms. Current methods are mostly developed for repetitive mechanical LiDAR sensors. Recently, the use of non-repetitive LiDAR sensors is strongly increasing due to their small cost and form factor. Such non-repetitive Risley prism-based sensors violate two key assumptions of repetitive mechanical sensors: structured scan lines and well-defined frame bound-aries. Their Rhodonea-curve trajectories produce non-uniform point distributions, and the absence of a rotation cycle renders conventional scan line indexing inapplicable. To meet such new requirements, we developed C-ARC, a Continuous-Adaptive Range Clustering framework that main-tains a persistent dual-graph over a sliding window, decoupling high-frequency point insertion from on-demand cluster retrieval. This is crucial for key functionalities like SLAM or tracking. An adaptive range grid resolution mechanism calibrates grid dimensions at initialization using an exponential control loop, balancing the sparsity-collision trade-off without prior knowledge of the scanning pattern. Implemented as an open-sourced single-threaded C++17 library 1, C-ARC produces real-time cluster output at 20 Hz on commodity hardware for the Livox Mid-360. Evaluation on the Livox Avia identifies unbounded cell occupancy as the primary limitation for sensors with strongly concentrated scan patterns. The adaptive resolution mechanism additionally improves clustering quality for existing grid-based methods on non-repetitive data. 
+
+Index Terms —LiDAR, point cloud clustering, non-repetitive sensors, continuous clustering, range image, real-time perception 
+
+I. INTRODUCTION 
+
+# LIDAR is a fundamental perception technology in autonomous systems, providing dense 3D measurements of the environment at high frequency. Foundational tasks such as segmentation, object detection, and clustering must be processed in real time to support downstream applications like SLAM [1], [2], as latency directly affects planning and control [3]. 
+
+This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible. 
+
+> 1
+
+Schroeder is with Technical University of Darm-stadt, Hochschulstr. 10, 64289 Darmstadt, Germany. 
+
+nick.b.schroeder@stud.tu-darmstadt.de 
+
+> 2
+
+Lichtenfeld and von Stryk are with the Simulation, Sys-tems Optimization and Robotics Group, Technical University of Darmstadt, Hochschulstr. 10, 64289 Darmstadt, Germany. 
+
+{lichtenfeld,stryk }@sim.tu-darmstadt.de 
+
+Research presented in this paper has been supported in parts by the Federal Ministry of Research, Technology and Space (BMFTR) within the DRZ project (grant no. 13N16475), and by the LOEWE initiative (Hesse, Germany) within the emergenCITY center [LOEWE/1/12/519/03/05.001(0016)/72], and the RIG project (grant no. 16ME1001). 
+
+> 1
+
+The source code will be linked in the final version. 
+
+(a) (b) (c) Figure 1. At system start, a single object may be represented by many disconnected clusters (a). As the buffer fills, fragmented clusters are gradually merged into larger, more stable connected components (b), eventually forming fully connected high-level components (c). 
+
+The dominant paradigm for real-time LiDAR clustering has been built around mechanical rotating sensors, which produce structured, repetitive scan lines at a fixed angular resolution. Algorithms leverage this known scanning structure to achieve constant-time nearest neighbour search (NNS) via range image projection, defining discrete processing frames around the sensor’s rotation period. The resulting methods are highly efficient, but their performance is fundamentally contingent on the structured nature of repetitive scan data. Non-repetitive LiDAR sensors, such as the Livox series, offer an alternative mechanism. A pair of counter-rotating prisms steers the laser beams, producing a Rhodonea-curve, a petal-shaped scanning pattern whose density is highest at the centre of the Field of View (FOV) and decreases toward the periphery. Because the ratio of the two prism rotation speeds is irrational, the pattern does not repeat, yielding progressively increasing spatial coverage over time. These sensors offer competitive FOV at substantially lower cost and weight than traditional rotational scanners, and are increasingly explored in resource-constrained mobile robotics platforms [4], [5]. Despite this adoption, the non-uniform point distribution of Risley prism-based sensors poses a fundamental challenge for real-time clustering. Two properties of the scanning pattern break the assumptions of standard methods. First, the absence of discrete scan lines makes Projection by ID (PBID) index-ing [6] inapplicable: PBID maps each scan line of a repetitive sensor to a dense range image row without overlapping points, but without a fixed scan structure, the resulting projection is both sparse and non-uniform. Second, without a mechanical rotation cycle, there is no intuitive frame boundary. Accumu-lating points over a longer time window improves point density  
+
+> arXiv:2606.18948v1 [cs.RO] 17 Jun 2026 SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 2
+
+and cluster connectivity, but at the cost of increased latency and motion distortion, whereas shorter windows mitigate these issues but yield projections too sparse for reliable connectivity. This causes a latency-density trade-off. Existing continuous clustering methods [7]–[9] address the latency problem by maintaining a sliding window over the point stream, but retain PBID-style indexing and are therefore restricted to repetitive sensors. To the authors’ best knowledge, no existing framework combines continuous, point-wise clus-tering with a data structure that accommodates the irregular density characteristics of Risley prism-based sensors. To address this gap, this paper makes the following contri-butions: 1) Adaptive Range Grid Resolution: An exponential con-trol loop that calibrates grid dimensions during initial-ization, balancing sparsity and collisions without prior knowledge of the sensor scanning pattern. The sensor-agnostic method can initialize any grid-based clustering algorithm. 2) C-ARC Framework: A continuous point-wise cluster-ing framework that maintains a persistent dual-graph over a sliding window TB . Lazy deletion defers struc-tural validation to retrieval, decoupling high-frequency insertion from lower-frequency publication and remov-ing frame-accumulation latency. 3) Cross-Sensor Evaluation: An analysis across the Livox Mid-360 and Livox Avia demonstrating real-time per-formance on the Mid-360 and identifying scanning geo-metry as a primary performance driver. II. RELATED WORK To contextualize the challenges of real-time clustering for non-repetitive LiDARs, we group prior work into three areas: range image segmentation, exploitation of non-repetitive scan patterns, and discrete versus continuous processing paradigms. 
+
+A. Range Image Segmentation 
+
+The efficiency of geometric point cloud clustering is funda-mentally limited by the underlying NNS. Tree-based structures such as k-d trees and incremental variants like ikd-Tree [10] provide logarithmic average-case complexity but require con-tinuous insertions and structural maintenance in streaming LiDAR applications. Systems such as FAST-LIO2 [11] demon-strate real-time capability with per-point insertion times of a few microseconds. However, at high input rates (e.g. 200 kHz), this cost approaches the available processing budget, leaving limited headroom for clustering. Tree-based methods may also exhibit latency spikes due to rebalancing and irregular memory access patterns [11], which is problematic for continuous clustering frameworks requiring predictable per-point update costs. Grid-based representations instead provide constant-time 
+
+O(1) neighbourhood access through spatial discretization. Range image projections [6] reduce 3D clustering to a 2D Con-nected Component Labelling (CCL) problem [12], enabling efficient connectivity-based segmentation. Density-based methods such as DBSCAN [13] and stream-ing variants including DenStream [14] are well suited to unstructured point clouds because they do not depend on scan-line structure. However, they require repeated neighbourhood queries and cluster expansion operations, typically supported by dynamic nearest neighbour structures, resulting in substan-tial overhead in high-frequency LiDAR streams. Their density estimates can also be sensitive to the irregular and evolving sampling patterns of non-repetitive sensors. Most existing LiDAR segmentation methods exploit the structured scan patterns of repetitive mechanical sensors. Us-ing PBID indexing [6], scan rings can be mapped directly to dense range images without overlap. Methods such as [15], [16] perform efficient breadth-first search (BFS) or CCL, while later works improve throughput through two-pass cluster mer-ging [17], [18] or scan-ring-based geometric feature extrac-tion [19]. Although highly efficient, these approaches remain strongly dependent on structured scanning geometries and are therefore difficult to generalize to non-repetitive sensors. 
+
+B. Non-Repetitive Scan Exploitation 
+
+Non-repetitive LiDAR sensors such as the Livox series steer their beam using counter-rotating Risley prisms, producing a deterministic Rhodonea trajectory with petal-shaped sampling patterns. The pattern is determined by the prism rotation ratio. Irrational ratios generate non-repeating trajectories with progressively increasing spatial coverage over time. Although structured, these sensors lack discrete scan lines, making conventional scan line–based indexing unsuitable for many online clustering methods. In perception applications, such sensors have shown promise for SLAM and object detection due to their wide FOV and increasing sampling density [20], [21]. Recent works [22], [23] exploit the centre of the Rhodonea pattern as a reference for point cloud registration and trajectory planning, indicating that pattern-aware methods can reduce runtime complexity. Existing research primarily models these scanning patterns through prism kinematics [24] or empirical observation mod-els [25]. However, real-time kinematic modelling and on-line recalibration introduce additional computational overhead, limiting suitability for latency-critical applications. Despite these advances, little work has investigated how the non-uniform sampling behaviour of such sensors affects connectivity-based clustering. 
+
+C. Continuous vs. Discrete Paradigm 
+
+Standard online clustering methods [15]–[18], [26]–[28] op-erate on discrete frames, introducing an inherent latency of 
+
+∆tlatency = ∆ tframe + ∆ tprocess .Even with negligible processing time, latency remains bounded by the frame accumulation period ∆tframe , typically 50–100 ms. Partitioning frames into sub-scans can reduce latency [29], [30], but may fragment clusters at sub-scan boundaries [9]. Continuous clustering mitigates this limitation by main-taining a sliding window over the incoming point stream rather than processing discrete frames [31]. Early approaches SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 3
+
+such as Lisco [7] still accumulated full sensor sweeps before publishing clusters, whereas later methods [8], [9] achieved point-wise updates using overwritable or expanding range images. However, these methods employ eager update strategies, where cluster re-evaluation occurs directly upon point inser-tion, and PBID-based indexing remains poorly suited to the dynamic density characteristics of non-repetitive sensors. C-ARC addresses these limitations through a decoupled architecture that separates high-frequency point insertion from cluster maintenance, enabling continuous sensor-agnostic clus-tering robust to non-repetitive sampling patterns. III. METHOD C-ARC is a continuous clustering framework that maintains a persistent connectivity graph over a sliding point window TB .Unlike the hardware-defined ∆tframe of frame-based methods, 
+
+TB is configurable. Incoming points are projected onto a bucket-based range grid, enabling neighbourhood search in 
+
+O(k), where k denotes the number of points per cell, while remaining independent of the sensor scanning pattern. This design addresses two key challenges of non-repetitive LiDAR sampling: 1) Irregular Spatial Coverage: Drifting scan trajectories produce non-uniform projection densities. Fine grids preserve detail but increase fragmentation in sparse regions, whereas coarse grids improve connectivity at the cost of point collisions. 2) Ill-defined Scan Boundaries: Without a periodic scan cycle, frame boundaries become heuristic. Longer ac-cumulation windows improve coverage but increase latency, while shorter windows reduce latency at the cost of structural completeness. These effects form the Sparsity-Collision trade-off. Excess-ively fine grids relative to TB produce disconnected pro-jections, whereas coarse grids or large TB values increase overlap between points and geometric features. The bucket-based range grid mitigates this by storing multiple points per 
+
+(u, v ) cell instead of overwriting values, preserving detail at lower grid resolutions. 
+
+A. Adaptive Range Grid Projection 
+
+Because the optimal TB depends on application-specific latency and density requirements, C-ARC treats it as a config-urable parameter rather than a fixed design choice. Latency-critical tasks such as collision avoidance favour short TB
+
+values and coarser grids, whereas mapping applications can exploit longer accumulation windows and finer resolutions for increased structural detail. To support this trade-off, C-ARC employs an adaptive grid resolution algorithm based on an exponential control loop that fits the range grid to the sensor configuration and selected 
+
+TB . The objective is to balance sparse regions against point collisions within the projection. Although global measures such as coverage ratio and non-uniformity coefficients characterize projection quality [32], [33], they do not provide the directional information required to optimize individual grid dimensions. Since point density varies independently along horizontal and vertical axes de-pending on sensor geometry and accumulation time, C-ARC instead employs per-axis metrics for adaptive resolution selec-tion. We define the point-count occupancy matrix F ∈ NH×W 
+
+> 0
+
+,which records the number of points projected into each grid cell, where H and W denote the grid height and width. The set of active cell indices is V = {(u, v ) | Fu,v > 0}, from which the active column and row spans are derived as Ac =
+
+{u ∈ [1 , W ] | ∃ v : ( u, v ) ∈ V} and Ar = {v ∈ [1 , H ] | ∃ u :(u, v ) ∈ V} . Three metrics quantify distribution quality along each axis:  
+
+> •
+
+Density (Dv , D h): The average occupancy rate within the active spans, measuring how densely rows and columns are populated: 
+
+Dv = 1
+
+|Ac|
+
+X
+
+> u∈Ac
+
+1
+
+H
+
+> H
+
+X
+
+> v=1
+
+1(( u, v ) ∈ V ),Dh = 1
+
+|Ar |
+
+X
+
+> v∈Ar
+
+1
+
+W
+
+> W
+
+X
+
+> u=1
+
+1(( u, v ) ∈ V ). 
+
+> •
+
+Maximum Gap (Gv , G h): The relative length of the longest consecutive sequence of empty cells in either direction. A gap that becomes too wide may cause object connectivity to be lost.  
+
+> •
+
+Mean Multiplicity (Mμ): The average number of points per occupied cell, serving as the primary indicator of point collisions: 
+
+Mμ = 1
+
+|V| 
+
+X
+
+> (u,v )∈V
+
+Fu,v 
+
+During system initialization, the grid resolution along each axis d ∈ { h, v } is iteratively updated. Let Nd denote the number of grid cells along axis d. The update follows an exponential control rule: 
+
+Nd ← ⌊ Nd exp( λD eD − λGeG)⌋
+
+where eG = Gd−TG 
+
+> TG
+
+and eD = Dd−TD 
+
+> TD
+
+denote the nor-malized errors of the gap and density metrics, respectively. Here, Gd and Dd represent the measured gap ratio and point density in dimension d. A positive eG indicates excessive fragmentation due to overly fine resolution, while a positive eD
+
+indicates overcrowding caused by insufficient resolution. The default parameters TG = 0 .1, TD = 0 .9, and λG = λD = 0 .2
+
+are used in all experiments, but can be adjusted for different sensor configurations and application requirements. In addition to the gap and density objectives, the system enforces a configurable maximum multiplicity threshold TM ,constraining the mean number of points per occupied cell. If 
+
+Mμ > T M , the grid is considered too coarse and is uniformly refined in both dimensions, overriding the gap and density objectives. To avoid degenerate aspect ratios, the grid dimensions are constrained to remain within a fixed factor of the sensor FOV ratio. The adaptation loop terminates once Mμ stabilizes, SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 4
+
+yielding the smallest grid resolution that preserves structural connectivity for the given TB .
+
+B. C-ARC Architecture 
+
+C-ARC treats point cloud clustering as a dynamic connectivity graph, where points are vertices and spatial adjacency defines edges. Unlike frame-based methods that reset state after each scan, C-ARC maintains a persistent graph over time. Modern LiDAR sensors such as the Livox Mid-360 stream up to 200 kHz, while downstream applications typically oper-ate at 10–20 Hz, making full-rate clustering computationally infeasible. To address this, C-ARC decouples point insertion from cluster retrieval: insertion runs continuously at sensor rate, while retrieval is executed on demand at application-specific frequencies. Algorithm 1 summarizes the resulting loop. 
+
+Algorithm 1 C-ARC Main Loop 
+
+Require: Point stream P, sliding window TB , multiplicity threshold TM , mask size w
+
+Ensure: Labelled point set {(pi, ℓ i)} 
+
+> 1:
+
+Initialize ring buffer B, range grid S, graphs GP , GC 
+
+> 2:
+
+t0 ← NOW ()  
+
+> 3:
+
+while NOW () − t0 < T B do  
+
+> 4:
+
+B. INSERT (P.NEXT ()) ▷ accumulate initial window  
+
+> 5:
+
+end while  
+
+> 6:
+
+S ← ADAPTIVE GRID INIT (B, T M , T G, T D ) 
+
+> 7:
+
+B. CLEAR ()  
+
+> 8:
+
+while P is streaming do  
+
+> 9:
+
+pnew ← P .NEXT ()  
+
+> 10:
+
+if B. ISFULL () then  
+
+> 11:
+
+EVICT (B. OLDEST () , S, G P , G C ) ▷ Remove point; mark affected clusters pending  
+
+> 12:
+
+end if  
+
+> 13:
+
+INSERT (pnew , B, S, G P , G C , w ) ▷ Fig. 3  
+
+> 14:
+
+if PUBLICATION DUE () then  
+
+> 15:
+
+VALIDATE PENDING (GP ) ▷ Fig. 4(a)  
+
+> 16:
+
+UPDATE COMPONENT GRAPH (GC ) ▷ Fig. 4(b)  
+
+> 17:
+
+yield BFS (GC ) → { (pi, ℓ i)} ▷ Fig. 4(c)  
+
+> 18:
+
+end if  
+
+> 19:
+
+end while 
+
+Fig. 2 illustrates how the pipeline components interact. The ring buffer maintains a sliding window of size TB , retaining the N most recent points and evicting older ones as new points arrive, where N = TB ·rs and rs denotes the sensor’s sampling rate. This allows the system to accumulate a temporally richer point set, without coupling output latency to TB . The three core data structures are:  
+
+> •
+
+Ring Buffer: A FIFO container for the sliding window 
+
+TB of the N most recent points.  
+
+> •
+
+Bucket-based Range Grid: An adaptive grid where each cell acts as a bucket rather than a single pixel, allowing denser grids while preserving structural detail.  
+
+> •
+
+Dual-Graph Representation: To avoid expensive cluster merging and splitting during dynamic updates, C-ARC employs a two-layer graph hierarchy, similar to [9], [18]: 
+
+– Point Graph (GP ): A low-level adjacency list con-taining local graphs, further referred to as (local) clusters. 
+
+– Component Graph (GC ): A higher-level graph where nodes represent local clusters and edges represent ‘bridges’, i.e., connections formed when points link two previously isolated clusters. Com-ponents in this graph are referred to as connected components (CCs). The system maintains the graphs through three primary operations. 
+
+1) Incremental Point Insertion: Upon arrival, point pi is projected onto grid coordinates (ui, v i) using a standard spher-ical projection. We then perform a neighbourhood search using a w×w spatial mask Mw centred at the projection coordinates. A candidate point pj is accepted as a neighbour if it satisfies the configured distance metric: 
+
+N (pi) = {pj ∈ M w(pi) \ { pi} | d(pi, pj ) ≤ dmax }
+
+Since C-ARC is metric-agnostic, d(·, ·) may be any single-linkage distance criterion defined on point pairs. As shown in Fig. 3, three distinct scenarios arise depending on the neighbourhood:  
+
+> •
+
+Isolation: When N (pi) = ∅, a new local cluster is instantiated.  
+
+> •
+
+Expansion: If all neighbours belong to one existing cluster, pi joins it and edges are added to GP . 
+
+> •
+
+Bridging: If neighbours span multiple clusters (e.g. 
+
+C1, C 2 in Fig. 3(c)), pi is assigned to the recently created cluster to maximize the temporal longevity of the connection. Rather than merging the local point sets, a high-level edge is added between C1 and C2 in GC ,forming a single CC. 
+
+2) Point Removal and Lazy Deletion: When a point is evicted from the ring buffer, it is removed from the grid and its edges are deleted from GP . Validating whether the removal splits a cluster is computationally too expensive at sensor sampling rates. To minimize redundant traversals, C-ARC employs lazy deletion. Rather than immediately validating each removal, affected clusters are marked as ‘pending’. When consecutive points from the same cluster are evicted, the cluster remains in the pending state throughout, deferring all BFS validation until the next retrieval. This batches what would otherwise be many individual traversals into a single pass. 
+
+3) Connected Component Retrieval: Triggered on demand (typically at 10-20 Hz), this phase evaluates connectivity and extracts a snapshot of the dynamic graph through a three-step process shown in Fig. 4: 1) Cluster Validation: BFS is performed on all ‘pending’ clusters to determine whether point removals caused a split. This ensures the system state remains consistent with the actual point connectivity. 2) Graph Update: GC is synchronized with the validated local clusters by updating bridge edges to reflect any connectivity changes resulting from removals. SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 5Downstream Task On-demand Retrieval C4 C2 C3 C1 Component Graph Point Graph Range Grid Ring Buffer 
+
+> C-ARC Point Stream
+> Con fi guration
+> Buffer Capacity Multiplicity Distance Metric
+> 200-240 kHz
+
+LiDAR                               
+
+> Figure 2. The C-ARC pipeline. Incoming points are stored in a ring buffer and indexed via an adaptive range grid. The dual-graph structure decouples high-frequency insertion (200–240 kHz) from lower-frequency cluster retrieval (10–20 Hz). C1 C1 C2
+> (a) Isolation C1 C1 C2 C2 (b) Expansion C1 C1 C2 C2 (c) Bridging Figure 3. Insertion of a new point (black). Updates to GP(left) and GC
+> (right). (a) Isolation: no neighbours found; a new local cluster is created. (b) Expansion: all neighbours belong to one cluster; the point joins it and edges are added to GP. (c) Bridging: neighbours span multiple clusters; an edge is added to GCto connect them without merging the local point sets. C1 C3 C2
+> (a) Validating clusters C1 C3 C4 C2 (b) Update GCC1 C3 C4 C2 (c) BFS on CCs Figure 4. On-demand retrieval process. (a) Pending clusters (green) are revalidated using BFS to restore structural consistency after point removals, updating the out-of-sync graph GC.(b) The component graph GCis synchronized with the validated cluster structure. (c) A final BFS over GC
+> extracts all CCs and assigns each buffered point the label of its corresponding component.
+
+3) Component Retrieval: A BFS over GC identifies all merged CCs. Each of the N points currently in the buffer is assigned a unique label corresponding to its CC. IV. EVALUATION This section evaluates C-ARC’s performance across two non-repetitive LiDAR sensors with fundamentally different scan-ning characteristics. It is structured into a qualitative analysis of sliding window behaviour under ego-motion, a computa-tional analysis across sensors and scenes, and a comparative analysis against the frame-based approach of [16]. 
+
+A. Experimental Setup 
+
+C-ARC is implemented as a stand-alone C++17 library. Exper-iments were conducted on a system equipped with an Intel ®
+
+Core ™ i7-1280P CPU (up to 4.8 GHz) and 32 GB RAM, running Ubuntu 24.04 LTS. The application was executed single-threaded. The angular clustering method introduced   
+
+> Table I OVERVIEW OF EVALUATION DATASETS
+
+Dataset Sensor Scenario 
+
+Indoor Office Livox Mid-360, Livox Avia Indoor office, moving sensor, static objects 
+
+Outdoor Forest Livox Mid-360, Livox Avia Outdoor, moving sensor, ve-getation and pedestrians 
+
+in [16] was used for all clustering experiments, unless stated otherwise. The Livox Mid-360 (200 kHz sampling rate) has a 360 ◦ ×
+
+59 ◦ omnidirectional FOV whose accumulated scan pattern is relatively uniform. The Livox Avia (240 kHz) has a forward-facing FOV ( 70 .4◦×77 .2◦) and produces a trajectory with high point density at the centre and sparse coverage at the periphery. The two Multi-Modal LiDAR Datasets [34], [35] provide simultaneous recordings with both sensors under identical environmental conditions, as listed in Tab. I. 
+
+B. Qualitative Analysis 
+
+As a representative example of C-ARC’s temporal behaviour, we examine the effect of ego-motion-induced distortion. This is particularly relevant for continuous clustering methods, where incorrect connectivity may persist across multiple in-sertion cycles. In frame-based approaches, motion-induced errors remain fixed for the full duration of ∆tframe , independent of when motion ceases. In contrast, C-ARC bounds the persistence of invalid edges through the eviction schedule of the sliding buffer. Once distorted points exceed the accumulation window 
+
+TB , their associated edges are removed automatically, allowing the connectivity structure to recover. This behaviour is illustrated in Fig. 5: two objects are initially separated in panel (a), become incorrectly merged due to ego-motion in panel (b), and are subsequently re-separated after the distorted points are evicted from the buffer in panel (c). Fig. 1 illustrates the complementary evolution of cluster connectivity over time. At system initialization, an object appears as multiple disconnected fragments (a). As the buffer fills, additional observations progressively merge these frag-SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 6             
+
+> (a) (b) (c) Figure 5. Temporal recovery from ego-motion-induced distortion. Distinct connected components (a) become incorrectly merged due to motion-induced bridge edges (b). As distorted points leave the sliding window, the invalid edges are automatically removed and correct separation is restored (c). (Outdoor Forest dataset, Livox Mid-360)
+
+ments into larger and more stable connected components (b), eventually yielding a coherent high-level structure (c). Together, these examples demonstrate that C-ARC continu-ously adapts its connectivity graph over time: sparse structures become more complete as observations accumulate, while transient motion-induced errors are naturally removed once outdated measurements leave the sliding window. 
+
+C. Computational Analysis 
+
+The primary objective is to characterize C-ARC’s throughput under varying sensor and scene conditions, and to identify parameter configurations that satisfy real-time constraints. 
+
+1) Metrics and Setup: The primary metric is the total window latency , defined as the end-to-end processing time of a single cluster retrieval cycle, including point insertion, eviction, graph maintenance, cluster validation, and CC ex-traction. Cluster retrieval was executed at 20 Hz, imposing a strict 50 ms processing limit per cycle. C-ARC is evaluated as a soft real-time system and is considered real-time capable when the P99 latency remains below this 50 ms threshold. Higher-order percentiles such as P999 are additionally reported characterizing tail behaviour under worst-case conditions. As established in Sec. IV-A, all evaluations are performed single-threaded using TM = 2 and a 5×5 neighbourhood mask (w = 5 ). Following [9], a larger mask size ensures reliable connectivity in sparse regions, where 4-connected neighbour-hoods are typically insufficient. All experiments are conducted directly on raw point clouds without any preprocessing, such as ground removal or downsampling. 
+
+2) Tail Latency: Fig. 6 characterizes latency through the cumulative distribution of total window latency across varying sliding windows TB . The clustering threshold θ was tuned independently for each sensor based on empirical clustering behaviour to obtain stable and structurally consistent connec-ted components while avoiding over- or under-segmentation. Accordingly, θ = 30 ◦ was used for the Mid-360 and θ = 80 ◦
+
+for the Avia. For the Livox Mid-360, both indoor and forest scenes remain safely below the 50 ms real-time threshold for all tested configurations ( TB ≤ 0.5 s), even at the P999 tail percentile. This indicates highly stable computational behaviour with limited sensitivity to scene composition under unthrottled processor frequencies. The Livox Avia exhibits stronger scene dependence. In the forest sequence, the latency remains below the 50 ms threshold at the P99 level for all tested buffer sizes, satisfying the soft real-time criterion. In contrast, the indoor sequence under identical configurations exceeds the threshold for TB ≥ 0.3 s, indicating that the interplay of scan geometry and indoor structural alignment amplifies worst-case processing costs. 
+
+3) Sensor- and Scene-Dependent Performance: C-ARC’s computational behaviour is governed primarily by the interac-tion between sensor scanning geometry, scene structure, and local connectivity density. For the Livox Avia, indoor scenes produce higher latencies than forest environments. Its pattern heavily concentrates samples near the centre of the FOV. As the range grid utilizes a spherical projection, this concentra-tion inherently generates high per-cell point occupancy ( k). Because neighbourhood insertion scales with per-cell occu-pancy ( O(k)), these densely populated cells disproportionately increase insertion overhead. In indoor environments, this architectural bottleneck is severely aggravated during the subsequent retrieval phase. Since no ground filtering is applied to the raw data, extensive planar structures (e.g. floors and walls) establish highly con-nected topologies across these already dense grid cells. Under a standard Euclidean distance metric, this spatial continuity causes the system to merge otherwise distinct objects into a single, larger clusters. During the retrieval phase, this struc-tural bloating dramatically increases the BFS validation and traversal costs. Our framework can mitigate this architectural bottleneck through metric modularity. By employing the connection cri-terion of [16], the angular constraint naturally prevents the as-similation of ground planes into vertical structures. Conversely, the Mid-360 exhibits intrinsically more stable behaviour across all scenes. This is attributed to its lower peak sampling density and a more spatially uniform, omnidirectional scan geometry, which prevents the local point accumulation bottlenecks ob-served in the Avia. Overall, these results confirm that C-ARC’s runtime is governed less by the global point count than by local projection density and topological connectivity, both of which can be effectively managed via geometrically informed, optimized predicates. 
+
+D. Comparative Analysis 
+
+The adaptive grid resolution mechanism is independent of C-ARC’s continuous graph architecture and can therefore initialize arbitrary grid-based clustering methods. To evaluate its effect, we integrate it with the method of [16] as baseline, extending the original 4-connected neighbourhood to a 3 × 3
+
+(w = 3 ) window to match C-ARC’s search mask. Fig. 7 highlights the sensitivity of overwrite-based range image clustering to grid resolution. Fine grids reduce point collisions but produce fragmented clusters due to sparse non-repetitive projections. Coarser grids improve connectivity but introduce collisions and geometric information loss. This behaviour is directly related to the mean multiplicity TM . For overwrite-based projections, TM = 2 implies that, on average, every second point overwrites a previous observation. Through accumulation within each grid cell, C-ARC de-couples resolution from point density. As a result, coarser grids can be used without information loss. SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 70 20 40 60 80 100 
+
+Total Window Latency [ms]          
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Cumulative Probability  P(L ≤ x)
+> 20 Hz Limit Indoor Forest Buffer: 0.1s Buffer: 0.2s Buffer: 0.3s Buffer: 0.4s Buffer: 0.5s
+> (a) Livox Mid-360, TM= 2 ,w= 5 020 40 60 80 100
+
+Total Window Latency [ms]                
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Cumulative Probability  P(L ≤ x)
+> 20 Hz Limit Indoor Forest Buffer: 0.1s Buffer: 0.2s Buffer: 0.3s Buffer: 0.4s Buffer: 0.5s (b) Livox Avia, TM= 2 ,w= 5
+> Figure 6. CDF of total window latency for the Livox Mid-360 (a) and Livox Avia (b) across varying buffer sizes TB. Points denote measured latency percentiles ( P1, Q 1,Med , Q 3, P 95 , P 99 , P 999 ). The Mid-360 satisfies the weak real-time criterion across all tested configurations. For the Avia, the forest sequence remains below the 50 ms threshold at P99 for all tested buffer sizes, whereas the indoor sequence exceeds the threshold for TB≥0.3s.
+
+At fine resolutions (Fig. 7 (a)-(b)), the baseline method exhibits strong over-segmentation due to projection sparsity, whereas C-ARC preserves coherent object structure through accumulation. As opposed to C-ARC, at coarse resolutions (Fig. 7 (c)-(d)), the baseline suffers from information loss. 
+
+E. Discussion 
+
+C-ARC successfully enables continuous, point-wise LiDAR clustering without scan-line assumptions, meeting soft real-time constraints for the Livox Mid-360 across diverse scene types. Our evaluation highlights that while the adaptive grid resolution provides a robust baseline, the performance profile is fundamentally tied to the sensor’s sampling geometry. 
+
+1) Architectural Boundaries and Optimizations: Our ana-lysis reveals that C-ARC’s performance is bounded by the interaction between sensor scanning patterns and per-cell point accumulation. For the Livox Avia, the highly concentrated Rhodonea pattern leads to significant point density variations. Currently, C-ARC employs unbounded per-cell accumulation; however, we identify a per-cell point cap as the most effective mitigation. Limiting maximum occupancy would simultan-eously bound insertion costs and enable contiguous memory allocation, drastically improving cache efficiency with minimal impact on structural connectivity. 
+
+2) Design Philosophy: We consciously prioritized sensor-agnostic robustness over pattern-specific optimizations. While exploiting specific prism kinematics (e.g., Rhodonea motion) could yield speed ups for specific sensors, such approaches sacrifice generalizability. By decoupling the adaptive grid resolution from the graph architecture, C-ARC provides a modular framework that can initialize alternative grid-based methods, as evidenced by our comparative analysis. Finally, as no standardized ground truth exists for unsu-pervised clustering, we have prioritized computational per-formance and qualitative analysis. Future iterations will focus on integrating motion undistortion and ground extraction as native components of the continuous pipeline alongside the exploration of alternative linkage metrics to extend C-ARC beyond single-linkage clustering. V. CONCLUSION Driven by the growing significance of non-repetitive LiDAR sensors for achieving high-fidelity, cost-effective spatial per-ception in mobile robotics, this paper introduces C-ARC, a continuous graph-based framework designed for point-wise clustering. By decoupling high-frequency point insertion from on-demand cluster retrieval and implementing an adaptive res-olution mechanism, C-ARC effectively manages the Sparsity-Collision trade-off inherent to these scanning patterns. Our evaluation demonstrates that C-ARC maintains determ-inistic soft real-time performance on commodity hardware. We demonstrate that the accumulation-based approach improves classical overwrite-based models in structural connectivity, particularly in sparse-to-dense transition scenarios. While the current architecture exhibits sensor-dependent sensitivity due to the high peak sampling density of the Livox Avia, we identify a path toward bounded-cost execution via per-cell occupancy constraints. C-ARC provides a robust, modular foundation for continuous LiDAR perception, offering a path forward for real-time mobile robotics applications where scan-line-dependent methods are no longer viable. REFERENCES [1] R. Dube, D. Dugas, E. Stumm, J. Nieto, R. Siegwart, and C. Cadena, “SegMatch: Segment based place recognition in 3D point clouds,” in 2017 IEEE International Conference on Robotics and Automation (ICRA) . Singapore, Singapore: IEEE, May 2017, pp. 5266–5272. [2] J. Lichtenfeld, K. Daun, and O. Von Stryk, “Efficient Dynamic LiDAR Odometry for Mobile Robots with Structured Point Clouds,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . Abu Dhabi, United Arab Emirates: IEEE, Oct. 2024, pp. 10 137–10 144. [3] Y. Li and J. Ibanez-Guzman, “Lidar for Autonomous Driving: The Principles, Challenges, and Trends for Automotive Lidar and Perception Systems,” IEEE Signal Processing Magazine , vol. 37, no. 4, pp. 50–61, Jul. 2020. SUBMITTED TO IEEE ROBOTICS AND AUTOMATION LETTERS 8
+
+(a) Baseline: ( 132 × 1185 ) (b) C-ARC: ( 132 × 1185 ) (c) Baseline: ( 42 × 976 ) (d) C-ARC: ( 42 × 976 )Figure 7. Qualitative comparison of overwrite-based range image clustering [16] and C-ARC on a non-repetitive LiDAR scan [21]. Fine-resolution projections (132 × 1185 , TM = 1 .25 ) reduce collisions but produce fragmentation in the baseline due to sparse projections. Coarse projections ( 42 × 976 , TM = 2 )improve connectivity but introduce information loss (black pixels). By accumulating multiple points per cell, C-ARC preserves structural connectivity at both resolutions without information loss. All experiments use w = 3 and θ = 10 ◦. Ground points are filtered for visual clarity. [4] N. Khosravi, M. Basiri, and R. Ventura, “Lightweight 3D LiDAR-Based UAV Tracking: An Adaptive Extended Kalman Filtering Approach,” Mar. 2026. [5] Y. Ren, F. Zhu, G. Lu, Y. Cai, L. Yin, F. Kong, J. Lin, N. Chen, and F. Zhang, “Safety-assured high-speed navigation for MAVs,” Science Robotics , vol. 10, no. 98, p. eado6187, Jan. 2025. [6] T. Wu, H. Fu, B. Liu, H. Xue, R. Ren, and Z. Tu, “Detailed Analysis on Generating the Range Image for LiDAR Point Cloud Processing,” 
+
+Electronics , vol. 10, no. 11, p. 1224, Jan. 2021. [7] H. Najdataei, Y. Nikolakopoulos, V. Gulisano, and M. Papatriantafilou, “Lisco: A Continuous Approach in LiDAR Point-cloud Clustering,” Nov. 2017. [8] H. Najdataei, V. Gulisano, P. Tsigas, and M. Papatriantafilou, “Pi-Lisco: Parallel and incremental stream-based point-cloud clustering,” in Pro-ceedings of the 37th ACM/SIGAPP Symposium on Applied Computing ,ser. SAC ’22. New York, NY, USA: Association for Computing Machinery, May 2022, pp. 460–469. [9] A. Reich and M. Maehlisch, “Low Latency Instance Segmentation by Continuous Clustering for LiDAR Sensors,” in 2024 IEEE Intelligent Vehicles Symposium (IV) , Jun. 2024, pp. 1871–1877. [10] Y. Cai, W. Xu, and F. Zhang, “Ikd-Tree: An Incremental K-D Tree for Robotic Applications,” Feb. 2021. [11] W. Xu, Y. Cai, D. He, J. Lin, and F. Zhang, “FAST-LIO2: Fast Direct LiDAR-Inertial Odometry,” IEEE Transactions on Robotics , vol. 38, no. 4, pp. 2053–2073, Aug. 2022. [12] L. He, X. Ren, Q. Gao, X. Zhao, B. Yao, and Y. Chao, “The connected-component labeling problem: A review of state-of-the-art algorithms,” 
+
+Pattern Recognition , vol. 70, pp. 25–43, Oct. 2017. [13] M. Ester, H.-P. Kriegel, J. Sander, and X. Xu, “A density-based al-gorithm for discovering clusters in large spatial databases with noise,” in Proceedings of the Second International Conference on Knowledge Discovery and Data Mining , ser. KDD’96. AAAI Press, 1996, p. 226–231. [14] F. Cao, M. Estert, W. Qian, and A. Zhou, “Density-Based Clustering over an Evolving Data Stream with Noise,” in Proceedings of the 2006 SIAM International Conference on Data Mining . Society for Industrial and Applied Mathematics, Apr. 2006, pp. 328–339. [15] F. Moosmann, O. Pink, and C. Stiller, “Segmentation of 3D lidar data in non-flat urban environments using a local convexity criterion,” in 2009 IEEE Intelligent Vehicles Symposium , Jun. 2009, pp. 215–220. [16] I. Bogoslavskyi and C. Stachniss, “Fast range image-based segmentation of sparse 3D laser scans for online operation,” in 2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , Oct. 2016, pp. 163–169. [17] D. Zermas, I. Izzat, and N. Papanikolopoulos, “Fast segmentation of 3D point clouds: A paradigm on LiDAR data for autonomous vehicle applications,” in 2017 IEEE International Conference on Robotics and Automation (ICRA) , May 2017, pp. 5067–5073. [18] H. Yang, Z. Wang, L. Lin, H. Liang, W. Huang, F. Xu, H. Yang, Z. Wang, L. Lin, H. Liang, W. Huang, and F. Xu, “Two-Layer-Graph Clustering for Real-Time 3D LiDAR Point Cloud Segmentation,” Applied Sciences ,vol. 10, no. 23, Nov. 2020. [19] K. Li, X. Chen, J. Yu, and Y. Chen, “Complex Geodesic Curvature for Real-Time LiDAR Feature Classification,” Contemporary Mathematics ,pp. 7287–7304, Sep. 2025. [20] F. Volpin, S. Chiodini, S. Fortuna, A. Valmorbida, and M. Pertile, “360-deg FOV Scanning LiDAR versus Non-Repetitive Scanning LiDAR: A Rover Navigation Experiment,” in 2023 IEEE 10th International Workshop on Metrology for AeroSpace (MetroAeroSpace) , Jun. 2023, pp. 470–475. [21] A. Xie, Y. Qian, W. Yan, C. Wang, and M. Yang, “Non-Repetitive: A Promising LiDAR Scanning Pattern,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , Oct. 2024, pp. 2653–2659. [22] A. K. Aijazi, P. Checchin, A. K. Aijazi, and P. Checchin, “Non-Repetitive Scanning LiDAR Sensor for Robust 3D Point Cloud Registra-tion in Localization and Mapping Applications,” Sensors , vol. 24, no. 2, Jan. 2024. [23] A. K. Aijazi and P. Checchin, “Building Fast Dynamic 3D Maps for Trajectory Planning of Autonomous Ground Vehicles Using Non-Repetitive Scanning LiDAR Sensor,” IEEE Access , vol. 13, pp. 76 879– 76 893, 2025. [24] A. Li, J. Ma, X. Zhao, and Y. Liu, “Advances in rotating Risley prisms for space-optics applications,” Optical Engineering , vol. 64, no. 8, p. 080901, Aug. 2025. [25] R. G. Brazeal, B. E. Wilkinson, and H. H. Hochmair, “A Rigorous Observation Model for the Risley Prism-Based Livox Mid-40 Lidar Sensor,” Sensors , vol. 21, no. 14, p. 4722, Jan. 2021. [26] P. Burger, B. Naujoks, and H.-J. Wuensche, “Fast Dual Decomposition based Mesh-Graph Clustering for Point Clouds,” in 2018 21st Interna-tional Conference on Intelligent Transportation Systems (ITSC) , Nov. 2018, pp. 1129–1135. [27] X. Zhang and X. Huang, “Real-Time Fast Channel Clustering for LiDAR Point Cloud,” IEEE Transactions on Circuits and Systems II: Express Briefs , vol. 69, no. 10, pp. 4103–4107, Oct. 2022. [28] M. Oh, E. Jung, H. Lim, W. Song, S. Hu, E. M. Lee, J. Park, J. Kim, J. Lee, and H. Myung, “TRAVEL: Traversable Ground and Above-Ground Object Segmentation Using Graph Representation of 3D LiDAR Scans,” IEEE Robotics and Automation Letters , vol. 7, no. 3, pp. 7255– 7262, Jul. 2022. [29] W. Han, Z. Zhang, B. Caine, B. Yang, C. Sprunk, O. Alsharif, J. Ngiam, V. Vasudevan, J. Shlens, and Z. Chen, “Streaming Object Detection for 3-D Point Clouds,” in Computer Vision – ECCV 2020 , A. Vedaldi, H. Bischof, T. Brox, and J.-M. Frahm, Eds. Cham: Springer Interna-tional Publishing, 2020, pp. 423–441. [30] Q. Chen, S. Vora, and O. Beijbom, “PolarStream: Streaming Object Detection and Segmentation with Polar Pillars,” in Advances in Neural Information Processing Systems , vol. 34. Curran Associates, Inc., 2021, pp. 26 871–26 883. [31] H. A. Al-Khamees, N. Al-A’araji, and E. S. Al-Shamery, “Survey: Clustering Techniques of Data Stream,” in 2021 1st Babylon Interna-tional Conference on Information Technology and Science (BICITS) ,Apr. 2021, pp. 113–119. [32] H. Chen, B. Zha, Z. Zheng, and H. Zhang, “A Multi-Trajectory Imaging System Based on Dual-Wedge LiDAR for UAV-Based 3D Sensing,” Rochester, NY, Nov. 2025. [33] X. Cai, W. Jiang, R. Xu, W. Zhao, J. Ma, S. Liu, and Y. Li, “Analyz-ing Infrastructure LiDAR Placement with Realistic LiDAR Simulation Library,” in 2023 IEEE International Conference on Robotics and Automation (ICRA) , May 2023, pp. 5581–5587. [34] D. M. K. Felix, X. Yu, J. Zhang, S. Ha, Z. Zou, and T. Westerlund, “Understanding Lidar Variability: A Dataset and Comparative Study Featuring Dome-Shaped, Solid-State, and Spinning Lidars,” IEEE Ro-botics and Automation Letters , vol. 11, no. 1, pp. 570–577, Jan. 2026. [35] M. K. F. Doumegna, X. Yu, J. Zhang, S. Ha, Z. Zou, and T. Westerlund, “Multi-modal LiDAR dataset (avia, mid-360, ouster),” 2025.

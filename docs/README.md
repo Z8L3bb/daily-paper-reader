@@ -6,37 +6,31 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-17
-- 运行时间：2026-06-17 22:18:20 UTC
+- 最新运行日期：2026-06-18
+- 运行时间：2026-06-18 22:33:32 UTC
 - 运行状态：成功
-- 本次总论文数：4
-- 精读区：0
-- 速读区：4
+- 本次总论文数：3
+- 精读区：1
+- 速读区：2
 
 ### 今日简报（AI）
-今日速览4篇自动驾驶与3D场景理解论文，涵盖协同感知、长期重定位及语义增量建模。
-
-最值得关注的是：异构LiDAR早期融合从数据层面提升非结构化环境重定位鲁棒性，以及语义图Transformer实现场景图增量生成。
-
-若想降低多传感器对齐复杂度，可以从特征融合或渐进式图学习方向切入，优先复现高泛化性的地点识别方案。
-- 详情：[/202606/17/README](/202606/17/README)
+今日精读融合激光雷达、雷达与相机的森林场景数据集《Viking Hill》，另速览两篇 3D 自适应与雷达聚类工作。  
+最值得关注的是林业感知方向的高分基准数据集，以及测试时掩码多视角点云的自适应方法。  
+建议自动驾驶与机器人读者先收藏该森林多传感器数据集，再跟进多模态连续域聚类的最新进展。
+- 详情：[/202606/18/README](/202606/18/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Viking Hill Dataset: A Lidar-Radar-Camera Dataset for Detection and Segmentation in Forest Scenes](/202606/18/2606.19154v1-viking-hill-dataset-a-lidar-radar-camera-dataset-for-detection-and-segmentation-in-forest-scenes)  
+   标签：评分：10.0/10、query:lidar-d-det
+   evidence：提供包含激光雷达点云的多模态传感器数据用于三维检测
 
 ### 速读区论文标签
-1. [Context-Aware Feature-Fusion for Co-occurring Object Detection in Autonomous Driving](/202606/17/2606.12628v1-context-aware-feature-fusion-for-co-occurring-object-detection-in-autonomous-driving)  
+1. [MAMVI: 3D Test-Time Adaptation via Masked Multi-View Point Clouds](/202606/18/2606.12939v1-mamvi-3d-test-time-adaptation-via-masked-multi-view-point-clouds)  
+   标签：评分：7.0/10、query:stage-d-det
+   evidence：针对3D点云模型在分布偏移下的性能下降，提出基于掩码多视图点云的测试时自适应方法。
+2. [C-ARC: Continuous-Adaptive Range Clustering for Non-Repetitive LiDAR Sensors](/202606/18/2606.18948v1-c-arc-continuous-adaptive-range-clustering-for-non-repetitive-lidar-sensors)  
    标签：评分：7.0/10、query:lidar-d-det
-   evidence：采用RoI间自注意力机制实现上下文感知特征融合的目标检测
-2. [Heterogeneous LiDAR Early Fusion and Learned Re-Ranking Strategy for Robust Long-Term Place Recognition in Unstructured Environments](/202606/17/2606.13503v1-heterogeneous-lidar-early-fusion-and-learned-re-ranking-strategy-for-robust-long-term-place-recognition-in-unstructured-environments)  
-   标签：评分：7.0/10、query:lidar-d-det
-   evidence：异构LiDAR传感器早期融合用于位置识别
-3. [SGFormer++: Semantic Graph Transformer for Incremental 3D Scene Graph Generation](/202606/17/2606.15328v1-sgformer-semantic-graph-transformer-for-incremental-3d-scene-graph-generation)  
-   标签：评分：7.0/10、query:lidar-d-det
-   evidence：使用Transformer注意力层作为骨干网络，从3D点云中聚合特征以生成场景图。
-4. [SGM-SLAM: Scene Graph Matching for Data-Efficient Distributed SLAM](/202606/17/2606.16881v1-sgm-slam-scene-graph-matching-for-data-efficient-distributed-slam)  
-   标签：评分：7.0/10、query:lidar-d-det
-   evidence：融合LiDAR、相机和惯性传感器进行SLAM
+   evidence：面向非重复式LiDAR传感器的实时点云聚类
 
 
 <div class="dpr-home-promo-card">
