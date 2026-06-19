@@ -1,0 +1,69 @@
+{
+  "label": "2026-06-19",
+  "date": "2026-06-19",
+  "generated_at": "2026-06-19T20:29:44",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202606/19/2606.20189v1-hilda-hierarchical-distillation-with-diffusion-for-advancing-self-supervised-lidar-pre-trainin",
+      "section": "deep",
+      "title_en": "HilDA: Hierarchical Distillation with Diffusion for Advancing Self-Supervised LiDAR Pre-trainin",
+      "authors": "Maciej Wozniak, Jesper Ericsson, Hariprasath Govindarajan, Truls Nyberg, Thomas Gustafsson, Patric Jensfelt, Olov Andersson",
+      "date": "2026-06-18",
+      "pdf": "https://arxiv.org/pdf/2606.20189v1",
+      "score": "8.0",
+      "evidence": "通过相机到LiDAR蒸馏的自监督LiDAR预训练",
+      "tldr": "当前相机到激光雷达的知识蒸馏方法仅依赖帧级特征相似性，将视觉基础模型视为黑盒，忽视其层次语义、全局上下文及激光雷达序列的时空信息。本文提出HilDA框架，设计层次蒸馏实现多层渐进语义对齐和场景全局语义提取，并引入时序占用扩散目标增强时空一致性。在跨模态蒸馏基准上取得领先性能，3D目标检测、场景流与语义占用预测任务中显著超越先前方法，为自监督LiDAR预训练提供有效范式。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Leveraging Vision Foundation Models (VFMs) for camera-to-LiDAR knowledge distillation offers a promising solution to the scarcity of annotated data needed to represent the immense geometric and kinematic diversity of real-world autonomous driving (AD). However, current approaches typically treat VFMs as black-box teachers, relying exclusively on frame-wise feature similarity. Consequently, they do not fully exploit the teacher's layer-wise semantic structure and global context, as well as the rich spatiotemporal information inherent in LiDAR sequences. We propose HilDA, a self-supervised pretraining framework for LiDAR backbones that better captures the semantic what and geometric where needed for driving tasks. HilDA combines hierarchical distillation comprising multi-layer distillation for progressive semantic alignment and global context distillation for scene-level semantics, with a temporal occupancy diffusion objective promoting spatiotemporal consistency. Models pre-trained with HilDA achieve state-of-the-art results on cross-modal distillation benchmarks and outperform models trained via prior distillation approaches on 3D object detection, scene flow, and semantic occupancy prediction. Code available at: https://maxiuw.github.io/hilda.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/19/2606.13042v1-augmentation-techniques-for-video-surveillance-in-the-visible-and-thermal-spectral-range",
+      "section": "quick",
+      "title_en": "Augmentation techniques for video surveillance in the visible and thermal spectral range",
+      "authors": "Vanessa Buhrmester, Ann-Kristin Grosselfinger, David Munch, Michael Arens",
+      "date": "2026-06-11",
+      "pdf": "https://arxiv.org/pdf/2606.13042v1",
+      "score": "7.0",
+      "evidence": "结合可见光与热红外相机进行目标检测",
+      "tldr": "针对视频监控中可见光与热红外多光谱目标检测，热红外训练数据稀缺且传感器差异导致模型迁移困难。研究多种数据增强技术对CNN分类的影响，分析颜色、纹理与热辐射信息的作用。实验结果表明适当增强策略能有效利用可见光数据提升热红外检测的鲁棒性，为跨光谱学习提供指导。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "In intelligent video surveillance, cameras record image sequences during day and night. Commonly, this demands different sensors. To achieve a better performance it is not unusual to combine them. We focus on the case that a long-wave infrared camera records continuously and in addition to this, another camera records in the visible spectral range during daytime and an intelligent algorithm supervises the picked up imagery. More accurate, our task is multispectral CNN-based object detection. At first glance, images originating from the visible spectral range differ between thermal infrared ones in the presence of color and distinct texture information on the one hand and in not containing information about thermal radiation that emits from objects on the other hand. Although color can provide valuable information for classification tasks, effects such as varying illumination and specialties of different sensors still represent significant problems. Anyway, obtaining sufficient and practical thermal infrared datasets for training a deep neural network poses still a challenge. That is the reason why training with the help of data from the visible spectral range could be advantageous, particularly if the data, which has to be evaluated contains both visible and infrared data. However, there is no clear evidence of how strongly variations in thermal radiation, shape, or color information influence classification accuracy. To gain deeper insight into how Convolutional Neural Networks make decisions and what they learn from different sensor input data, we investigate the suitability and robustness of different augmentation techniques...",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/19/2606.19451v1-3d-dlp-self-supervised-3d-object-centric-scene-representation-learning",
+      "section": "quick",
+      "title_en": "3D-DLP: Self-Supervised 3D Object-Centric Scene Representation Learning",
+      "authors": "Ellina Zhang, Madhaven Iyengar, Amir Zadeh, Chuan Li, Deepak Pathak, David Held, Tal Daniel",
+      "date": "2026-06-17",
+      "pdf": "https://arxiv.org/pdf/2606.19451v1",
+      "score": "7.0",
+      "evidence": "从RGB-D或体素输入自监督学习3D对象表示及边界框检测",
+      "tldr": "提出一种自监督模型，将3D场景分解为多个潜在粒子，每个粒子编码物体属性（如3D位置、边界框），从而实现无标注的3D目标检测。模型在仿真和真实数据上验证了学习的3D表示具有可解释性和可控性，通过操控粒子位置即可生成新场景。这项工作为无监督3D目标检测和场景理解提供了通用框架，具有迁移至LiDAR点云的潜力。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "We introduce 3D-DLP, a self-supervised object-centric representation learning model that decomposes scene-level RGB-D or voxel observations into a set of 3D latent particles. Building on the Deep Latent Particles (DLP) framework, each particle encodes disentangled attributes, including 3D keypoint position, bounding box dimensions, and appearance features, and represents a distinct entity in the scene. The model learns interpretable per-particle segmentation maps through an end-to-end self-supervised reconstruction objective. We demonstrate on both simulated and real-world datasets that the learned latent space is interpretable and controllable: by manipulating particle positions and decoding, we can generate novel scene configurations. Furthermore, we show that leveraging these compact 3D latent particles for downstream robotic manipulation improves performance over baselines that either lack explicit 3D information or rely on memory-intensive dense 3D inputs without object-centric structure. Code and videos are available at https://eubooks3003.github.io/3d-dlp.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202606/19/2606.15287v1-g2ia-geometry-guided-instance-aware-retrieval-and-refinement-for-cross-modal-place-recognition",
+      "section": "quick",
+      "title_en": "G2IA: Geometry-Guided Instance-Aware Retrieval and Refinement for Cross-Modal Place Recognition",
+      "authors": "Xianyun Jiao, Jingyi Xu, Zhongmiao Yan, Xieyuanli Chen, Lin Pei",
+      "date": "2026-06-13",
+      "pdf": "https://arxiv.org/pdf/2606.15287v1",
+      "score": "6.0",
+      "evidence": "使用LiDAR点云的跨模态地点识别",
+      "tldr": "跨模态地点识别(CMPR)使相机机器人能基于激光雷达地图定位，但图像到点云匹配受模态分歧和城市环境感知混淆困扰。G2IA框架提出几何引导实例感知方法：检索阶段融合VGGT几何先验与实例特征构建与地图兼容的描述符；细化阶段验证实例形状和空间布局的跨模态一致性以重排序候选。实验表明，G2IA在不同定位阈值下持续提升识别准确率，并展现强跨数据集泛化性，为自主导航提供了可靠方案。",
+      "tags": "query:lidar-d-det",
+      "abstract_en": "Cross-modal place recognition (CMPR) enables camera-only robots to localize against pre-built LiDAR maps in autonomous navigation scenarios. This image-to-point-cloud setting is challenged by two coupled ambiguities: the modality gap between perspective RGB appearance and sparse metric geometry, and perceptual aliasing among urban places with similar roads, facades, intersections, and object arrangements. Instead of treating CMPR as a single global descriptor matching problem, we argue that reliable retrieval requires both geometry-aware representation alignment and fine-grained candidate verification. In this paper, we propose G2IA, a geometry-guided instance-aware framework for image-to-point-cloud place recognition. In the retrieval stage, visual geometry priors from VGGT and instance features are integrated to construct place descriptors that are more compatible with LiDAR-derived map representations. In the refinement stage, the retrieved candidates are re-ranked by explicitly verifying whether local instance shapes and their relative spatial layouts are consistent across modalities. Experiments on public benchmarks demonstrate that G2IA consistently improves image-to-point-cloud place recognition under different localization thresholds, and exhibits strong cross-dataset generalization.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
