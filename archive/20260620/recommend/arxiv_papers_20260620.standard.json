@@ -1,0 +1,228 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-20T21:27:49.207371+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2606.20103v1",
+      "source": "arxiv",
+      "title": "Geometry-Preserving in 3D Gaussian Splatting for LiDAR-Camera Extrinsic Calibration",
+      "abstract": "Accurate LiDAR-camera calibration is essential for robust multi-modal perception. Targetless approaches avoid manual setup but remain limited by the scarcity of discriminative cross-modal features. Recent methods address this by reconstructing the scene within a differentiable model, enabling extrinsic optimization through dense photometric supervision. Among these, 3D Gaussian Splatting (3DGS) has been widely adopted as a geometric proxy that bridges LiDAR and camera within a single differentiable framework. However, since 3DGS was originally designed for novel view synthesis, existing methods tend to prioritize rendering quality, causing the proxy geometry to drift from the true LiDAR structure. We propose a framework that preserves the metric geometry of the Gaussian proxy by aggregating multi-view LiDAR observations for dense depth supervision and blocking photometric gradients from updating the Gaussian spatial parameters. We validate our method on public driving datasets, where it consistently outperforms existing targetless methods in calibration accuracy.",
+      "authors": [
+        "Kyoleen Kwak",
+        "Daeho Kim",
+        "Jeong Woon Lee",
+        "Hyoseok Hwang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-18T11:23:33+00:00",
+      "link": "https://arxiv.org/pdf/2606.20103v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LiDAR-camera extrinsic calibration for multi-modal perception",
+      "llm_evidence_cn": "激光雷达-相机外参标定用于多模态感知",
+      "llm_evidence": "激光雷达-相机外参标定用于多模态感知",
+      "canonical_evidence": "激光雷达-相机外参标定用于多模态感知",
+      "llm_tldr_en": "Proposes a geometry-preserving 3D Gaussian Splatting framework for accurate LiDAR-camera extrinsic calibration, essential for robust multi-modal perception.",
+      "llm_tldr_cn": "针对现有基于3D高斯泼溅的标定方法偏重渲染质量导致代理几何偏离真实LiDAR结构的问题，提出一种几何保持框架，在可微分优化中施加LiDAR点云几何约束，实现精确的LiDAR-相机外参标定。实验表明该方法能有效保持几何一致性，为稳健的多模态感知提供可靠校准。该工作提升了LiDAR与相机之间的跨模态对齐精度，对自动驾驶等场景中的融合感知至关重要。",
+      "llm_tldr": "针对现有基于3D高斯泼溅的标定方法偏重渲染质量导致代理几何偏离真实LiDAR结构的问题，提出一种几何保持框架，在可微分优化中施加LiDAR点云几何约束，实现精确的LiDAR-相机外参标定。实验表明该方法能有效保持几何一致性，为稳健的多模态感知提供可靠校准。该工作提升了LiDAR与相机之间的跨模态对齐精度，对自动驾驶等场景中的融合感知至关重要。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.18583v1",
+      "source": "arxiv",
+      "title": "Aerial-ground LiDAR place recognition with patch-level self-supervised learning and expanded reciprocal re-ranking",
+      "abstract": "LiDAR place recognition determines one's position on a prior point cloud map. The most studied ground-level LiDAR place recognition suffers from pre-visit requirements, incomplete coverage, and limited perspectives. Using pre-acquired, full-coverage Airborne Laser Scanning (ALS) data as an aerial prior map overcomes these drawbacks, making cross-view place recognition necessary and advantageous. However, aerial-ground LiDAR place recognition faces significant challenges, including the domain gap between aerial and ground point clouds, and false positives during initial retrieval. To address these challenges, we present a novel retrieval and re-ranking framework for aerial-ground LiDAR place recognition. Based on the priors that neighboring point cloud patches share similar semantics with anchor patch, our retrieval network introduces patch-level self-supervised learning modules at multiple scales and integrates with scene-level learning to improve global feature discriminativeness between aerial and ground point clouds. Furthermore, leveraging the structured spatial distribution of ALS point clouds, we introduce an Expanded Reciprocal (ER) re-ranking algorithm to exploit neighborhood information maximally and refine each feature based on neighbor features, which are then used to update the similarity matrix for final ranking. Extensive experiments demonstrate that our retrieval network outperforms existing state-of-the-art (SOTA) methods, achieving a 9.8\\% improvement in average Recall@1 and a 3.2\\% improvement in average Recall@1\\% on the CS-Urban-Scenes, while also showing the best performance on the CS-Campus3D dataset. Additionally, our ER re-ranking algorithm further boosts the average Recall@1 by 4.9\\% on CS-Campus3D and 10.2\\% on CS-Urban-Scenes without additional training.",
+      "authors": [
+        "Yandi Yang",
+        "Xianghong Zou",
+        "Jianping Li",
+        "Haofeng Xie",
+        "Saurav Uprety",
+        "Hongzhou Yang",
+        "Naser El-Sheimy"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-06-17T01:22:27+00:00",
+      "link": "https://arxiv.org/pdf/2606.18583v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Uses aerial and ground LiDAR point clouds for cross-view place recognition",
+      "llm_evidence_cn": "使用空地和地面激光雷达点云进行跨视角地点识别",
+      "llm_evidence": "使用空地和地面激光雷达点云进行跨视角地点识别",
+      "canonical_evidence": "使用空地和地面激光雷达点云进行跨视角地点识别",
+      "llm_tldr_en": "This paper tackles aerial-ground LiDAR place recognition using patch-level self-supervised learning and expanded reciprocal re-ranking to handle domain gaps and false positives, enabling robust cross-view localization.",
+      "llm_tldr_cn": "针对空地激光雷达地点识别中的域差异和误匹配问题，本文提出基于补丁级自监督学习的检索与扩展互惠重排序框架，从点云中学习区分性局部特征并优化检索结果，在多个数据集上实现高精度跨视角定位，为无GPS环境下的自主定位提供新方法。",
+      "llm_tldr": "针对空地激光雷达地点识别中的域差异和误匹配问题，本文提出基于补丁级自监督学习的检索与扩展互惠重排序框架，从点云中学习区分性局部特征并优化检索结果，在多个数据集上实现高精度跨视角定位，为无GPS环境下的自主定位提供新方法。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.14355v1",
+      "source": "arxiv",
+      "title": "Point Cloud Upsampling through Patch-based Frequency Superposition",
+      "abstract": "In recent years, neural networks have become the dominant models in most point cloud upsampling methods. Although these approaches are achieving good results, they do have drawbacks, such as a lack of interpretability and data dependency. Moreover, they have to be trained on a dataset that is similar to the test data in order to perform well. To avoid these disadvantages, we propose Point Cloud Upsampling through Patch-based Frequency Superposition (PUtPFS), an optimization-based approach that selects subsets of points and estimates the surface of this set through superpositioning spatial frequencies. Then, new points are placed on this surface. By successively selecting points in the least dense regions of the point cloud, a uniform upsampling can be reached. With this method, we surpass the current best upsampling results in the commonly considered point-to-surface distance. Furthermore, we achieve the best Chamfer and Hausdorff distance among the optimization-based approaches. As an additional advantage, our method does not need any training data and is mathematically interpretable.",
+      "authors": [
+        "Marina Ritthaler",
+        "Azhar Hussian",
+        "Vasileios Belagiannis",
+        "André Kaup"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "eess.SP"
+      ],
+      "published": "2026-06-12T11:27:39+00:00",
+      "link": "https://arxiv.org/pdf/2606.14355v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Optimization-based point cloud upsampling via frequency superposition",
+      "llm_evidence_cn": "基于频率叠加的优化驱动点云上采样",
+      "llm_evidence": "基于频率叠加的优化驱动点云上采样",
+      "canonical_evidence": "基于频率叠加的优化驱动点云上采样",
+      "llm_tldr_en": "Proposes PUtPFS, an optimization-based point cloud upsampling method that superimposes spatial frequencies to estimate surfaces and place new points, generating dense points from sparse LiDAR data without training.",
+      "llm_tldr_cn": "针对现有深度学习点云上采样方法缺乏可解释性且依赖训练数据的缺点，提出PUtPFS，一种基于补丁频率叠加的优化方法，通过选择稀疏区域和叠加空间频率估计曲面来生成新点，实现均匀上采样。实验表明该方法无需训练即可在不同数据集上表现优异，为稀疏LiDAR点云生成稠密数据提供了高效方案。",
+      "llm_tldr": "针对现有深度学习点云上采样方法缺乏可解释性且依赖训练数据的缺点，提出PUtPFS，一种基于补丁频率叠加的优化方法，通过选择稀疏区域和叠加空间频率估计曲面来生成新点，实现均匀上采样。实验表明该方法无需训练即可在不同数据集上表现优异，为稀疏LiDAR点云生成稠密数据提供了高效方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "synthetic point cloud generated from depth completion",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.19122v1",
+      "source": "arxiv",
+      "title": "Monocular 3D Occupancy Perception for Robots on Sidewalks via Hybrid 2D-3D Learning",
+      "abstract": "Sidewalks in the real world are crowded, cluttered, and less structured than roads, making 3D occupancy prediction a key ingredient for the safe navigation of mobile robots such as delivery bots and electric wheelchairs. Existing occupancy learning pipelines are largely designed for on-road autonomous driving and often train on large-scale paired LiDAR-RGB datasets with dense 3D supervision and multiple camera inputs, which are costly to collect and do not adequately capture sidewalk-specific characteristics. We propose WalkOCC, a hybrid Ray-marching monocular 3D occupancy perception framework for robots operating on sidewalks. WalkOCC explicitly couples geometric grounding from LiDAR-RGB paired data with scalable learning from large-scale unpaired monocular images. It bootstraps pseudo occupancy supervision from paired sequences and jointly learns image-level representations on additional 2D-only data. It yields stable optimization and improved generalization without requiring costly 3D occupancy annotations. Extensive experiments demonstrate consistent gains in prediction accuracy, fine-grained segmentation of subtle urban structures such as curbs and gutters, and robustness to environmental and cross-embodiment shifts compared with self-supervised image-based baselines. To facilitate evaluation and benchmarking, we also introduce Sidewalk3D, a large-scale sidewalk perception dataset with LiDAR-camera paired sequences collected across multiple locations and time periods, along with 3D semantic occupancy annotations for evaluation. Code and data will be made available.",
+      "authors": [
+        "Yukai Ma",
+        "Joe Lin",
+        "Liu Liu",
+        "Honglin He",
+        "Lulu Ricketts",
+        "Brad Squicciarini",
+        "Yong Liu",
+        "Bolei Zhou"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-17T14:35:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.19122v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Combines LiDAR-RGB paired data with monocular learning for 3D occupancy perception",
+      "llm_evidence_cn": "结合LiDAR-RGB配对数据与单目学习进行3D占用感知",
+      "llm_evidence": "结合LiDAR-RGB配对数据与单目学习进行3D占用感知",
+      "canonical_evidence": "结合LiDAR-RGB配对数据与单目学习进行3D占用感知",
+      "llm_tldr_en": "Proposes WalkOCC, a monocular 3D occupancy perception framework that uses LiDAR-RGB paired data for geometric grounding and large-scale monocular data for scalable learning, enhancing sidewalk robot navigation.",
+      "llm_tldr_cn": "针对人行道机器人3D占用感知中标注数据稀缺的问题，提出WalkOCC框架，利用LiDAR-RGB配对数据提供几何先验，并通过混合2D-3D学习从大规模单目图像中学习，实现精确的3D占用预测。实验表明，该方法在仅有少量配对数据的情况下，显著提升了人行道场景下的3D感知能力，为移动机器人导航提供了低成本方案。",
+      "llm_tldr": "针对人行道机器人3D占用感知中标注数据稀缺的问题，提出WalkOCC框架，利用LiDAR-RGB配对数据提供几何先验，并通过混合2D-3D学习从大规模单目图像中学习，实现精确的3D占用预测。实验表明，该方法在仅有少量配对数据的情况下，显著提升了人行道场景下的3D感知能力，为移动机器人导航提供了低成本方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.20424v1",
+      "source": "arxiv",
+      "title": "LIT-GS: LiDAR-Inertial-Thermal Gaussian Splatting for Illumination-Robust Mapping",
+      "abstract": "Gaussian Splatting has enabled real-time neural rendering, yet existing LiDAR-inertial-visual (LIV) Gaussian mapping pipelines remain fragile under illumination changes and texture-deficient scenes due to their reliance on RGB photometric cues. We present LIT-GS, a LiDAR-inertial-thermal Gaussian Splatting framework that injects LiDAR-derived plane geometry as an explicit constraint in both pose/structure refinement and Gaussian optimization. Specifically, we exploit LIV visual map points as confidence-aware cross-modal anchors to establish reliable thermal-LiDAR associations, and incorporate weighted LiDAR point-to-plane residuals into bundle adjustment to jointly refine camera poses and 3D points under weak thermal supervision. Building on the refined structure, we further introduce a LiDAR-plane-regularized differentiable splatting objective that constrains rendered 3D points to align with locally observed planes, mitigating surface thickening and structural drift in low-contrast thermal imagery. Experiments on proprietary sequences and public datasets demonstrate that LIT-GS consistently improves geometric accuracy and rendering quality over state-of-the-art LIV-based Gaussian Splatting baselines, particularly in challenging lighting conditions.",
+      "authors": [
+        "Shikuan Shi",
+        "Chunran Zheng",
+        "Jiaming Xu",
+        "Tianyong Ye",
+        "Tao Yu",
+        "Yukang Cui"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-18T16:06:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.20424v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LiDAR-inertial-thermal fusion for illumination-robust mapping",
+      "llm_evidence_cn": "激光雷达-惯性-热成像多模态融合用于鲁棒建图",
+      "llm_evidence": "激光雷达-惯性-热成像多模态融合用于鲁棒建图",
+      "canonical_evidence": "激光雷达-惯性-热成像多模态融合用于鲁棒建图",
+      "llm_tldr_en": "Proposes LIT-GS, a LiDAR-inertial-thermal Gaussian Splatting framework that uses LiDAR geometric constraints for robust mapping under challenging illumination, relevant to multi-modal perception.",
+      "llm_tldr_cn": "针对现有LiDAR-惯性-视觉高斯建图法在光照变化和弱纹理场景的脆弱性，提出融合热成像的LIT-GS框架，利用LiDAR平面几何约束优化位姿与结构，实现光照鲁棒的实时建图。实验证明该方法能在复杂光照下保持稳健性能，为全天候多模态感知提供支持。",
+      "llm_tldr": "针对现有LiDAR-惯性-视觉高斯建图法在光照变化和弱纹理场景的脆弱性，提出融合热成像的LIT-GS框架，利用LiDAR平面几何约束优化位姿与结构，实现光照鲁棒的实时建图。实验证明该方法能在复杂光照下保持稳健性能，为全天候多模态感知提供支持。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
