@@ -1,0 +1,58 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-23T22:19:54.762553+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.21527v1",
+      "source": "arxiv",
+      "title": "LOGOS: LiDAR-Only Gaussian Elevation Splatting for Unified Tiny Obstacle Segmentation",
+      "abstract": "Robust obstacle segmentation is essential for the safety of intelligent robots, where LiDAR-based perception systems play a fundamental role in the robot-environment interaction. While extensive LiDAR-based approaches have demonstrated high performance on common obstacles in urban scenarios, their results on tiny obstacles such as curbs, gravel, and potholes remain unsatisfactory due to the significant similarity between tiny obstacles and inherent road undulations. Moreover, their segmentation accuracy even deteriorates sharply when the LiDAR scans suffer from degradation in challenging off-road scenes. To overcome these bottlenecks, we propose LOGOS, a LiDAR-only unified tiny obstacle segmentation system, which models the road surface as a continuous mixture of 2D Gaussian primitives and distinguishes tiny obstacles via high-presicion elevation estimation. Unlike existing Gaussian splatting methods that rely on iterative RGB training, LOGOS is a backpropagation-free LiDAR-only approach. It directly estimates Gaussian parameters via a freespace-aware initialization by incrementally pruning non-road primitives using smoothness constraints. Subsequently, pointwise signed distances are computed via a novel normal-aware elevation splatting function, ensuring robustness to both flat and sloped terrains. We evaluate LOGOS on a highly heterogeneous benchmark of point cloud frames collected from urban mobility scenarios and mining haulage off-road environments. These data are practically acquired using different LiDAR sensors and exhibit large variations in point density, terrain roughness, and obstacle types. Experiments on the road and off-road scenes demonstrate that LOGOS significantly outperforms other state-of-the-art methods, particularly in degraded point cloud regions and challenging off-road scenarios, while maintaining real-time efficiency.",
+      "authors": [
+        "Nan Ming",
+        "Yeqiang Qian",
+        "Chunxiang Wang",
+        "Ming Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-06-19T15:25:56+00:00",
+      "link": "https://arxiv.org/pdf/2606.21527v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LiDAR-only tiny obstacle segmentation system using 3D point clouds.",
+      "llm_evidence_cn": "仅使用LiDAR三维点云进行微小障碍物分割系统",
+      "llm_evidence": "仅使用LiDAR三维点云进行微小障碍物分割系统",
+      "canonical_evidence": "仅使用LiDAR三维点云进行微小障碍物分割系统",
+      "llm_tldr_en": "LOGOS introduces a LiDAR-only system that models road surface with Gaussian elevation splatting to segment tiny obstacles like curbs and potholes, achieving robust performance in urban and off-road scenes where existing LiDAR methods degrade.",
+      "llm_tldr_cn": "针对现有LiDAR感知方法在城市和越野场景中难以稳定分割路沿、坑洼等微小障碍物的问题，LOGOS提出一种仅依赖LiDAR的统一微小障碍物分割系统。其核心是利用高斯高程泼溅对路面建模，通过自适应稀疏表示克服LiDAR扫描退化影响。实验表明，LOGOS在多种场景下显著提升微小障碍物分割精度，为自动驾驶和机器人安全导航提供了可靠的低成本感知方案。",
+      "llm_tldr": "针对现有LiDAR感知方法在城市和越野场景中难以稳定分割路沿、坑洼等微小障碍物的问题，LOGOS提出一种仅依赖LiDAR的统一微小障碍物分割系统。其核心是利用高斯高程泼溅对路面建模，通过自适应稀疏表示克服LiDAR扫描退化影响。实验表明，LOGOS在多种场景下显著提升微小障碍物分割精度，为自动驾驶和机器人安全导航提供了可靠的低成本感知方案。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
