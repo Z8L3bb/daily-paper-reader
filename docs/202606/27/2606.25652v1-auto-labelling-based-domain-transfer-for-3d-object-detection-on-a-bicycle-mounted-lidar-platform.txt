@@ -1,0 +1,210 @@
+Title: Auto-Labelling-Based Domain Transfer for 3D Object Detection on a Bicycle-Mounted LiDAR Platform
+
+URL Source: https://arxiv.org/pdf/2606.25652v1
+
+Published Time: Thu, 25 Jun 2026 00:55:33 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Auto-Labelling-Based Domain Transfer for 3D Object Detection on a Bicycle-Mounted LiDAR Platform 
+
+Mario Finkbeiner 1, Max A. Buettner 1, Kanak Mazumder 1 and Fabian B. Flohr 1
+
+Abstract —Reliable 3D perception of vulnerable road users (VRUs) such as cyclists and pedestrians is essential for their safety in urban traffic and a core requirement for autonomous driving (AD). Alongside advances in vehicle-based perception, research increasingly equips bicycles with sensors to study traffic from a perspective native to VRUs. Such platforms still rely on LiDAR detectors originally trained on vehicle data, yet annotated 3D data from a cyclist’s perspective is scarce. How well these detectors generalise to this setting has not been evaluated. We present a 3D object detection benchmark of 1,027 annotated LiDAR keyframes (over 18 ,000 3D bounding boxes) from the FUSE-Bike platform in urban Munich. We evaluate four nuScenes-pre-trained detectors against 1,854 human-verified ground-truth (GT) boxes both in their original form and after finetuning on training labels produced by a VRU-dedicated auto-labelling pipeline that requires no manual annotation. The zero-shot domain gap is concentrated on the VRU classes. Finetuning recovers most of it, improving mean average precision (mAP) by up to 23 .4 points with the largest gains on pedestrians and cyclists, and the adapted detectors even surpass the quality of the auto-labels they were trained on. The benchmark provides a reproducible baseline for VRU-centric 3D detection and shows that auto-labels are a viable substitute for manual annotation when adapting vehicle-trained detectors to a cyclist platform. 
+
+Index Terms —Autonomous Driving, Vulnerable Road Users, 3D Object Detection, Domain Adaptation, Auto-Labelling, Li-DAR 
+
+I. I NTRODUCTION 
+
+Cyclists and pedestrians are among the most exposed par-ticipants in urban traffic, as they lack the passive protection of motor vehicles and depend on being correctly perceived by the vehicles around them. Reliably detecting these vulnerable road users (VRUs) with on-board sensors is therefore a central challenge for autonomous driving (AD) in urban environments. Alongside the continuing effort to improve this from the vehicle’s perspective, bicycle-mounted research platforms have recently emerged as a tool for observing urban traffic from within the flow of VRUs themselves, providing data and view-points that vehicle sensors cannot offer. Accurate 3D detection of surrounding participants is a fundamental requirement for any such platform operating in urban traffic. Unlike automotive sensor suites, bicycle-mounted platforms exhibit substantial variation in sensor mounting perspective, LiDAR scan pattern, and point density, as illustrated in Fig. 1. A bicycle is lower to the ground, far more agile, and sur-rounded by a different distribution of road users, so detectors trained on automotive data face a significant domain shift when          
+
+> 1The authors are with the Intelligent Vehicles Lab (IVL), Munich University of Applied Sciences, Munich, Germany.
+
+{mario.finkbeiner, max.buettner, kanak.mazumder, fabian.flohr }@hm.edu  
+
+> Fig. 1. Example 3D auto-labels produced by the VRU-Label3D pipeline’s detector ensemble on recordings from the FUSE-Bike platform in Munich, Germany. The vehicle-trained detectors that make up the ensemble transfer reasonably well to cars, but cyclists and pedestrians, the safety-critical classes on a bicycle-mounted platform, remain the main weakness.
+
+deployed on it. This challenge is exacerbated by the compo-sition of the training data itself: cyclists and pedestrians are among the rarest and most poorly annotated classes, resulting in a scarcity of training data for precisely the classes whose safety is most at stake. Compounding this, no public bench-mark currently provides multi-class VRU detection labels from a cyclist’s perspective, as manual annotation of 3D point clouds is labour-intensive and does not scale well. Without such labels, neither the performance of automotive detectors on cyclist-perspective data nor the quality of automatically generated labels as a training signal can be rigorously assessed, even though methods that leverage large automotive datasets offer a practical path to annotation-free training data. We tackle these problems with two main contributions:  
+
+> •
+
+A cyclist-perspective VRU detection dataset of 1,027 
+
+keyframes and over 18 ,000 3D boxes, pairing auto-labelled training sequences from a VRU-dedicated pipeline with 1,854 human-verified ground-truth (GT) boxes on held-out scenes, enabling both detector eval-uation and auto-label quality assessment.  
+
+> •
+
+A benchmark that quantifies the vehicle-to-cyclist do-main gap across four architecturally diverse, nuScenes-pre-trained detectors and demonstrates that finetuning on the auto-labels alone substantially closes it, improving 
+
+> arXiv:2606.25652v1 [cs.CV] 24 Jun 2026
+
+mAP by 13 .7 to 23 .4 points, with the largest gains on the safety-critical pedestrian and cyclist classes, whose per-class AP rises by up to 31 .8 points, with the finetuned detectors even surpassing the quality of the auto-labels they were trained on. II. R ELATED WORK 
+
+A. Datasets and Platforms for VRU Perception 
+
+Robust 3D detection in AD depends heavily on annotated data, which to date has been captured almost entirely from the vehicle’s perspective. Large automotive datasets such as nuScenes [1], Waymo [2], and Lyft [3] provide diverse urban scenes, yet observe VRUs only as they appear to a car and contain few of them, with cyclists making up less than 1% 
+
+of nuScenes annotations. Bicycle-mounted sensor platforms instead place the sensors among the VRUs themselves, of-fering data and viewpoints that vehicle sensors cannot. The AuRa cargo-bike [4] and BikeScenes’ SenseBike [5] target semantic segmentation, the FUSE-Bike platform underlies the BikeActions dataset [6] for cyclist-perspective VRU action recognition, and SaBi3d [7] addresses vehicle detection during car-to-bicycle overtaking. None of them, however, provides multi-class 3D object detection labels for VRUs. Such labels enable a moving platform to reason about surrounding agents in space and over time, beyond the per-point semantics of point cloud segmentation or camera-based features alone. Therefore, they are a prerequisite for VRU-aware perception. 
+
+B. 3D Object Detection 
+
+In the absence of cyclist-domain training data, perception on such platforms relies on detectors developed for automotive 3D detection, which span several architectural paradigms. Voxel-based, anchor-based detectors such as SECOND [8] discretise the point cloud into a regular grid processed by sparse 3D convolutions, whilst pillar- and centre-based detectors such as CenterPoint [9] represent objects as keypoints in a bird’s-eye-view feature map. More recent designs include fully sparse, anchor-free architectures, exemplified by VoxelNeXt [10], and query-based transformer heads, exemplified by Trans-Fusion [11]. These paradigms differ in how they aggregate context and localise small objects, yet none has been evaluated on a cyclist platform. Because the architecture may itself shape robustness to the viewpoint shift, characterising the domain gap calls for a representative spread of paradigms rather than a single detector. 
+
+C. Domain Adaptation and Auto-Labelling 
+
+Transferring these detectors to a cyclist platform introduces a domain shift. When no labelled target data is available, unsupervised domain adaptation (UDA) can be used to address this issue. The resulting artefacts are typically used in one of two ways: either as finetuned models based on their own predictions through self-training, or as pre-labels for the unlabelled domain. ST3D [12] introduced self-training with random object scaling to counter size bias between domains, CL3D [13] addresses geometric disparities between LiDAR sensors, and UADA3D [14] aligns features adversarially. Multi-source methods such as MS3D++ [15] fuse predictions from an ensemble of detectors pre-trained on diverse auto-motive datasets, improving robustness across varying point densities, whilst OpenBox [16] uses 2D foundation models for 3D annotation but requires multi-modal calibration that VRU platforms rarely provide. These methods are designed as closed evaluation loops, however: their outputs do not follow a standardised dataset schema, and some even discard under-represented classes such as cyclists, which makes them ill-suited for producing training labels that can drive estab-lished detectors and metrics. We therefore build on VRU-Label3D [17], an extension of MS3D++ that retains the cyclist class and exports tracked auto-labels in the nuScenes format, and use it to generate the training labels for our benchmark. III. T HE FUSE-B IKE DETECTION BENCHMARK 
+
+We construct a 3D object detection benchmark from data recorded on the FUSE-Bike platform [6], a cyclist-mounted sensor suite, separating automatically labelled training data from a held-out evaluation set with human-verified GT. Table I summarises the dataset splits. As in automotive datasets, the class distribution is dominated by vehicles, with cyclists the rarest class, reflecting natural urban traffic composition rather than a sampling choice. The following describes the platform and recordings, the auto-labelling pipeline for training data, and the GT annotation process for the evaluation set.                         
+
+> TABLE I FUSE-B IKE DETECTION BENCHMARK . T RAINING SCENES USE ENSEMBLE AUTO -LABELS ,WHEREAS THE HELD -OUT EVALUATION SCENES USE HUMAN -VERIFIED GT. T RAINING AND EVALUATION SCENES ARE FULLY DISJOINT ,WITH NO TEMPORAL OVERLAP BETWEEN THEM . C OUNTS ARE REPORTED AT THE 2 H Z KEYFRAME RATE USED FOR TRAINING AND EVALUATION .Split Scenes Frames Vehicle Pedestrian Cyclist Train (auto-labels) 33 941 9903 4311 2131 Test (GT) 386 1093 396 365 Total 36 1027 10996 4707 2496
+
+A. Platform and Recordings 
+
+All data were recorded in urban Munich, Germany, in the vicinity of the Munich University of Applied Sciences, cover-ing dedicated bike paths, bicycle streets, and shared general-traffic roads, so as to capture the diversity of situations a cyclist encounters in daily commuting. The platform carries two vertically stacked Ouster LiDARs (an OS0 and an OS2), each with 128 beams, whose point clouds are fused to combine the wide near-field coverage of the OS0 with the longer range of the OS2. A front-facing camera, hardware-synchronised with the LiDARs, supports annotation and qualitative verification. The continuous recordings are segmented into non-overlapping 15-second sequences, a duration chosen to balance file size against sufficient temporal context for tracking. Ego-motion is estimated by a LiDAR-inertial odometry [18] that fuses the LiDAR scans with inertial measurements, which Fig. 2. The VRU-Label3D auto-labelling pipeline used to generate the training labels. Time-synchronised multi-modal data (top-left) is structured into the nuScenes format; fused, filtered point clouds are processed by a multi-source ensemble of experts (middle); the resulting detections, including the recovered “Cyclist” class, undergo geometric filtering and multi-object tracking and are exported as standardised, tracked annotations (bottom-right). 
+
+handles the agile motion of a cyclist better than a pure LiDAR-odometry baseline. 
+
+B. Auto-Labelling for Training Data 
+
+Training labels are generated automatically with VRU-Label3D [17], a multi-source ensemble auto-labelling frame-work that extends MS3D++ and is tailored to VRUs. As outlined in Fig. 2, the pipeline ingests the synchronised LiDAR and camera streams and runs an ensemble of detectors pre-trained on several automotive datasets (Waymo, nuScenes, Lyft). Their proposals are merged by kernel density estimation, and the fused detections are linked across frames by a multi-object tracker to enforce temporal consistency, before being exported as standardised nuScenes-format annotations. Because cyclists are the scarcest and most safety-critical class, the pipeline is designed to preserve them throughout. The base MS3D++ framework discards cyclists during its refinement stage, whereas VRU-Label3D recovers these de-tections and carries them through to the final labels, so that the training data retains as many cyclists as the ensemble can recover instead of dropping them as noise. The resulting pseudo-labels are used directly as the training signal for all benchmark detectors, without any manual correction of the training scenes. 
+
+C. Ground Truth Annotation 
+
+For trustworthy evaluation we manually annotate a held-out set of three sequences that are excluded from training. Annotation is performed in SUSTechPOINTS [19], initialised from the auto-labels so that the annotator acts as a verifier rather than a creator, correcting box geometry and class against the synchronised camera images. The evaluation set comprises 86 labelled keyframes at 2 Hz across the three scenes, totalling 1854 boxes. Annotations use three classes (vehicle, pedestrian, cyclist), onto which the multi-class predictions of the pre-trained detectors are mapped, so that all models are evaluated on the classes relevant to cyclist safety. As track identities are not required for frame-level detection, they are not annotated in the GT. IV. E XPERIMENTAL SETUP 
+
+A. Detector Suite 
+
+We instantiate the spread of paradigms with the four de-tectors listed in Table II, all taken from OpenPCDet [20] with their publicly released nuScenes-pre-trained checkpoints. Holding the source domain fixed in this way ensures that differences in transfer reflect the architecture rather than the training data. Concretely, we use CenterPoint with a dynamic-pillar encoder, SECOND with an anchor-based multi-head detector (SECOND-MH), the LiDAR-only TransFusion-L, and the fully sparse VoxelNeXt. Evaluating this range lets us test whether the domain gap and the benefit of finetuning are consistent across detector families or specific to a single design. 
+
+B. Finetuning Protocol 
+
+Each detector is evaluated in two settings. In the zero-shot setting we run the publicly released nuScenes-pre-trained checkpoint without any adaptation, which exposes the domain gap. In the finetuned setting we adapt the same checkpoint on the FUSE-Bike training auto-labels for 20 epochs. The detection head is re-grouped from the ten nuScenes classes TABLE II BENCHMARK RESULTS ON THE HELD -OUT GT TEST SET : NU SCENES -STYLE M AP AND PER -CLASS AP (%), ZERO -SHOT VS . FINETUNED ON THE AUTO -LABELS . P ER -CLASS AP IS THE MEAN OVER THE {0.5, 1, 2, 4} M CENTRE -DISTANCE THRESHOLDS . T HE GAIN COLUMN IS THE RELATIVE M AP 
+
+> IMPROVEMENT FROM FINETUNING
+
+. B EST PER COLUMN IN BOLD .Zero-shot (nuScenes pre-trained) Finetuned (FUSE-Bike auto-labels) mAP gain (%) Detector mAP Vehicle Pedestrian Cyclist mAP Vehicle Pedestrian Cyclist CenterPoint [9] 48.4 68.5 27.9 48.9 71.8 81.3 59.7 74.4 +48.3 
+
+SECOND-MH [8] 56.6 78.6 44.1 47.0 74.2 80.7 68.3 73.5 +31.1 TransFusion-L [11] 62.3 78.8 49.7 58.4 77.1 83.8 69.8 77.7 +23.8 VoxelNeXt [10] 63.5 79.3 51.8 59.5 77.2 83.5 70.5 77.7 +21.6 
+
+to the three target classes (car, pedestrian, bicycle), so that the backbone and shared weights transfer from the pre-trained model whilst the re-grouped head layers are reinitialised. The training data, schedule, and detection range are kept identical across detectors to isolate the effect of architecture. The detection and evaluation range is clamped to ±40 m, beyond which the fused OS0/OS2 returns are too sparse for reliable boxes. 
+
+C. Evaluation Metrics 
+
+We follow the nuScenes detection protocol, matching pre-dictions to GT by 2D centre distance rather than by IoU, the latter being unstable for the sparse, partially observed returns of a low-mounted sensor. For each class c and centre-distance threshold d ∈ D = {0.5, 1, 2, 4} m, predictions are matched to GT within d. Our primary metric is the mean over the thresholds and the three classes C,
+
+mAP = 1
+
+|C| |D| 
+
+X
+
+> c∈C
+
+X
+
+> d∈D
+
+AP c,d . (1) To characterise behaviour at a concrete operating point relevant to deployment, we additionally report the true positive (TP), false positive (FP) and false negative (FN) counts at a fixed threshold (score ≥ 0.3, match ≤ 2 m), and the precision and recall they induce, 
+
+Precision = TP TP + FP , Recall = TP TP + FN , (2) the same quantities whose threshold-swept curve defines 
+
+AP c,d above. For VRUs a missed detection carries a higher safety cost than a spurious one, making recall the more critical of the two. The pre-trained detectors predict the full nuScenes label set, which is mapped to the three target classes so that the zero-shot and finetuned settings are directly comparable. V. R ESULTS 
+
+A. Quantifying the Domain Gap 
+
+The left half of Table II reports zero-shot performance, and the pattern is consistent across all four detectors. Vehicles transfer reasonably well, whereas the two VRU classes are markedly weaker. Within every detector the vehicle class outperforms the worst VRU class by a wide margin, from 27 .5
+
+points for the strongest baseline to 40 .6 points for the weakest. The domain gap is therefore not uniform but concentrated on the safety-critical classes, exactly those under-represented in the automotive pre-training data. Overall mAP also varies widely, from 48 .4% for Cen-terPoint to 63 .5% for VoxelNeXt. The more recent sparse-voxel and transformer designs transfer better than the pillar-based CenterPoint and the older SECOND, showing that the architecture itself affects robustness to the viewpoint shift. The low sensor mounting exacerbates this issue, as the recall-oriented detectors identify many false positives in the form of pedestrians from clusters of points on poles, vegetation and street infrastructure, which resemble standing people far more than they do in elevated automotive scans. 0
+
+> 500
+> 1000
+> Object count  GT = 1093
+
+Vehicle 
+
+> 0
+> 200
+> 400
+> Object count
+> GT = 396
+
+Pedestrian 
+
+> CenterPoint (ZS)
+> CenterPoint (FT)
+> SECOND-MH (ZS)
+> SECOND-MH (FT)
+> VoxelNeXt (ZS)
+> VoxelNeXt (FT)
+> TransFusion-L (ZS)
+> TransFusion-L (FT)
+> 0
+> 200
+> 400
+> Object count  GT = 365
+
+Cyclist 
+
+Operating-point detections 
+
+(score 0.3, centre distance 2 m)   
+
+> True positives (TP) False positives (FP) False negatives (FN)
+
+Fig. 3. Operating-point detection counts (score ≥ 0.3, centre distance ≤ 2 m) per class. ZS = zero-shot, FT = finetuned. For each detector the two settings are placed side by side, with three bars each: true positives (TP), false positives (FP) and false negatives (FN). The dashed line marks the GT total per class (TP + FN). B. Adapting Detectors via Auto-Labels 
+
+The right half of Table II shows that finetuning on the auto-labels improves every detector, despite the complete absence of manually labelled training data. The gains in mAP reach up to 23 .4 points, and just as importantly the spread between detectors shrinks from 15 .1 points in the zero-shot setting to 
+
+5.4 points afterwards. Adaptation thus largely removes the architecture-dependent part of the gap and brings the four detectors to a comparable level. The improvement is driven by the VRU classes, whose AP rises by 18 .2 to 31 .8 points, whereas the already-strong vehicle class gains only modestly. In relative terms the gains land exactly where a cyclist platform needs them: pedestrian AP more than doubles for CenterPoint ( +114% ) and grows by a third even for the strongest baseline, and cyclist AP rises by up to 56% . These are precisely the classes that automotive datasets under-represent, so the benefit of adaptation is largest on the participants most central to cyclist safety. Fig. 3 makes the underlying mechanism explicit at the operating point. For every detector finetuning turns missed objects into true positives and raises recall on all three classes, and where the zero-shot detectors over-predicted VRUs it also removes most of those false positives. A class-dependent trade-off remains, however. The anchor- and query-based detectors favour precision on pedestrians, producing few false positives but lower recall, whereas the centre-based and sparse detectors favour recall at the cost of more false positives. Pedestrian stays the hardest class throughout and never reaches the level of the vehicle class, which we again attribute to the low sensor mounting. 
+
+C. Qualitative Results 
+
+Fig. 4 contrasts zero-shot and finetuned detections on a representative held-out frame. Before adaptation, the detectors frequently miss cyclists or split a single VRU into spurious detections of several classes. After finetuning these cases are resolved, with cyclists and pedestrians detected as single, correctly classified objects. 
+
+D. Auto-Label Quality 
+
+Since the auto-labels are the only training signal, we assess their quality directly by evaluating them against the human GT, treating the pipeline as a detector. As Table III shows, the auto-labels reach 63 .9% mAP, on par with the best zero-shot detector. Their main limitation is recall: the conservative ensemble misses objects, cyclists most of all. The notable result is that all four finetuned detectors exceed the quality of the auto-labels they were trained on, in mAP and on each VRU class individually. The detectors therefore do not merely reproduce their noisy training labels but generalise beyond them, recovering objects the labels missed. This shows that imperfect auto-labels are a sufficient training signal for adapting vehicle-trained detectors to the cyclist domain. 40 30 20 10 0 10 20 30 40                                        
+
+> y [m]
+> 15
+> 10
+> 5
+> 0
+> 5
+> 10
+> 15
+> x [m]
+> Auto-labels
+> 10
+> 0
+> 10
+> CenterPoint
+> Zero-shot Finetuned
+> 10
+> 0
+> 10
+> SECOND-MH
+> 10
+> 0
+> 10
+> VoxelNeXt
+> 10 010 20 30 40
+> 10
+> 0
+> 10
+> TransFusion-L
+> 10 010 20 30 40
+> Ground truth Vehicle Pedestrian Cyclist Ego
+> Fig. 4. BEV detections for one held-out frame (10 vehicles, 9 cyclists, 3pedestrians). Top: the ensemble auto-labels; below, each row is one detector, zero-shot (left) vs. finetuned (right), as in Table II. The highlighted CenterPoint row gains the most from finetuning. Boxes follow the nuScenes colours (yellow = vehicle, blue = pedestrian, crimson = cyclist) over the human GT (green); points are coloured by intensity. TABLE III QUALITY OF THE ENSEMBLE AUTO -LABELS MEASURED DIRECTLY AGAINST THE HUMAN GT ON THE HELD -OUT SCENES (NU SCENES -STYLE
+> AP, %). A LL FOUR FINETUNED DETECTORS IN TABLE II EXCEED THESE VALUES .mAP Vehicle Pedestrian Cyclist Auto-labels vs. GT 63.9 79.6 51.7 60.2
+
+E. Labelling Effort 
+
+The practical benefit of the approach is that the entire 941 -frame training set was labelled automatically, with manual annotation required only for the 86 -frame evaluation set. Adapting a vehicle-trained detector to the cyclist platform therefore incurs essentially no annotation cost, and manual effort is reserved for the small, high-quality test set needed for trustworthy evaluation. This makes the approach practical for scaling to new recordings and platforms, where collecting data is cheap but labelling it is not. VI. C ONCLUSION 
+
+We introduced a cyclist-perspective 3D object detection benchmark, comprising both a multi-class VRU dataset and a suite of four adapted detectors. The dataset pairs 
+
+941 auto-labelled training frames with a compact, hand-labelled test set of 86 keyframes, together over 18 ,000 3D annotations from a viewpoint no existing benchmark covers, of which 1,854 are human-verified. Using it, we quantified the vehicle-to-cyclist domain gap across four architecturally diverse, nuScenes-pre-trained detectors and found it consistent across architectures and concentrated on the safety-critical VRU classes: vehicles transfer reasonably well, whereas pedestrians and cyclists degrade sharply in the zero-shot setting. Finetuning each detector on auto-labels generated without any manual annotation improves mAP by 13 .7 to 
+
+23 .4 points ( 21 .6 to 48 .3% relative) and largely removes the architecture-dependent component of the gap. Crucially, the largest gains fall on the pedestrian and cyclist classes that automotive datasets under-represent but a cyclist platform must perceive, with pedestrian AP more than doubling for the weakest baseline. The finetuned detectors even surpass the quality of the auto-labels they were trained on, confirming that imperfect auto-labels are a sufficient signal for closing the vehicle-to-cyclist domain gap. Together these results provide a reproducible baseline for VRU-centric 3D detection and establish auto-labelling-based domain transfer as a practical, annotation-free way to bring vehicle-trained detectors to new platforms. REFERENCES [1] H. Caesar, V. Bankiti, A. H. Lang, S. Vora, V. E. Liong, Q. Xu, A. Kr-ishnan, Y. Pan, G. Baldan, and O. Beijbom, “nuScenes: A Multimodal Dataset for Autonomous Driving,” in Proc. IEEE CVPR . IEEE, 2020, pp. 11 618–11 628. [2] P. Sun, H. Kretzschmar, X. Dotiwalla, A. Chouard, V. Patnaik, P. Tsui, J. Guo, Y. Zhou, Y. Chai, B. Caine, V. Vasudevan, W. Han, J. Ngiam, H. Zhao, A. Timofeev, S. Ettinger, M. Krivokon, A. Gao, A. Joshi, Y. Zhang, J. Shlens, Z. Chen, and D. Anguelov, “Scalability in Percep-tion for Autonomous Driving: Waymo Open Dataset,” in Proc. IEEE CVPR . IEEE, 2020, pp. 2443–2451. [3] J. Houston, G. Zuidhof, L. Bergamini, Y. Ye, L. Chen, A. Jain, S. Omari, V. Iglovikov, and P. Ondruska, “One Thousand and One Hours: Self-driving Motion Prediction Dataset,” in Conf. on Rob. Learn. . PMLR, 2021, pp. 409–418. [4] S. Sass, M. H¨ ofer, J. Weißflog, S. Schmidt, and A. Scholz, “AuRa dataset: A vision dataset from a bike’s perspective for autonomous robots in urban environments,” Int. J. of Int. Rob. and Appl. , 2025. [5] D. Goren and H. Caesar, “BikeScenes: Online LiDAR Semantic Seg-mentation for Bicycles,” arXiv preprint arXiv:2510.25901 , 2025. [6] M. A. Buettner, K. Mazumder, L. Koecher, M. Finkbeiner, S. Niebler, and F. B. Flohr, “BikeActions: An Open Platform and Benchmark for Cyclist-Centric VRU Action Recognition,” in Proc. ICPR , 2026. [7] C. Odenwald and M. Beeking, “SaBi3d—A LiDAR Point Cloud Data Set of Car-to-Bicycle Overtaking Maneuvers,” Data , vol. 9, no. 8, p. 90, 2024. [8] Y. Yan, Y. Mao, and B. Li, “SECOND: Sparsely Embedded Convolu-tional Detection,” Sensors , vol. 18, no. 10, p. 3337, 2018. [9] T. Yin, X. Zhou, and P. Krahenbuhl, “Center-based 3D Object Detection and Tracking,” in Proc. IEEE CVPR . IEEE, 2021, pp. 11 779–11 788. [10] Y. Chen, J. Liu, X. Zhang, X. Qi, and J. Jia, “VoxelNeXt: Fully Sparse VoxelNet for 3D Object Detection and Tracking,” in Proc. IEEE CVPR .IEEE, 2023, pp. 21 674–21 683. [11] X. Bai, Z. Hu, X. Zhu, Q. Huang, Y. Chen, H. Fu, and C.-L. Tai, “TransFusion: Robust LiDAR-Camera Fusion for 3D Object Detection with Transformers,” in Proc. IEEE CVPR . IEEE, 2022, pp. 1080–1089. [12] J. Yang, S. Shi, Z. Wang, H. Li, and X. Qi, “ST3D: Self-training for Unsupervised Domain Adaptation on 3D Object Detection,” in Proc. IEEE CVPR . IEEE, 2021, pp. 10 363–10 373. [13] X. Peng, X. Zhu, and Y. Ma, “CL3D: Unsupervised Domain Adaptation for Cross-LiDAR 3D Detection,” Proc. of the AAAI , vol. 37, no. 2, pp. 2047–2055, 2023. [14] M. K. Wozniak, M. Hansson, M. Thiel, and P. Jensfelt, “UADA3D: Unsupervised Adversarial Domain Adaptation for 3D Object Detection With Sparse LiDAR and Large Domain Gaps,” IEEE RA-L , vol. 9, no. 12, pp. 11 210–11 217, 2024. [15] D. Tsai, J. S. Berrio, M. Shan, E. Nebot, and S. Worrall, “MS3D++: Ensemble of Experts for Multi-Source Unsupervised Domain Adaptation in 3D Object Detection,” IEEE TIV , vol. 10, no. 3, pp. 1999–2014, 2025. [16] I.-J. Lee, M. Kim, K. Ryu, P. Musacchio, and J. Park, “OpenBox: Annotate Any Bounding Boxes in 3D,” Adv. in NeurIPS , vol. 38, pp. 34 999–35 021, 2026. [17] Intelligent Vehicles Lab, “VRU-Label3D: A Semi-Automated Labelling Pipeline for Vulnerable Road Users,” Accessed: May 28, 2026. [On-line]. Available: https://github.com/Intelligent-Vehicles-Lab-HM/VRU-Label3D, 2026. [18] M. V. R. Malladi, T. Guadagnino, L. Lobefaro, and C. Stachniss, “Ro-bust Approach for LiDAR-Inertial Odometry Without Sensor-Specific Modeling,” IEEE RA-L , vol. 11, no. 6, pp. 7420–7427, 2026. [19] Naurril, “SUSTechPOINTS,” Accessed: Jan. 23, 2026. [Online]. Avail-able: https://github.com/naurril/SUSTechPOINTS. [20] OpenMMLab, “OpenPCDet,” Accessed: Jan. 23, 2026. [Online]. Avail-able: https://github.com/open-mmlab/OpenPCDet.

@@ -1,0 +1,183 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-27T21:32:20.915239+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2606.25652v1",
+      "source": "arxiv",
+      "title": "Auto-Labelling-Based Domain Transfer for 3D Object Detection on a Bicycle-Mounted LiDAR Platform",
+      "abstract": "Reliable 3D perception of vulnerable road users (VRUs) such as cyclists and pedestrians is essential for their safety in urban traffic and a core requirement for autonomous driving (AD). Alongside advances in vehicle-based perception, research increasingly equips bicycles with sensors to study traffic from a perspective native to VRUs. Such platforms still rely on LiDAR detectors originally trained on vehicle data, yet annotated 3D data from a cyclist's perspective is scarce. How well these detectors generalise to this setting has not been evaluated. We present a 3D object detection benchmark of 1,027 annotated LiDAR keyframes (over 18,000 3D bounding boxes) from the FUSE-Bike platform in urban Munich. We evaluate four nuScenes-pre-trained detectors against 1,854 human-verified ground-truth (GT) boxes both in their original form and after finetuning on training labels produced by a VRU-dedicated auto-labelling pipeline that requires no manual annotation. The zero-shot domain gap is concentrated on the VRU classes. Finetuning recovers most of it, improving mean average precision (mAP) by up to 23.4 points with the largest gains on pedestrians and cyclists, and the adapted detectors even surpass the quality of the auto-labels they were trained on. The benchmark provides a reproducible baseline for VRU-centric 3D detection and shows that auto-labels are a viable substitute for manual annotation when adapting vehicle-trained detectors to a cyclist platform.",
+      "authors": [
+        "Mario Finkbeiner",
+        "Max A. Buettner",
+        "Kanak Mazumder",
+        "Fabian B. Flohr"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-24T10:08:17+00:00",
+      "link": "https://arxiv.org/pdf/2606.25652v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "presents a 3D object detection benchmark of 1,027 annotated LiDAR keyframes from a bicycle-mounted platform",
+      "llm_evidence_cn": "提出基于自行车载LiDAR平台的3D目标检测基准，包含1027个标注关键帧",
+      "llm_evidence": "提出基于自行车载LiDAR平台的3D目标检测基准，包含1027个标注关键帧",
+      "canonical_evidence": "提出基于自行车载LiDAR平台的3D目标检测基准，包含1027个标注关键帧",
+      "llm_tldr_en": "The paper introduces a benchmark for 3D object detection using LiDAR data captured from a bicycle perspective, evaluating four nuScenes-pretrained detectors on 1,027 annotated keyframes to assess domain transfer for vulnerable road user perception.",
+      "llm_tldr_cn": "为研究骑行者视角的三维目标检测，本文构建了基于自行车载LiDAR的基准数据集，包含1027个标注关键帧和18000余个三维边界框。评估了四种在nuScenes上预训练的检测器的跨域性能，发现直适性有限。该基准为弱势道路使用者的安全感知提供了关键数据支持和域迁移分析。",
+      "llm_tldr": "为研究骑行者视角的三维目标检测，本文构建了基于自行车载LiDAR的基准数据集，包含1027个标注关键帧和18000余个三维边界框。评估了四种在nuScenes上预训练的检测器的跨域性能，发现直适性有限。该基准为弱势道路使用者的安全感知提供了关键数据支持和域迁移分析。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.26743v1",
+      "source": "arxiv",
+      "title": "Depth-Semantic Alignment and Affinity-Guided Fusion for Structured Radar Point Cloud Generation",
+      "abstract": "Point clouds are an important carrier of three-dimensional spatial information, and their quality directly affects the performance of downstream perception tasks such as object detection and tracking. However, millimeter-wave radar point clouds are typically sparse, noisy, and structurally incomplete. To address these limitations, this paper proposes a multimodal point cloud generation method based on vision-radar fusion. The proposed method leverages image semantic information to impose structural constraints and achieve spatial alignment for radar point clouds, while incorporating a sparse completion strategy to enhance point density and recover missing structures. The generated point clouds are further evaluated in object detection and tracking tasks. Experimental results demonstrate that the proposed method effectively improves point cloud quality and enhances the detection accuracy and robustness of perception models in complex environments, providing a practical solution for multisensor point cloud generation and intelligent perception systems.",
+      "authors": [
+        "Amjad Hussain",
+        "Xin Qiu",
+        "Fuyuan Ai",
+        "Yuchen Tan",
+        "Zecheng Li",
+        "Chunyi Song",
+        "Wenjie Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-25T08:28:18+00:00",
+      "link": "https://arxiv.org/pdf/2606.26743v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multimodal point cloud generation with vision-radar fusion and sparse completion",
+      "llm_evidence_cn": "基于视觉-雷达融合与稀疏补全的多模态点云生成",
+      "llm_evidence": "基于视觉-雷达融合与稀疏补全的多模态点云生成",
+      "canonical_evidence": "基于视觉-雷达融合与稀疏补全的多模态点云生成",
+      "llm_tldr_en": "Proposes a vision-radar fusion method to generate dense, structured radar point clouds via semantic alignment and sparse completion, evaluating on object detection.",
+      "llm_tldr_cn": "本文针对毫米波雷达点云稀疏、噪声大、结构不完整的问题，提出一种基于视觉-雷达多模态融合的点云生成方法。利用图像语义信息施加结构约束并实现空间对齐，结合稀疏补全策略增强点密度和恢复缺失结构。生成的点云在目标检测任务中评估，显著提升了感知性能，证明了从稀疏传感器数据生成高质量点云的有效性。",
+      "llm_tldr": "本文针对毫米波雷达点云稀疏、噪声大、结构不完整的问题，提出一种基于视觉-雷达多模态融合的点云生成方法。利用图像语义信息施加结构约束并实现空间对齐，结合稀疏补全策略增强点密度和恢复缺失结构。生成的点云在目标检测任务中评估，显著提升了感知性能，证明了从稀疏传感器数据生成高质量点云的有效性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "synthetic point cloud generated from depth completion",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.25953v1",
+      "source": "arxiv",
+      "title": "DSP-SLAM++: A Unified Framework for Multi-Class, High-Fidelity Object SLAM in the Wild",
+      "abstract": "Existing object-aware SLAM systems force a trade-off between real-time performance, multi-class support, and the generation of high-fidelity, semantically coherent object models. To address this trade-off, we present DSP-SLAM++, which extends the DSP-SLAM framework with an asynchronous mapping pipeline for real-time performance and dedicated sensor fusion adaptations for a monocular fisheye-LiDAR suite. Experiments demonstrate that our system generates fine-grained, geometrically-complete shapes for multiple object classes while eliminating severe mapping thread bottlenecks by reducing maximum object processing latency by up to 70\\% compared to the state-of-the-art baseline, enabling robust, real-time performance on a challenging 25 Hz multi-class datasets. This work makes high-fidelity, multi-class object SLAM more practical for real-world applications like autonomous driving and robotic manipulation by enabling its use on platforms with common fisheye-LiDAR sensor setups. The open-source code is available at: [github.com/AUBVRL/DSP-SLAMpp].",
+      "authors": [
+        "Ahmad Kourani",
+        "Ghina Daoud",
+        "Daniel Asmar",
+        "Imad Elhajj"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-06-24T15:27:23+00:00",
+      "link": "https://arxiv.org/pdf/2606.25953v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Uses LiDAR point cloud data for 3D object SLAM",
+      "llm_evidence_cn": "利用LiDAR点云数据进行3D物体SLAM",
+      "llm_evidence": "利用LiDAR点云数据进行3D物体SLAM",
+      "canonical_evidence": "利用LiDAR点云数据进行3D物体SLAM",
+      "llm_tldr_en": "Proposes a unified object SLAM framework with monocular fisheye-LiDAR fusion, achieving real-time high-fidelity multi-class shape reconstruction and reduced processing latency.",
+      "llm_tldr_cn": "本文针对现有物体感知SLAM系统难以兼顾实时性、多类支持和高保真物体建模的问题，提出DSP-SLAM++统一框架。该方法扩展DSP-SLAM，引入异步建图管线实现实时性能，并针对单目鱼眼-LiDAR传感器套件进行融合适配，利用LiDAR点云与图像联合优化物体形状。实验表明，系统能生成细粒度、几何完整的物体模型，最大物体处理延迟降低70%，在25Hz下实现鲁棒实时运行。该工作为通用野外物体级SLAM提供了高效可行的解决方案。",
+      "llm_tldr": "本文针对现有物体感知SLAM系统难以兼顾实时性、多类支持和高保真物体建模的问题，提出DSP-SLAM++统一框架。该方法扩展DSP-SLAM，引入异步建图管线实现实时性能，并针对单目鱼眼-LiDAR传感器套件进行融合适配，利用LiDAR点云与图像联合优化物体形状。实验表明，系统能生成细粒度、几何完整的物体模型，最大物体处理延迟降低70%，在25Hz下实现鲁棒实时运行。该工作为通用野外物体级SLAM提供了高效可行的解决方案。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "LiDAR point cloud data for 3D perception",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.24301v1",
+      "source": "arxiv",
+      "title": "MM-TRELLIS: Point-Cloud Guided Multi-Modal 3D Vehicle Generation in Autonomous Driving",
+      "abstract": "Recovering realistic 3D vehicle models from autonomous driving scenes is crucial for synthesizing training data and building simulation environment. However, most existing vehicle generation methods fail to fully exploit multimodal sensors i.e. multi-view images and LiDAR point clouds) and rely on neural rendering based reconstruction, leading to low-quality mesh. Recently, native 3D generative models have made significant progress, yet they are not built for arbitrary multi-view inputs and often struggle with in-the-wild driving images. In this work, we present MM-TRELLIS, a multi-modal version of TRELLIS for in-the-wild 3D vehicle generation that integrates LiDAR and image sensors from autonomous driving datasets into native 3D generative models. Specifically, multi-view images are cycled as conditioning inputs, while LiDAR point clouds provide test-time guidance to ensure geometric accuracy and cross-view consistency. During denoising, we first align the guidance point cloud with the model priors, then enforce consistency between the generated geometry and the guidance point cloud. Finally, we introduce a voxel filtering strategy based on the opacity of 3D Gaussian Splatting to suppress floaters and produce clean meshes. Comprehensive experiments on Waymo dataset demonstrate our method outperforms existing methods in high-fidelity 3D vehicle generation. Code is available at https://github.com/HongliXiao/MM-TRELLIS.",
+      "authors": [
+        "Hongli Xiao",
+        "Youjian Zhang",
+        "Yucai Bai",
+        "Chaoyue Wang",
+        "Yaohui Jin",
+        "Xiaoguang Ren",
+        "Wenjing Yang",
+        "Long Lan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-23T08:31:39+00:00",
+      "link": "https://arxiv.org/pdf/2606.24301v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Integrates LiDAR point clouds and multi-view images for 3D vehicle generation",
+      "llm_evidence_cn": "融合激光雷达点云和多视角图像进行3D车辆生成",
+      "llm_evidence": "融合激光雷达点云和多视角图像进行3D车辆生成",
+      "canonical_evidence": "融合激光雷达点云和多视角图像进行3D车辆生成",
+      "llm_tldr_en": "Proposes MM-TRELLIS, a multi-modal 3D vehicle generation method that fuses LiDAR and images to produce realistic 3D assets for autonomous driving simulation, improving data availability for perception tasks.",
+      "llm_tldr_cn": "该论文针对自动驾驶场景中高质量3D车辆生成问题，提出MM-TRELLIS方法，融合LiDAR点云和多视角图像进行多模态3D模型生成。通过结合两种传感器模态，模型能从野外驾驶图像中生成更逼真的车辆模型。实验表明该方法优于仅依赖神经渲染的重建方法，为感知模型训练提供了更丰富的数据源。",
+      "llm_tldr": "该论文针对自动驾驶场景中高质量3D车辆生成问题，提出MM-TRELLIS方法，融合LiDAR点云和多视角图像进行多模态3D模型生成。通过结合两种传感器模态，模型能从野外驾驶图像中生成更逼真的车辆模型。实验表明该方法优于仅依赖神经渲染的重建方法，为感知模型训练提供了更丰富的数据源。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
