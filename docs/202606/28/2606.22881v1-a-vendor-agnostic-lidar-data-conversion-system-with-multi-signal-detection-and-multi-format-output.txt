@@ -1,0 +1,479 @@
+Title: A Vendor-Agnostic LiDAR Data Conversion System with Multi-Signal Detection and Multi-Format Output
+
+URL Source: https://arxiv.org/pdf/2606.22881v1
+
+Published Time: Tue, 23 Jun 2026 02:41:01 GMT
+
+Number of Pages: 34
+
+Markdown Content:
+# A Vendor-Agnostic LiDAR Data Conversion System with Multi-Signal Detection and Multi-Format Output 
+
+Param Patel a (f20231182@hyderabad.bits-pilani.ac.in), Jay Dave b
+
+(jay.dave@hyderabad.bits-pilani.ac.in), Pratyush Chakraborty a
+
+(pchakraborty@hyderabad.bits-pilani.ac.in)  
+
+> a
+
+Department of Electrical and Electronics Engineering, BITS Pilani, Hyderabad Campus, Telangana, India  
+
+> b
+
+Department of Computer Science and Information Systems, BITS Pilani, Hyderabad Campus, Telangana, India 
+
+Corresponding author at: Department of Electrical and Electronics Engineering, BITS Pilani, Hyderabad Campus, Telangana, India. 
+
+Pratyush Chakraborty Department of Electrical and Electronics Engineering, BITS Pilani, Hyderabad Campus, Telangana, India Tel: +91 40 66303749 Email: pchakraborty@hyderabad.bits-pilani.ac.in 
+
+> arXiv:2606.22881v1 [cs.RO] 22 Jun 2026
+
+Highlights 
+
+• Automatic detection of LiDAR vendor directly from raw PCAP files. 
+
+• Multi-signal scoring across six packet-level features ensures reliable detec-tion. 
+
+• Vendor-specific wrappers convert raw data into five standard point cloud formats. 
+
+• Pipeline evaluated on real outdoor captures from Ouster, Velodyne, Hesai, and Livox sensors. 
+
+• C++ SDK-backed parsers achieve up to 10 × higher throughput than Python-based parsers. 1A Vendor-Agnostic LiDAR Data Conversion System with Multi-Signal Detection and Multi-Format Output 
+
+Param Patel a, Jay Dave b, Pratyush Chakraborty a, ∗
+
+> aDepartment of Electrical and Electronics Engineering, BITS Pilani, Hyderabad Campus, Telangana, India
+> bDepartment of Computer Science and Information Systems, BITS Pilani, Hyderabad Campus, Telangana, India
+
+Abstract 
+
+LiDAR (Light Detection and Ranging) sensors capture the surrounding environ-ment as dense 3D point clouds by measuring the time-of-flight of emitted laser pulses, making them foundational across autonomous vehicles, robotics, and large-scale mapping. PCAP (Packet Capture) files from these sensors are the starting point of most 3D perception pipelines, yet internal packet structures, UDP (User Datagram Protocol) port conventions, and encoding schemes differ enough across manufacturers that no single tool reads them all. Ouster, Velo-dyne, Hesai, and Livox each require their own SDK (Software Development Kit), their own environment setup, and their own conversion workflow. Supporting all four means maintaining four disconnected pipelines with no shared infras-tructure. The pipeline described here takes a raw PCAP as input and handles vendor identification automatically, scoring six independent file characteristics through a weighted multi-signal approach to determine the source sensor. C++ SDKs handle Ouster and Velodyne, while Hesai and Livox rely on Python-based dpkt parsing where no open source SDK exists. From there, a single command writes output to any of five industry-standard formats. We tested on real out-door captures. Ouster peaks at 2.08M points per second, Velodyne at 1.47M,      
+
+> ∗Corresponding author.
+> Email addresses: f20231182@hyderabad.bits-pilani.ac.in (Param Patel),
+> jay.dave@hyderabad.bits-pilani.ac.in (Jay Dave),
+> pchakraborty@hyderabad.bits-pilani.ac.in (Pratyush Chakraborty)
+> Preprint submitted to Expert Systems with Applications June 23, 2026
+
+both running through native C++ packet decoding. Hesai and Livox land at 110K and 150K respectively, where Python-layer parsing introduces overhead that compounds under sustained load. The 8–10 × gap held consistently across runs. Tested on a consumer grade i3 with 8GB RAM, no vendor configuration required. 
+
+Keywords: LiDAR, PCAP, point cloud, vendor detection, data conversion, Ouster, Velodyne, Hesai, Livox 
+
+1. Introduction 
+
+LiDAR (Light Detection and Ranging) serves as a foundational sensing tech-nology for robotics, smart infrastructure, and autonomous navigation (Roriz et al., 2022). Unlike passive camera-based systems, LiDAR maintains high spa-tial accuracy regardless of ambient lighting conditions or common environmental occlusions. By measuring the time-of-flight of emitted laser pulses to reconstruct the surrounding geometry, the sensor provides a high-fidelity 3D representation that is functionally more robust than vision centric alternatives in dynamic or low-visibility settings. What comes out of these sensors is raw 3D point cloud data, and the sensor itself stores it directly in a format called PCAP (Harris & Richardson, 2022). There are very few sensor manufacturing companies in this domain, and among them, Ouster, Velodyne, Hesai, and Livox are the pri-mary players (Roriz et al., 2022). All these companies produce different kinds of sensors that give different characteristics and data densities of the point cloud data in PCAP format. This raw point cloud data needs to be converted into standard formats to be used in a machine learning pipeline, a mapping system, or a robotics framework. Since data processing is an important step in the pipeline, the heterogeneity across vendors makes it difficult to do so. All these vendors store raw data very differently at the basic level of data storage structures, with different UDP structures (Lin & Lin, 2017), different port conventions, and different magic bytes, meaning no cross-vendor standard exists in this domain. This means 3that a tool built for reading and processing Ouster data cannot do the same for Velodyne or Hesai data, for that matter. The second problem is SDK de-pendencies; these vendors provide SDKs and toolchains for processing the data, but these SDKs require their own runtime environment, language assumptions, and hardware constraints, making integration difficult into an existing pipeline. Additionally, not all vendors provide usable open source SDKs; vendors like Hesai and Livox have no production-grade Python-based SDKs, so in order to convert the data, practitioners have to develop separate workflows per vendor and per manufacturer, creating a significant engineering overhead. Several open source tools exist for point cloud data processing. PDAL, the Point Data Abstraction Library, is the most capable among them (Butler et al., 2021), along with ROS-based tools (Quigley et al., 2009) and vendor-provided viewers like Ouster Studio (Ouster, Inc., 2024b), Livox Viewer (Livox Tech-nology, 2020), and VeloView (Kitware, Inc. and Velodyne Lidar, 2024). The vendor provided viewers handle visualisation well, but are locked to their own manufacturer’s format, lacking any cross-vendor capability. PDAL is powerful, but it picks up where this pipeline leaves off. It expects data that has already been decoded — LAS (ASPRS, 2019), LAZ (LASzip/rapidlasso GmbH, 2025), PCD (Rusu & Cousins, 2024a) — and do multiple operations on it. The raw decoding step, which is exactly where the complexity lives, falls outside what PDAL was built for. ROS tools have a different blind spot; they are built around live sensor streams, so taking a recorded PCAP file from three different vendors and converting it offline in batch is simply not what they were designed to do. Developers do have the option of using vendor-provided SDKs, but that path has its own complications. First, they need to figure out which vendor the data came from. Then find the SDK, get it running in their environment, and build something on top of it that can actually do the conversion reliably. And that whole sequence repeats the moment a different vendor’s data shows up. Existing tools in the market still lack features such as automatic vendor detection. Converting raw LiDAR data usually requires prior knowledge of the sensor vendor, since different manufacturers need different parsing logic and 4SDK support (Roriz et al., 2022), due to which users often need to search for vendor-specific SDKs or toolkits before the data can be processed. This pipeline was built to fill exactly that gap, provide a raw PCAP file, and it handles vendor identification and conversion on its own. It selects the appropriate parser — a C++ SDK for Ouster (Ouster, Inc., 2024a) and Velodyne (Valgur, 2024), and a purely Python-based one using dpkt (Song et al., 2024) for Hesai and Livox — to convert the raw PCAP file into five industry-accepted formats from a single command. The whole system works on consumer-grade hardware and requires no prior knowledge of the vendor or format, making it widely accessible. The remainder of this paper is organised as follows: Section 2 defines the problem and goals, Section 3 reviews related work, Section 4 presents the pro-posed approach, Section 5 covers the experimental analysis, and Section 6 con-cludes with future directions. 
+
+2. Problem Statement 
+
+This section describes the system model, the main problems addressed in this work, and the goals of the proposed system. 
+
+2.1. System Model 
+
+The system consists of two main parts. The User is anyone working with raw LiDAR data, usually in .pcap (Harris & Richardson, 2022) or other vendor-specific formats, who needs to convert it into usable point cloud formats. This is common in areas like robotics, computer vision, 3D mapping, and autonomous systems (Roriz et al., 2022), where raw sensor data is not directly usable. The Conversion System is a pipeline that takes this raw data as input, detects the sensor vendor automatically, and converts it into standard formats like .pcd (Rusu & Cousins, 2024a) (Point Cloud Data), .csv (Comma-Separated Values), .las (LiDAR Aerial Survey) (ASPRS, 2019), and others. 5Figure 1 illustrates the overall component layout of the system, showing the flow from the user’s input through vendor detection, the vendor-specific wrappers, and the Base Wrapper to produce the converted point cloud output. The internal layering of this architecture is discussed in detail in Section 4. 
+
+Figure 1: System architecture overview, showing the flow from user input through the Vendor Detector, vendor-specific wrappers, and the Base Wrap-per to produce converted point cloud output. 
+
+2.2. Problem Definitions Packet-Level Heterogeneity: LiDAR workflows are currently fractured by a total lack of standardization at the transport layer. While Ouster, Velodyne, Hesai, and Livox all utilize PCAP containers (Harris & Richardson, 2022), their internal UDP layouts (Lin & Lin, 2017), firing sequences, and port conventions are mutually exclusive. Without an industry-wide enforcement layer, percep-tion stacks using multiple sensors must maintain isolated parsing logic. This creates a heavy maintenance burden where no code or logic is shared between manufacturer-specific modules. 
+
+Toolchain and SDK Dependency: Interfacing with raw data typically re-6quires vendor-specific SDKs (Ouster, Inc., 2024a; Valgur, 2024), each introduc-ing unique runtime dependencies and OS-specific assumptions. This fragmen-tation is most acute when official support is incomplete; for instance, Hesai and Livox lack stable, open-source Python SDKs for direct conversion. We observed that this forces engineers to choose between writing fragile custom parsers or relying on third-party tools that fail when sensor firmware or packet lengths change. 
+
+Cross-Domain Output Friction: Robotics (Quigley et al., 2009), machine learning, and geomatics ecosystems do not share a common data currency. A single raw PCAP might need to be exported as a KITTI-style binary (Geiger et al., 2012) for training and simultaneously as a LAS file (ASPRS, 2019) for geographic archival (Library of Congress, 2024a). Navigating these transitions usually involves a ”tool-chain hop,” adding computational overhead and increas-ing the risk of coordinate transform errors. 
+
+2.3. Goals 
+
+• Zero-Configuration Detection: Identify the hardware vendor directly from the raw bitstream (Harris & Richardson, 2022) to eliminate manual flags or user-defined parameters. 
+
+• Interface Consolidation: Provide a single execution path to export PCD (Rusu & Cousins, 2024a), LAS (ASPRS, 2019), LAZ (LASzip/rapidlasso GmbH, 2025), BIN, and CSV, removing the need for auxiliary converters. 
+
+• Optimized Parsing Paths: Maximize throughput by leveraging native C++ SDKs (Ouster (Ouster, Inc., 2024a), Velodyne (Valgur, 2024)) where pos-sible, while implementing lightweight dpkt (Song et al., 2024) Python logic for unsupported vendors. 73. Literature Review 
+
+3.1. Point Cloud Processing Tools and Libraries 
+
+PDAL serves as a format-agnostic C++ framework for translating and ma-nipulating point cloud data (Butler et al., 2021). While it offers bindings for Python and Java (Butler et al., 2021), its primary utility in the field lies in its ”pipeline” architecture. This design chains independent processing units, or ”stages,” to execute modular operations — such as reading, spatial filtering, or coordinate re-projection — without requiring a full software rebuild. PDAL also supports command-line execution, which allows integration with-out additional infrastructure. It handles formats including LAS (ASPRS, 2019), LAZ (LASzip/rapidlasso GmbH, 2025), PCD (Rusu & Cousins, 2024a), PLY (Library of Congress, 2024b), CSV, and BPF (PDAL Contributors, 2024) — which directly overlap with the output formats of the proposed system. Point cloud data comes in many formats, as seen in practice — PCD (Rusu & Cousins, 2024a), LAS (ASPRS, 2019), and others. This variation in formats creates a bottleneck in the data preparation phase, which is a necessary step before training models or running analysis. Wang et al. proposed an end-to-end point cloud processing system to address this issue (Wang et al., 2025). They introduced a new data format called .PcRecord, designed to reduce storage size and improve data loading efficiency, which leads to higher throughput in processing pipelines (Wang et al., 2025). The system consists of three main modules. One module standardises in-put formats such as PCD (Rusu & Cousins, 2024a) or LAS (ASPRS, 2019) into .PcRecord. Another is a multi-stage parallel pipeline that performs the processing operations. The third is an autotune module that adjusts pipeline parameters based on real-time hardware metrics. Using this approach, they report significant speedups — 6.61 × on ModelNet40, 3.09 × on KITTI (Geiger et al., 2012), and up to 25.4 × on some datasets — indicating strong performance improvements over existing methods (Wang et al., 2025). Both the above discussed approaches have a common limitation — they 8operate on already converted data formats like LAS (ASPRS, 2019), PCD (Rusu & Cousins, 2024a), and others. Most LiDAR sensors output raw PCAP data (Harris & Richardson, 2022), not LAS or PCD. The proposed system addresses this gap by handling vendor detection and PCAP decoding upstream, producing standard format files that PDAL (Butler et al., 2021) and similar tools then use in downstream workflows. 
+
+3.2. LiDAR Data Challenges in Multi-Vendor Environments 
+
+Abbasi et al. (Abbasi et al., 2022) analyzed the computational overhead of 3D point cloud compression and learning specifically for autonomous navigation. Their review categorizes compression into 1D traversal, 2D projection, and 3D decorrelation, noting that high-precision applications generally require full 3D lossless methods to maintain geometric integrity. The survey also details how raw XYZ floating-point data is transformed into voxel grids or range images for object detection and segmentation tasks (Abbasi et al., 2022). More relevant to the current work is the survey’s observation on manufacturer-specific variability. Abbasi et al. identify that fluctuating point densities, beam counts, and noise profiles across different LiDAR vendors create a significant bottleneck for unified perception stacks (Abbasi et al., 2022). Our proposed pipeline addresses this ”vendor heterogeneity” directly at the ingestion stage; while the survey highlights these variations as a challenge for downstream deep learning, our system mitigates the issue earlier in the pipeline by standardizing the raw data streams before they reach the processing layer. Chen et al. captured point clouds simultaneously from three different Li-DARs, including Ouster 128, Ouster 64, and Hesai XT32 (Chen et al., 2024). They scanned campus and urban scenarios and named the dataset MLDAS. The problem it targets is that a model trained on one LiDAR often performs poorly on another, due to differences in beam counts, field of view, and detec-tion range, which leads to variations in point cloud structure even for the same scene (Chen et al., 2024). The proposed solution is HSSC, a hierarchical net-work using spatial-temporal consistency to transfer knowledge across different 9LiDARs, which improves model performance. They used Ouster (Ouster, Inc., 2024a) and Hesai for evaluation, which are two of the four vendors supported by the proposed unified pipeline. This suggests that these vendors differ significantly across multiple sensor-level pa-rameters (Chen et al., 2024). They ultimately address the multi-vendor problem at the model level using neural networks, while the proposed unified pipeline handles it at the data level — before any model processes the input. 
+
+3.3. Point Cloud Format Standardisation and Storage 
+
+In order to compress and index LiDAR point cloud data including all spatial dimensions and attributes, Ladra et al. proposed a new data structure that can support both simultaneously (Ladra et al., 2024). The problem with existing formats like LAZ (LASzip/rapidlasso GmbH, 2025) is that compression makes queries slow, and to scan linearly you have to decompress certain chunks. There is no existing structure that combines lossless compression with fast indexed query support (Ladra et al., 2024). As a solution, it compresses all spatial dimensions and attribute values together and indexes them simultaneously, which allows range and attribute queries to run directly on compressed data (Ladra et al., 2024). It makes query-ing up to 100 times faster than LAZ (LASzip/rapidlasso GmbH, 2025) formats. This relates directly to the proposed unified pipeline, as this paper discusses the compression strengths and query limitations of LAZ (LASzip/rapidlasso GmbH, 2025) — which is one of the five outputs of the proposed pipeline. This approach also has a similar limitation as prior work, as it runs on already decoded files and there is no PCAP (Harris & Richardson, 2022) ingestion, vendor detection, or decoding handled. Roriz et al. did a detailed survey on compression techniques used for auto-motive LiDAR point clouds, covering lossless, lossy, static, and dynamic com-pression methods (Roriz et al., 2024). The problem it addresses is that LiDAR generates large volumes of data — hundreds of megabytes per second per sensor — and comparative analysis of compression approaches in this domain is not 10 consistently standardised (Roriz et al., 2024). From this survey, they observe that LAZ (LASzip/rapidlasso GmbH, 2025) provides a good balance between lossless compression and file size reduction, while BIN is faster for raw data access, and PCD (Rusu & Cousins, 2024a) is more flexible for storing multiple attributes (Roriz et al., 2024). These are some of the data formats that the proposed pipeline also outputs. This survey is used as supporting context for the output format choices in the proposed pipeline and their relevance in this domain. 
+
+4. Proposed Approach 
+
+Raw PCAP ingestion (Harris & Richardson, 2022) drives the design — ven-dor identification, parser selection, and format conversion all follow from that single entry point. Automatic detection handles vendor identification through a multi-signal scoring mechanism, after which the data stream is routed to the appropriate parser backend. 
+
+4.1. System Architecture Overview 
+
+The system architecture follows a three-layer split: the Detector Layer, the Conversion Layer, and the Orchestration Layer. While the user interacts through a unified CLI, internal processing is segmented to allow modular vendor support. The Orchestration Layer serves as the system’s entry point. It manages execution state and passes input parameters such as max scans to downstream parsers. The Detector Layer analyzes raw packet headers and payloads using a mod-ule called the Vendor Detector. It does not rely on a single flag and instead computes confidence scores across six independent file-level signals to reduce misidentification in multi-sensor captures. The Conversion Layer handles format translation through vendor-specific wrappers, the Base Wrapper, and the Converter module. All these modules 11 work internally on the raw data, while the Detector Layer acts as an input to this layer. Figure 1 (Section 2) illustrates this component layout. 
+
+4.2. Vendor Detection Module 
+
+This module detects the vendor from a raw PCAP file (Harris & Richardson, 2022) by deriving six signals from it and assigning scores to different vendors. The vendor with the maximum score that crosses a defined threshold is selected as the detected vendor. All these signals have different values for each vendor, and based on those values, the module determines the vendor. Thus, having the same final score for two vendors after evaluation is not possible. 12 Algorithm 1: DetectVendor(F) 
+
+Input: File path F
+
+Output: vendor name v, confidence c, or NULL  
+
+> 1
+
+if F does not exist or F is empty then  
+
+> 2
+
+return NULL;  
+
+> 3
+
+if extension( F ) = ”.rxp” then  
+
+> 4
+
+return (”riegl”, confidence=1.0);  
+
+> 5
+
+scores ← { v : 0 .0 | v ∈ VendorRegistry }; 
+
+> 6
+
+E ← CheckExtension( F );  
+
+> 7
+
+scores ← scores + E × 0.5;  
+
+> 8
+
+M ← CheckMagicBytes( F );  
+
+> 9
+
+scores ← scores + M × 3.0;  
+
+> 10
+
+C ← CheckCompanionFiles( F );  
+
+> 11
+
+scores ← scores + C × 2.5;  
+
+> 12
+
+if extension( F ) = ”.pcap” then  
+
+> 13
+
+P ← CheckUDPPorts( F );  
+
+> 14
+
+scores ← scores + P × 3.5;  
+
+> 15
+
+S ← CheckPacketStructure( F );  
+
+> 16
+
+scores ← scores + S × 3.0;  
+
+> 17
+
+Z ← CheckPacketSize( F );  
+
+> 18
+
+scores ← scores + Z × 2.0;  
+
+> 19
+
+v∗ ← argmax( scores );  
+
+> 20
+
+raw score ← scores [v∗];  
+
+> 21
+
+if raw score < 2.0 then  
+
+> 22
+
+return NULL;  
+
+> 23
+
+c ← min( raw score/ 14 .5, 1.0);  
+
+> 24
+
+return (v∗, c ); The six signals used to assign a score to each vendor are listed below with their respective weights. Not all signals are equally unique; some are common across multiple vendors, while others have discrete values specific to a single 13 vendor. Signals with more vendor-specific and discrete values are given higher weights compared to those that are shared or ambiguous. 
+
+File Extension (weight: 0.5) — We check for .pcap (Harris & Richardson, 2022), .lvx (Livox Technology, 2019), or .rxp formats. Filenames often contain strings like ”velodyne” or ”ouster” which provide initial hints. This receives the lowest weight because extensions are easily modified and don’t guarantee the internal data structure. 
+
+Magic Bytes (weight: 3.0) — The system reads the first 1,024 bytes to find manufacturer signatures. We match against 0xFFEE for Velodyne (Valgur, 2024), 0x0001 for Ouster (Ouster, Inc., 2024a), 0xEEFF for Hesai (Hesai Tech-nology, 2025), and the ”livox tech” ASCII string for Livox (Livox Technology, 2019). 
+
+Companion Files (weight: 2.5) — This check scans for sidecar metadata in the same directory. Ouster sensors, for instance, require a specific .json file (Ouster, Inc., 2024a) to interpret the raw stream (Ouster, Inc., 2024c). Validating these files provides a strong vendor indicator that raw packets alone might miss. 
+
+UDP Port Detection (weight: 3.5) — Highest weight. Parses the first 10 UDP packets (Song et al., 2024) and checks the destination port. Velodyne (Val-gur, 2024): 2368/2369 (Rusu & Cousins, 2024b), Ouster (Ouster, Inc., 2024a): 7502/7503 (Ouster, Inc., 2024d), Hesai (Hesai Technology, 2025): 2368, Livox (Livox Technology, 2019): 56000–58000 (Livox Technology, 2023). 
+
+Packet Structure (weight: 3.0) — Reads first 2 bytes of UDP payload per packet and matches against vendor magic bytes (Song et al., 2024). More reliable than file-level magic bytes since it confirms packet-level structure. 
+
+Packet Size (weight: 2.0) — Samples first 50 UDP payloads (Song et al., 2024), checks if 80% or more fall within vendor-specific size ranges. Velodyne (Valgur, 2024): exactly 1206 bytes, Ouster (Ouster, Inc., 2024a): 6400–33024 bytes, Hesai (Hesai Technology, 2025): 1000–1300 bytes. 14 Algorithm 2: CheckUDPPorts(F) 
+
+Input: PCAP file path F
+
+Output: scores dictionary per vendor  
+
+> 1
+
+scores ← {} ; 
+
+> 2
+
+ports f ound ← {} ; 
+
+> 3
+
+packet count ← 0;  
+
+> 4
+
+foreach (timestamp, buf f er ) in pcap.Reader( F ) do  
+
+> 5
+
+if packet count > 10 then  
+
+> 6
+
+break ; 
+
+> 7
+
+parse Ethernet → IP → UDP from buf f er ; 
+
+> 8
+
+dst port ← UDP.destination port;  
+
+> 9
+
+foreach vendor v in VendorRegistry do  
+
+> 10
+
+if dst port ∈ v. udp ports then  
+
+> 11
+
+ports f ound [v].append( dst port );  
+
+> 12
+
+packet count ← packet count + 1;  
+
+> 13
+
+foreach v with ports f ound [v]̸ = ∅ do  
+
+> 14
+
+scores [v] ← 1.0;  
+
+> 15
+
+return scores ;Among the six signals used to deduce the vendor of the data, UDP port detection is given the highest weightage because it is the most discrete signal, with each vendor using a distinctly different set of ports that do not overlap (Rusu & Cousins, 2024b; Ouster, Inc., 2024d; Livox Technology, 2023; Hesai Technology, 2025). 
+
+4.3. Conversion Layer 
+
+This section consists of a brief description of all the submodules that work to convert the input files into industry-standard formats. 15 4.3.1. Converter Module 
+
+This module coordinates between the Detector Layer and the appropriate parsing backend for the identified vendor. It does not convert data by itself. The module receives the input file (Harris & Richardson, 2022) along with the desired output format. It runs basic validation first — file existence checks, corruption handling, and format support verification. After validation, the Vendor Detector module is invoked and the detected vendor is used to select the corresponding parsing wrapper. The module then confirms whether a compatible parsing backend exists and whether the required SDKs (Ouster, Inc., 2024a; Valgur, 2024) are available for execution. Format support is checked separately, since PCD (Rusu & Cousins, 2024a), LAS (ASPRS, 2019), LAZ (LASzip/rapidlasso GmbH, 2025), BIN (Geiger et al., 2012), and CSV availability varies across vendor SDKs. Only after all conditions are satisfied is the file passed to the corresponding vendor-specific wrapper for conversion, detailed in the next section. The output includes a summary of execution: processing time, number of converted points, vendor confidence score, and any runtime warnings or errors. 16 Algorithm 3: Convert(F, format) 
+
+Input: File path F , output format 
+
+Output: Result dictionary R 
+
+> 1
+
+Validate F exists, non-empty, format is supported;  
+
+> 2
+
+if validation fails then  
+
+> 3
+
+return error result;  
+
+> 4
+
+Generate output path from F and format;  
+
+> 5
+
+detection result ← DetectVendor( F );  
+
+> 6
+
+if detection result .success = FALSE then  
+
+> 7
+
+return error result;  
+
+> 8
+
+vendor ← detection result .vendor name;  
+
+> 9
+
+wrapper ← GetWrapper( vendor );  
+
+> 10
+
+if wrapper = NULL then  
+
+> 11
+
+return error result;  
+
+> 12
+
+if wrapper .sdk available = FALSE then  
+
+> 13
+
+return error result;  
+
+> 14
+
+if f ormat / ∈ wrapper .supported formats then  
+
+> 15
+
+return error result;  
+
+> 16
+
+if f ormat = ”las” then  
+
+> 17
+
+conversion result ← wrapper .ConvertToLAS( F );  
+
+> 18
+
+else  
+
+> 19
+
+conversion result ← wrapper .Convert( F , f ormat );  
+
+> 20
+
+if conversion result .success = TRUE then  
+
+> 21
+
+validate output file;  
+
+> 22
+
+return success result with points converted;  
+
+> 23
+
+else  
+
+> 24
+
+return error result; 17 4.3.2. Base Vendor Module 
+
+This abstract class establishes a standardized template for every vendor-specific implementation. It enforces six mandatory methods — get vendor name, validate sdk installation, convert to las, convert, get vendor info, and validate conversion — shared across wrappers to avoid duplication. This interface decouples the Converter module from the specific parsing logic of different manufacturers. By interacting only through these base methods, the pipeline triggers diverse conversion paths for Ouster (Ouster, Inc., 2024a) or Livox (Livox Technology, 2019) through a single execution flow, regardless of the underlying SDK re-quirements. It also includes three shared utility functions for serialisation — pointsto pcd (Rusu & Cousins, 2024a), pointsto bin (Geiger et al., 2012), and pointsto csv — which are reused across wrappers to reduce repeated code. LAZ (LASzip/rapidlasso GmbH, 2025) compression is handled in this module using a fallback chain. It first tries the built-in laspy (laspy Contributors, 2024b) com-pression, and if that fails, it switches to an external laszip (LASzip/rapidlasso GmbH, 2025) binary. If both fail, the system does not stop the conversion; in-stead, it outputs the LAS (ASPRS, 2019) file and raises a warning. This ensures that an output file is always generated, even when compression fails. 
+
+4.3.3. Vendor-Specific Wrappers 
+
+All four wrappers inherit the same methods from the Base Wrapper and follow the same interface. The main difference is in how each one handles parsing internally. Some use C++-based SDKs, while others rely on Python-based parsing for raw data. This mainly comes from the fact that Hesai and Livox do not provide open-source Python SDK support for conversion. Even with these differences, the output from all four wrappers is the same: an N ×4float32 NumPy (Harris et al., 2020) array. This is then passed to the Base Wrapper utility functions for serialisation. 
+
+(1) Ouster Wrapper. Ouster produces the highest throughput among the four vendors. A major reason for this is the Ouster SDK (Ouster, Inc., 2024a), which 18 is C++ based with Python bindings and integrates well with the pipeline. Unlike other vendors, the ouster-sdk (Ouster, Inc., 2024a) requires a JSON metadata file along with the raw PCAP file (Harris & Richardson, 2022). This file con-tains beam angles and sensor calibration settings (Ouster, Inc., 2024c), which the SDK uses to build an XYZ lookup table. This removes the need for per-point trigonometric calculations and improves parsing speed. The SDK uses OusterPacketSource and ScanBatcher for packet reading and scan assembly, both handled internally in C++. It also handles destaggering internally, unlike the Python-based implementations where it is done manually. Scans are accu-mulated and stacked into an N ×4 float32 NumPy (Harris et al., 2020) array, which is then passed to the Base Wrapper utility functions. 
+
+(2) Velodyne Wrapper. Velodyne uses a C++ backed library called velodyne-decoder (Valgur, 2024) for converting raw PCAP data (Harris & Richardson, 2022), but unlike Ouster, it does not require a JSON metadata file. Because of this, the SDK reads the PCAP file through an iterator that returns one scan at a time as an N ×8 float32 NumPy (Harris et al., 2020) array, and the wrap-per keeps only the x, y, z, and intensity columns. Coordinate conversion still relies on per-model elevation angle lookup tables stored in the wrapper. Unlike Ouster’s XYZLut approach, trigonometry is computed per point instead of be-ing precomputed, which contributes to lower throughput. The wrapper supports multiple sensor models, including VLP-16, VLP-32C, HDL-32E, HDL-64E, and VLS-128 (Velodyne Lidar, Inc., 2019), each with different channel counts and elevation angles. The correct model is auto-detected before conversion by in-specting magic bytes and packet structure (Valgur, 2024). If velodyne-decoder is not available, a Python-based dpkt (Song et al., 2024) fallback is used, so the pipeline still works for Velodyne data even without the SDK. 
+
+(3) Hesai Wrapper. Since there is no open-source C++ SDK available for He-sai, a purely Python-based dpkt (Song et al., 2024) approach is used to parse its proprietary packet structures (Hesai Technology, 2025). Each packet is iden-tified by checking the header, where the signature 0xEEFF is used to mark 19 Hesai packets (Hesai Technology, 2025). To compute x, y, z, and intensity, per-channel elevation and azimuth tables are hardcoded inside the wrapper, based on the vendor’s sensor documentation (Hesai Technology, 2025). The wrapper supports most of the Pandar series LiDAR sensors from Hesai (Hesai Tech-nology, 2025). This Python-based implementation is also the reason for lower throughput compared to Ouster and Velodyne, which use C++ SDKs. 
+
+(4) Livox Wrapper. Unlike the other three vendors, Livox is different because it supports three types of inputs — raw PCAP files (Harris & Richardson, 2022), CSV files exported from Livox Viewer (Livox Technology, 2020), and proprietary formats called LVX and LVX2 (Livox Technology, 2019). For PCAP files, the parsing approach is similar to Hesai, using a purely Python-based dpkt (Song et al., 2024) implementation, so throughput is also similar and lower than Ouster and Velodyne. Output data follows the N ×4 float32 NumPy (Harris et al., 2020) array format required by the Base Wrapper. The main bottleneck here is the proprietary LVX/LVX2 binary structure (Livox Technology, 2019). Since there is no public C++ SDK, we had to build a bit-level parser from scratch using Python’s struct module (Python Software Foundation, 2024b). We manually map the file header, device info, and frame data blocks. This manual approach makes Livox the most complex vendor to support architecturally, and the bit-manipulation overhead in Python is exactly why the throughput stays low compared to C++-based vendors. 
+
+5. Performance Analysis 
+
+Pipeline performance was evaluated across datasets of different sizes on a single workstation under varying workloads. The setup is kept fixed so the results are consistent across runs. The evaluation focuses on whether a unified pipeline can efficiently support vendors whose SDK architectures and parsing workflows differ substantially across Python- and C++-based implementations. 20 5.1. Experimental Setup 5.1.1. Hardware Specs of the Workstation 
+
+The pipeline is executed on a system with an Intel Core i3-1005G1 processor (Intel Corporation, 2024) with a base clock speed of 1.20 GHz and a boost clock speed of 3.40 GHz (Intel Corporation, 2024). The system contains 8 GB DDR4 RAM at 3200 MHz (Intel Corporation, 2024). There is no involvement of a GPU; the whole pipeline executes as a CPU-bound process. The primary storage used is a 256 GB SSD, and the operating system used to implement the pipeline is Windows 11. The system is deliberately kept as modest consumer-grade hardware to demonstrate that the pipeline does not require specialised infrastructure. 
+
+5.1.2. Software Environment 
+
+The pipeline is built with Python 3.13.3 (Python Software Foundation, 2024a), commonly used in robotics (Quigley et al., 2009) and point cloud pro-cessing workflows in autonomous vehicles (Roriz et al., 2022), which makes it easier to integrate with the existing workflow systems of these industries. For point cloud parsing and conversion, we use primarily two types of technolo-gies: the SDKs that are C++ based with Python bindings provided by vendors, namely ouster-sdk 0.15.1 (Ouster, Inc., 2024a) and velodyne-decoder 3.1.0 (Val-gur, 2024), and purely Python-based dpkt 1.9.7 (Song et al., 2024), a packet parsing library used for vendors like Hesai and Livox. Additionally, libraries like laspy 2.6.0 (laspy Contributors, 2024b) for conversion and extraction of data in formats like LAS (ASPRS, 2019) and LAZ (LASzip/rapidlasso GmbH, 2025) across all four vendors, and NumPy (Harris et al., 2020), handle all the memory and data extraction related functions. Additional supporting libraries include pandas (McKinney, 2010) for Livox CSV ingestion, and rich and tqdm for CLI progress reporting. 21 5.1.3. Point Cloud Datasets 
+
+For evaluation, we use publicly available real-world PCAP (Harris & Richard-son, 2022) datasets for each of the four vendors our pipeline supports. For Ouster (Ouster, Inc., 2024a), the dataset Urban Drive.pcap (4.80 GB) is used with its companion metadata file Urban Drive.json, which is required by the Ouster SDK for sensor calibration (Ouster, Inc., 2024c). For Velodyne (Valgur, 2024), the dataset used is OfficeWalking Velodyne-VLS128.pcap (2.32 GB), captured using a VLS-128 sensor (Velodyne Lidar, Inc., 2019). For Hesai (Hesai Technology, 2025), hesai BusyRoad.pcap (3.48 GB) is used, and for Livox (Livox Technology, 2019), Static CarIntersection Livox-HAP.pcap (604 MB) is used. All datasets are outdoor capture scenarios, deliberately chosen to test the pipeline under real-world operating conditions where environmental noise, dynamic objects, and varying point densities are naturally present — factors that stress-test the pipeline beyond controlled indoor environments (Roriz et al., 2022). 
+
+5.2. Evaluation Metrics 
+
+This pipeline is evaluated on three metrics. All conversions target LAS (ASPRS, 2019) format so output format itself does not affect the comparison across vendors. 
+
+Points converted measures how many point cloud points are successfully extracted from the raw PCAP data (Harris & Richardson, 2022) and written into the output file. Since point density varies across vendors (Roriz et al., 2022), this gives a more consistent workload measure than scan count alone. 
+
+Time taken captures the total runtime from opening the PCAP file to com-pleting the LAS (ASPRS, 2019) write operation. Full PCAP datasets are several gigabytes in size, so a max scans parameter is introduced to process controlled portions of the capture during benchmarking rather than repeatedly converting the complete dataset. Because vendors generate different point densities (Abbasi et al., 2022), the number of converted points varies even with the same max scans value. Throughput normalizes this difference by measuring points converted per unit 22 time, allowing runtime performance to be compared across vendors under dif-ferent workloads. 
+
+5.3. Results and Analysis 
+
+Using the metrics defined above, three graphs are analysed in this section, each targeting a different aspect of conversion performance, mainly how work-load size, parser architecture, and system limits affect conversion performance across vendors. 
+
+5.3.1. Scaling Behaviour — Points Converted vs Time Taken 
+
+The relationship between execution time and processed point volume is shown in Figure 2 using a log-log scale, since both runtime and point counts vary significantly across vendors and datasets. 
+
+Figure 2: Time taken vs. points converted (log-log scale) across all four vendors. All four vendors move in the same direction — more time leads to more points being processed. But the slope is not the same for everyone. Ouster (Ouster, Inc., 2024a) and Velodyne (Valgur, 2024) scale more efficiently at larger 23 workloads, converting substantially more points within similar runtime windows. Hesai (Hesai Technology, 2025) and Livox (Livox Technology, 2019) grow more gradually in comparison. The Livox trend terminates earlier than the other vendors because the bench-mark dataset itself is smaller in size. The available packet stream is exhausted before reaching comparable point volumes, making this a dataset limitation rather than a pipeline limitation. Runtime increased consistently across all four vendors as workload size grew, and no abrupt slowdown or conversion instability was observed during larger runs. The larger performance differences originate mainly from parser imple-mentation and packet decoding overhead (Lin & Lin, 2017) rather than the conversion layer itself. 
+
+5.3.2. Average Throughput Across Vendors 
+
+Figure 3 compares the average throughput observed across different max scans workloads for all four vendors. The max scans parameter controls how many sensor scans are processed during a single execution run, allowing throughput behaviour to be compared under similar workload conditions. 
+
+Figure 3: Average throughput per vendor, showing the separation between C++ SDK-backed parsers (Ouster, Velodyne) and pure Python parsers (Hesai, Livox). 24 A clear separation appears between vendors backed by C++ SDKs (Ouster, Inc., 2024a; Valgur, 2024) and those relying primarily on Python-based packet decoding (Song et al., 2024). Ouster (Ouster, Inc., 2024a) and Velodyne (Valgur, 2024) sustain average throughput near 1.3M and 1M points per second respec-tively, while Hesai (Hesai Technology, 2025) and Livox (Livox Technology, 2019) remain close to 134K and 102K points per second across larger workloads. The throughput gap is tied more closely to parser backend implementation than to the conversion stage itself. Vendors using C++ parsers with Python bindings (Ouster, Inc., 2024a; Valgur, 2024) spend much less time in packet decoding and memory handling compared to pipelines operating mainly through Python-level parsing (Song et al., 2024; Python Software Foundation, 2024b). Despite the runtime differences, conversion completeness and extracted point counts remained consistent across all four vendors during evaluation. 
+
+5.3.3. Throughput Degradation Under Load 
+
+Figure 4 illustrates how throughput changes as workload size increases across different vendor pipelines. The graph highlights how parser implementation, memory usage, and output-writing overhead begin affecting sustained conver-sion performance at larger point counts (Wang et al., 2025). 25 Figure 4: Normalised throughput vs. points converted, expressed as a percent-age of each vendor’s peak throughput. The degradation behaviour differs noticeably across vendors. Ouster (Ouster, Inc., 2024a) and Hesai (Hesai Technology, 2025) show a gradual throughput de-cline as workload size increases, mainly due to growing memory pressure and the higher cost of writing larger LAS (ASPRS, 2019) outputs. Livox (Livox Tech-nology, 2019) follows a different trend: throughput initially improves as startup overhead becomes less dominant over larger runs, then begins dropping once re-source pressure increases. Velodyne (Valgur, 2024) continues scaling efficiently through medium workloads before declining at higher point counts, where mem-ory handling and packet buffering begin limiting sustained throughput. These throughput profiles suggest that bottlenecks point to vendor parser behaviour as the primary bottleneck rather than the conversion layer itself (Lin & Lin, 2017). Different vendors stress different parts of the pipeline as workload size grows, which means optimization strategies do not remain uniform across all parser backends. 26 6. Conclusion 
+
+Raw PCAP data (Harris & Richardson, 2022) from different LiDAR man-ufacturers (Roriz et al., 2022) still does not have a clean, unified processing path. Every vendor brings its own SDK requirements (Ouster, Inc., 2024a; Val-gur, 2024), its own parsing assumptions (Lin & Lin, 2017), and in the case of Hesai and Livox, no production-grade open-source Python support at all (He-sai Technology, 2025; Livox Technology, 2019). What we built addresses this directly — a pipeline that reads the raw packet stream, figures out which ven-dor produced it, and converts it to whichever standard format the downstream workflow needs, without any manual vendor selection in between. The pipeline was tested against real-world captures from all four vendors. Vendor detection succeeded on every dataset without manual configuration. Conversion completed across all five supported output formats — LAS (ASPRS, 2019), LAZ (LASzip/rapidlasso GmbH, 2025), PCD (Rusu & Cousins, 2024a), BIN (Geiger et al., 2012), and CSV — with no parser failures recorded across any of the evaluation runs. The performance benchmarks also revealed a clear architectural gap between C++-backed (Ouster, Inc., 2024a; Valgur, 2024) and Python-based parsers (Song et al., 2024; Python Software Foundation, 2024b). Ouster and Velodyne reached approximately 1.3M and 1M points per second respectively, while Hesai and Livox remained near 134K and 102K points per second. The observed 8–10 × throughput difference, shown in Figure 4, was linked more to parser implementation architecture (Lin & Lin, 2017) than to the conversion pipeline itself. The pipeline still faces a few practical limitations at larger workloads. Dur-ing higher point-count processing, especially with Ouster (Ouster, Inc., 2024a) and Hesai (Hesai Technology, 2025) datasets, memory pressure begins affect-ing sustained throughput and total runtime (Wang et al., 2025). Additional optimisation around chunked memory management (laspy Contributors, 2024a) could improve scalability for larger captures. The current wrapper structure also leaves room for adding more vendors later, since new parsers only need to 27 integrate with the existing base interface already used throughout the pipeline. Near-term improvements also include packaging the project as a PyPI (Python Packaging Authority, 2024) library so setup becomes less dependent on manual installation steps. 
+
+CRediT authorship contribution statement Param Patel: Conceptualization, Methodology, Software, Validation, In-vestigation, Data curation, Writing – original draft, Visualization. Jay Dave: 
+
+Supervision, Writing – review & editing. Pratyush Chakraborty: Supervi-sion, Writing – review & editing, Project administration. 
+
+Declaration of Generative AI and AI-assisted technologies in the writ-ing process 
+
+During the preparation of this manuscript, the authors used Claude (An-thropic) and ChatGPT (OpenAI) to support language refinement, struc-tural editing, and clarity improvements of the text. These tools were used strictly as writing aids and did not contribute to the research design, method-ology development, implementation, experiments, or interpretation of results. All technical content, system design, algorithms, implementation details, and experimental evaluations were developed independently by the authors. The authors reviewed, verified, and revised all AI-assisted outputs to ensure accu-racy, originality, and alignment with the scientific contributions of the work. The authors take full responsibility for the integrity, correctness, and originality of the submitted manuscript. 
+
+Declaration of Competing Interest 
+
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper. 28 References 
+
+Abbasi, R., Bashir, A. K., Alyamani, H. J., Amin, F., Doh, J., & Chen, J. (2022). Lidar point cloud compression, processing and learning for au-tonomous driving. IEEE Transactions on Intelligent Transportation Sys-tems , . doi: 10.1109/TITS.2022.3167957 .ASPRS (2019). LAS Specification Version 1.4 . Technical Report American Society for Photogrammetry and Remote Sensing. URL: https://github. com/ASPRSorg/LAS .Butler, H., Chambers, B., Hartzell, P., & Glennie, C. (2021). Pdal: An open source library for the processing and analysis of point clouds. Computers & Geosciences , 148 , 104680. doi: 10.1016/j.cageo.2020.104680 .Chen, S., Yang, B., Xia, Y., Cheng, M., Shen, S., & Wang, C. (2024). Bridging lidar gaps: A multi-lidars domain adaptation dataset for 3d semantic seg-mentation. In Proceedings of the 33rd International Joint Conference on Artificial Intelligence (IJCAI) . doi: 10.24963/ijcai.2024/90 .Geiger, A., Lenz, P., & Urtasun, R. (2012). Are we ready for autonomous driving? the kitti vision benchmark suite. In Proceedings of the IEEE Con-ference on Computer Vision and Pattern Recognition (CVPR) (pp. 3354– 3361). doi: 10.1109/CVPR.2012.6248074 .Harris, C. R., Millman, K. J., van der Walt, S. J. et al. (2020). Ar-ray programming with numpy. Nature , 585 , 357–362. doi: 10.1038/ s41586-020-2649-2 .Harris, G., & Richardson, M. (2022). Pcap capture file format. IETF Internet-Draft. URL: https://ietf-opsawg-wg.github.io/ draft-ietf-opsawg-pcap/ .Hesai Technology (2025). Pandar40p 40-channel mechanical lidar user man-ual. URL: https://www.hesaitech.com/wp-content/uploads/2025/04/ Pandar40P_User_Manual_402-en-250410.pdf .29 Intel Corporation (2024). Intel core i3-1005g1 processor spec-ifications. Intel Product Specifications. URL: https: //www.intel.com/content/www/us/en/products/sku/196588/ intel-core-i31005g1-processor-4m-cache-up-to-3-40-ghz/ specifications.html .Kitware, Inc. and Velodyne Lidar (2024). Veloview: Open-source lidar visual-ization. GitHub. URL: https://github.com/Kitware/VeloView .Ladra, S., Luaces, M. R., Param´ a, J. R., & Silva-Coira, F. (2024). Compact and indexed representation for lidar point clouds. Geo-spatial Information Science , 27 , 1035–1070. doi: 10.1080/10095020.2022.2121664 .laspy Contributors (2024a). Compression support – laspy documentation. URL: 
+
+https://github.com/laspy/laspy .laspy Contributors (2024b). laspy: Python library for lidar las/laz io. GitHub. URL: https://github.com/laspy/laspy .LASzip/rapidlasso GmbH (2025). Laz specification 1.4 – revision r1. URL: 
+
+https://laszip.org/ .Library of Congress (2024a). Las (laser) file format, version 1.4. Digital Formats. URL: https://www.loc.gov/preservation/digital/formats/ fdd/fdd000418.shtml .Library of Congress (2024b). Ply (polygon file format) family. Digital Formats. URL: https://www.loc.gov/preservation/digital/formats/ fdd/fdd000501.shtml .Lin, Y.-H., & Lin, Y.-S. (2017). Data packet decoder design for lidar sys-tem. In Proceedings of the IEEE International Conference on Consumer Electronics-Taiwan (ICCE-TW) (pp. 1–2). doi: 10.1109/ICCE-China. 2017.7990982 .30 Livox Technology (2019). Lvx file format specification v1.0. URL: https:// www.livoxtech.com/3296f540ecf5458a8829e01cf429798e/downloads/ Livox%20Viewer/LVX%20Specifications%20EN_20190924.pdf .Livox Technology (2020). Livox viewer user manual v1.0. URL: 
+
+https://www.livoxtech.com/3296f540ecf5458a8829e01cf429798e/ downloads/Livox%20Viewer/Livox%20Viewer%20User%20Manual.pdf .Livox Technology (2023). Livox sdk communication protocol – hap. GitHub Wiki, Livox-SDK2. URL: https://github.com/Livox-SDK/Livox-SDK2/ wiki/Livox-SDK-Communication-Protocol-HAP .McKinney, W. (2010). Data structures for statistical computing in python. In 
+
+Proceedings of the 9th Python in Science Conference (SciPy) (pp. 56–61). Austin, TX, USA. doi: 10.25080/Majora-92bf1922-00a .Ouster, Inc. (2024a). Ouster sensor sdk. GitHub. URL: https://github.com/ ouster-lidar/ouster-sdk .Ouster, Inc. (2024b). Ouster studio: Simplified lidar sensor visualization soft-ware. URL: https://ouster.com/products/software/ouster-studio .Ouster, Inc. (2024c). Python quickstart guide – ouster sensor sdk documenta-tion. GitHub. URL: https://github.com/ouster-lidar/ouster-sdk/ blob/master/docs/python/quickstart.rst .Ouster, Inc. (2024d). Sensor data – ouster sensor documentation. URL: 
+
+https://static.ouster.dev/sensor-docs/image_route1/image_ route2/sensor_data/sensor-data.html .PDAL Contributors (2024). readers.bpf – binary point format reader. PDAL Documentation. URL: https://pdal.io/stages/readers.bpf.html .Python Packaging Authority (2024). Packaging python projects. Python Pack-aging User Guide. URL: https://packaging.python.org/tutorials/ packaging-projects/ .31 Python Software Foundation (2024a). Python 3.13 documentation. URL: 
+
+https://docs.python.org/3.13/ .Python Software Foundation (2024b). struct – interpret bytes as packed binary data. Python 3 Standard Library Documentation. URL: https://docs. python.org/3/library/struct.html .Quigley, M., Conley, K., Gerkey, B., Faust, J., Foote, T., Leibs, J., Wheeler, R., & Ng, A. Y. (2009). Ros: an open-source robot operating sys-tem. In Proceedings of the ICRA Workshop on Open Source Software .Kobe, Japan. URL: https://robotics.stanford.edu/~ang/papers/ icraoss09-ROS.pdf .Roriz, R., Cabral, J., & Gomes, T. (2022). Automotive lidar technology: A sur-vey. IEEE Transactions on Intelligent Transportation Systems , 23 , 6282– 6297. doi: 10.1109/TITS.2021.3086804 .Roriz, R., Silva, H., Dias, F., & Gomes, T. (2024). A survey on data compression techniques for automotive lidar point clouds. Sensors , 24 , 3185. doi: 10. 3390/s24103185 .Rusu, R. B., & Cousins, S. (2024a). The pcd (point cloud data) file format. Point Cloud Library Documentation. URL: https://pointclouds.org/ documentation/tutorials/pcd_file_format.html .Rusu, R. B., & Cousins, S. (2024b). The velodyne high definition lidar (hdl) grabber. Point Cloud Library Documentation. URL: https:// pointclouds.org/documentation/tutorials/hdl_grabber.html .Song, D. et al. (2024). dpkt: Fast, simple packet creation / parsing. GitHub. URL: https://github.com/kbandla/dpkt .Valgur, M. (2024). velodyne-decoder: Python package and c++ library for velo-dyne packet decoding. PyPI v3.1.0. URL: https://github.com/valgur/ velodyne_decoder .32 Velodyne Lidar, Inc. (2019). Vlp-16 user manual rev. f. URL: 
+
+https://data.ouster.io/downloads/velodyne/user-manual/ vlp-16-user-manual-revf.pdf .Wang, C. et al. (2025). Breaking barriers in 3d point cloud data processing: A unified system for efficient storage and high-throughput loading. Ex-pert Systems with Applications , 277 , 126983. doi: 10.1016/j.eswa.2025. 126983 .33
