@@ -1,0 +1,59 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-29T21:59:46.026074+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.23152v1",
+      "source": "arxiv",
+      "title": "ShotcreteDepth: A Bi-modal Dataset for Robust Robotic Depth Perception in Shotcrete Construction Environments",
+      "abstract": "We introduce ShotcreteDepth, a bi-modal dataset from the construction domain that captures both an active shotcreting process and general construction environments. The dataset comprises stereo RGB imagery and LiDAR point clouds acquired under harsh real-world conditions, including high turbidity and poor illumination. Such conditions adversely affect sensor measurements, leading to incomplete and noisy observations that pose significant challenges for perception systems in autonomous applications. Alongside the dataset, we release a lightweight annotation tool designed for time-efficient labeling of LiDAR point clouds. ShotcreteDepth consists of 11,252 temporally synchronized data samples, of which 220 are annotated for evaluation purposes. The dataset supports research in stereo matching, depth completion, and depth estimation under conditions that closely reflect the operational complexities found in industrial settings. Project repository: https://github.com/dtu-pas/shotcrete-depth",
+      "authors": [
+        "Jakub Gregorek",
+        "Lars Arnold Dethlefsen",
+        "Patrick Schmidt",
+        "Mads Essenbæk",
+        "Jonas Flink Bentzen",
+        "Lazaros Nalpantidis"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-22T10:56:57+00:00",
+      "link": "https://arxiv.org/pdf/2606.23152v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Dataset includes stereo RGB and LiDAR point clouds for depth perception.",
+      "llm_evidence_cn": "数据集包含立体RGB图像和LiDAR点云，用于深度感知。",
+      "llm_evidence": "数据集包含立体RGB图像和LiDAR点云，用于深度感知。",
+      "canonical_evidence": "数据集包含立体RGB图像和LiDAR点云，用于深度感知。",
+      "llm_tldr_en": "ShotcreteDepth is a bi-modal dataset with stereo RGB and LiDAR point clouds from construction environments, enabling robust depth perception under harsh conditions.",
+      "llm_tldr_cn": "ShotcreteDepth是一个来自施工环境的双模态数据集，包含立体RGB图像和LiDAR点云，旨在应对高浊度和低光照等恶劣条件下传感器测量不完整和噪声大的挑战。该数据集提供11252个时间同步样本，其中220个带有标注，并附带一个轻量级标注工具，可加速LiDAR点云的标注过程。它为自主应用中的鲁棒深度感知研究提供了宝贵的基准，有助于推动多模态融合和深度估计方法的发展。",
+      "llm_tldr": "ShotcreteDepth是一个来自施工环境的双模态数据集，包含立体RGB图像和LiDAR点云，旨在应对高浊度和低光照等恶劣条件下传感器测量不完整和噪声大的挑战。该数据集提供11252个时间同步样本，其中220个带有标注，并附带一个轻量级标注工具，可加速LiDAR点云的标注过程。它为自主应用中的鲁棒深度感知研究提供了宝贵的基准，有助于推动多模态融合和深度估计方法的发展。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
