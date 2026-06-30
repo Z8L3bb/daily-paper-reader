@@ -6,26 +6,29 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-29
-- 运行时间：2026-06-29 22:00:23 UTC
+- 最新运行日期：2026-06-30
+- 运行时间：2026-06-30 22:05:01 UTC
 - 运行状态：成功
-- 本次总论文数：1
-- 精读区：0
-- 速读区：1
+- 本次总论文数：2
+- 精读区：2
+- 速读区：0
 
 ### 今日简报（AI）
-今日速读一项隧道施工场景下的机器人感知研究，发现喷射混凝土环境给深度估计带来新挑战。  
-最值得关注的是：针对粗糙、低纹理的喷浆表面，该工作构建了首个双目与激光雷达融合的真实数据集，揭示现有模型在此类环境中的性能短板。  
-建议进一步了解该数据集的开源情况，为相关工业场景的感知系统选型提供参考。
-- 详情：[/202606/29/README](/202606/29/README)
+今日精读两篇高分论文，一头扎进LiDAR感知的安全攻防与SLAM高精度定位。  
+最值得看：用可解释性引导的稀疏攻击，能精准打穿主流3D检测器的结构软肋；而几何嵌入的关键点描述子让激光闭环在大场景里更稳、更轻量。  
+想跟进的话，可以从攻击面评估与鲁棒特征匹配这两个方向切入，帮你的系统做一次“安全体检”。
+- 详情：[/202606/30/README](/202606/30/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Explainability-Aware Frustum Attack: Exposing Structural Vulnerabilities in LiDAR-Based 3D Object Detectors](/202606/30/2606.29963v1-explainability-aware-frustum-attack-exposing-structural-vulnerabilities-in-lidar-based-3d-object-detectors)  
+   标签：评分：9.0/10、query:lidar-d-det
+   evidence：利用可解释性对LiDAR基3D目标检测器进行对抗分析
+2. [PinNet: Keypoint-Aware Learned Local Descriptors with Geometric Embedding for Loop Closure in LiDAR SLAM](/202606/30/2606.28637v1-pinnet-keypoint-aware-learned-local-descriptors-with-geometric-embedding-for-loop-closure-in-lidar-slam)  
+   标签：评分：8.0/10、query:lidar-d-det
+   evidence：采用基于平面的几何自注意力模块，聚合三维点云关键点的特征
 
 ### 速读区论文标签
-1. [ShotcreteDepth: A Bi-modal Dataset for Robust Robotic Depth Perception in Shotcrete Construction Environments](/202606/29/2606.23152v1-shotcretedepth-a-bi-modal-dataset-for-robust-robotic-depth-perception-in-shotcrete-construction-environments)  
-   标签：评分：7.0/10、query:lidar-d-det
-   evidence：数据集包含立体RGB图像和LiDAR点云，用于深度感知。
+- 本次无速读推荐。
 
 
 <div class="dpr-home-promo-card">

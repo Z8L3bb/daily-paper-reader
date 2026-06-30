@@ -1,0 +1,329 @@
+Title: PinNet: Keypoint-Aware Learned Local Descriptors with Geometric Embedding for Loop Closure in LiDAR SLAM
+
+URL Source: https://arxiv.org/pdf/2606.28637v1
+
+Published Time: Tue, 30 Jun 2026 00:21:13 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# PinNet: Keypoint-Aware Learned Local Descriptors with Geometric Embedding for Loop Closure in LiDAR SLAM 
+
+Yanlong Ma 1, Nakul S. Joshi 1, Christa S. Robison 2, Philip R. Osteen 2, Brett T. Lopez 1
+
+Abstract — Loop closure is essential to reduce drift and build globally consistent maps in large-scale environments. However, reliable loop closure with only geometric information from, e.g., a LiDAR sensor, remains challenging due to the difficulty of constructing discriminative geometric features. We present PinNet, a neural network that produces local geometric descriptors from point clouds for place recognition and scan-to-scan registration. PinNet incorporates a neural network that generates keypoints and their corresponding descriptors, together with a plane-based geometric self-attention module that models inter-keypoint spatial relationships to enhance descriptor discriminability for loop-closure detection and point-cloud registration. The approach is comprehensively evaluated on multiple datasets collected with different LiDAR sensors. Experimental results demonstrate strong place-recognition per-formance, precise relative pose estimation, and successful single-shot localization in different environments. 
+
+I. I NTRODUCTION 
+
+Localization and mapping have attracted significant atten-tion due to the rapid growth of autonomous applications, including self-driving vehicles, infrastructure inspection, and environmental exploration. Many of these applications re-quire an accurate map that provides a comprehensive un-derstanding of the environment for navigation and decision-making. Modern LiDAR-based Simultaneous Localization and Mapping (SLAM) algorithms, such as [1]–[3], have achieved state-of-the-art performance. However, even with increasingly reliable localization, accumulated drift remains a challenge, particularly in large-scale or feature-sparse envi-ronments. Hence, robust loop closure (i.e., place recognition) is essential for localization and mapping accuracy. To this end, prior work has addressed loop closure de-tection by constructing discriminative descriptors (i.e., fea-tures) from LiDAR point clouds [4]–[6]. Typically, these approaches rely on handcrafted features and database re-trieval to propose candidate loop closures. Despite recent improvements [7]–[12] over traditional methods, extracting distinctive geometric features in large-scale real-world en-vironments remains challenging due to point cloud spar-sity, viewpoint variations, high computational cost, lack of a global reference frame, and false positives from geo-metrically similar structures. Beyond detecting loop-closure candidates, accurately estimating the relative transformation 
+
+*This research was sponsored by the DEVCOM Army Research Labora-tory (ARL) under SARA CRA W911NF-24-2-0017. Distribution Statement A: Approved for public release; distribution is unlimited.  
+
+> 1
+
+University of California, Los Angeles, Los Angeles, CA, USA. 
+
+{yanlong, nakuljoshi, btlopez }@ucla.edu  
+
+> 2
+
+DEVCOM Army Research Laboratory (ARL), Adelphi, MD, USA. 
+
+{christa.s.robison, philip.r.osteen }.civ@army.mil ⋯ 
+
+> ⋮
+> 𝒢 !
+> ⋮
+> 𝒢 "
+> Descriptor Database
+> PinNet
+> Descriptor Query Current Mapping Session
+> Scan
+> Registration
+> ⋮
+> ℱ
+> ⋮
+> 𝒢 #
+> Aligned Map
+> Match
+
+Fig. 1: PinNet provides a robust and accurate place recognition and map alignment method based on learned local geometric descriptors for point clouds. A point cloud acquired by the robot used in this work (bottom right) is fed into the PinNet, which generates a set of discriminative local descriptors (top middle). A database of scans from the current or previous mapping session is then queried (left half) for potential matches in descriptor space. If a suitable match, i.e., a loop-closure candidate, is found, the two maps are aligned to obtain a globally consistent map (bottom middle). 
+
+between point clouds is required to construct a globally-consistent map. However, traditional Iterative Closest Point (ICP) point cloud alignment methods are sensitive to initial-ization and can converge to local minima, reducing accuracy. These challenges highlight the need for geometric descrip-tors that are discriminative and capable of estimating precise transformations, enabling robust loop closure detection and accurate registration. To address this, we developed PinNet, a learning-based framework that leverages local geometric descriptors for loop closure detection. By learning distinctive local representations, PinNet enables reliable loop-closure retrieval and accurate estimation of relative poses between point clouds. The main contributions of this work are:  
+
+> •
+
+A learning-based model that extracts keypoints and a sparse set of descriptors encoded with view-consistent local geometry features from dense point clouds.  
+
+> •
+
+A plane-based geometric transformer encoder that strengthens geometric relationships between keypoints, improving the discriminative ability of the descriptors.  
+
+> •
+
+A complete pipeline that performs both robust place recognition and accurate scan-to-scan registration across diverse environments online. We demonstrate the precision and robustness of our ap-proach through a comprehensive quantitative evaluation on the public SemanticKITTI dataset and a qualitative eval-uation on self-collected datasets from the Army Research Lab (ARL) Graces Quarters test facility and University of California, Los Angeles (UCLA) campus, with different types of LiDAR sensors, illustrating the versatility of the designed pipeline and learned descriptors. 
+
+> arXiv:2606.28637v1 [cs.RO] 26 Jun 2026
+
+II. R ELATED WORKS 
+
+Loop closure detection aims to identify previously visited locations to reduce the accumulated drift inherent in simulta-neous localization and mapping (SLAM). This process gen-erally comprises place recognition, which retrieves potential loop candidates, followed by point cloud registration to esti-mate the relative transformation and impose pose constraints. The framework typically relies on feature descriptors that provide compact and discriminative representations of point clouds, enabling robust data association despite variations in viewpoint and environmental conditions. Early works handcraft these descriptors using analytical geometry, surface normals, curvature, or point distributions [4]. M2DP [5] constructs a global descriptor by projecting point clouds onto multiple 2D planes and computing his-togram signatures for each. Scan Context [6] and Scan Con-text++ [13] construct 2D matrix descriptors by partitioning the point cloud along azimuth and radius, with each bin encoding the height of the points it contains. However, hand-crafted features often lose geometric detail when reducing the dimensionality of point clouds, limiting their accuracy and applicability in large-scale environments. To mitigate this limitation, other heuristic approaches, such as BTC [12], propose a combination of descriptors, including a binary descriptor encoding point occupancy along the z-axis and a triangle-based descriptor that captures geometric relation-ships among local point pairs, improving performance. More recently, learning-based approaches have dominated feature extraction for both place recognition and registration. PointNetVLAD [14] is an early work in point-based place recognition, combining PointNet [15] for local feature extrac-tion with NetVLAD for aggregation into a single compact global descriptor. NDT-Transformer [7] represents a 3D point cloud using probabilistic distributions and learns a global descriptor through a transformer-based neural network. Min-kLoc3D [10] applies a 3D Feature Pyramid Network to extract local features, while LoGG3D-Net [11] introduces a local consistency loss to improve the local feature ex-traction. LCDNet [16] designs a shared 3D voxel CNN feature extractor that is applied in both place recognition and registration. Projection-based methods, such as OverlapNet [8] and OverlapTransformer [9], project point clouds into 2D space and use 2D vision techniques for feature extraction. Despite these advances, many prior methods omit cor-respondence estimation or produce unreliable registration results; yet accurate point cloud alignment remains essential for incorporating loop closure constraints into the pose graph. Recent learning-based methods [17], [18] register point clouds by learning correspondences from point-cloud features and refining transformations with robust pose es-timators such as RANSAC or GICP [19]. Although these methods show promising results, they cannot be directly applied to alignment without assuming overlap between point clouds. To address this limitation, we propose a framework that extracts local descriptors and enables both place recog-nition and registration with high accuracy. III. M ETHODS 
+
+In this section, we present our proposed framework for geometric feature extraction, enabling both loop closure detection (i.e., place recognition) and registration. The frame-work consists of three components: (i) a keypoint-aware downsampling module that extracts sparse keypoints and de-scriptors, (ii) a plane-based geometric self-attention module that enhances the descriptiveness of local features, and (iii) a local-descriptor-based loop closure detection and registra-tion module. We first provide an overview of the pipeline, followed by detailed descriptions of each component. 
+
+A. System Overview 
+
+An overview of the proposed pipeline is shown in Fig. 2. It takes dense point clouds as input, either individual point clouds from, e.g., a LiDAR sensor, or keyframes extracted by a keyframe-based SLAM algorithm (e.g., DLIO [3], [20]). Point clouds are first voxelized to reduce computational complexity. The voxelized point clouds are then passed to a keypoint-aware downsampling module that extracts key-points and computes multi-resolution features for keypoints and upsampled dense points. The self-attention module takes these keypoints and local features as input and applies a plane-based geometric self-attention mechanism to exploit spatial relationships among keypoints. In the loop closure detection and registration module, loop-closure candidates are identified by thresholding the mean of the smallest local descriptor distances between scans. The initial relative transformation between the candidate frames is estimated by minimizing point-to-point distances between descriptor-based keypoint correspondences and is further re-fined using GICP [19]. Finally, false loop-closure candidates are rejected by verifying that both the inlier ratios and the relative pose errors—quantified by the Mahalanobis distance produced by GICP—remain within predefined thresholds. We now describe each module in our pipeline in more detail. 
+
+B. Keypoint-Aware Local Descriptor Generation 
+
+Keypoints capture distinctive geometric features of the surrounding 3D structure or scene that are nearly viewpoint-invariant. This distinctiveness and invariance make keypoints well-suited for robust loop closure detection. A locally consistent keypoint representation reduces variability in the neighborhood used for discriminative local descriptor gen-eration; furthermore, it decreases the Euclidean error during point correspondence estimation, thereby enhancing the ro-bustness of place recognition and accuracy of the relative transformation estimation between point clouds. We propose a keypoint-aware local descriptor generation framework that incorporates a keypoint detection module to produce consistent keypoints and local descriptors. The network structure is illustrated in the Keypoint-Aware Down-sampling module of Fig. 2. To enable real-time pairwise distance computation for local descriptor matching, the raw point clouds are first downsampled to a sparse subset. We employ the KPConv [21] neural network architecture to hierarchically extract multi-level features for corresponding Features Matching                         
+
+> Keypoints Matching
+> ⋮⋮
+> 𝒫 "ℱ
+> Place Recognition
+> 0.8
+> 0.7
+> 0.2
+> Database
+> Query
+> True
+> SVD
+> GICP
+> Loop Closure Detection
+> ⋮⋮
+> ⋮⋮
+> ⋮
+> ⋮
+> ⋮
+> ⋮
+> ⋮⋮
+> ⋮⋮
+> Inlier
+> Error
+> ⋯
+> Distance Matrix (D)
+> 𝒢
+> ⋯
+> ℱ
+> 0.2
+> ⋮
+> ⋮
+> 0.3
+> Registration
+> 𝒫 %,ℱ%
+> 𝒫 (,ℱ(
+> 𝓅 ̃i
+> 𝓅 ̅
+> Encoder Decoder
+> MLP
+> Pooling
+> SoftMax
+> 𝒲
+> KP Detection
+> MLP
+> 𝒫 (𝒬 )
+> Keypoint -Aware Downsampling
+> ℱ,
+> 𝒫 ,𝒫 ,⋯
+> ⋯
+> ×𝑁 !"
+> Self -Attention Fig. 2: The proposed framework consists of three modules: (i) Keypoint-Aware Downsampling extracts keypoints and local descriptors from dense point clouds; (ii) Geometric Self-Attention enhances the descriptiveness of local feature extraction; and (iii) Loop Closure Detection identifies potential loop closures by computing the average of the smallest npairwise distances between local descriptors, estimates the relative transformation by aligning the corresponding keypoints, and further rejects outliers by evaluating the inlier ratio and relative alignment error.
+
+points during the multi-stage downsampling process. How-ever, the voxel-grid downsampling strategy used in KPConv introduces inconsistency; even small rotations may alter the distribution of downsampled points and distort the geom-etry. Furthermore, objects outside overlapping regions can influence the positions of downsampled sparse points within overlapping point clouds, which reduces the consistency of the resulting descriptors. To address this issue, we introduce a geometry-dependent downsampling strategy that replaces sparse points with so-called keypoints. 
+
+Sparse Point Downsampling and Feature Extraction. 
+
+Given a point cloud P = {p1, . . . , p N | pi ∈ R3}, we apply the KPConv-FPN feature extraction network with fixed voxel-grid downsampling to capture features for both sparse and dense points, doubling the voxel size at each downsam-pling stage. In the encoder’s final stage, we denote the sparse points and their features as ˆP = {ˆp1, . . . , ˆpn | ˆpi ∈ R3} and 
+
+ˆF = { ˆf1, . . . , ˆfn | ˆfi ∈ R ˆd}, where ˆd is the sparse-feature dimensionality. In the decoder, we compute the features of upsampled points up to the first downsampled layer, since the points in P already fully describe the geometry of the original point cloud without requiring additional descriptors. We denote the upsampled dense points and their features as 
+
+˜P = {˜p1, . . . , ˜pm | ˜pi ∈ R3} and ˜F = { ˜f1, . . . , ˜fm | ˜fi ∈
+
+R ˜d}, where ˜d is the dense-feature dimensionality. 
+
+Consistent Keypoint Detection. To address the inconsis-tencies of the sparse points introduced by voxelization, we estimate new keypoint positions by aggregating the neighbor-ing dense points corresponding to the downsampled sparse points. Given the sparse points ˆP, we first search for the 
+
+k nearest neighbors ( kNN) among the dense points ˜P. For each sparse point ˆpi ∈ ˆP with a group of neighboring dense points {˜pi
+
+> 1
+
+, . . . , ˜pik | ˜pij ∈ ˜P} and their corresponding features { ˜f i
+
+> 1
+
+, . . . , ˜f ik | ˜f ij ∈ ˜F} , we compute the positions of the neighboring dense points relative to each sparse point and calculate the corresponding Euclidean distance offsets. These relative positions and distances are concatenated with the original point features, yielding k neighboring points augmented with an enhanced feature representation in R ˜d+4 .The weights for the k neighboring points, W =
+
+{w1, . . . , w k | wi ∈ [0 , 1] }, are obtained by feeding the neighboring features into a multilayer perceptron (MLP), followed by a pooling layer, and then normalizing the outputs using a SoftMax function. The keypoint is computed as a weighted sum of the neighboring points within each group. The corresponding feature is updated by concatenating the previous sparse point feature ˆfi with the weighted sum of neighboring point features, followed by an MLP. Additionally, to mitigate overfitting, we employ random dilation grouping as in [22]. Rather than selecting the k
+
+nearest neighbors of each sparse point, we first identify the 2k nearest neighbors and randomly sample k points in each iteration. Completing this pipeline, we obtain the keypoints ¯P and their corresponding local descriptors ¯F as a compressed representation of the point cloud. 
+
+C. Plane-Based Geometrical Transformer Encoder 
+
+Although the local descriptors computed as described above accurately encode the local geometry around the keypoints, they do not explicitly capture the global structure of the point cloud. To address this limitation, we introduce a plane-based geometric transformer encoder to enhance local descriptors with geometric relationships among keypoints. Inspired by [18], which encodes Euclidean distances and angles between points, we design a plane-based transformer encoder that considers not only point-to-point but also plane-to-plane geometric relationships among keypoints. The pro-posed transformer encoder comprises Nsa independently configured plane-based geometric self-attention modules. Each module employs a conventional self-attention structure augmented with a planar geometric embedding component. We consider two metrics to represent planar relationships between keypoints: Mahalanobis distance and surface angle. 
+
+Mahalanobis Distance Embedding. Given any two key-points ¯pi and ¯pj in ¯P and the point cloud P, we compute the covariance matrices of the 20 nearest points to each keypoint, denoted as Σi and Σj . The Mahalanobis distance is computed as dij = (¯ pi − ¯pj )T (Σi +Σj )−1(¯ pi − ¯pj ), and the embedding εMij ∈ R ¯d is obtained via the sinusoidal function 
+
+εMij, 2k = sin ( βd dij /c k) εMij, 2k+1 = cos ( βd dij /c k) (1) where βd controls the sensitivity of the Mahalanobis distance and ck = (1e4) 2k/ ¯d with dimension of the feature vector ¯d.Surface Angle Embedding. Given the covariance matrix of a keypoint neighborhood, we take the eigenvector associated with the smallest eigenvalue as the surface normal and denote the normals corresponding to Σi and Σj as ni and nj ,respectively. The angle between them is computed as αij =arccos( n⊤ 
+
+> i
+
+nj ). The embedding εNij can then be computed using the same formulation as in (1), with the angle αij and the hyperparameter βn replacing dij and βd, respectively. We also include the point-wise Euclidean distance embed-ding εEij and the triplet-wise angular embedding εAij proposed in [18]. Finally, the geometric information between keypoints 
+
+¯pi and ¯pj is represented as a combination of all embeddings 
+
+εij = εMij W M + εEij W E + εNij W N + εAij W A,
+
+where W M , W E , W N , and W A ∈ R ¯d× ¯d are the respective projection matrices for the Mahalanobis distance, Euclidean distance, surface normal angle, and triplet-wise angular em-beddings. Given the keypoints ¯P and their corresponding features ¯F, the new geometric-context-aware local descriptor 
+
+fi of keypoint ¯pi is computed as 
+
+fi = 
+
+> |¯P|
+
+X
+
+> j=1
+
+1
+
+√ ¯d ( ¯fiW Q) ( ¯fj W K + εij W E )⊤ ( ¯fj W V ),
+
+where W Q, W K , W V , and W E are the projection matrices for the queries, keys, values, and embeddings, respectively. 
+
+D. Network Training and Loss Functions 
+
+We adopt a contrastive learning strategy to train the network. Given partially overlapping point clouds P and Q,positive keypoint pairs are defined in overlapping regions, while negative pairs correspond to non-overlapping regions. The network is trained to minimize descriptor distances for positive pairs and maximize them for negative pairs. Specifically, for each keypoint, a local patch is constructed by selecting neighboring dense points within a radius. Ground-truth correspondences between keypoints are determined by evaluating the average geometric distance between their local patches. Keypoints are designated as positive pairs if their corresponding local patches exhibit at least 10% overlap; otherwise, they are treated as negative pairs. We denote the keypoints and local descriptors output by the plane-based geometric transformer as ¯P, ¯Q, and 
+
+F, G, respectively. To train the model to identify accurate correspondences between local descriptors, we adopt the contrastive circle loss, following [18], [23]. Additionally, since SVD is differentiable, we incorporate a transformation loss LT to minimize the registration error 
+
+LT = 1
+
+|P| 
+
+X
+
+> pi∈P
+
+∥(T − ˆT ) ρi∥2,
+
+where ρi = ( pi, 1) ⊤ and T, ˆT ∈ SE (3) are the ground-truth and predicted transformation between point clouds P
+
+and Q, respectively. We also use Chamfer loss to supervise keypoint learning by minimizing distances between corre-sponding keypoints in overlapping regions. The overall loss is a weighted combination of the three terms. 
+
+E. Loop Closure Detection and Registration 
+
+The proposed framework represents each point cloud as a set of local descriptors. Incorporating the learned keypoints, it enables both loop closure detection and accurate estimation of relative transformations between point clouds. Given local descriptor sets F = {f1, . . . , f m} and G = {g1, . . . , g n}
+
+extracted from point clouds P and Q, respectively, we compute the pairwise descriptor distance matrix D ∈ Rm×n
+
+with entries Dij = ∥fi − gj ∥2. The inter-scan distance between P and Q is defined as 
+
+d(P, Q) = 1
+
+s
+
+> s
+
+X
+
+> k=1
+
+dk, (2) where dk is the kth smallest element of D and s is the number of keypoint pairs selected. Potential loop closures between point clouds are identified by evaluating whether the inter-point-cloud distance between their corresponding local descriptors falls below a threshold. When multiple candidates satisfy this criterion, the point cloud with the minimum distance is selected as the loop-closure candidate. Let ¯P = {¯p1, . . . , ¯pm} and ¯Q = {¯q1, . . . , ¯qn} denote the sets of keypoints extracted from point clouds P and Q,respectively. Following the loop closure detection scheme, initial correspondences are established by selecting s key-point pairs with the smallest descriptor distances. The coarse transformation {R, t } is recovered via SVD by solving 
+
+R, t = arg min R∈SO (3) ,t ∈R3
+
+> s
+
+X
+
+> i=1
+
+∥R ¯pi + t − ¯qi∥2.
+
+This alignment is subsequently refined using Generalized Iterative Closest Point (GICP), initialized with the SVD solution, to achieve high-precision registration. Because a single false-positive loop closure can com-promise localization and map accuracy, we perform outlier rejection on all loop-closure candidates. In our pipeline, each candidate is evaluated by first estimating the relative transformation between two point clouds using descriptor-based keypoint correspondences, followed by refinement with dense point cloud alignment. Specifically, a candidate is rejected if the GICP alignment error exceeds a predefined threshold or if the post-alignment inlier ratio—the proportion of matching points after alignment—between the aligned point clouds falls below a minimum threshold. IV. E XPERIMENTS 
+
+We quantitatively evaluated the proposed method on the public KITTI dataset and compared our approach with hand-crafted and learning-based methods to demonstrate the effec-tiveness of the learned descriptors for both place recognition and registration. We qualitatively evaluated loop closure performance through map alignment on datasets collected on the UCLA campus and using custom ground vehicles at the ARL Graces Quarters test facility (see Fig. 1). Moreover, we showed the versatility of the learned descriptors via the task of single-shot localization in a prebuilt point-cloud map. TABLE I: Evaluation of Place Recognition on KITTI Dataset Sequence KITTI 00 KITTI 02 KITTI 05 KITTI 06 KITTI 07 Average F1 MAX AP F1 MAX AP F1 MAX AP F1 MAX AP F1 MAX AP F1 MAX AP BTC 0.9670 0.9838 0.6418 0.5680 0.8895 0.9623 0.9869 0.9926 0.9106 0.9576 0.8792 0.8929 Scan Context 0.9183 0.9388 0.8151 0.7762 0.8679 0.8699 0.9811 0.9836 0.4319 0.3861 0.8029 0.7909 OverlapTransformer 0.9309 0.9715 0.8229 0.8267 0.8553 0.9211 0.9544 0.9818 0.5022 0.4922 0.8131 0.8387 LoGG3D-Net 0.9352 0.9733 0.8440 0.8637 0.9819 0.9918 0.9871 0.9922 0.8291 0.9038 0.9155 0.9450 LCDNet 0.9693 0.9936 0.9186 0.9599 0.9503 0.9778 0.9945 0.9939 0.7757 0.8204 0.9217 0.9491 PinNet (Ours) 0.9813 0.9967 0.9518 0.9849 0.9406 0.9788 1.0000 0.9939 0.9262 0.9461 0.9600 0.9800 
+
+A. Implementation and Training Details 
+
+We trained the model on KITTI sequences 00 –09 using a leave-one-out cross-validation strategy. Training was con-ducted on a desktop equipped with an NVIDIA RTX 4090 GPU using the ADAM optimizer with an initial learning rate of 5 × 10 −5, which was decayed by a factor of 0.05 every 7 steps. The local descriptors F had a dimension of 256. We set s = 256 when selecting corresponding keypoints and computing pairwise distances to evaluate matching scores and transformations. All the point clouds were voxelized with a leaf size of 0.3 m as the inputs. For each keypoint, the number of nearest dense points was set to k = 64 .The number of self-attention layers Nsa was set to 3. The embedding hyperparameters βm and βn were set to 1/4.8
+
+and 1/15 ◦, respectively. To mitigate overfitting, we applied data augmentation during training, including random rotations of up to ±180 ◦
+
+about the yaw axis and ±3◦ about the roll and pitch axes. Random translations of up to ±2 m, ±2 m, and ±1 m were applied along the x, y, and z axes, respectively. Additionally, 
+
+10% of the points were randomly dropped, and Gaussian noise N (0 , 0.01) was added for point jittering to simulate occlusions and measurement noise and improve robustness to imperfect LiDAR returns. 
+
+B. Place Recognition 
+
+We compared the distinctiveness of the descriptors with several place recognition methods, including the handcrafted methods BTC [12] and Scan Context [6], and learning-based methods OverlapTransformer [9], LoGG3D-Net [11], and LCDNet [16]. We evaluated place recognition on KITTI sequences 00 , 02 , 05 , 06 , and 07 .For each point cloud, we computed its similarity to all preceding point clouds and selected the one with the mini-mum descriptor-space distance as the loop-closure candidate. Precision and recall were computed by varying the simi-larity threshold. To avoid temporally adjacent matches, we excluded the most recent 50 point clouds from the search. A detected loop closure was treated as a true positive if the ground-truth distance was less than 5 m, and as a false positive otherwise. Additionally, as in [12], we obtained BTC precision and recall by varying the plane-overlap threshold. For OverlapTransformer, LoGG3D-Net, and LCDNet, we used their released pretrained models. The precision-recall curves are shown in Fig. 3, with the corresponding F1-max scores and Average Precision (AP) 
+
+reported in Table I. The best method is highlighted in bold ,  
+
+> Fig. 3: Precision-Recall curves for KITTI dataset. The proposed method outperforms the baselines on sequences 00, 02, and 07, while LoGG3D-Net achieves the best performance on sequence 05.
+
+and the second-best is underlined. Our method achieved the highest F1-max score on sequences 00 , 02 , 06 , and 07 ,while LoGG3D-Net performed the best on sequence 05 .Regarding Average Precision (AP), our approach ranked first on sequences 00 , 02 , and 06 , and second on the remaining sequences. Overall, our method achieved the highest average scores in both F1-max and AP, demonstrating the effective-ness of the proposed descriptors for place recognition. 
+
+C. Relative Pose Estimation 
+
+We evaluated the accuracy of relative pose estimation using the learned local descriptors on the same sequences as in Section IV-B. Among the baseline methods, Over-lapTransformer and LoGG3D-Net cannot estimate relative poses between point clouds. Since the released BTC code does not provide the evaluation of pose estimation, we compared our proposed method with LCDNet, which also performs loop closure detection and pose estimation within a single network. Scan Context was included as a baseline for comparison. The RANSAC estimator in LCDNet and the GICP alignment in our method were removed to assess relative pose estimation using only descriptors. The performance of pose estimation was quantified using all positive loop closures by selecting point cloud pairs whose ground-truth distances were within 5 m. Following [16], we evaluated pose estimation using three metrics: (1) 
+
+Rotation Error (RE) – the geodesic distance between rotation (A1)                                                                                
+
+> (A2) (A3) (B3) (B2) (C2) (C3)
+> (B1) (C1) Fig. 4: Single-shot localization. The global map is visualized in white, the query scans (A2, B2, C2) in red, and the retrieved partitioned maps (A3, B3, C3) in green. The alignment results show that the query scans are accurately registered to the corresponding regions of the global map, highlighting the robustness of the proposed method for precise localization across diverse environments, including Bunche Hall (UCLA) (A) and Mout Site (ARL) (B, C). TABLE II: Registration Evaluation on KITTI Sequences Approach Scan Context LCDNet PinNet w/o GICP PinNet w/ GICP Recall †Yaw †[deg] Recall ‡TE [m] RE ‡[deg] Recall TE [m] RE [deg] Recall TE [m] RE [deg] KITTI 00 95.54% 3.300 13.35% 0.741 6.441 100.00% 0.115 0.391 100.00% 0.035 0.155 KITTI 02 93.64% 2.811 4.17% 1.136 7.476 97.66% 0.544 1.095 99.87% 0.507 0.993 KITTI 05 95.54% 2.734 15.02% 0.711 6.264 98.89% 0.236 0.655 99.07% 0.136 0.519 KITTI 06 99.25% 0.952 10.59% 1.359 6.565 100.00% 0.091 0.268 100.00% 0.046 0.198 KITTI 07 90.97% 9.820 16.02% 1.083 6.613 98.71% 0.250 0.469 100.00% 0.031 0.141
+> †As Scan Context estimates only the yaw component, recall is evaluated by checking whether the yaw error is below the rotation threshold.
+> ‡The original implementation reported only the yaw error; we provide full rotation error.
+
+matrices, (2) Translation Error (TE) – the Euclidean distance of relative translation, (3) Recall – the ratio of successful registrations where RE < 5◦ and TE < 2 m. The results are presented in Table II. Our method achieved high accuracy in both rotation and translation estimation, outperforming LCDNet and Scan Context across all metrics and sequences. As a reference, we further assessed performance with GICP refinement, which provides the final estimated transforma-tion in our framework. With GICP refinement, the average translation error decreased from 0.247 m to 0.151 m, the average rotation error decreased from 0.575 ◦ to 0.401 ◦, and the average recall improved from 99.05% to 99.78%. 
+
+D. Map Alignment 
+
+We qualitatively evaluated loop-closure candidates gen-erated by the proposed framework in the map alignment task. We used two partially overlapping sequences from ARL Graces Quarters to represent the outdoor environment. To reduce the search space, we ran loop closure detection on keyframes produced by [20] rather than on all frames. Specif-ically, for each keyframe in the query sequence, we detected loop closures against keyframes in the reference sequence. We then constructed a pose graph from the detected loop closures and their associated transformations, and optimized it with iSAM2 to align the maps in the same coordinate. As shown in Fig. 1, the maps align correctly. Notably, unlike KITTI, which uses a Velodyne HDL-64E LiDAR, our dataset was collected with an OUSTER OS-1 sensor. We further applied the proposed framework to align datasets collected on the UCLA campus using a Livox Mid-360 sensor. Unlike the previous task, these datasets exhibited significantly different perspectives. Specifically, the reference dataset was collected from elevated outdoor locations, in-cluding upper-level terraces and multi-story walkways, while the query scans were acquired at ground level (Fig. 5), simulating a low-overlap map alignment scenario between a ground and aerial vehicle. For the multi-story walkway datasets, all frames were used due to limited candidates. Compared to the previous setting, this task is more challeng-ing due to limited overlap and a lack of distinctive geometric features along the z-axis. As shown in Fig. 5, the maps align accurately. We applied the model without retraining on the new sensor or environment, indicating that the proposed local descriptors generalize effectively across scenarios. 
+
+E. Single-Shot Localization 
+
+We evaluated single-shot localization further to demon-strate the robustness and versatility of the learned descriptors. Unlike scan-to-scan place recognition followed by pairwise registration, single-shot localization requires estimating the (A1) (A2)         
+
+> (A3) (A4) (a) A1 shows the image from the upper-level terrace, A2 from ground level, while A3 and A4 show the aligned point cloud. (B1) (B2)
+> (B3) (B4)
+> (b) B1 shows the image from the outdoor building walkway, B2 from ground level, while B3 and B4 show the aligned point cloud. Fig. 5: Accurate alignment of point clouds from different viewpoints on the UCLA campus using a Livox Mid-360 highlights the strong generalization of the proposed local descriptors. w/o keypoints w/ keypoints
+> Fig. 6: Ablation study of keypoint detection. Left: No keypoint detection. Right: Keypoint detection. Keypoint detection significantly reduces the residuals between matched points.
+
+full 6-DoF pose of a query scan directly within a prebuilt large-scale point-cloud map. This setting is more challeng-ing for descriptor discrimination, as it must handle large viewpoint variations and accurately identify the correct pose without relying on explicit candidate search. To estimate the scan pose, we constructed a descriptor map by extracting keypoints and their associated local descriptors from a prebuilt point-cloud map. Instead of processing the entire map in a single forward pass, the map was partitioned into spatially bounded submaps, and local descriptors were generated independently for each submap. This restricted the network to local neighborhoods, producing more precise de-scriptors while avoiding interference from distant structures. The resulting keypoint-centric descriptors are aggregated in a common map frame based on their keypoint locations, forming a descriptor map used for retrieval and localization. We retrieved the closest matching local area using asliding-window search over the full descriptor map, where                                    
+
+> TABLE III: Ablation Studies on KITTI Sequences
+> Methods KITTI 05 KITTI 07 w/o Keypoints w/o Plane Embedding PinNet w/o Keypoints w/o Plane Embedding PinNet F1 Max 0.9318 0.9247 0.9406 0.9091 0.9076 0.9262
+> AP 0.9769 0.9762 0.9788 0.9343 0.9374 0.9461
+> Recall 98.26% 98.86% 98.89% 88.18% 93.65% 98.71%
+> TE 0.393 0.270 0.236 0.755 0.523 0.250
+> RE 0.795 0.994 0.655 1.718 0.945 0.469
+
+the window moved with a fixed stride across non-empty regions to generate candidate partitioned maps. This spatial constraint prevents ambiguous descriptor matches across the global map, ensuring that matched local descriptors are spatially coherent rather than scattered across distant regions. Formally, given a query scan p, the single-shot localization task is formulated as a retrieval problem over the partitioned descriptor maps {M i}N
+
+> i=1
+
+. The optimal partitioned map index i∗ is identified by minimizing the distance metric: 
+
+i∗ = arg min i∈{ 1,..., N } d (p, Mi),
+
+where d(·, ·) represents the inter-scan distance between query 
+
+p and partitioned map Mi, as defined in (2). To ensure localization robustness, we selected the final match based on the inlier ratio determined during the sub-sequent registration stage. Rather than relying solely on descriptor similarity for retrieval, we retained the top-three candidates and computed the inlier ratio of dense point correspondences between each candidate partitioned map and the query scan. We then identified the partitioned map with the highest inlier ratio and estimated the query pose by solv-ing for the rigid transformation, following the registration procedure detailed in Section III-E. If the maximum inlier ratio fell below a predefined threshold, the query scan was classified as non-localizable within the prebuilt map. We validated the proposed framework for single-shot localization using datasets acquired at UCLA and ARL Grace Quarters. The reference maps were generated using the SLAM algorithm [20], and query scans were randomly sampled from a separate sequence traversing the same re-gions, ensuring partial overlap between the reference map and the query data. As illustrated in Fig. 4, red points represent localized query scans, and green points denote the corresponding matched partitioned maps. The resulting pose estimations are consistent with the ground truth, demonstrat-ing the robustness and versatility of the learned descriptors. 
+
+F. Ablation Studies 
+
+We assessed the importance of individual components of the proposed framework via ablation studies. All models were trained and evaluated using the settings in Section IV-A. We used sequences 05 and 07 because they were more challenging in our tests. The results are reported in Table III. Removing the plane-based embedding reduced the F1-max score by 0.02, showing its value for capturing geometric structure in place recognition. Meanwhile, removing the key-point detection module resulted in substantially larger trans-formation errors by 0.33 m, demonstrating its importance in reducing drift in point cloud registration. The residuals of the Fig. 7: Precision–Recall curves on the KITTI dataset. Results show that the local-descriptor approach consistently outperforms the global descriptor across all sequences. 
+
+matched points, measured as Euclidean distances between the corresponding points used in point cloud registration, are shown in Fig. 6. A shorter line indicates smaller Euclidean errors between matched points. A clear reduction is observed when the keypoint detection module is included. In our framework, we rely on local descriptors to compare point clouds and establish correspondences. Compared with global descriptors, our local descriptors avoid dependence on a specific aggregation scheme and are less sensitive to partial changes in the point cloud, making them more robust for loop closure detection. To study this design, we retrained the same network with an additional NetVLAD [24] module, which is widely adopted for global descriptor generation [9], [16]. For the global-descriptor baseline, we measured point-cloud similarity using the Euclidean distance between global descriptors, instead of the average pairwise distance between local descriptors. The resulting precision-recall curves are shown in Fig. 7. Overall, the global descriptor underperforms the local-descriptor approach across all sequences. V. C ONCLUSION 
+
+In this paper, we presented a learning-based loop closure detection framework that achieves accurate and robust perfor-mance across diverse environments in both place recognition and point cloud registration tasks. The proposed keypoint-aware downsampling strategy enhanced the consistency of local descriptors, while the plane-based geometric trans-former improved feature extraction by leveraging geometric information from downsampled keypoints. We validated the proposed descriptors across place recognition, pairwise regis-tration, map alignment, and single-shot localization, demon-strating their robustness and versatility. Notably, features extracted from point clouds are not only used for loop closure detection and map alignment but have also been applied to a variety of other tasks in recent studies [25]. REFERENCES [1] T. Shan et al. , “Lio-sam: Tightly-coupled lidar inertial odometry via smoothing and mapping,” in IEEE/RSJ Int. Conf. Intell. Robots Syst. ,2020, pp. 5135–5142. [2] W. Xu, Y. Cai, D. He, J. Lin, and F. Zhang, “Fast-lio2: Fast direct lidar-inertial odometry,” IEEE Trans. Robot. , vol. 38, no. 4, pp. 2053– 2073, 2022. [3] K. Chen, R. Nemiroff, and B. T. Lopez, “Direct lidar-inertial odome-try: Lightweight lio with continuous-time motion correction,” in IEEE Int. Conf. Robot. Autom. , 2023, pp. 3983–3989. [4] R. B. Rusu, N. Blodow, and M. Beetz, “Fast point feature histograms (fpfh) for 3d registration,” in IEEE Int. Conf. Robot. Autom. , 2009, pp. 3212–3217. [5] L. He, X. Wang, and H. Zhang, “M2dp: A novel 3d point cloud descriptor and its application in loop closure detection,” in IEEE/RSJ Int. Conf. Intell. Robots Syst. , 2016, pp. 231–237. [6] G. Kim and A. Kim, “Scan context: Egocentric spatial descriptor for place recognition within 3d point cloud map,” in IEEE/RSJ Int. Conf. Intell. Robots Syst. , 2018, pp. 4802–4809. [7] Z. Zhou et al. , “Ndt-transformer: Large-scale 3d point cloud localisa-tion using the normal distribution transform representation,” in IEEE Int. Conf. Robot. Autom. , 2021, pp. 5654–5660. [8] X. Chen et al. , “Overlapnet: A siamese network for computing lidar scan similarity with applications to loop closing and localization,” 
+
+Auton. Robots , vol. 46, no. 1, pp. 61–81, 2022. [9] J. Ma et al. , “Overlaptransformer: An efficient and yaw-angle-invariant transformer network for lidar-based place recognition,” IEEE Robot. Autom. Lett. , vol. 7, no. 3, pp. 6958–6965, 2022. [10] J. Komorowski, “Minkloc3d: Point cloud based large-scale place recognition,” in Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis. ,2021, pp. 1790–1799. [11] K. Vidanapathirana et al. , “Logg3d-net: Locally guided global de-scriptor learning for 3d place recognition,” in IEEE Int. Conf. Robot. Autom. , 2022, pp. 2215–2221. [12] C. Yuan et al. , “Btc: A binary and triangle combined descriptor for 3-d place recognition,” IEEE Trans. Robot. , vol. 40, pp. 1580–1599, 2024. [13] G. Kim, S. Choi, and A. Kim, “Scan context++: Structural place recog-nition robust to rotation and lateral variations in urban environments,” 
+
+IEEE Trans. Robot. , vol. 38, no. 3, pp. 1856–1874, 2021. [14] M. A. Uy and G. H. Lee, “Pointnetvlad: Deep point cloud based retrieval for large-scale place recognition,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , 2018, pp. 4470–4479. [15] C. R. Qi, H. Su, K. Mo, and L. J. Guibas, “Pointnet: Deep learning on point sets for 3d classification and segmentation,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , 2017, pp. 652–660. [16] D. Cattaneo, M. Vaghi, and A. Valada, “Lcdnet: Deep loop closure detection and point cloud registration for lidar slam,” IEEE Trans. Robot. , vol. 38, no. 4, pp. 2074–2093, 2022. [17] C. Choy, W. Dong, and V. Koltun, “Deep global registration,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , 2020, pp. 2514– 2523. [18] Z. Qin et al. , “Geometric transformer for fast and robust point cloud registration,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. ,2022, pp. 11 143–11 152. [19] A. Segal, D. Haehnel, and S. Thrun, “Generalized-icp.” in Rob.: Sci. Syst. , vol. 2, no. 4, 2009, p. 435. [20] K. Chen, R. Nemiroff, and B. T. Lopez, “Direct lidar-inertial odometry and mapping: Perceptive and connective slam,” arXiv:2305.01843 ,2023. [21] H. Thomas et al. , “Kpconv: Flexible and deformable convolution for point clouds,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. , 2019, pp. 6411–6420. [22] F. Lu, G. Chen, Y. Liu, Z. Qu, and A. Knoll, “Rskdd-net: Random sample-based keypoint detector and descriptor,” Adv. Neural Inf. Process. Syst. , vol. 33, pp. 21 297–21 308, 2020. [23] Y. Sun et al. , “Circle loss: A unified perspective of pair similarity op-timization,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. ,2020, pp. 6398–6407. [24] R. Arandjelovic et al. , “Netvlad: Cnn architecture for weakly su-pervised place recognition,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. , 2016, pp. 5297–5307. [25] D. Thorne, N. Chan, C. S. Robison, P. R. Osteen, and B. T. Lopez, “Optmap: Geometric map distillation via submodular maximization,” 
+
+arXiv:2512.07775 , 2025.
