@@ -1,0 +1,413 @@
+Title: PL-LIT: A LiDAR-Inertial-Thermal SLAM Using Point-Line Features and Thermographic Mapping
+
+URL Source: https://arxiv.org/pdf/2606.29259v1
+
+Published Time: Tue, 30 Jun 2026 01:02:27 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# PL-LIT: A LiDAR-Inertial-Thermal SLAM Using Point-Line Features and Thermographic Mapping 
+
+Jiawei Xia 1,3, Yixiao Feng 1,2, Yongliang Shi 1†, Chao Gao 1†, Renjing Xu 2, Weining Lu 1, Bin Liang 1
+
+Abstract — Thermal imaging is resilient to adverse condi-tions—such as intense illumination, low-light operation, and fog—and can therefore mitigate odometry degradation when visible-spectrum imagery becomes unreliable. Nevertheless, most thermal cameras employ automatic gain control (AGC), and thermal images often present low global contrast despite containing informative edge structures. These characteristics undermine brightness constancy and cause conventional optical flow tracking-based odometry pipelines that fundamentally rely on the brightness constancy assumption across consec-utive frames. To address these issues, we propose a general LiDAR–Inertial-Thermal SLAM system that accommodates both visible-light and thermal cameras. PL-LIT combines an online photometric calibration module with a deep neural network for point–line feature extraction, enabling more stable and repeatable thermal tracking. For state estimation, we design a tightly coupled LiDAR–Inertial–Thermal formulation within an Error-State Iterated Kalman Filter (ESIKF). We further in-troduce a line-feature constraint scheme ensuring the reliability of geometric constraints across varying thermal appearances. In addition, PL-LIT builds a probabilistic thermal-intensity voxel map, which supports real-time thermal anomaly detection. Extensive experiments demonstrate that PL-LIT exhibits gen-erality and robustness in visible-light environments, achieves state-of-the-art performance on long-range thermal infrared datasets, and provides practical safety inspection functionality based on thermographic mapping. 
+
+I. INTRODUCTION LiDAR-Inertial-Visual SLAM (LIV-SLAM) [1]–[3] has become a cornerstone for robotic autonomy, enabling reli-able localization and mapping in tasks such as navigation and inspection. Nevertheless, existing tightly coupled LIV-SLAM systems exhibit an inherent vulnerability: the visual subsystem is highly sensitive to abrupt illumination changes. In real-world, for instance, strong backlighting can cause severe overexposure, while nighttime conditions often lead to degraded image quality; both factors can critically undermine the robustness of the visual subsystem and even result in complete tracking failure. Thermal imaging offers a com-plementary sensing modality that remains effective in many of these visually degraded scenarios, thereby mitigating the limitations of conventional visible-light cameras. Thermal infrared cameras, with their characteristic passive sensing of long-wave infrared radiation, naturally fit the dual requirements of resisting illumination variation and perform-ing defect inspection. However, applying thermal imaging     
+
+> 1Tsinghua University
+> 2The Hong Kong University of Science and Technology (Guangzhou)
+> 3University of California, Berkeley
+> †Corresponding author Sponsored by the Xinchen Qihang Co., Ltd.
+
+directly to high-precision SLAM faces specific hurdles: ther-mal images suffer from low contrast, high noise, and a lack of color and texture details. Furthermore, AGC applies non-linear drastic radiometric rescaling to the raw signal based on scene temperature extremes. This severely disrupts photo-metric consistency and leads to a significant distribution shift of feature descriptors between consecutive frames, making traditional optical flow or feature-based methods highly prone to failure. Nevertheless, we draw inspiration from the photometric calibration method [4] and the fact that thermal images possess strong structural characteristics—manifested in object edges and linear features—which tend to be more stable than texture [5]. Moreover, current inspection robots typically treat thermal data as independent 2D video streams, causing critical ther-mal data to lose precise three-dimensional spatial attributes. Consequently, systems cannot automatically associate ab-normal heat sources with specific equipment components, often relying on manual secondary verification. This causes the existing detection schemes to not only rely heavily on manual labor. Some thermal imaging temperature measure-ment methods directly adopt raw data, but this approach is constrained by several issues: extremely low image contrast caused by the absence of AGC and high computational resource requirements, which make it difficult to integrate into an autonomous SLAM system. Meanwhile, we have also noticed that in many cases, detecting the temperature variation is more effective than the temperature threshold. To address these issues, this paper proposes a tightly-coupled Point-Line LiDAR-Inertial-Thermal SLAM system (PL-LIT ). The main contributions are as follows: 1) System-Level Framework: We propose PL-LIT, which is a tightly-coupled Point-Line LiDAR-Inertial-Thermal SLAM system based on ESIKF that simultaneously performs structural-aware odometry and probabilistic thermal anomaly mapping. PL-LIT also can exhibit generality and robustness in visible-light environments. 2) Robust Front-end Design: We develop a structure-aware visual front-end tailored to thermal imaging. Local plane fitting on LiDAR point clouds is first performed to associate reliable depth with thermal feature points. An online photometric calibration module is integrated to mitigate inter-frame nonlinear radiometric fluctuations and improve feature tracking consistency. To address the intrinsic characteristics of thermal imagery—weak texture yet strong structural edges—we employ the PL-Net [6] to extract both point and line features and incorporate structural constraints into the reprojection 
+
+> arXiv:2606.29259v1 [cs.RO] 28 Jun 2026
+
+optimization for pose refinement. This design enhances robustness and accuracy in long-range, illumination-variant urban environment. 3) Thermal Anomaly Mapping: We propose a thermo-graphic map construction scheme integrated with loop closure detection. This method utilizes thermal images to construct a Probabilistic Consistent Intensity Map, enabling active detection of abnormal temperature vari-ation. Experimental results demonstrate that PL-LIT maintains competitive performance in different environ-ments while innovatively achieving the functionality of identifying thermal anomalies within the map. II. R ELATED WORKS 
+
+A. Multi-modal Sensor Fusion SLAM 
+
+Multi-modal sensor fusion has become the standard for robust state estimation in complex environments. Early ap-proaches often adopted a loosely-coupled architecture, treat-ing LiDAR and visual odometry as separate modules. For example, V-LOAM [7] combines a visual odometry front-end with a LiDAR mapping back-end to correct drift. However, loose coupling limits performance in degraded scenarios where one sensor fails. Recent advancements focus on tightly-coupled schemes, typically fusing measurements within a factor graph [8], [9] or an Error-State Iterated Kalman Filter framework [1]–[3], [10]. LVI-SAM [9] constructs a factor graph to fuse LiDAR-Inertial Odometry and Visual-Inertial Odometry, achieving high accuracy but with significant computational overhead due to global optimization. To improve efficiency, filter-based methods such as FAST-LIVO [2], FAST-LIVO2 [1], R2LIVE [10] and R3LIVE [3] integrate LiDAR, camera, and IMU states into a single ESIKF. More recently, AirSLAM [6] and LIR-LIVO [11] incorporates deep learning-based features to enhance robustness against illumination changes. Despite these successes, standard LIVO systems rely heavily on visi-ble light cameras, rendering them fragile in the illumination-denied environments. 
+
+B. Thermal Odometry 
+
+Thermal infrared cameras offer a viable alternative for robust perception. Early works extended standard visual odometry algorithms to the thermal domain. Vidas et al. [12] pioneered thermal odometry by employing optical flow to track GFTT features on images that had undergone rescaling. Shin et al. [13] proposed a direct thermal-inertial SLAM method using sparse depth enhancement. However, thermal SLAM faces unique challenges compared to the visible spectrum. Thermal images typically suffer from low contrast, high noise, and lack of texture, which degrades the performance of handcrafted feature extractors [14]. Another more critical issue is the AGC mechanism inherent in thermal cameras. As noted by Das et al. [4], AGC induces drastic, non-linear radiometric rescaling to maximize contrast, violat-ing the brightness constancy assumption and causing severe feature drift. Das et al. proposed a photometric calibration method to estimate gain and bias.  
+
+> Fig. 1. The system overview of PL-LIT
+
+With the development of deep learning techniques, neu-ral networks have been gradually introduced into the field of thermal odometry. Jiang et al. [15] combined tradi-tional methods with deep learning to propose a real-time thermal odometry system: this system employs a Singular Value Decomposition-based image enhancement algorithm to improve feature detection performance and utilizes alightweight optical flow network for feature tracking. Saputra et al. [16] proposed DeepTIO, which constructs an end-to-end neural network architecture to realize pose regression-based thermal odometry. Nevertheless, standalone thermal imaging systems still struggle to meet the requirements for robustness and high precision in most practical scenarios. Meanwhile, we have observed that although thermal images suffer from weak texture and low contrast, they exhibit distinct structural features. 
+
+C. Thermal Perception and Safety-Aware Mapping 
+
+Thermal sensing enhances safety-aware perception, yet most SLAM systems decouple 2D thermal streams from 3D geometry, hindering automated hazard detection. We bridge this gap with a Probabilistic Intensity Voxel Map [17]. By leveraging high-precision pose estimates from our tightly coupled LiDAR-Inertial-Thermal framework, we an-chor thermal measurements in a consistent global frame. This functional extension enables system detect the abnormal temperature variation alongside robust odometry. III. S YSTEM OVERVIEW 
+
+The overall framework of our system is illustrated in Fig. 1. PL-LIT employs a Sequential ESIKF framework to sequentially fuse inertial, LiDAR, and thermal data. First, the LiDAR-Inertial module compensates for motion distortion and computes frame-to-map point-to-plane residuals to con-strain the global geometric state. Subsequently, the thermal module refines the state using thermal-visual constraints. Specifically, we integrate an online photometric calibration module and utilize a fine-tuned PL-Net to extract point-line features, which are then associated with depth information provided by the local LiDAR map. A sliding window is employed to construct reprojection errors based on these point-line features. Finally, the optimized state is leveraged to project the calibrated thermal data into a Probabilistic Intensity Voxel Map. This system is also equipped with a loop closure detection function. TABLE I MATHEMATICAL NOTATIONS AND OPERATORS                       
+
+> Notation Description
+> G(·),I(·),L(·)Global, IMU, and LiDAR frames.
+> ATB= ( ARB,ApB)Transformation from frame Bto A.
+> ⊞,⊟The Manifold boxplus and boxminus.
+> x,ˆx,˜xTrue, predicted, and error state.
+> [a]∧Skew-symmetric matrix corresponding to vector a∈R3.
+
+IV. S TATE ESTIMATION 
+
+A. State Definition and Forward Propagation 
+
+The general mathematical notations are defined in Table I. We define the system state vector x on the manifold M
+
+as: 
+
+x ≜ [GRI , GpI , GvI , bg , ba, Gg]⊤ (1) where GRI ∈ SO (3) and GpI ∈ R3 respectively denote the attitude and position of the IMU in the global frame. 
+
+> G
+
+vI is the IMU velocity, and Gg is the gravity vector. bg
+
+and ba represent the gyroscope and accelerometer biases, respectively. To propagate the state forward, we discretize the continu-ous IMU kinematic model using a zero-order holder over the sampling interval ∆t. The discrete-time state propagation is given by: 
+
+xi+1 = xi ⊞ (∆ t · f (xi, ui, wi)) (2) The state transition function f (x, u, w), driven by the IMU measurements u ≜ [ω⊤
+
+> m
+
+, a⊤
+
+> m
+
+]⊤ and process noise w ≜
+
+[n⊤ 
+
+> g
+
+, n⊤ 
+
+> a
+
+, n⊤ 
+
+> bg
+
+, n⊤ 
+
+> ba
+
+]⊤, are defined as: 
+
+f (x, u, w) = 
+
+
+
+ωm − bg − ngGvI +  GRI (am − ba − na) + Gg ∆t
+
+> 2
+> G
+
+RI (am − ba − na) + Ggnbg
+
+nba
+
+03×1
+
+
+
+(3) The component ng , na represent the measurement noise, and 
+
+nbg , nba represent the random walk noise for the biases. We employ this model to predict the prior state, assuming zero noise ( w = 0): 
+
+ˆxi+1 = ˆ xi ⊞ (∆ t · f (ˆ xi, ui, 0)) (4) To facilitate linear error propagation, we introduce the error state ex as: 
+
+exi+1 = xi+1 ⊟ ˆxi+1 ≈ Fex exi + Fwwi (5) Simultaneously, the error state covariance ˆP propagates as: 
+
+ˆPi+1 = F˜x ˆPiF⊤ 
+
+> ˜x
+
++ FwQF ⊤ 
+
+> w
+
+(6) where F˜x and Fw are the Jacobians with respect to the error state ˜x and noise w, respectively. Q is the covariance matrix of the process noise w. This propagated state ˆxi+1 serves as the prior estimate for the subsequent measurement updates. 
+
+B. LiDAR Measurement Model 
+
+For a raw point Lpj ∈ S k, we first apply the Backward Propagation algorithm to compensate for motion distortion, projecting the point to the scan end time tk. We then adopt a scan-to-map registration strategy. The corrected LiDAR point is transformed into the global frame, and a local plane is fit to its nearest neighbors in the global map. Let Guj and Gqj denote the normal vector and centroid of the corresponding planar patch. Considering the LiDAR measurement noise Lnj , the point-to-plane geometric resid-ual hl(·) is modeled as: 
+
+0 = hl(xk, Lpj + Lnj )= Gu⊤
+
+> j
+
+ GRIk
+
+ I RL(Lpj + Lnj ) + I pL
+
+ + GpIk − Gqj
+
+
+
+(7) The term I RL and I pL represent the extrinsic parameters between LiDAR and IMU. The formula calculates the per-pendicular distance between the transformed LiDAR point and the map plane. Minimizing this residual converges the global geometric state, providing a high-accuracy lineariza-tion point for the subsequent thermal-visual refinement. 
+
+C. Thermal-Visual Measurement Model 
+
+This module refines the state by exploiting thermal vi-sual constraints. Unlike standard visual-inertial systems, we address the unique challenges of thermal imaging—low contrast, drastic radiometric rescaling, lack of texture, and severe noise—through a structure-aware feature processing pipeline. 
+
+1) Online Photometric Calibration: While feature-based methods typically offer better robustness to photometric vari-ations than direct methods, the AGC mechanism in thermal cameras introduces drastic, rapid, and nonlinear radiometric rescaling. This phenomenon severely disrupts inter-frame photometric consistency, leading to distribution shifts in feature descriptors and contrast degradation. To address this radiometric inconsistency, we adopt an online parameter estimation approach based on Das et al. [4]. Prioritizing real-time system performance, we streamline the original method by omitting the computationally expen-sive spatial parameter estimation. Instead, we leverage the existing feature tracks from the visual frontend: the (u, v )
+
+coordinates and intensity values are extracted directly from these tracks and utilized to estimate the global photometric parameters. We formulate this estimation as a nonlinear least squares problem with regularization: 
+
+min 
+
+> a,b
+
+X
+
+> k∈K
+
+ρ rk(a, b ) + λ1
+
+ (a − b) − 12 + λ2b2
+
+!
+
+(8) where K represents the set of valid feature correspondences. The photometric residual rk is defined by the mapping from the current frame to the reference keyframe: 
+
+rk(a, b ) = Iref (u′
+
+> k
+
+) − (a − b)Icurr (uk) + b (9) In this formulation, (a − b) and b represent the effective gain and bias, respectively. The quadratic terms λ1(( a − b) − 1) 2Fig. 2. The front-end feature extraction effect of PL-LIT on a frame from the NTU4DRadLM [19] loop3 sequence: the left image is the uncalibrated photometric image, and the right image is the photometrically calibrated one, where the blue points represent weighted points that satisfy the line feature. The right image has more blue points than the left image. 
+
+and λ2b2 serve as regularization priors. Unlike penalizing the raw parameters directly, this decoupled formulation prevents parameter drift by constraining the effective gain (a − b)
+
+towards unity and the bias b towards zero, ensuring phys-ical plausibility even under large parameter shifts. Finally, utilizing the estimated parameters, the calibrated intensity is computed as: 
+
+Icorr = ( a − b)Iraw + b (10) where ρ(·) denotes a robust cost function employed to mitigate the influence of tracking outliers. 
+
+2) LiDAR-Thermal Depth Association: The method asso-ciates high-precision LiDAR depth information with visual features to improve pose estimation accuracy. Within the camera view, LiDAR points maintained by a sliding window are projected onto a unit sphere. A 3D K-D tree finds some nearest points, which undergo a point-to-plane residual check to ensure validity. For features with associated depth, a near-field focus area (critical for translation estimation and temperature anomaly detection) is divided into high-density subdivisions. Beyond this, points are divided into 10 uniform intervals, supple-mented by extra feature extraction in sparse areas and near line features, ensuring even distribution. 
+
+3) Deep Point-Line Feature Extraction: To extract robust geometric features from blurred thermal images, we employ a fine-tuned PL-Net [6] as the core extractor. Its backbone network follows the design philosophy of SuperPoint [18]. The line detection branch utilizes a stacked U-Net archi-tecture to predict the Attraction Field representation, which encodes the distance and orientation parameters of potential lines. To efficiently bridge the domain gap between visible and thermal images, we adopt a transfer learning strategy: the pre-trained backbone and keypoint modules are frozen to retain generic geometric feature extraction capabilities, while the line detection module is fine-tuned on a small annotated thermal dataset with targeted augmentations. We converted the inference code from Python to C++, deployed it on NVIDIA TensorRT via ONNX. 
+
+4) Point-Line Feature Processing: Our visual module maintains a sliding window of keyframes. Depth information for feature points is directly associated from the synchronized LiDAR map, and feature matching adheres to the AirSLAM [6] strategy. However, due to the thermal blurring effect, directly triangulating 3D lines often leads to severe bias. Therefore, we propose a strategy that progresses from implicit weighting to explicit parameterization. For point features, structural information is exploited indirectly via an adaptive weighting scheme; however, for lines exhibiting long-term stability and redundant geometric support, we perform explicit 3D line parameterization to provide stronger geometric anchors. First, we employ a point-line associa-tion mechanism: for a pair of successfully matched feature points, we check whether both points are also successfully located on their corresponding matched line features in their respective image frames (the perpendicular distance from the point to the line is less than the threshold δline ). If this condition is met, the point pair is identified as Structure-Anchored Feature Points (e.g., the blue points shown in Fig. 2). These points are subsequently assigned a higher weight in the reprojection residual calculation, implicitly utilizing the structural information provided by the line features. We formulate the visual measurement model based on the reprojection error of these depth-associated features. Let  
+
+> Ck
+
+pj = [uj , v j ]⊤ and Ci pj be the observed normalized coordinates of the j-th feature in the current frame Ck and the reference frame Ci, respectively. The 3D point in the reference frame, Ci Pj , is first recov-ered using its inverse depth δj = 1 /d j and inverse projection function π−1(·): 
+
+> Ci
+
+Pj = 1
+
+δj
+
+π−1(Ci pj ) (11) This point is then transformed to the current camera frame 
+
+Ck via the kinematic chain involving the IMU states and extrinsic parameters:  
+
+> Ck
+
+Pj = I R⊤
+
+> C
+
+GR⊤
+
+> Ik
+
+GRIi (I RC Ci Pj + I pC )+ GpIi − GpIk
+
+
+
+− I pC
+
+ (12) where I RC and I pC denote the extrinsic rotation and position from the Camera frame to the IMU frame. The reprojection residual rC is defined as the difference between the observation and the projection of the predicted 3D point Ck Pj :
+
+rC (xk, Ck pj ) = C pj − π(Ck Pj ) (13) Here, π(·) is the projection function. To incorporate struc-tural information from line features, we assign higher weights to points that lie close to detected line segments using a Gaussian weighting function. We design the adaptive confidence factor wj as: 
+
+wj =
+
+(
+
+η · (1 + e− dist (j,l )2 
+
+> σ2
+
+) if j ∈ Structure-Anchored 
+
+1 otherwise (14) where dist (j, l ) is the perpendicular distance between point 
+
+j and its associated line l. η > 1 is a gain coefficient and σ
+
+controls the sensitivity. To mathematically incorporate this structural confidence into the optimization, the measurement information matrix for the j-th visual feature is scaled as R−1 
+
+> C,j
+
+= w2 
+
+> j
+
+R−10 , with 
+
+R0 being the nominal noise covariance. In the context of the nonlinear least-squares problem, this is equivalent to scaling the Mahalanobis distance of the reprojection residual by wj .This adaptive weighting scheme ensures that features tightly aligned with structural lines correspond to higher stiffness in the normal equations, thereby effectively utilizing the constraints introduced by successfully matched line features in thermal images. 
+
+5) Spatiotemporal Explicit Structural Constraints: While the implicit weighting strategy effectively handles local fea-tures, thermal imagery often provides distinct global edges (e.g., corridors, doors) that remain stable even when texture is absent. To fully leverage these global geometric primitives, we upgrade valid implicit constraints to explicit 3D line constraints using a spatiotemporal filter. A 2D line segment is promoted to an explicit constraint if it satisfies two strict criteria: 1) Temporal Consistency: The line is successfully tracked for at least Ntrack consecutive frames; 2) Spatial Redundancy: To overcome the sparsity of single-frame LiDAR measurements, we aggregate the associated line-depth points from all tracked frames into a accumulated point set UL by transforming them using their respective estimated poses. For such candidates, we employ Principal Component Analysis on the accumulated set UL to robustly initialize the 3D line via Total Least Squares fitting. This yields the line’s centroid μL and principal direction vector vL. The 3D line 
+
+Lw in the world frame is then parameterized using Pl¨ ucker coordinates Lw = ( nw, dw)⊤, where the direction vector 
+
+dw = vL and the moment vector nw = μL ×dw. Therefore, using the above-described method, we leverage the LiDAR-enhanced depth correlation mechanism to directly obtain high-precision 3D coordinates of the upsampled points on line features. Subsequently, we can robustly recover the geometric parameters of the 3D lines, thereby avoiding the scale ambiguity and initialization instability caused by monocular camera-based triangulation in thermal imaging SLAM. The line is transformed to the current camera frame Ck
+
+as Lck = ( nck , dck )⊤ via the line transformation derived from the camera pose. The projection of this 3D line onto the image plane is determined by the moment vector nck ,which represents the normal of the interpretation plane. The reprojection residual rL is formulated as the point-to-line distance between the observed 2D endpoints ( s, e) and the projected line normal lproj = [ l1, l 2, l 3]⊤ = nck :
+
+rL(xk, Lw) = 
+
+
+
+> s⊤lproj
+
+√l21 +l22
+
+> e⊤lproj
+
+√l21 +l22
+
+ (15) This explicit constraint allows feature points to slide along the edge, strictly penalizing only the perpendicular geometric error. The feature points that are successfully utilized to initialize and constrain explicit 3D lines are excluded from the point-based visual reprojection term ( rC ). 
+
+D. Sequential ESIKF 
+
+To efficiently fuse the heterogeneous multi-modal mea-surements while maintaining real-time performance, we em-ploy a two-stage sequential update strategy similar to FAST-LIVO2 [1] within a tightly-coupled ESIKF framework: ①
+
+LiDAR Geometric Update; ② Thermal-Visual Refinement. 
+
+1) Stage I: LiDAR Geometric Update: In the first stage, we utilize the IMU-propagated state ˆxk and covariance ˆPk
+
+(from Section IV-A) as the prior. The optimal error state 
+
+˜x is estimated by minimizing the LiDAR geometric residual 
+
+hl(·) defined in Eq.(7). This is formulated as an Iterated EKF (IESKF) optimization problem: 
+
+min 
+
+> ˜x
+
+∥˜x∥2ˆP−1
+
+> k
+
++ X
+
+> j∈S k
+
+∥hl(ˆ xk ⊞ ˜x, Lpj + Lnj )∥2
+
+> R−1
+> L
+
+
+
+(16) where RL is the covariance matrix of LiDAR measure-ment noise. We iteratively solve this optimization. In each iteration, the Kalman gain KL and the state update are computed. This intermediate posterior state, denoted as ˆxL 
+
+> k
+
+,provides a geometrically consistent linearization point for the subsequent visual module. 
+
+2) Stage II: Thermal-Visual Refinement: In the second stage, we refine the state using both structure-anchored feature points and explicit line constraints. The intermediate state ˆxL 
+
+> k
+
+and its covariance PL serve as the prior. The optimization objective incorporates the weighted visual re-projection residuals rC and the explicit line residuals rL:
+
+min 
+
+> ˜x
+
+∥˜x∥2(PL)−1 + X
+
+> j∈F k
+
+∥rC ∥2
+
+> R−1
+> C,j
+
++ X
+
+> m∈E k
+
+∥rL∥2
+
+> R−1
+> E
+
+
+
+(17) Here, Fk represents the set of point features, and Ek denotes the set of explicit line constraints verified by our spatiotem-poral filter. This dual-constraint formulation ensures that the system benefits from the texture-based details of point features while maintaining global geometric consistency via explicit lines, effectively dominating the gradient descent direction in degenerate scenarios. The final posterior state 
+
+ˆxk+1 and covariance ˆPk+1 are obtained after this refinement, completing the tightly-coupled fusion process. V. M AP MANAGEMENT 
+
+A. Loop Closure Detection 
+
+Because of the thermal images, traditional visual Bag-of-Words loop closure schemes struggle due to poor feature robustness and frequent mismatches. So our solution inte-grates a geometry-centric loop closure module [20]. This approach identifies loop candidates via a spatiotemporal radius search. Potential candidates are then strictly verified and finely registered against the current frame using Iterative Closest Point. Constraints with a high geometric fitness score are accepted and optimized within a GTSAM factor graph. B. Mapping and Safety-Anomaly Detection 
+
+We note that the key to most heat-source hazard problems lies not in the absolute temperature threshold, but in whether temperature changes can be detected to exceed the threshold. Standard 8-bit data streams are computationally efficient, but are susceptible to drift induced by Automatic Gain Control. To address these issues, the PL-LIT algorithm em-ploys a lightweight probabilistic intensity mapping strategy that decouples temperature information maintenance from visualization functions. We utilize the intensities output by the Online Photometric Calibration module to update the statistical model of the global Probabilistic Voxel Map. Each voxel maintains a self-adaptive Gaussian distribution N (μI , σ 2 
+
+> I
+
+) based on calibrated data, enabling robust detection of thermal anomalies against AGC drift. Simultaneously, we retain the raw 8-bit grayscale values for point cloud colorization. This design facilitates secondary human verification in the event of a safety alarm and enables high-contrast pseudo-color map visualization. To achieve robust identification of hazards, we design a multi-stage detection mechanism, which includes setting a distance threshold between the detection area and the robot, defining the 3σ criterion for grayscale variations, and establishing a minimum absolute threshold, among other measures. VI. E XPERIMENTS 
+
+To comprehensively evaluate the performance of PL-LIT, we design three groups of experiments. First, we utilize the Hilti Challenge 2022 dataset [21], which provides high-precision ground truth and RGB cam-era measurements, to verify the generality and robustness of PL-LIT in LiDAR–Inertial–Visual configurations under partially degraded visible-light conditions. The evaluation is conducted across three difficulty levels: easy (e.g., exp04, exp05; typical motion and scene complexity), medium (e.g., exp06, exp14; aggressive and rapid motions), and hard (e.g., exp16, exp18; long corridors, weak textures with aggressive and rapid motions). This hierarchical evaluation enables a systematic assessment of the system’s robustness against geometric degeneration, illumination variation, and motion-induced challenges. Second, we employ the NTU4DRadLM dataset [19] to validate the accuracy and robustness of PL-LIT on long-range thermal sequences. This dataset primarily consists of semi-structured urban road environments characterized by abundant line features and large-scale trajectories, provid-ing a suitable benchmark to highlight the advantages of our structure-aware point–line fusion framework in thermal imaging scenarios. Finally, to demonstrate the practical engineering value of the proposed system, we construct a handheld hardware platform (as shown in Fig. 6(d)) and conduct anomaly detection mapping experiments. The handheld device is equipped with a Livox Horizon LiDAR, a FLIR RGB camera (BFS-U3-13Y3), a Botu thermal camera (TB640-4M), and a Hipnuc IMU (HI71T3-MI0). These experiments evaluate (a)  (b)     
+
+> (c) (d) (e)
+> Fig. 3. (a)(b) present the mapping performance of PL-LIT in the hard sequence exp18 of the Hilti dataset. (c)(d)(e) illustrate the front-end point-line feature extraction results. (a)
+> (a)
+> (b)
+> (c)
+> (c) (b)
+> Fig. 4. This figure presents the radiometric mapping performance in the NTU4DRadLM loop3 sequence. The bottom row shows zoomed-in views of the highlighted regions in (a), (b), and (c), respectively.
+
+the real-world applicability of PL-LIT for thermal anomaly detection and safety inspection. Since few publicly available SLAM systems support thermal imagery, we compare PL-LIT against state-of-the-art LiDAR–Inertial–Visual Odom-etry (LIVO) and LiDAR–Inertial Odometry (LIO) frame-works, including FAST-LIVO2 [1], FAST-LIVO [2], R3LIVE [3], and FAST-LIO2 [22], using default or identical parame-ter settings whenever applicable. For a fair comparison, the loop closure module in PL-LIT is disabled in all benchmark-ing experiments. Accuracy is quantified using the Root Mean Square Error (RMSE) of the Absolute Pose Error (APE). 
+
+A. Performance on LiDAR-Inertial-Visual Dataset 
+
+Although PL-LIT is primarily designed as a Li-DAR–Inertial–Thermal fusion framework, our algorithm is designed to address the weak texture problem in thermal images. Therefore, it demonstrates highly competitive perfor-mance on difficult LiDAR–Inertial–Visual datasets as well. As shown in Table II and Fig. 3, under both nominal conditions (exp04–exp14), PL-LIT consistently outperforms FAST-LIO2, R3LIVE, and FAST-LIVO. TABLE II COMPARISON OF RMSE APE [ M] IN VISIBLE -L IGHT AND THERMAL ENVIRONMENTS                                                                     
+
+> Methods Hilti Challenge 2022 (LiDAR-Inertial-Visual) NTU4DRadLM (LiDAR-Inertial-Thermal)
+> exp04 exp05 exp06 exp14 exp16 exp18 loop1 loop2 loop3
+> Easy Easy Medium Medium Hard Hard (6.95km) (4.79km) (4.23km) FAST-LIO2 [22] 0.055 0.058 0.047 0.094 ×0.614 11.378 11.376 12.289 R3LIVE [3] 0.197 0.181 0.098 0.277 ××14.735 13.639 13.045 FAST-LIVO [2] 0.210 0.152 0.102 0.224 ××22.419 12.496 13.790 FAST-LIVO2 [1] 0.049 0.044 0.039 0.037 0.373 0.242 11.450 11.885 12.691
+> PL-LIT (Ours) 0.056 0.052 0.045 0.058 0.943 0.372 7.651 8.301 8.442 Cells highlighted in and indicate the best and the second-best performance, respectively. ×denotes the system totally failed.
+
+In the most challenging sequences (exp16 and exp18), characterized by long corridors, weak textures, aggressive motion, and severe illumination variations, LiDAR-only odometry almost fails tracking, while conventional visual-inertial approaches suffer from violations of the brightness constancy assumption, leading to system divergence. In con-trast, by incorporating structure-aware point–line features, PL-LIT significantly improves both robustness and accuracy. Although PL-LIT yields slightly higher errors than FAST-LIVO2, the latter incorporates substantial refinements in both LiDAR odometry and visual preprocessing to enhance robustness against geometric and photometric degradation. In contrast, PL-LIT retains the original LiDAR odometry module of FAST-LIVO without modification. Nevertheless, incorporating structure-aware features in a tightly coupled LiDAR–Inertial-Visual framework yields consistent perfor-mance gains. Notably, although PL-LIT is primarily designed to address weak-texture challenges in thermal imaging, it maintains high accuracy in challenging visible-light sequences with similar texture deficiencies. This demonstrates that the pro-posed structure-aware formulation is not modality-specific, but generalizes effectively across both visible and thermal sensing conditions. 
+
+B. Performance on LiDAR-Inertial-Thermal Dataset 
+
+We further evaluate the proposed framework on real thermal data using the loop 1 to 3 sequences from the NTU4DRadLM dataset. These sequences consist of long-range outdoor trajectories (over 4 km) and present substantial challenges due to thermal sensor noise, low contrast, and AGC-induced radiometric inconsistency. The quantitative results are summarized in Table II and Fig. 5. Notably, conventional LIVO methods exhibit in-creased trajectory errors in these thermal scenarios, even performing worse than pure LIO framework (FAST-LIO2). This behavior suggests that raw thermal imagery, when processed using standard visual pipelines, may introduce unstable photometric constraints due to weak texture and radiometric distortion, thereby limiting its contribution to state estimation. In contrast, PL-LIT achieves the best performance across all thermal sequences, reducing the RMSE by 27-33% com-pared to FAST-LIVO2 and FAST-LIO2. This improvement R3LIVE  
+
+> FAST -LIO2
+> FAST -LIVO
+> FAST -LIVO2
+> PL -LIT (Ours)
+> Fig. 5. APE comparison in the NTU4DRadLM loop1 sequence.
+
+demonstrates that the proposed online photometric cali-bration and structure-aware point–line modeling effectively extract stable geometric constraints from thermal imagery, transforming it from a noisy modality into a reliable source of complementary information. Fig. 4 and Fig. 5 further illustrates the qualitative performance. 
+
+C. Thermographic Mapping and Anomaly Detection 
+
+Beyond evaluating state estimation accuracy, we further demonstrate the system’s applicability to safety inspection tasks. Using our handheld platform, we construct a Prob-abilistic Intensity Voxel Map and evaluate the real-time thermal anomaly detection capability. During the experiment, the system repeatedly traversed an indoor environment in cyclic motion. In the initial pass, all objects on a table exhibited temperatures consistent with the ambient environment, allowing the system to establish a baseline probabilistic intensity model. Before completing the first cycle and revisiting the table area, a heated object was introduced to simulate a sudden thermal anomaly (e.g., equipment overheating). Upon re-observation, the system detected the anomaly as a statistically significant deviation from the previously estimated voxel intensity distribution. The anomalous regions were marked in real time using red point clouds, and the Safety Alarm!  
+
+> (a) (b)
+> (c)
+> (d)
+
+Fig. 6. The figure shows the visualization of anomaly detection and safety alarm in the experiment. (b) and (c) are the thermal images taken before and after placing a boiled kettle. (d) is our self-designed handheld device. 
+
+voxel visualization was dynamically adjusted to enhance interpretability. The experiment was repeated three times with varying anomaly locations, achieving a 100% success rate. However, the spatial accuracy of the estimated anomaly positions remains limited. In addition, the detection of anomalous heat values is only applicable over relatively short periods and cannot operate accurately around the clock. These issues will be further optimized in future work. Fig. 6 illustrates the detection and alarm process. VII. C ONCLUSIONS AND FUTURE WORKS 
+
+We presented PL-LIT, a robust LiDAR-Inertial-Thermal SLAM system. By integrating online photometric calibra-tion and a deep-learning-based point-line feature extraction network, the system effectively overcomes the challenges of photometric instability and texture sparsity in thermal imagery. The tightly coupled sequential ESIKF framework ensures high-precision state estimation in visible-light en-vironments and long-range thermal environments. Further-more, the construction of a Probabilistic Intensity Voxel Map enables real-time thermal anomaly monitoring as a functional extension of the odometry pipeline. Evaluations demonstrate that PL-LIT achieves superior accuracy and robustness compared to existing frameworks. In future work, we plan to enhance the loop closure module by integrating deep thermal descriptors with ge-ometric constraints, further improving system stability in geometrically degenerate environments such as long tunnels or open fields. Additionally, we will investigate a tighter integration of photometric calibration parameters into the global optimization backend to ensure stable and consistent thermographic mapping under drastic ambient temperature variations. Finally, we aim to incorporate more robust LiDAR odometry frameworks to further improve overall system accuracy and robustness. REFERENCES [1] C. Zheng, W. Xu, Z. Zou, T. Hua, C. Yuan, D. He, B. Zhou, Z. Liu, J. Lin, F. Zhu, Y. Ren, R. Wang, F. Meng, and F. Zhang, “Fast-livo2: Fast, direct lidar–inertial–visual odometry,” IEEE Transactions on Robotics(TRO) , vol. 41, pp. 326–346, 2025. [2] C. Zheng, Q. Zhu, W. Xu, X. Liu, Q. Guo, and F. Zhang, “Fast-livo: Fast and tightly-coupled sparse-direct lidar-inertial-visual odometry,” 
+
+IEEE Robot. Autom. Lett. , vol. 7, no. 4, pp. 11 389–11 396, 2022. [3] J. Lin and F. Zhang, “R3live: A robust, real-time, rgb-colored, lidar-inertial-visual tightly-coupled state estimation and mapping package,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2022, pp. 10 672– 10 678. [4] M. P. Das, L. Matthies, and S. Daftry, “Online photometric calibration of automatic gain thermal infrared cameras,” IEEE Robot. Autom. Lett. ,vol. 6, no. 2, pp. 2453–2460, 2021. [5] N. Xue, S. Bai, F.-D. Wang, G.-S. Xia, T. Wu, and L. Zhang, “Learning attraction field representation for robust line segment detection,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019, pp. 1595–1603. [6] K. Xu, Y. Hao, S. Yuan, C. Wang, and L. Xie, “AirSLAM: An efficient and illumination-robust point-line visual slam system,” 
+
+IEEE Transactions on Robotics (TRO) , 2024. [Online]. Available: https://arxiv.org/abs/2408.03520 [7] J. Zhang and S. Singh, “Loam: Lidar odometry and mapping in real-time,” Robotics: Science and Systems , 2014. [8] Y. Feng, Z. Jiang, Y. Shi, Y. Feng, X. Chen, H. Zhao, and G. Zhou, “Block-map-based localization in large-scale environment,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) .IEEE, 2024, pp. 1709–1715. [9] T. Shan, B. Englot, C. Ratti, and D. Rus, “Lvi-sam: Tightly-coupled lidar-visual-inertial odometry via smoothing and mapping,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2021, pp. 5692–5698. [10] J. Lin, C. Zheng, W. Xu, and F. Zhang, “R2live: A robust, real-time, lidar-inertial-visual tightly-coupled state estimator and mapping,” 
+
+IEEE Robot. Autom. Lett. , vol. 6, no. 4, pp. 7469–7476, 2021. [11] S. Zhou, Z. Wang, X. Dai, W. Song, and S. Gu, “Lir-livo: Alightweight, robust lidar-inertial-visual odometry with illumination-resilient deep features,” arXiv preprint arXiv:2502.08676 , 2025. [12] S. Vidas and S. Sridharan, “Hand-held monocular slam in thermal-infrared,” in Proceedings of the IEEE 12th International Conference on Control, Automation, Robotics and Vision (ICARCV) , 2012, pp. 859–864. [13] Y.-S. Shin and A. Kim, “Sparse depth enhanced direct thermal-infrared slam beyond the visible spectrum,” IEEE Robot. Autom. Lett. , vol. 4, no. 3, pp. 2918–2925, 2019. [14] C. Campos, R. Elvira, J. J. G. Rodr´ ıguez, J. M. M. Montiel, and J. D. Tard´ os, “Orb-slam3: An accurate open-source library for visual, visual–inertial, and multimap slam,” IEEE Trans. Robot. , vol. 37, no. 6, pp. 1874–1890, 2021. [15] J. Jiang, X. Chen, W. Dai, Z. Gao, and Y. Zhang, “Thermal-inertial slam for the environments with challenging illumination,” IEEE Robotics and Automation Letters , vol. 7, no. 4, pp. 8767–8774, 2022. [16] M. R. U. Saputra, P. P. B. de Gusmao, C. X. Lu, Y. Almalioglu, S. Rosa, C. Chen, J. Wahlstr¨ om, W. Wang, A. Markham, and N. Trigoni, “Deeptio: A deep thermal-inertial odometry with visual hallucination,” IEEE Robotics and Automation Letters , vol. 5, no. 2, pp. 1672–1679, 2020. [17] C. Yuan, C. Xu, W. Liu, X. Hong, X. Zhang, and L. Zhang, “Efficient and probabilistic adaptive voxel mapping for accurate online lidar odometry,” IEEE Robotics and Automation Letters , vol. 7, no. 3, pp. 8518–8525, 2022. [18] D. DeTone, T. Malisiewicz, and A. Rabinovich, “Superpoint: Self-supervised interest point detection and description,” in Proceedings of the IEEE conference on computer vision and pattern recognition workshops , 2018, pp. 224–236. [19] Y. Lu et al. , “Ntu4dradlm: 4d radar-centric multi-modal dataset for localization and mapping,” arXiv preprint arXiv:2309.11373 , 2023. [20] Y. Wang, “FAST LIO LC: Implementation of fast-lio with loop clo-sure,” https://github.com/yanliang-wang/FAST LIO LC, 2023, gitHub repository. [21] L. Zhang, M. Helmberger, L. F. T. Fu, D. Wisth, M. Camurri, D. Scaramuzza, and M. Fallon, “Hilti-oxford dataset: A millimeter-accurate benchmark for simultaneous localization and mapping,” IEEE Robotics and Automation Letters , vol. 8, no. 1, pp. 408–415, 2023. [22] W. Xu, Y. Cai, D. He, J. Lin, and F. Zhang, “Fast-lio2: Fast direct lidar-inertial odometry,” IEEE Trans. Robot. , vol. 38, no. 4, pp. 2053– 2073, 2022.

@@ -1,0 +1,361 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-02T20:38:16.634185+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2606.27491v1",
+      "source": "arxiv",
+      "title": "SelectAnyTree: A Promptable Instance Segmentation Model for 3D Forest LiDAR Point Clouds",
+      "abstract": "Automated instance segmentation of forest LiDAR point clouds is increasingly critical as forest monitoring moves toward scalable, detailed, 3D measurement. Yet, progress is constrained by label scarcity for tree instances; a single hectare can hold millions of points and hundreds of overlapping, complex crowns, making manual annotation from scratch with raw data laborious and error-prone. Annotations are often corrected from automatic pre-segmentations, but remain costly as these provide no interactive or AI-assisted refinement. Inspired by the promptable paradigm of foundation segmentation models, we propose SelectAnyTree, a promptable instance segmentation model that delineates any individual tree in a 3D forest point cloud from a few clicks. It introduces two key components: Click-to-query prompt encoder and Canopy Height Model (CHM)-guided first prompt. The former turns each click into a single content query, encoding its 3D position and positive/negative polarity together with a pooled local backbone feature. The latter provides treetops as a geometry- and ecologically guided first prompt without any user input. The resulting prompt query is then decoded into one tree mask by a state-space query decoder to efficiently capture long-range context in large-scale forest scenes with linear-time complexity. We evaluate SelectAnyTree in interactive and instance-level settings across seven diverse forest regions and an independent held-out test dataset, demonstrating strong generalization beyond the training domains. It segments a target tree to 78.2 Intersection over Union (IoU) from a single click, 24.8 points above the strongest promptable baseline, and reaches every accuracy target with the fewest clicks, while using far fewer parameters and less inference time than prior promptable models. The source code is available at https://github.com/thanhhff/SelectAnyTree.",
+      "authors": [
+        "Trung Thanh Nguyen",
+        "Daniel Lusk",
+        "Kilian Gerberding",
+        "Janusch Vajna-Jehle",
+        "Tuan-Anh Vu",
+        "Duc Viet Le",
+        "Tu Vo",
+        "Phi Le Nguyen",
+        "Yasutomo Kawanishi",
+        "Takahiro Komamizu",
+        "Ichiro Ide",
+        "Julian Frey",
+        "Teja Kattenborn"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-25T19:15:36+00:00",
+      "link": "https://arxiv.org/pdf/2606.27491v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "instance segmentation of individual trees in 3D LiDAR point clouds, detecting object instances in 3D space",
+      "llm_evidence_cn": "在三维LiDAR点云中检测并分割单棵树实例",
+      "llm_evidence": "在三维LiDAR点云中检测并分割单棵树实例",
+      "canonical_evidence": "在三维LiDAR点云中检测并分割单棵树实例",
+      "llm_tldr_en": "Proposes a promptable instance segmentation model for 3D forest LiDAR point clouds that delineates individual trees from user prompts, addressing annotation scarcity with interactive AI-assisted refinement.",
+      "llm_tldr_cn": "为解决森林LiDAR点云实例分割中标注稀缺的问题，提出了一种提示式实例分割模型SelectAnyTree，可从用户提示中分割出单棵树。该模型借鉴基础分割模型的提示范式，支持交互式或AI辅助的精细化标注，降低了人工标注成本。实验证明了在复杂树冠重叠场景下的有效性，推动了森林尺度三维测量自动化。",
+      "llm_tldr": "为解决森林LiDAR点云实例分割中标注稀缺的问题，提出了一种提示式实例分割模型SelectAnyTree，可从用户提示中分割出单棵树。该模型借鉴基础分割模型的提示范式，支持交互式或AI辅助的精细化标注，降低了人工标注成本。实验证明了在复杂树冠重叠场景下的有效性，推动了森林尺度三维测量自动化。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30147v1",
+      "source": "arxiv",
+      "title": "T2LDM++: A Self-Conditioned Representation Guided Diffusion Model for Realistic Text-to-LiDAR Scene Generation",
+      "abstract": "Recent progress in Text-to-Image generation benefits from large-scale Text-Image pairs. However, the scarcity of Text-LiDAR pairs often causes over-smoothed scenes and limited controllability. In this paper, we rethink the limitations of Text-LiDAR generation task, focusing on alleviating insufficient training priors and constructing controllable Text-LiDAR data. We propose a \\textbf{T}ext-\\textbf{to}-\\textbf{L}iDAR \\textbf{D}iffusion \\textbf{M}odel for LiDAR scene generation, T2LDM++, with a Self-Conditioned Representation Guidance (SCRG). Specifically, to alleviate object over-smoothing, SCRG employs a Guidance Network (GN) to provide reconstruction-based soft supervision to the Denoising Network (DN). This enables DN to learn geometry-aware representations through reconstruction guidance, leading to more accurate denoising in DDPMs. Meanwhile, through analysis and design, SCRG exhibits more effective and lightweight, while decoupled in inference, avoiding computational overhead. Furthermore, we construct two high-quality Text-LiDAR benchmarks ($>$100K samples) using a generalized strategy of geometric annotations, along with a controllability metric. Moreover, a directional position prior is designed to mitigate street distortion, further improving scene fidelity. Additionally, T2LDM++ supports multiple conditions, including (Semantic, Box, BEV, Camera)-to-LiDAR, Sparse-to-Dense, and Dense-to-Sparse generation, by learning a control encoder via frozen DN. With effective prior modeling and high-quality Text-LiDAR benchmarks, T2LDM++ can generate realistic LiDAR scenes with rich geometric details in unconditional and conditional settings.",
+      "authors": [
+        "Wentao Qu",
+        "Qi Zhang",
+        "Chenxu Wang",
+        "Guofeng Mei",
+        "Yongfei Liu",
+        "Xiaoshui Huang",
+        "Gim Hee Lee",
+        "Liang Xiao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T11:23:11+00:00",
+      "link": "https://arxiv.org/pdf/2606.30147v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Text-to-LiDAR scene generation directly works with LiDAR point cloud data",
+      "llm_evidence_cn": "文本到LiDAR场景生成直接处理LiDAR点云数据",
+      "llm_evidence": "文本到LiDAR场景生成直接处理LiDAR点云数据",
+      "canonical_evidence": "文本到LiDAR场景生成直接处理LiDAR点云数据",
+      "llm_tldr_en": "T2LDM++ proposes a self-conditioned diffusion model for realistic text-to-LiDAR scene generation, mitigating object over-smoothing and improving controllability.",
+      "llm_tldr_cn": "针对文本到LiDAR场景生成中训练先验不足和可控性有限的问题，提出T2LDM++模型，通过自条件表示引导缓解物体过度平滑，生成更具真实感的LiDAR场景数据，为自动驾驶领域的点云感知提供了有效的数据增强途径。",
+      "llm_tldr": "针对文本到LiDAR场景生成中训练先验不足和可控性有限的问题，提出T2LDM++模型，通过自条件表示引导缓解物体过度平滑，生成更具真实感的LiDAR场景数据，为自动驾驶领域的点云感知提供了有效的数据增强途径。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.31488v1",
+      "source": "arxiv",
+      "title": "DrivingDepth: Sparse-Prompted Pixel-wise Scale Correction for Driving Depth Estimation",
+      "abstract": "Dense depth estimation for autonomous driving faces a geometry-scale conflict: depth foundation models deliver pixel-aligned dense visual geometry without reliable metric scale, while projected LiDAR provides metric anchors that are sparse, noisy, and misaligned with image structures. Existing sparse-prompted methods incorporate LiDAR by regenerating depth from scratch, overriding the foundation model's coherent geometry and producing structural artifacts on visually continuous surfaces. Our key insight is that foundation models already capture geometrically coherent relative depth; no additional surface structure learning is required-only a per-pixel scale factor mapping relative geometry to metric coordinates. Based on this, we propose DrivingDepth, which treats sparse LiDAR as geometric prompts that locally calibrate a frozen foundation prior through residual pixel-wise scale correction, preserving dense visual geometry by construction. On nuScenes with 4-frame surround-view input, DrivingDepth achieves an AbsRel of 11.19 and an EdgeCR of 5.741, outperforming MapAnything (11.99/1.914) by simultaneously delivering SOTA metric accuracy and geometric consistency.",
+      "authors": [
+        "Chi Huang",
+        "Wenhao Zhang",
+        "Hang Yin",
+        "YuAn Wang",
+        "Hao Li",
+        "Bosheng Wang",
+        "Xun Sun",
+        "Liang Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T11:07:23+00:00",
+      "link": "https://arxiv.org/pdf/2606.31488v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Pixel-wise scale correction for dense depth from sparse LiDAR and images",
+      "llm_evidence_cn": "利用稀疏LiDAR和图像进行像素级尺度校正实现稠密深度",
+      "llm_evidence": "利用稀疏LiDAR和图像进行像素级尺度校正实现稠密深度",
+      "canonical_evidence": "利用稀疏LiDAR和图像进行像素级尺度校正实现稠密深度",
+      "llm_tldr_en": "DrivingDepth resolves geometry-scale conflict in driving depth estimation by learning per-pixel scale factors to align foundation model depth with sparse LiDAR anchors, producing metric-scale dense depth without artifacts.",
+      "llm_tldr_cn": "针对自动驾驶稠密深度估计中深度基础模型缺乏可靠度量尺度而投影LiDAR稀疏、噪声大且与图像结构不对齐的问题，提出DrivingDepth方法。该方法核心在于利用基础模型已捕获的几何一致相对深度，仅需学习逐像素尺度因子将其映射到度量坐标，无需重新学习表面结构。实验证明该方法避免了现有稀疏提示方法的结构伪影，在驾驶场景中实现了高精度的度量级稠密深度估计，为多模态融合感知提供了关键组件。",
+      "llm_tldr": "针对自动驾驶稠密深度估计中深度基础模型缺乏可靠度量尺度而投影LiDAR稀疏、噪声大且与图像结构不对齐的问题，提出DrivingDepth方法。该方法核心在于利用基础模型已捕获的几何一致相对深度，仅需学习逐像素尺度因子将其映射到度量坐标，无需重新学习表面结构。实验证明该方法避免了现有稀疏提示方法的结构伪影，在驾驶场景中实现了高精度的度量级稠密深度估计，为多模态融合感知提供了关键组件。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.31688v1",
+      "source": "arxiv",
+      "title": "Semantic Occupancy Prediction with Dual Range-Voxel Representation",
+      "abstract": "LiDAR-based 3D semantic occupancy prediction, which aims to provide accurate and comprehensive scene representation, is crucial for autonomous driving systems. As point clouds suffer from sparsity and incompleteness, leading to insufficient semantic learning and difficult occupancy perception, existing methods often stack multi-sweep point clouds to obtain dense spatial information. However, such a naive strategy also results in efficiency (e.g., additional computational burden) and robustness (e.g., pose transformation noise) concerns, which hinder their practical applications. In this work, we propose a Dual Range-Voxel Representation (DRVR) that leverages the range-view context and voxel-view geometry of single-sweep point clouds for 3D semantic occupancy prediction, eliminating the concerns associated with the multi-sweeps. Specifically, we use the range-view encoder to extract the compact context of the scene. To fully exploit the spatial information, we design a geometry-aware voxel-view encoder that extracts multi-scale voxel-view features separately and combines them for better geometric occupancy prediction. Moreover, we propose a range-voxel fusion module to cooperate range- and voxel-view features via voxel-to-range and range-to-voxel fusions. Extensive experiments on nuScenes-Occupancy, SemanticKITTI and SemanticPOSS show the superiority of our method. Especially on nuScenes-Occupancy, our single-sweep DRVR achieves 5.4% improvement in mIoU and 2.1x acceleration compared to the multi-sweep method.",
+      "authors": [
+        "Sitao Chen",
+        "Zhuangwei Zhuang",
+        "Hui Luo",
+        "Lizhao Liu",
+        "Qingyao Wu",
+        "Mingkui Tan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T14:01:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.31688v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LiDAR-based 3D semantic occupancy prediction using single-sweep point clouds",
+      "llm_evidence_cn": "基于单帧LiDAR点云的3D语义占用预测",
+      "llm_evidence": "基于单帧LiDAR点云的3D语义占用预测",
+      "canonical_evidence": "基于单帧LiDAR点云的3D语义占用预测",
+      "llm_tldr_en": "This paper proposes Dual Range-Voxel Representation (DRVR) to handle sparsity of single-sweep LiDAR point clouds for 3D semantic occupancy prediction, avoiding multi-sweep stacking and improving efficiency and robustness.",
+      "llm_tldr_cn": "针对单帧LiDAR点云稀疏导致语义学习不足和占用感知困难的问题，本文提出双距离-体素表示（DRVR），利用距离视图上下文和体素视图几何进行3D语义占用预测，避免了多帧堆叠带来的计算负担和姿态噪声，在多个数据集上验证了高效性和鲁棒性，为自动驾驶场景表示提供了新思路。",
+      "llm_tldr": "针对单帧LiDAR点云稀疏导致语义学习不足和占用感知困难的问题，本文提出双距离-体素表示（DRVR），利用距离视图上下文和体素视图几何进行3D语义占用预测，避免了多帧堆叠带来的计算负担和姿态噪声，在多个数据集上验证了高效性和鲁棒性，为自动驾驶场景表示提供了新思路。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.31895v1",
+      "source": "arxiv",
+      "title": "RESOLVE: A Multi-Resolution and Multi-Modal Dataset for Roadside Cooperative Perception",
+      "abstract": "LiDAR has increasingly been integrated into traffic cameras to expand coverage and mitigate occlusion in roadside cooperative perception. However, how unimodal and camera-LiDAR fusion architectures behave under variations in LiDAR point sparsity induced by sensor configurations and scene-dependent sensing conditions remains underexplored. We introduce RESOLVE, a large-scale real-world benchmark dataset featuring multi-resolution roadside LiDAR and synchronized camera-LiDAR sensing for systematic evaluation of unimodal and fusion-based architectures in roadside 3D detection and tracking. RESOLVE contains over 100k images and 26k point cloud frames with 220k manually annotated bounding boxes, captured at a real-world urban intersection across diverse lighting and weather conditions and spanning 10 classes of traffic participants. In particular, RESOLVE enables controlled evaluation across three LiDAR resolution levels while keeping all other sensing and environmental factors fixed. This allows fair cross-architecture comparisons under point cloud distribution shifts resulting from resolution variations, sensing distance, and training-inference resolution mismatches. Results from extensive benchmark experiments reveal insights into how multimodal fusion can compensate for LiDAR point sparsity, offering clues for designing cost-efficient roadside multimodal perception. The dataset and benchmark codes are available at https://github.com/ASU-Suo-Lab/RESOLVE.",
+      "authors": [
+        "Shaozu Ding",
+        "Linan Song",
+        "Marco De Vincenzi",
+        "Dajiang Suo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T16:04:33+00:00",
+      "link": "https://arxiv.org/pdf/2606.31895v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "benchmark for evaluating camera-LiDAR fusion under varying LiDAR point sparsity",
+      "llm_evidence_cn": "评估相机-LiDAR融合在变稀疏度下的基准数据集",
+      "llm_evidence": "评估相机-LiDAR融合在变稀疏度下的基准数据集",
+      "canonical_evidence": "评估相机-LiDAR融合在变稀疏度下的基准数据集",
+      "llm_tldr_en": "Introduces RESOLVE, a multi-resolution, multi-modal roadside dataset for studying camera-LiDAR fusion and the impact of LiDAR point sparsity on 3D detection and tracking.",
+      "llm_tldr_cn": "针对路侧协同感知中LiDAR点云稀疏性对单模态和相机-LiDAR融合架构性能影响缺乏系统研究的问题，提出RESOLVE多分辨率多模态数据集，包含10万+图像和2.6万帧点云及22万标注框，用于路边3D检测与跟踪的评估，为稀疏点条件下的多模态融合提供基准。",
+      "llm_tldr": "针对路侧协同感知中LiDAR点云稀疏性对单模态和相机-LiDAR融合架构性能影响缺乏系统研究的问题，提出RESOLVE多分辨率多模态数据集，包含10万+图像和2.6万帧点云及22万标注框，用于路边3D检测与跟踪的评估，为稀疏点条件下的多模态融合提供基准。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "multi modal fusion and robustness against sparse and noisy point clouds",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.00746v1",
+      "source": "arxiv",
+      "title": "GaussianFusion: Unified 3D Gaussian Representation for Multi-Modal Fusion Perception",
+      "abstract": "The bird's-eye view (BEV) representation enables multi-sensor features to be fused within a unified space, serving as the primary approach for achieving comprehensive 3D perception. However, the discrete grid representation of BEV leads to significant detail loss and limits feature alignment and cross-modal information interaction in multimodal fusion perception. In this work, we break from the conventional BEV paradigm and propose a new universal framework for multi-modal fusion based on 3D Gaussian representation. This approach naturally unifies multi-modal features within a shared and continuous 3D Gaussian space, effectively preserving edge and fine texture details. To achieve this, we design a novel forward-projection-based multi-modal Gaussian initialization module and a shared cross-modal Gaussian encoder that iteratively updates Gaussian properties based on an attention mechanism. GaussianFusion is inherently a task-agnostic model, with its unified Gaussian representation naturally supporting various 3D perception tasks. Extensive experiments demonstrate the generality and robustness of GaussianFusion. On the nuScenes dataset, it outperforms the 3D object detection baseline BEVFusion by 2.6 NDS. Its variant surpasses GaussFormer on 3D semantic occupancy with 1.55 mIoU improvement while using only 30% of the Gaussians and achieving a 450% speedup.",
+      "authors": [
+        "Xiao Zhao",
+        "Chang Liu",
+        "Mingxu Zhu",
+        "Zheyuan Zhang",
+        "Linna Song",
+        "Qingliang Luo",
+        "Chufan Guo",
+        "Kuifeng Su"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-01T10:28:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.00746v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes a universal framework for multi-modal fusion based on 3D Gaussian representation, unifying multi-sensor features in a continuous space",
+      "llm_evidence_cn": "提出基于三维高斯表示的多模态融合通用框架，在连续空间中统一多传感器特征",
+      "llm_evidence": "提出基于三维高斯表示的多模态融合通用框架，在连续空间中统一多传感器特征",
+      "canonical_evidence": "提出基于三维高斯表示的多模态融合通用框架，在连续空间中统一多传感器特征",
+      "llm_tldr_en": "GaussianFusion proposes a unified 3D Gaussian representation to replace BEV, naturally fusing multi-modal features in a continuous space and preserving fine details, outperforming conventional BEV-based multi-modal perception.",
+      "llm_tldr_cn": "针对BEV表示导致细节损失与跨模态信息交互受限的问题，提出基于三维高斯表示的多模态融合通用框架GaussianFusion，在连续高斯空间中自然统一多传感器特征，有效保留边缘与纹理细节。在公开数据集上的实验表明，该方法在三维目标检测等任务上超越了现有BEV方法，为多模态感知提供了新的表示范式。",
+      "llm_tldr": "针对BEV表示导致细节损失与跨模态信息交互受限的问题，提出基于三维高斯表示的多模态融合通用框架GaussianFusion，在连续高斯空间中自然统一多传感器特征，有效保留边缘与纹理细节。在公开数据集上的实验表明，该方法在三维目标检测等任务上超越了现有BEV方法，为多模态感知提供了新的表示范式。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.29259v1",
+      "source": "arxiv",
+      "title": "PL-LIT: A LiDAR-Inertial-Thermal SLAM Using Point-Line Features and Thermographic Mapping",
+      "abstract": "Thermal imaging is resilient to adverse conditions, such as intense illumination, low-light operation, and fog, and can therefore mitigate odometry degradation when visible-spectrum imagery becomes unreliable. Nevertheless, most thermal cameras employ automatic gain control (AGC), and thermal images often present low global contrast despite containing informative edge structures. These characteristics undermine brightness constancy and cause conventional optical flow tracking-based odometry pipelines that fundamentally rely on the brightness constancy assumption across consecutive frames. To address these issues, we propose a general LiDAR-Inertial-Thermal SLAM system that accommodates both visible-light and thermal cameras. PL-LIT combines an online photometric calibration module with a deep neural network for point-line feature extraction, enabling more stable and repeatable thermal tracking. For state estimation, we design a tightly coupled LiDAR-Inertial-Thermal formulation within an Error-State Iterated Kalman Filter (ESIKF). We further introduce a line-feature constraint scheme ensuring the reliability of geometric constraints across varying thermal appearances. In addition, PL-LIT builds a probabilistic thermal-intensity voxel map, which supports real-time thermal anomaly detection. Extensive experiments demonstrate that PL-LIT exhibits generality and robustness in visible-light environments, achieves state-of-the-art performance on long-range thermal infrared datasets, and provides practical safety inspection functionality based on thermographic mapping.",
+      "authors": [
+        "Jiawei Xia",
+        "Yixiao Feng",
+        "Yongliang Shi",
+        "Chao Gao",
+        "Renjing Xu",
+        "Weining Lu",
+        "Bin Liang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-28T08:13:43+00:00",
+      "link": "https://arxiv.org/pdf/2606.29259v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LiDAR-Inertial-Thermal sensor fusion for robust SLAM under adverse conditions",
+      "llm_evidence_cn": "融合LiDAR、惯性和热成像传感器应对恶劣条件下的鲁棒SLAM",
+      "llm_evidence": "融合LiDAR、惯性和热成像传感器应对恶劣条件下的鲁棒SLAM",
+      "canonical_evidence": "融合LiDAR、惯性和热成像传感器应对恶劣条件下的鲁棒SLAM",
+      "llm_tldr_en": "Proposes a LiDAR-inertial-thermal SLAM system using point-line features and thermographic mapping to overcome visual odometry degradation in low-light or fog, achieving robust pose estimation.",
+      "llm_tldr_cn": "针对可见光相机在弱光、大雾等恶劣条件下里程计退化的问题，提出了一种融合LiDAR、惯性与热成像的SLAM系统PL-LIT。该系统利用点线特征和热成像建图，克服了热成像自动增益控制导致的亮度恒常性假设失效，实现了多模态下的鲁棒位姿估计。实验证明，该系统在挑战性环境下显著优于纯视觉方案，拓展了SLAM在极端条件下的应用。",
+      "llm_tldr": "针对可见光相机在弱光、大雾等恶劣条件下里程计退化的问题，提出了一种融合LiDAR、惯性与热成像的SLAM系统PL-LIT。该系统利用点线特征和热成像建图，克服了热成像自动增益控制导致的亮度恒常性假设失效，实现了多模态下的鲁棒位姿估计。实验证明，该系统在挑战性环境下显著优于纯视觉方案，拓展了SLAM在极端条件下的应用。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.00514v1",
+      "source": "arxiv",
+      "title": "Cross4D-JEPA: Dense Cross-modal Correspondence Distillation for 4D Point Cloud Representation Learning",
+      "abstract": "Automatic understanding of dynamic 4D point clouds, the 3D-point sequences captured over time by depth sensors and LiDAR, is central to robotics and embodied perception. Yet annotating them densely is expensive, making self-supervised pretraining the natural route to transferable representations. Existing pretext tasks, however, are almost entirely intra-modal, and the few methods that transfer knowledge from 2D foundation models rely on a single global embedding per clip, discarding the rich per-patch semantics that these models compute. To address this gap, we propose Cross4D-JEPA, a teacher-student method that distills a frozen 2D foundation model, an image model DINOv2, or a video model V-JEPA 2, into a 4D point encoder. The proposed method combines (1) a dense cross-modal correspondence that maps every 3D point to the teacher patch feature it projects to, and (2) a per-point objective that trains the student to match these features in latent space with no masking, negatives, or decoder. We evaluate Cross4D-JEPA on four benchmarks, MSR-Action3D, DeformingThings4D, NTU-RGB+D 60, and HOI4D, against intra-modal and global cross-modal baselines. Experimental results show that, under a matched protocol, the proposed method consistently outperforms intra-modal and global cross-modal baselines across the four benchmarks and is competitive with heavier published 4D methods; further analysis attributes this gain primarily to the granularity of the correspondence rather than the teacher modality. Beyond recognition accuracy, the dense representation learned by Cross4D-JEPA transfers across domains, improves label efficiency, and improves full-label fine-tuning under the same training budget, while a 13x smaller encoder matches a heavyweight pooling backbone.",
+      "authors": [
+        "Trung Thanh Nguyen",
+        "Hai Nguyen-Truong",
+        "Tu Vo",
+        "Hoang M. Truong",
+        "Tuan-Anh Vu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-01T06:49:17+00:00",
+      "link": "https://arxiv.org/pdf/2607.00514v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Self-supervised representation learning on 4D point clouds (from LiDAR) via cross-modal distillation",
+      "llm_evidence_cn": "通过跨模态蒸馏在LiDAR采集的4D点云上进行自监督表示学习",
+      "llm_evidence": "通过跨模态蒸馏在LiDAR采集的4D点云上进行自监督表示学习",
+      "canonical_evidence": "通过跨模态蒸馏在LiDAR采集的4D点云上进行自监督表示学习",
+      "llm_tldr_en": "Cross4D-JEPA distills 2D foundation model features into 4D point cloud encoders using dense cross-modal correspondence, achieving transferable representations for downstream tasks.",
+      "llm_tldr_cn": "动态4D点云（深度传感器/LiDAR序列）标注昂贵，现有自监督预训练几乎都是单模态，且跨模态方法仅使用全局嵌入丢失细粒度语义。Cross4D-JEPA提出教师-学生框架，冻结2D基础模型（DINOv2/V-JEPA）并将其密集的逐块语义蒸馏到4D点云编码器中，通过跨模态对应实现知识迁移。实验表明学习到的表示在多个下游任务上表现优异，为LiDAR点云感知提供了通用特征提取器，可赋能3D目标检测等任务。",
+      "llm_tldr": "动态4D点云（深度传感器/LiDAR序列）标注昂贵，现有自监督预训练几乎都是单模态，且跨模态方法仅使用全局嵌入丢失细粒度语义。Cross4D-JEPA提出教师-学生框架，冻结2D基础模型（DINOv2/V-JEPA）并将其密集的逐块语义蒸馏到4D点云编码器中，通过跨模态对应实现知识迁移。实验表明学习到的表示在多个下游任务上表现优异，为LiDAR点云感知提供了通用特征提取器，可赋能3D目标检测等任务。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
