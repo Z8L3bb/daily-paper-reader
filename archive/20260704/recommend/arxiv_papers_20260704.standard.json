@@ -1,0 +1,219 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-04T21:31:22.157904+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 2,
+    "quick_skim_target": 12,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2607.01827v1",
+      "source": "arxiv",
+      "title": "C2E: Boosting Ego-Only 3D Object Detection via Multi-Teacher Contrastive Knowledge Distillation",
+      "abstract": "LiDAR-based 3D object detection is essential for autonomous driving systems. However, traditional Ego-only Perception (Eo-Perception) suffers from limited perspective and occlusions in a complex outdoor environment, leading to performance bottlenecks. Recently, research on multi-agent Collaborative Perception (Co-Perception) has demonstrated excellent performance, but high communication costs and accumulated pose error hinder its application. To address this, we explore a novel C2E (Co-Perception to Eo-Perception) paradigm through the Multi-to-Single (M2S) agent contrastive knowledge distillation framework. Our M2S framework first designs Multi-Level Feature Enhancement module to provide more stable features, and introduces Auxiliary Point Cloud Reconstruction and Multi-Teacher Contrastive Distillation mechanisms to mitigate domain gaps in point cloud and feature distributions within the C2E paradigm. Benefiting from this, our M2S can retain the excellent performance of collaborative perception while effectively avoiding the drawbacks, such as communication delays and positioning errors. Extensive experiments on the V2XSet, V2V4Real and DAIR-V2X datasets show the effectiveness and generalizability of our M2S framework when combined with the state-of-the-art CoSDH model and other excellent 3D detectors. Our M2S framework can deliver up to a 8.64% improvement in 3D mAP performance without introducing any communication costs.",
+      "authors": [
+        "Jinlong Wang",
+        "Xun Huang",
+        "Qiming Xia",
+        "Shijia Zhao",
+        "Chenglu Wen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T07:48:22+00:00",
+      "link": "https://arxiv.org/pdf/2607.01827v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LiDAR-based 3D object detection with a novel knowledge distillation framework to boost ego-only perception.",
+      "llm_evidence_cn": "基于LiDAR的3D目标检测，通过新颖的知识蒸馏框架提升单智能体感知性能。",
+      "llm_evidence": "基于LiDAR的3D目标检测，通过新颖的知识蒸馏框架提升单智能体感知性能。",
+      "canonical_evidence": "基于LiDAR的3D目标检测，通过新颖的知识蒸馏框架提升单智能体感知性能。",
+      "llm_tldr_en": "Proposes a multi-teacher contrastive knowledge distillation method to transfer collaborative perception knowledge to ego-only LiDAR 3D detection, improving detection accuracy without communication cost.",
+      "llm_tldr_cn": "针对单智能体LiDAR 3D检测受视角和遮挡限制的问题，本文提出从多智能体协同感知到单智能体的知识蒸馏框架，通过多教师对比学习提升单智能体检测精度，同时避免通信开销，在自动驾驶场景中显著优于基线方法。",
+      "llm_tldr": "针对单智能体LiDAR 3D检测受视角和遮挡限制的问题，本文提出从多智能体协同感知到单智能体的知识蒸馏框架，通过多教师对比学习提升单智能体检测精度，同时避免通信开销，在自动驾驶场景中显著优于基线方法。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.01983v1",
+      "source": "arxiv",
+      "title": "Open-Weather Robust 3D Detection via Dual-Critic Diffusion Alignment",
+      "abstract": "Robust 3D object detection under adverse weather remains a critical hurdle for autonomous driving. Despite progress with LiDAR-4D radar fusion, most methods are constrained by a closed-world assumption, implicitly requiring training and test weather to align in both type and severity. This premise fails in practice: the open-ended nature of weather, and even variations within a single type like rain, cause dramatically different LiDAR degradation patterns, leading to significant performance drops in unseen conditions. To address this, we present Dual-Critic Guided Diffusion Alignment (DCDA), a weather-agnostic framework that learns to recover degraded LiDAR features toward a clean manifold. Rather than modeling specific weather types, DCDA employs a 4D radar-conditioned diffusion process to progressively refine features, guided by two complementary critics. (i) A detection-guided critic, anchored by a pre-trained clean-weather model, ensures that the refined features retain object-level discriminability and localization accuracy. (ii) A weather adversarial critic enforces holistic distributional consistency with clean-weather representations. By aligning features through semantic and distributional constraints rather than explicit weather modeling, DCDA generalizes effectively to unseen weather types and severities without requiring paired data or weather labels. We further introduce a structured open-weather benchmark with held-out type-severity combinations and extensive experiments verify DCDA's advantages.",
+      "authors": [
+        "Shuyao Li",
+        "Chuanxing Geng",
+        "Heyang Sun",
+        "Qiang Zhou",
+        "Jingjing Gu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T10:13:41+00:00",
+      "link": "https://arxiv.org/pdf/2607.01983v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LiDAR-4D radar fusion with diffusion-based feature recovery for adverse weather",
+      "llm_evidence_cn": "LiDAR-4D雷达成像融合，基于扩散的特征恢复以应对恶劣天气",
+      "llm_evidence": "LiDAR-4D雷达成像融合，基于扩散的特征恢复以应对恶劣天气",
+      "canonical_evidence": "LiDAR-4D雷达成像融合，基于扩散的特征恢复以应对恶劣天气",
+      "llm_tldr_en": "The paper proposes Dual-Critic Guided Diffusion Alignment (DCDA), a weather-agnostic framework that uses a 4D radar guide and dual critics to recover degraded LiDAR features for robust 3D detection in open weather conditions.",
+      "llm_tldr_cn": "该文提出双批评家引导的扩散对齐（DCDA）框架，解决开放天气下LiDAR特征退化导致的检测性能下降问题。DCDA利用4D雷达作为指导，通过扩散模型将退化LiDAR特征恢复至清晰流形，无需建模具体天气类型，在多种未见天气下显著提升三维检测鲁棒性。",
+      "llm_tldr": "该文提出双批评家引导的扩散对齐（DCDA）框架，解决开放天气下LiDAR特征退化导致的检测性能下降问题。DCDA利用4D雷达作为指导，通过扩散模型将退化LiDAR特征恢复至清晰流形，无需建模具体天气类型，在多种未见天气下显著提升三维检测鲁棒性。",
+      "llm_tags": [
+        "query:stage-d-det"
+      ],
+      "matched_query_tag": "query:stage-d-det",
+      "matched_query_text": "multi modal fusion and robustness against sparse and noisy point clouds",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.02074v1",
+      "source": "arxiv",
+      "title": "Comprehensive Robustness Analysis of LiDAR-based 3D Object Detection in Autonomous Driving",
+      "abstract": "Recent advancements in LiDAR-only 3D object detection have demonstrated improved detection accuracy over benchmark datasets. However, the adversarial robustness of these models remains untested. Very few adversarial robustness studies exist for LiDAR-only 3D object detection and unfortunately, even they are limited to legacy models. Moreover, there is a systemic gap in the existing evaluation frameworks that rely simply on mAP ignoring other structural and predictive factors. To fill this gap, we propose a holistic framework that evaluates adversarial robustness using two structural factors (point cloud density and point cloud localization) and three predictive factors (misclassification, localization error, distance from ego). Using this framework, we perform an empirical study and critical analysis on recent and legacy state-of-the-art models using adversarial attacks specifically designed for LiDAR-based models. Our key finding is that high-capacity, voxel-based detectors are more susceptible to structured coordinate perturbations than pillar-based detectors. Additionally, non-anchor-based detectors demonstrate poor adversarial robustness, which necessitates rethinking model training techniques. Overall, our results demonstrate that recent models are as vulnerable to adversarial attacks as their predecessors. Therefore, we argue that there is a need to improve the evaluation benchmarks for 3D object detection that not only reward architectural modifications for improving detection accuracy, but also evaluate whether the design choices improve adversarial robustness.",
+      "authors": [
+        "Adwait Chandorkar",
+        "Kai Krink",
+        "Yerdana Maulenbay",
+        "Hasan Tercan",
+        "Tobias Meisen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T12:13:49+00:00",
+      "link": "https://arxiv.org/pdf/2607.02074v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Analyzes adversarial robustness of LiDAR-only 3D object detection models",
+      "llm_evidence_cn": "分析仅依赖LiDAR的3D目标检测模型的对抗鲁棒性",
+      "llm_evidence": "分析仅依赖LiDAR的3D目标检测模型的对抗鲁棒性",
+      "canonical_evidence": "分析仅依赖LiDAR的3D目标检测模型的对抗鲁棒性",
+      "llm_tldr_en": "Proposes a holistic framework to evaluate adversarial robustness of LiDAR-based 3D object detectors using structural and predictive factors, finding vulnerabilities in state-of-the-art models.",
+      "llm_tldr_cn": "现有LiDAR-only 3D目标检测模型虽然在基准数据集上表现优异，但其对抗鲁棒性尚未得到充分检验，且现有评估框架仅依赖mAP指标，忽略了结构和预测因素。本论文提出一个整体评估框架，整合点云密度与定位两个结构因素以及误分类、定位误差和自车距离三个预测因素，对主流模型进行对抗攻击测试。结果表明这些模型在物理可实现扰动下存在明显脆弱性，本工作为自动驾驶3D感知系统的安全性评估建立了新基准。",
+      "llm_tldr": "现有LiDAR-only 3D目标检测模型虽然在基准数据集上表现优异，但其对抗鲁棒性尚未得到充分检验，且现有评估框架仅依赖mAP指标，忽略了结构和预测因素。本论文提出一个整体评估框架，整合点云密度与定位两个结构因素以及误分类、定位误差和自车距离三个预测因素，对主流模型进行对抗攻击测试。结果表明这些模型在物理可实现扰动下存在明显脆弱性，本工作为自动驾驶3D感知系统的安全性评估建立了新基准。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "3D point cloud data captured by LiDAR sensors",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.29963v2",
+      "source": "arxiv",
+      "title": "Explainability-Aware Frustum Attack: Exposing Structural Vulnerabilities in LiDAR-Based 3D Object Detectors",
+      "abstract": "The structural vulnerabilities of point cloud-based 3D object detectors remain poorly understood. Prior work has studied adversarial robustness primarily on isolated 3D object models, while recent LiDAR spoofing attacks target richer and more realistic driving scenes but focus mainly on physical realizability rather than understanding detector behavior or attack efficiency. In this work, we investigate how LiDAR-based detectors rely on spatial evidence in complex scenes and whether these reliance patterns can be exploited to induce failures more efficiently. To this end, we propose an explainability-guided adversarial analysis methodology. We introduce the Saliency-LiDAR (SALL) method, which aggregates Integrated Gradient attributions across scenes to produce universal saliency maps for LiDAR-based 3D object detectors. Guided by these maps, we design the Explainability-aware Frustum Attack (EFA), which selectively perturbs only the most influential frustums rather than uniformly attacking entire object regions. Experiments on KITTI and nuScenes, across detectors such as PointPillars and SECOND, show that EFA reduces detection recall by more than 15 percentage points while requiring 25-50% fewer perturbed frustums than the state-of-the-art non-saliency-aware baseline. These findings reveal that modern 3D detectors concentrate discriminative evidence in a small subset of spatial regions, exposing a structural robustness vulnerability in current LiDAR perception systems. Our code is released at https://github.com/SecMindLab/Saliency_LiDAR.",
+      "authors": [
+        "Chengzeng You",
+        "Binbin Xu",
+        "Soteris Demetriou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CR"
+      ],
+      "published": "2026-06-29T08:40:16+00:00",
+      "link": "https://arxiv.org/pdf/2606.29963v2",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "analyzes LiDAR-based 3D object detectors' vulnerabilities using saliency-guided adversarial attacks",
+      "llm_evidence_cn": "利用显著性引导的对抗攻击分析基于LiDAR的3D物体检测器的漏洞",
+      "llm_evidence": "利用显著性引导的对抗攻击分析基于LiDAR的3D物体检测器的漏洞",
+      "canonical_evidence": "利用显著性引导的对抗攻击分析基于LiDAR的3D物体检测器的漏洞",
+      "llm_tldr_en": "Proposes an explainability-aware frustum attack (SALL) to expose structural vulnerabilities in LiDAR-based 3D object detectors by exploiting spatial evidence reliance patterns.",
+      "llm_tldr_cn": "针对LiDAR基3D物体检测器的结构性漏洞尚不明晰的问题，本文提出可解释性感知的对抗分析方法SALL，通过聚合积分梯度获得显著性，揭示检测器对空间证据的依赖。在复杂驾驶场景中，该攻击能高效诱导检测器失败。研究深化了对点云检测器脆弱性的理解，为提升鲁棒性提供方向。",
+      "llm_tldr": "针对LiDAR基3D物体检测器的结构性漏洞尚不明晰的问题，本文提出可解释性感知的对抗分析方法SALL，通过聚合积分梯度获得显著性，揭示检测器对空间证据的依赖。在复杂驾驶场景中，该攻击能高效诱导检测器失败。研究深化了对点云检测器脆弱性的理解，为提升鲁棒性提供方向。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "detecting objects in three-dimensional space",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.31096v1",
+      "source": "arxiv",
+      "title": "Horizon3D: Sparse Radar-Camera Fusion for Long-Range 3D Perception in Autonomous Driving",
+      "abstract": "Long-range 3D object detection is critical for safe autonomous driving at highway speeds, yet existing radar-camera fusion methods remain limited at extended ranges. BEV-based methods capture scene-level context but incur rapidly growing computation and often lose fine-grained object detail, while query-based methods are efficient but provide limited scene-level context. Temporal fusion further requires both multi-frame accumulation for sparse distant observations and object-level motion modeling for fast-moving objects. We propose Horizon3D, a sparse radar-camera fusion framework for long-range 3D object detection that combines Gaussian primitives with sparse BEV features. Horizon3D initializes Gaussian primitives at radar- and camera-estimated object keypoints using Keypoint-Guided Gaussian Initialization, refines them through Object-Centric Sparse Fusion, and splats them onto the BEV plane to fuse object-level detail with sparse radar BEV context. It further introduces Dual-Path Temporal Fusion, which aggregates temporal cues through a BEV path for scene-level accumulation and a Gaussian path for object-level motion propagation. Experiments on TruckScenes show that Horizon3D achieves state-of-the-art radar-camera 3D detection performance. On the validation set, it outperforms the previous best method by +3.0 NDS and +1.6 mAP while maintaining competitive inference speed.",
+      "authors": [
+        "Geonho Bang",
+        "Geunju Baek",
+        "Dongyoung Lee",
+        "Wonjun Jeong",
+        "Jun Won Choi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T03:36:00+00:00",
+      "link": "https://arxiv.org/pdf/2606.31096v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "sparse radar-camera fusion framework for long-range 3D object detection",
+      "llm_evidence_cn": "提出稀疏雷达-相机融合框架用于远距3D目标检测",
+      "llm_evidence": "提出稀疏雷达-相机融合框架用于远距3D目标检测",
+      "canonical_evidence": "提出稀疏雷达-相机融合框架用于远距3D目标检测",
+      "llm_tldr_en": "Horizon3D combines Gaussian primitives with sparse BEV features for long-range 3D object detection using radar and camera, addressing the challenge of sparse distant observations in autonomous driving.",
+      "llm_tldr_cn": "针对自动驾驶中远距离3D目标检测面临雷达-相机融合精度不足的问题，提出Horizon3D框架，利用高斯原语与稀疏BEV特征相结合，通过雷达和相机的稀疏融合实现高效的长程3D感知，在远距离检测任务中显著提升性能。方法结合多帧积累与目标运动建模，克服了远距离观测稀疏和快速运动物体的挑战，实验证明其有效性。",
+      "llm_tldr": "针对自动驾驶中远距离3D目标检测面临雷达-相机融合精度不足的问题，提出Horizon3D框架，利用高斯原语与稀疏BEV特征相结合，通过雷达和相机的稀疏融合实现高效的长程3D感知，在远距离检测任务中显著提升性能。方法结合多帧积累与目标运动建模，克服了远距离观测稀疏和快速运动物体的挑战，实验证明其有效性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
