@@ -6,37 +6,32 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-04
-- 运行时间：2026-07-04 21:37:05 UTC
+- 最新运行日期：2026-07-05
+- 运行时间：2026-07-05 21:25:01 UTC
 - 运行状态：成功
-- 本次总论文数：5
-- 精读区：3
-- 速读区：2
+- 本次总论文数：3
+- 精读区：0
+- 速读区：3
 
 ### 今日简报（AI）
-今日聚焦3D目标检测，精读两篇高分论文探索纯视觉检测的知识蒸馏提效与开放天气鲁棒性提升，速读则涉及LiDAR攻击与远距离融合。  
-值得关注的方向：C2E通过多教师对比蒸馏让仅自我中心检测性能大幅跃升，以及双评论扩散对齐为恶劣天气3D感知提供高鲁棒框架。  
-建议跟进速读中的可解释性感知视锥攻击，警惕3D检测器的结构性安全风险。
-- 详情：[/202607/04/README](/202607/04/README)
+今日速读三篇感知前沿论文：探索LiDAR超分辨的异常感知、多视图雷达的结构一致性语义分割，以及融合Transformer的RGB-事件目标检测。  
+最值得关注的方向是将离群点感知引入LiDAR超分辨以服务SLAM，以及用结构一致性约束提升雷达分割精度。  
+建议侧重跟进行车场景的多模态融合思路，这对提升自动驾驶在恶劣环境下的稳定性很有帮助。
+- 详情：[/202607/05/README](/202607/05/README)
 
 ### 精读区论文标签
-1. [C2E: Boosting Ego-Only 3D Object Detection via Multi-Teacher Contrastive Knowledge Distillation](/202607/04/2607.01827v1-c2e-boosting-ego-only-3d-object-detection-via-multi-teacher-contrastive-knowledge-distillation)  
-   标签：评分：9.0/10、query:lidar-d-det
-   evidence：基于LiDAR的3D目标检测，通过新颖的知识蒸馏框架提升单智能体感知性能。
-2. [Open-Weather Robust 3D Detection via Dual-Critic Diffusion Alignment](/202607/04/2607.01983v1-open-weather-robust-3d-detection-via-dual-critic-diffusion-alignment)  
-   标签：评分：9.0/10、query:stage-d-det
-   evidence：LiDAR-4D雷达成像融合，基于扩散的特征恢复以应对恶劣天气
-3. [Comprehensive Robustness Analysis of LiDAR-based 3D Object Detection in Autonomous Driving](/202607/04/2607.02074v1-comprehensive-robustness-analysis-of-lidar-based-3d-object-detection-in-autonomous-driving)  
-   标签：评分：9.0/10、query:lidar-d-det
-   evidence：分析仅依赖LiDAR的3D目标检测模型的对抗鲁棒性
+- 本次无精读推荐。
 
 ### 速读区论文标签
-1. [Explainability-Aware Frustum Attack: Exposing Structural Vulnerabilities in LiDAR-Based 3D Object Detectors](/202607/04/2606.29963v2-explainability-aware-frustum-attack-exposing-structural-vulnerabilities-in-lidar-based-3d-object-detectors)  
+1. [Fast and Accurate Outlier-Aware LiDAR Super-Resolution for SLAM Applications](/202607/05/2606.28607v1-fast-and-accurate-outlier-aware-lidar-super-resolution-for-slam-applications)  
    标签：评分：7.0/10、query:lidar-d-det
-   evidence：利用显著性引导的对抗攻击分析基于LiDAR的3D物体检测器的漏洞
-2. [Horizon3D: Sparse Radar-Camera Fusion for Long-Range 3D Perception in Autonomous Driving](/202607/04/2606.31096v1-horizon3d-sparse-radar-camera-fusion-for-long-range-3d-perception-in-autonomous-driving)  
+   evidence：从低分辨率LiDAR数据重建高分辨率点云，实现稠密深度估计
+2. [Learning Structurally Consistent Representations for Multi-View Radar Semantic Segmentation](/202607/05/2606.31609v1-learning-structurally-consistent-representations-for-multi-view-radar-semantic-segmentation)  
    标签：评分：7.0/10、query:lidar-d-det
-   evidence：提出稀疏雷达-相机融合框架用于远距3D目标检测
+   evidence：利用超图捕获稀疏雷达特征的高阶依赖，类似于稀疏点云的注意力聚合
+3. [CMTFormer: Marrying Transformer with Hierarchical Information Interaction for RGB-Event Object Detection](/202607/05/2606.29136v1-cmtformer-marrying-transformer-with-hierarchical-information-interaction-for-rgb-event-object-detection)  
+   标签：评分：6.0/10、query:lidar-d-det
+   evidence：层次化融合RGB和事件模态进行目标检测
 
 
 <div class="dpr-home-promo-card">

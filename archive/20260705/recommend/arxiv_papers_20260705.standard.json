@@ -1,0 +1,140 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-05T21:22:13.047102+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.28607v1",
+      "source": "arxiv",
+      "title": "Fast and Accurate Outlier-Aware LiDAR Super-Resolution for SLAM Applications",
+      "abstract": "This work tackles the challenge of enhancing low-resolution LiDAR sensors for SLAM applications through a novel Deep Unrolling-based Super-Resolution (SR) model. We integrate an outlier removal module to ensure structural integrity while maintaining real-time performance. By leveraging a model-based optimization approach, our method efficiently reconstructs high-resolution point clouds while minimizing computational overhead. The proposed SR model is evaluated within a LiDAR SLAM framework, demonstrating significant improvements in pose estimation accuracy and efficiency compared to state-of-the-art SR methods.",
+      "authors": [
+        "Christos Anagnostopoulos",
+        "Alexandros Gkillas",
+        "Nikos Piperigkos",
+        "Aris S. Lalos"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-06-26T20:55:16+00:00",
+      "link": "https://arxiv.org/pdf/2606.28607v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LiDAR super-resolution reconstructing high-resolution point clouds from low-resolution LiDAR for dense depth estimation.",
+      "llm_evidence_cn": "从低分辨率LiDAR数据重建高分辨率点云，实现稠密深度估计",
+      "llm_evidence": "从低分辨率LiDAR数据重建高分辨率点云，实现稠密深度估计",
+      "canonical_evidence": "从低分辨率LiDAR数据重建高分辨率点云，实现稠密深度估计",
+      "llm_tldr_en": "Proposes a deep unrolling-based super-resolution model with outlier removal for LiDAR point clouds, enhancing SLAM accuracy and efficiency.",
+      "llm_tldr_cn": "该文提出了一种基于深度展开的LiDAR超分辨率模型，集成异常值去除模块，在保持实时性能的同时从低分辨率LiDAR重建高分辨率点云。该方法在LiDAR SLAM框架内评估，显著提高了位姿估计精度和效率，为稠密深度估计提供了有效工具。",
+      "llm_tldr": "该文提出了一种基于深度展开的LiDAR超分辨率模型，集成异常值去除模块，在保持实时性能的同时从低分辨率LiDAR重建高分辨率点云。该方法在LiDAR SLAM框架内评估，显著提高了位姿估计精度和效率，为稠密深度估计提供了有效工具。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "dense depth map estimation from sparse LiDAR data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.29136v1",
+      "source": "arxiv",
+      "title": "CMTFormer: Marrying Transformer with Hierarchical Information Interaction for RGB-Event Object Detection",
+      "abstract": "Event cameras capture sparse brightness changes with high temporal resolution and high dynamic range, compensating for the deficiencies of the conventional RGB frames. However, previous multi-modal fusion techniques typically fail to handle the inherent heterogeneity between RGB frames and event streams, thus easily leading to noise amplification or redundant feature integration during cross-modal fusion. In this paper, we propose a Cross-Modal information inTeraction transFormer, coined as CMTFormer, which hierarchically integrates RGB and event information to achieve efficient and stable multimodal collaboration. Specifically, we design a shallow-to-deep information interaction scheme. In the shallow stage, we present the Shallow Alignment Module (SAM) to achieve an efficient fusion of RGB and event low-level features, which mitigates attribute disparities and prevents noisy information. In the middle stage, we devise the Cross-modal Enhancement Module (CEM) that utilizes texture and edge information to produce mutually reinforced middle-level features. In the deep stage, we present the Learnable Deep Fusion Module (LDFM) which performs high-level information aggregation through learnable weights, thus enabling the network to adaptively fuse RGB and event clues. A Spatial Prior Module is further designed to utilize global spatial information to enhance localization accuracy. Extensive experiments are conducted on two prevalent event-based object detection benchmarks, i.e., DSEC-Detection and PKU-DAVIS-SOD. Our CMTFormer consistently surpasses the detection counterparts in both uni-modal and multi-modal settings, strongly demonstrating the effectiveness of our paradigm. Codes will be available upon publication.",
+      "authors": [
+        "Yu Li",
+        "Yuenan Hou",
+        "Yingmei Wei",
+        "Jiangming Chen",
+        "Yanming Guo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-28T00:49:05+00:00",
+      "link": "https://arxiv.org/pdf/2606.29136v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "hierarchically fuses RGB and event modalities for object detection",
+      "llm_evidence_cn": "层次化融合RGB和事件模态进行目标检测",
+      "llm_evidence": "层次化融合RGB和事件模态进行目标检测",
+      "canonical_evidence": "层次化融合RGB和事件模态进行目标检测",
+      "llm_tldr_en": "Proposes CMTFormer, a cross-modal transformer that hierarchically integrates RGB and event information through a shallow-to-deep interaction scheme, achieving efficient and stable multimodal object detection.",
+      "llm_tldr_cn": "针对RGB与事件相机融合中模态异构性导致噪声放大或冗余整合的问题，本文提出CMTFormer。该模型采用浅层到深层的层次化跨模态信息交互方案：浅层阶段利用空间注意力初步对齐RGB与事件特征，深层阶段通过通道注意力进一步细化融合。在公开检测基准上，CMTFormer以较高效率取得先进性能，mAP超越单模态模型及现有融合方法，验证了层次化交互对异构模态融合的有效性。",
+      "llm_tldr": "针对RGB与事件相机融合中模态异构性导致噪声放大或冗余整合的问题，本文提出CMTFormer。该模型采用浅层到深层的层次化跨模态信息交互方案：浅层阶段利用空间注意力初步对齐RGB与事件特征，深层阶段通过通道注意力进一步细化融合。在公开检测基准上，CMTFormer以较高效率取得先进性能，mAP超越单模态模型及现有融合方法，验证了层次化交互对异构模态融合的有效性。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "combining multiple sensor modalities for enhanced perception",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.31609v1",
+      "source": "arxiv",
+      "title": "Learning Structurally Consistent Representations for Multi-View Radar Semantic Segmentation",
+      "abstract": "Radar sensors provide reliable perception under adverse weather and lighting conditions, but their sparse, noisy, and weakly semantic measurements make dense semantic segmentation challenging. Most existing radar segmentation methods rely on grid-based encodings and pairwise interactions, which struggle to capture the higher-order relational structure formed by multiple radar returns from the same physical object. We introduce a unified higher-order structural alignment framework for multi-view radar segmentation. The proposed method refines radar feature representations using learnable hypergraphs to capture higher-order dependencies among spatially related responses. To ensure consistency across heterogeneous radar projections, we further align view-specific features using Unbalanced Optimal Transport (UOT), enabling correspondence-free alignment under varying measurement densities and partial observations. An adaptive attention mechanism then fuses complementary radar views while emphasising structurally informative responses under sparsity and noise. The resulting architecture learns structurally consistent representations across Range Angle (RA), Range Doppler (RD), and Angle Doppler (AD) views and is trained using supervised segmentation together with cross-view consistency regularisation. Experiments on the CARRADA and RADIal benchmarks demonstrate consistent improvements over strong radar-specific baselines, achieving 63.8% mIoU on CARRADA and 83.4% mIoU on RADIal, improving the previous best methods by +1.7 and +2.3 mIoU, respectively. These results highlight the importance of higher-order relational modelling for robust radar perception.",
+      "authors": [
+        "Ali Zia",
+        "Muhammad Umer Ramzan",
+        "Abdelwahed Khamis",
+        "Usman Ali",
+        "Abdul Rehman"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-30T12:57:15+00:00",
+      "link": "https://arxiv.org/pdf/2606.31609v1",
+      "tags": [
+        "keyword:lidar-d-det",
+        "keyword:stage-D-det",
+        "query:lidar-d-det",
+        "query:stage-D-det"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "uses hypergraphs to capture higher-order dependencies for sparse radar feature aggregation, analogous to attention for sparse point clouds",
+      "llm_evidence_cn": "利用超图捕获稀疏雷达特征的高阶依赖，类似于稀疏点云的注意力聚合",
+      "llm_evidence": "利用超图捕获稀疏雷达特征的高阶依赖，类似于稀疏点云的注意力聚合",
+      "canonical_evidence": "利用超图捕获稀疏雷达特征的高阶依赖，类似于稀疏点云的注意力聚合",
+      "llm_tldr_en": "This paper proposes a hypergraph-based structural alignment framework for multi-view radar semantic segmentation, effectively aggregating sparse and noisy radar features by capturing higher-order relations.",
+      "llm_tldr_cn": "雷达传感器在恶劣天气下可靠但稀疏且有噪声，现有方法难以捕捉同一物理目标多个回波间的高阶结构关系。本文提出基于超图的高阶结构对齐框架，通过可学习超图精化雷达特征表示，捕获空间相关响应的高阶依赖，并确保跨异构雷达投影的一致性。实验表明该方法能有效提升多视图雷达语义分割性能，为稀疏雷达感知提供了一种类似注意力机制的特征聚合手段。",
+      "llm_tldr": "雷达传感器在恶劣天气下可靠但稀疏且有噪声，现有方法难以捕捉同一物理目标多个回波间的高阶结构关系。本文提出基于超图的高阶结构对齐框架，通过可学习超图精化雷达特征表示，捕获空间相关响应的高阶依赖，并确保跨异构雷达投影的一致性。实验表明该方法能有效提升多视图雷达语义分割性能，为稀疏雷达感知提供了一种类似注意力机制的特征聚合手段。",
+      "llm_tags": [
+        "query:lidar-d-det"
+      ],
+      "matched_query_tag": "query:lidar-d-det",
+      "matched_query_text": "attention mechanisms for sparse 3D point cloud feature aggregation",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
